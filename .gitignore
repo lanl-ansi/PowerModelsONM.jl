@@ -1,0 +1,11 @@
+.DS_Store
+
+*.jl.cov
+*.jl.*.cov
+*.jl.mem
+deps/deps.jl
+docs/build
+
+output.json
+
+.ipynb_checkpoints/
