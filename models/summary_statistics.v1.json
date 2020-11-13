@@ -8,5 +8,6 @@
     "id": {
       "type": "string"
     }
-  }
+  },
+  "description": "TODO"
 }
