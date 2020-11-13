@@ -1,0 +1,14 @@
+{
+  "title": "fuse",
+  "type": "object",
+  "x-tags": [
+    "input"
+  ],
+  "description": "Input schema for fuse objects for PowerModelsProtection",
+  "properties": {
+    "minimum_melting_curve": {
+      "type": "string",
+      "description": "TODO"
+    }
+  }
+}

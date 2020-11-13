@@ -1,0 +1,113 @@
+{
+  "title": "output",
+  "type": "object",
+  "x-tags": [
+    "output"
+  ],
+  "properties": {
+    "simulation_time_steps": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "load_served": {
+      "type": "object",
+      "properties": {
+        "feeder_load_percent": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "format": "float"
+          }
+        },
+        "microgrid_load_percent": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "format": "float"
+          }
+        },
+        "bonus_load_via_microgrid_percent": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "format": "float"
+          }
+        }
+      }
+    },
+    "generator_profiles": {
+      "type": "object",
+      "properties": {
+        "grid_mix_kw": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "solar_dg_kw": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "energy_storage_kw": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "diesel_dg_kw": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "voltages": {
+      "type": "object",
+      "properties": {
+        "min_voltage_pu": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "mean_voltage_pu": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "max_voltage_pu": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "storage_soc_percent": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
+    "device_activation_timeline": {
+      "type": "array",
+      "items": {
+        "$ref": "./device_activation.v1.json"
+      }
+    },
+    "powerflow_output": {
+      "$ref": "./powerflow.v1.json"
+    },
+    "summary_statistics": {
+      "type": "object"
+    }
+  },
+  "description": "Main output schema for PowerModelsONM"
+}

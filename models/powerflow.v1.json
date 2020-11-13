@@ -1,0 +1,16 @@
+{
+  "title": "powerflow",
+  "type": "object",
+  "x-tags": [
+    "output"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "voltage_v": {
+      "type": "number"
+    }
+  },
+  "description": "Powerflow output schema"
+}

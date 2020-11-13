@@ -1,0 +1,12 @@
+{
+  "title": "summary_statistics",
+  "type": "object",
+  "x-tags": [
+    "output"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    }
+  }
+}

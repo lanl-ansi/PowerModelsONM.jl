@@ -1,0 +1,28 @@
+{
+  "title": "recloser",
+  "type": "object",
+  "x-tags": [
+    "input"
+  ],
+  "properties": {
+    "line_angle1": {
+      "type": "number",
+      "format": "float",
+      "description": "TODO"
+    },
+    "line_angle0": {
+      "type": "number",
+      "format": "float",
+      "description": "TODO"
+    },
+    "dispatchable": {
+      "type": "boolean",
+      "description": "TODO"
+    },
+    "armed": {
+      "type": "boolean",
+      "description": "TODO"
+    }
+  },
+  "description": "Input schema for recloser objects for PowerModelsProtection"
+}
