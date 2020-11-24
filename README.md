@@ -41,11 +41,11 @@ This will execute with the following defaults:
 
 From PowerModelsRONMLib, use the following networks:
 
-- `iowa240/high_side_equiv` (no time series, for testing)
-- `iowa240/der` (time series for solar only)
-- `iowa240/time_series/03_05` (full time series, loads and PV)
-- `iowa240/time_series/03_06` (full time series, loads and PV)
-- `iowa240/time_series/03_15` (full time series, loads and PV)
+1. `iowa240/Master_hse_der_ts_03_05.dss`: 24h load shapes added to High Side Equivalent DER version for 03/05
+1. `iowa240/Master_hse_der_ts_03_06.dss`: 24h load shapes added to High Side Equivalent DER version for 03/06
+1. `iowa240/Master_hse_der_ts_03_15.dss`: 24h load shapes added to High Side Equivalent DER version for 03/15
+1. `iowa240/Master_hse_der_ts_03_05_c_1.dss`: 03/05 loadshapes with contingency on substation transformer
+1. `iowa240/Master_hse_der_ts_03_05_c_2.dss`: 03/05 loadshapes with contingency on feeder trunks
 
 ## Output format
 
