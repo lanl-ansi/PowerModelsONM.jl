@@ -1,5 +1,7 @@
 # PowerModelsONM
 
+![CI](https://github.com/lanl-ansi/PowerModelsONM.jl/workflows/CI/badge.svg) ![Documentation](https://github.com/lanl-ansi/PowerModelsONM.jl/workflows/Documentation/badge.svg)
+
 This package will combine various parts of the PowerModelsDistribution ecosystem to support the operation of networked microgrids.
 
 Currently, only PowerModelsDistribution is being used in this prototype, so no actions are being performed other than generator dispatch (opf), and `"Device action timeline"` in the output specification will not be populated yet. Also, no additional inputs are needed yet other than a network case.
