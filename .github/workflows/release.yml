@@ -56,7 +56,7 @@ jobs:
         run: julia -q --project=. -e 'using PackageCompiler; create_app("$(pwd())", "build");'
       - name: Compress binary - windows
         if: matrix.os == 'windows-latest'
-        run: 7z a -tzip build.zip ./build*
+        run: 7z a -tzip build.zip ./build/*
       - name: Compress binary - mac / linux
         if: matrix.os != 'windows-latest'
         run: zip build.zip ./build/*
