@@ -2,10 +2,10 @@ on:
   push:
     tags:
     - 'v*'
-name: Upload Release Asset
+name: Realease
 jobs:
   create_release:
-    name: Create Release
+    name: Create GitHub Release
     runs-on: ubuntu-latest
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
@@ -21,7 +21,7 @@ jobs:
           draft: false
           prerelease: false
   build_release:
-    name: Build release - Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
+    name: Build release - ${{ matrix.os }} - ${{ matrix.arch }}
     needs: create_release
     runs-on: ${{ matrix.os }}
     strategy:
