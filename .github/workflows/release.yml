@@ -52,8 +52,9 @@ jobs:
             ${{ runner.os }}-
       - uses: julia-actions/julia-buildpkg@latest
       - name: Build binary
+        shell: bash
         run: |
-          julia -q --project=. -e 'using PackageCompiler; create_app(".", "build");'
+          julia -q --project=. -e 'using PackageCompiler; create_app("$(pwd())", "build");'
           zip --junk-paths build.zip build/bin/*
       - name: Upload Release Asset
         id: upload-release-asset
