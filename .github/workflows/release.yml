@@ -3,12 +3,13 @@ on:
     # Sequence of patterns matched against refs/tags
     tags:
     - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
-
 name: Upload Release Asset
-
 jobs:
-  release:
+  create_release:
+    name: Create Release
     runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
       - name: Create Release
         id: create_release
@@ -20,9 +21,9 @@ jobs:
           release_name: Release ${{ github.ref }}
           draft: false
           prerelease: false
-
-  build:
+  build_release:
     name: Build release - Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
+    needs: create_release
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -53,14 +54,14 @@ jobs:
       - name: Build binary # This would actually build your project, using zip for an example artifact
         run: |
           julia -q --project=. -e 'using PackageCompiler; create_app(".", "build");'
-          zip --junk-paths build build/bin
+          zip -r build.zip build/bin/*
       - name: Upload Release Asset
         id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ jobs.release.steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
           asset_path: ./build.zip
           asset_name: PowerModelsONM_${{ matrix.os }}_${{ matrix.arch }}.zip
           asset_content_type: application/zip
