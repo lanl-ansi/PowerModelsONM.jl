@@ -20,5 +20,7 @@ module PowerModelsONM
     include("core/io.jl")
     include("core/statistics.jl")
 
+    include("app/main.jl")
+
     include("core/export.jl")
 end # module

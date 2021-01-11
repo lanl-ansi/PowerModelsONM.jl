@@ -1,4 +1,4 @@
-.PHONY: test
+.PHONY: test build build-docker test-docker
 
 TAG = latest
 
@@ -6,9 +6,9 @@ TAG = latest
 build-docker:
 	docker build -f Dockerfile -t PowerModelsONM:dev ${CURDIR}
 
-# TODO: build binary
+# build binary
 build:
-	echo "TODO"
+	julia -q --project=. -e 'using PackageCompiler; create_app(".", "build"; force=true);'
 
 # TODO: build unit tests, add network to docker container
 test-docker:
