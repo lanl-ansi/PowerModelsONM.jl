@@ -1,0 +1,13 @@
+{
+  "title": "device_activation",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    }
+  },
+  "x-tags": [
+    "output"
+  ],
+  "description": "Device activation schema (TODO)"
+}
