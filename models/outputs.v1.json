@@ -4,6 +4,7 @@
   "x-tags": [
     "output"
   ],
+  "description": "Main output schema for PowerModelsONM",
   "properties": {
     "simulation_time_steps": {
       "type": "array",
@@ -107,7 +108,9 @@
     },
     "summary_statistics": {
       "type": "object"
+    },
+    "events": {
+      "$ref": "./events.v1.json"
     }
-  },
-  "description": "Main output schema for PowerModelsONM"
+  }
 }
