@@ -49,7 +49,9 @@ function entrypoint(args::Dict{String,<:Any})
         Memento.setlevel!(Memento.getlogger(PowerModelsONM.PMD._PM), "error")
     end
 
-    data_eng, data_math = prepare_network_case(args["network-file"])
+    events = haskey(args, "events-file") ? parse_events(args["events-file"]) : Dict{String,Any}()
+
+    data_eng, data_math = prepare_network_case(args["network-file"]; events=events)
 
     form = get_formulation(args["formulation"])
     problem = get_problem(args["problem"], haskey(data_math, "nw"))
@@ -66,6 +68,8 @@ function entrypoint(args::Dict{String,<:Any})
     get_timestep_load_served!(output_data, sol_si, data_eng)
     get_timestep_generator_profiles!(output_data, sol_si)
     get_timestep_powerflow_output!(output_data, sol_si, data_eng)
+
+    output_data["events"] = events
 
     if !isempty(args["export"])
         open(args["export"], "w") do f
