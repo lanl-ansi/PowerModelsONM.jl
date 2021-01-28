@@ -58,3 +58,17 @@ function apply_events!(network::Dict{String,Any}, events::Vector{Dict})
         end
     end
 end
+
+
+""
+function parse_protection_tables(protection_file::String)::Dict{String,DataFrames.DataFrame}
+    protection_tables = Dict()
+
+    XLSX.openxlsx(protection_file, mode="r") do xf
+        for sheet_name in XLSX.sheetnames(xf)
+            protection_tables[sheet_name] = DataFrames.DataFrame(XLSX.gettable(xf[sheet_name])...)
+        end
+    end
+
+    return protection_tables
+end

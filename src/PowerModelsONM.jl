@@ -8,6 +8,8 @@ module PowerModelsONM
 
     import ArgParse
     import JSON
+    import XLSX
+    import DataFrames
     import Memento
 
     import Statistics: mean
