@@ -5,6 +5,8 @@ module PowerModelsONM
     const PMD = PowerModelsDistribution
 
     import Ipopt
+    import Cbc
+    import Juniper
 
     import ArgParse
     import JSON
