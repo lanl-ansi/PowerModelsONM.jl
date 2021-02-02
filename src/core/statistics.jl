@@ -66,3 +66,13 @@ function get_timestep_device_actions!(output::Dict{String,<:Any}, mn_data_math::
 end
 
 
+function get_timestep_protection_settings!(output_data::Dict{String,<:Any}, protection_data::Dict)
+    prop_names = propertynames(first(protection_data).first)
+    for device_settings in output_data["Device action timeline"]
+        if haskey(device_settings, "Switch configurations")
+            _config_dict = device_settings["Switch configurations"]
+            sw_config = NamedTuple{prop_names}(Tuple(get(_config_dict, string(name), "open") for name in prop_names))
+            push!(output_data["Protection Settings"], haskey(protection_data, sw_config) ? protection_data[sw_config] : Dict{String,Any}())
+        end
+    end
+end

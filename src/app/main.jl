@@ -77,6 +77,9 @@ function entrypoint(args::Dict{String,<:Any})
     get_timestep_generator_profiles!(output_data, sol_si)
     get_timestep_powerflow_output!(output_data, sol_si, data_eng)
 
+    protection_data = haskey(args, "protection-settings") && !isempty(args["protection-settings"]) ? parse_protection_tables(args["protection-settings"]) : Dict{NamedTuple,Dict{String,Any}}()
+    get_timestep_protection_settings!(output_data, protection_data)
+
     output_data["Events"] = events
 
     if !isempty(args["export"])
