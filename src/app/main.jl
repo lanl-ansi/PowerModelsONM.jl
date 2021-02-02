@@ -23,10 +23,14 @@ function parse_commandline()
             default = "./output.json"
         "--formulation", "-f"
             help = "mathematical formulation to solve (acr, acp, lindistflow, nfa)"
-            default = "lindistflow"
+            default = "acr"
         "--problem", "-p"
             help = "optimization problem type (opf, mld)"
-            default = "opf"
+            default = "mld"
+        "--protection-settings"
+            help = "XLSX (Excel) File with Protection settings"
+        "--events"
+            help = "Events (contingencies) file"
         "--verbose", "-v"
             help = "debug messages"
             action = :store_true
@@ -49,7 +53,7 @@ function entrypoint(args::Dict{String,<:Any})
         Memento.setlevel!(Memento.getlogger(PowerModelsONM.PMD._PM), "error")
     end
 
-    events = haskey(args, "events-file") ? parse_events(args["events-file"]) : Vector{Dict{String,Any}}([])
+    events = haskey(args, "events") ? parse_events(args["events"]) : Vector{Dict{String,Any}}([])
 
     data_eng, mn_data_eng = prepare_network_case(args["network-file"]; events=events)
     output_data = build_blank_output(data_eng)
