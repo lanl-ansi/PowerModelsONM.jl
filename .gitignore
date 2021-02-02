@@ -7,7 +7,7 @@ deps/deps.jl
 docs/build
 
 output.json
-test_output.json
+test_output*.json
 
 .ipynb_checkpoints/
 
