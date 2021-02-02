@@ -47,3 +47,22 @@ function get_timestep_powerflow_output!(output::Dict{String,<:Any}, sol_pu::Dict
         end
     end
 end
+
+
+function get_timestep_device_actions!(output::Dict{String,<:Any}, mn_data_math::Dict{String,<:Any})
+    switch_map = Dict{String,String}()
+    for item in mn_data_math["map"]
+        if endswith(item["unmap_function"], "switch!")
+            math_id = isa(item["to"], Array) ? split(item["to"][end], ".")[end] : split(item["to"], ".")[end]
+            switch_map[math_id] = item["from"]
+        end
+    end
+
+    for i in sort([parse(Int, k) for k in keys(mn_data_math["nw"])])
+        push!(output["Device action timeline"], Dict{String,Any}(
+            "Switch configurations" => Dict{String,Any}(switch_map[l] => isa(switch["state"], PMD.SwitchState) ? lowercase(string(switch["state"])) : lowercase(string(PMD.SwitchState(Int(round(switch["state"]))))) for (l, switch) in get(mn_data_math["nw"]["$i"], "switch", Dict()))
+        ))
+    end
+end
+
+

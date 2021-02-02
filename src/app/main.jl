@@ -58,9 +58,9 @@ function entrypoint(args::Dict{String,<:Any})
 
     solver = build_solver_instance(args["solver-tolerance"], get(args, "verbose", false))
 
-    result = solve_problem(problem, data_math, form, solver)
+    optimize_switches!(mn_data_math)
 
-    sol_pu, sol_si = transform_solutions(result["solution"], data_math)
+    get_timestep_device_actions!(output_data, mn_data_math)
 
     output_data = build_blank_output(data_eng)
 
