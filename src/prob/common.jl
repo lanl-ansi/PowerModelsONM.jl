@@ -16,3 +16,14 @@ function optimize_switches!(mn_data_math::Dict{String,Any})
     end
 end
 
+
+""
+function solve_problem(problem::Function, data_math::Dict{String,<:Any}, form, solver)::Dict{String,Any}
+    return problem(data_math, form, solver; multinetwork=haskey(data_math, "nw"), make_si=false, solution_processors=[PMD.sol_data_model!])
+end
+
+
+""
+function build_solver_instance(tolerance::Real, verbose::Bool=false)
+    return PMD.optimizer_with_attributes(Ipopt.Optimizer, "tol" => tolerance, "print_level" => verbose ? 3 : 0)
+end

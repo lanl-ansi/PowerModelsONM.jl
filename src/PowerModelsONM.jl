@@ -22,11 +22,14 @@ module PowerModelsONM
 
     include("core/common.jl")
     include("core/constraint_template.jl")
+    include("core/data.jl")
     include("core/objective.jl")
+    include("core/solution.jl")
     include("core/statistics.jl")
 
     include("form/shared.jl")
 
+    include("io/inputs.jl")
     include("io/outputs.jl")
 
     include("prob/common.jl")
