@@ -49,27 +49,35 @@ function entrypoint(args::Dict{String,<:Any})
         Memento.setlevel!(Memento.getlogger(PowerModelsONM.PMD._PM), "error")
     end
 
-    events = haskey(args, "events-file") ? parse_events(args["events-file"]) : Dict{String,Any}()
+    events = haskey(args, "events-file") ? parse_events(args["events-file"]) : Vector{Dict{String,Any}}([])
 
-    data_eng, data_math = prepare_network_case(args["network-file"]; events=events)
+    data_eng, mn_data_eng = prepare_network_case(args["network-file"]; events=events)
+    output_data = build_blank_output(data_eng)
+
+    mn_data_math = PMD._map_eng2math_multinetwork(mn_data_eng)
+    PMD.correct_network_data!(mn_data_math; make_pu=true)
 
     form = get_formulation(args["formulation"])
-    problem = get_problem(args["problem"], haskey(data_math, "nw"))
+    problem = get_problem(args["problem"], haskey(mn_data_math, "nw"))
 
     solver = build_solver_instance(args["solver-tolerance"], get(args, "verbose", false))
+
+    result = solve_problem(problem, mn_data_math, form, solver)
+
+    apply_load_shed!(mn_data_math, result)
 
     optimize_switches!(mn_data_math)
 
     get_timestep_device_actions!(output_data, mn_data_math)
 
-    output_data = build_blank_output(data_eng)
+    sol_pu, sol_si = transform_solutions(result["solution"], mn_data_math)
 
     get_timestep_voltage_stats!(output_data, sol_pu, data_eng)
     get_timestep_load_served!(output_data, sol_si, data_eng)
     get_timestep_generator_profiles!(output_data, sol_si)
     get_timestep_powerflow_output!(output_data, sol_si, data_eng)
 
-    output_data["events"] = events
+    output_data["Events"] = events
 
     if !isempty(args["export"])
         open(args["export"], "w") do f
