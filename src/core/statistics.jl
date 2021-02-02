@@ -66,6 +66,13 @@ function get_timestep_device_actions!(output::Dict{String,<:Any}, mn_data_math::
 end
 
 
+function get_timestep_storage_soc!(output::Dict{String,<:Any}, sol_si::Dict{String,<:Any}, data_eng::Dict{String,<:Any})
+    for i in sort([parse(Int, k) for k in keys(sol_si["nw"])])
+        push!(output["Storage SOC (%)"], 100.0 * sum(strg["se"] for strg in values(sol_si["nw"]["$i"]["storage"])) / sum(strg["energy_ub"] for strg in values(data_eng["storage"])))
+    end
+end
+
+
 function get_timestep_protection_settings!(output_data::Dict{String,<:Any}, protection_data::Dict)
     prop_names = propertynames(first(protection_data).first)
     for device_settings in output_data["Device action timeline"]
