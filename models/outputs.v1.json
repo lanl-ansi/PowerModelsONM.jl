@@ -111,6 +111,9 @@
     },
     "events": {
       "$ref": "./events.v1.json"
+    },
+    "protection_settings": {
+      "$ref": "./protection_settings.v1.json"
     }
   }
 }
