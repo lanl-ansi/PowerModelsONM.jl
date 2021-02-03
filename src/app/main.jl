@@ -53,7 +53,7 @@ function entrypoint(args::Dict{String,<:Any})
         Memento.setlevel!(Memento.getlogger(PowerModelsONM.PMD._PM), "error")
     end
 
-    events = haskey(args, "events") ? parse_events(args["events"]) : Vector{Dict{String,Any}}([])
+    events = haskey(args, "events") && !isempty(args["events"]) && !isnothing(args["events"]) ? parse_events(args["events"]) : Vector{Dict{String,Any}}([])
 
     data_eng, mn_data_eng = prepare_network_case(args["network-file"]; events=events)
     output_data = build_blank_output(data_eng)
@@ -82,7 +82,7 @@ function entrypoint(args::Dict{String,<:Any})
     get_timestep_powerflow_output!(output_data, sol_si, data_eng)
     get_timestep_storage_soc!(output_data, sol_si, data_eng)
 
-    protection_data = haskey(args, "protection-settings") && !isempty(args["protection-settings"]) ? parse_protection_tables(args["protection-settings"]) : Dict{NamedTuple,Dict{String,Any}}()
+    protection_data = haskey(args, "protection-settings") && !isempty(args["protection-settings"]) && !isnothing(args["protection-settings"]) ? parse_protection_tables(args["protection-settings"]) : Dict{NamedTuple,Dict{String,Any}}()
     get_timestep_protection_settings!(output_data, protection_data)
 
     output_data["Events"] = events
