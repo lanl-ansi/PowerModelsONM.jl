@@ -13,6 +13,16 @@ function optimize_switches!(mn_data_math::Dict{String,Any})
         for (l, switch) in result["solution"]["switch"]
             mn_data_math["nw"][n]["switch"][l]["state"] = switch["state"]
         end
+        for (l, gen) in result["solution"]["gen"]
+            for (k,v) in gen
+                mn_data_math["nw"][n]["gen"][l][k] = v
+            end
+        end
+        for (l, strg) in result["solution"]["storage"]
+            for (k,v) in strg
+                mn_data_math["nw"][n]["storage"][l][k] = v
+            end
+        end
     end
 end
 
