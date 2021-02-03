@@ -29,8 +29,10 @@ function parse_commandline()
             default = "mld"
         "--protection-settings"
             help = "XLSX (Excel) File with Protection settings"
+            default = ""
         "--events"
             help = "Events (contingencies) file"
+            default = ""
         "--verbose", "-v"
             help = "debug messages"
             action = :store_true
