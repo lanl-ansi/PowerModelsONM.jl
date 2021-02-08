@@ -30,6 +30,9 @@ function parse_commandline()
         "--protection-settings"
             help = "XLSX (Excel) File with Protection settings"
             default = ""
+        "--faults"
+            help = "json file defining faults over which to perform fault study"
+            default = ""
         "--events"
             help = "Events (contingencies) file"
             default = ""
@@ -89,6 +92,10 @@ function entrypoint(args::Dict{String,<:Any})
     form = get_formulation(args["formulation"])
     problem = get_problem(args["problem"], haskey(mn_data_math, "nw"))
     result = solve_problem(problem, mn_data_math, form, solver; solution_processors=[PMD.sol_data_model!])
+
+    if haskey(args, "faults") && !isempty(args["faults"])
+        faults = parse_faults(args["faults"])
+    end
 
     # Build solutions for statistics outputs
     sol_pu, sol_si = transform_solutions(result["solution"], mn_data_math);
