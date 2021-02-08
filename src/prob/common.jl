@@ -39,3 +39,18 @@ end
 function build_solver_instance(tolerance::Real, verbose::Bool=false)
     return PMD.optimizer_with_attributes(Ipopt.Optimizer, "tol" => tolerance, "print_level" => verbose ? 3 : 0)
 end
+
+
+""
+function run_fault_study(mn_data_math::Dict{String,Any}, faults::Dict{String,Any}, solver)::Vector{Dict{String,Any}}
+    results = []
+    for (n, nw) in mn_data_math["nw"]
+        nw["method"] = "PMD"
+        nw["time_elapsed"] = 1.0
+        nw["fault"] = faults
+        nw["bus_lookup"] = mn_data_math["bus_lookup"]
+        push!(results, PowerModelsProtection.run_mc_fault_study(nw, solver))
+    end
+
+    return results
+end
