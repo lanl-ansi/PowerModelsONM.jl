@@ -52,7 +52,7 @@ end
 ""
 function entrypoint(args::Dict{String,<:Any})
     if !get(args, "verbose", false)
-        Memento.setlevel!(Memento.getlogger(PowerModelsONM.PMD._PM), "error")
+        silence!()
     end
 
     # Load events
@@ -118,4 +118,10 @@ function entrypoint(args::Dict{String,<:Any})
     open(args["output-file"], "w") do f
         JSON.print(f, output_data, 2)
     end
+end
+
+
+""
+function silence!()
+    Memento.setlevel!(Memento.getlogger(PowerModelsONM.PMD._PM), "error")
 end
