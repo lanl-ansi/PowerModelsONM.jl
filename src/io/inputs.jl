@@ -23,6 +23,8 @@ data_dss = PMD.parse_dss(network_file)
 
     mn_data_eng = PMD._build_eng_multinetwork(data_eng)
 
+    apply_events!(mn_data_eng, events)
+
     return data_eng, mn_data_eng
 end
 

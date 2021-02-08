@@ -25,7 +25,7 @@ function make_multinetwork!(data_eng, data_math, sol_pu, sol_si)
 end
 
 
-""
+"expects engineering network (multi of single)"
 function apply_events!(network::Dict{String,Any}, events::Vector{<:Dict{String,Any}})
     for event in events
         source_id = event["affected_asset"]
@@ -48,7 +48,7 @@ function apply_events!(network::Dict{String,Any}, events::Vector{<:Dict{String,A
             end
 
         else
-            @warn "event of type '$(event["event_type"])' is not yet supported in PowerModelsONM"
+            @warn "event of type '$(event["event_type"])' at timestep $(timestep) is not yet supported in PowerModelsONM"
         end
     end
 end
