@@ -76,7 +76,7 @@ function PowerModelsDistribution.constraint_mc_switch_power_on_off(pm::PMD.LPUBF
 
     connections = PMD.ref(pm, nw, :switch, i)["f_connections"]
 
-    rating = get(PMD.ref(pm, nw, :switch, i), "rate_a", fill(1, length(connections)))
+    rating = get(PMD.ref(pm, nw, :switch, i), "rate_a", fill(1e-2, length(connections)))
 
     for (idx, c) in enumerate(connections)
         if relax
@@ -101,7 +101,7 @@ function PowerModelsDistribution.constraint_mc_switch_state_on_off(pm::PMD.LPUBF
 
     for (fc, tc) in zip(f_connections, t_connections)
         if relax
-            M = 1
+            M = 0.2
             PMD.JuMP.@constraint(pm.model, w_fr[fc] - w_to[tc] <=  M * (1-z))
             PMD.JuMP.@constraint(pm.model, w_fr[fc] - w_to[tc] >= -M * (1-z))
         else
