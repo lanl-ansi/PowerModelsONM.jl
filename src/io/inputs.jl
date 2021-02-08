@@ -11,7 +11,7 @@ data_dss = PMD.parse_dss(network_file)
         end
     end
 
-    data_eng = PMD.parse_opendss(data_dss)
+    data_eng = PMD.parse_opendss(data_dss; import_all=true)
 
     data_eng["time_elapsed"] = 1.0  # 24 hours by default, 1 hr steps
 
