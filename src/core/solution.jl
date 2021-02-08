@@ -18,4 +18,108 @@ function apply_load_shed!(mn_data_math::Dict{String,Any}, result::Dict{String,An
             mn_data_math["nw"][n]["load"][l]["qd"] = load["qd"]
         end
     end
+
+    update_start_values!(mn_data_math, result["solution"])
+end
+
+
+""
+function sol_ldf2acr!(pm::PMD.LPUBFDiagModel, solution::Dict{String,<:Any})
+    if haskey(solution, "nw")
+        nws_data = solution["nw"]
+        nws_pm_data = pm.data["nw"]
+    else
+        nws_data = Dict("0" => solution)
+        nws_pm_data = Dict("0" => pm.data)
+    end
+
+    for (n, nw_data) in nws_data
+        if haskey(nw_data, "bus")
+            for (i, bus) in nw_data["bus"]
+                if haskey(bus, "w")
+                    bus_data = nws_pm_data[n]["bus"][i]
+                    bus["vr"] = sqrt.(bus["w"]) .* [cos.(PMD._wrap_to_pi(zeros(3)))[t] for t in bus_data["terminals"][.!bus_data["grounded"]]]
+                    bus["vi"] = sqrt.(bus["w"]) .* [sin.(PMD._wrap_to_pi(zeros(3)))[t] for t in bus_data["terminals"][.!bus_data["grounded"]]]
+                end
+            end
+        end
+    end
+end
+
+
+""
+function sol_ldf2acp!(pm::PMD.LPUBFDiagModel, solution::Dict{String,<:Any})
+    if haskey(solution, "nw")
+        nws_data = solution["nw"]
+        nws_pm_data = pm.data["nw"]
+    else
+        nws_data = Dict("0" => solution)
+        nws_pm_data = Dict("0" => pm.data)
+    end
+
+    for (n, nw_data) in nws_data
+        if haskey(nw_data, "bus")
+            for (i, bus) in nw_data["bus"]
+                if haskey(bus, "w")
+                    bus_data = nws_pm_data[n]["bus"][i]
+                    bus["vm"] = sqrt.(bus["w"])
+                    bus["va"] = [sin.(PMD._wrap_to_pi(zeros(3)))[t] for t in bus_data["terminals"][.!bus_data["grounded"]]]
+                end
+            end
+        end
+    end
+end
+
+
+"nothing to do"
+function sol_ldf2lindistflow!(pm::PMD.LPUBFDiagModel, solution::Dict{String,<:Any})
+end
+
+
+"nothing to do"
+function sol_ldf2nfa!(pm::PMD.LPUBFDiagModel, solution::Dict{String,<:Any})
+end
+
+
+""
+function update_start_values!(data::Dict{String,<:Any}, solution::Dict{String,<:Any})
+    if haskey(solution, "nw")
+        nws_solution = solution["nw"]
+        nws_data = data["nw"]
+    else
+        nws_solution = Dict("0" => solution)
+        nws_data = Dict("0" => data)
+    end
+
+    for (n, nw_sol) in nws_solution
+        for (type, objs) in nw_sol
+            if isa(objs, Dict)
+                for (i, obj) in objs
+                    for (k, v) in obj
+                        if !endswith(k, "_start")
+                            nws_data[n][type][i]["$(k)_start"] = v
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+
+""
+function update_switch_settings!(data::Dict{String,<:Any}, solution::Dict{String,<:Any})
+    if haskey(solution, "nw")
+        nws_solution = solution["nw"]
+        nws_data = data["nw"]
+    else
+        nws_solution = Dict("0" => solution)
+        nws_data = Dict("0" => data)
+    end
+
+    for (n, nw_sol) in nws_solution
+        for (l, switch) in get(nw_sol, "switch", Dict())
+            nws_data[n]["switch"][l]["state"] = switch["state"]
+        end
+    end
 end
