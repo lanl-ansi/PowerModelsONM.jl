@@ -6,14 +6,14 @@ const _formulations = Dict{String,Any}(
 )
 
 const _mn_problems = Dict{String,Any}(
-    "opf" => PMD.run_mn_mc_opf,
-    "mld" => PMD.run_mn_mc_mld_simple
+    "opf" => PMD.solve_mn_mc_opf,
+    "mld" => PMD.solve_mn_mc_mld_simple
 )
 
 const _problems = Dict{String,Any}(
-    "opf" => PMD.run_mc_opf,
-    "pf" => PMD.run_mc_pf,
-    "mld" => PMD.run_mc_mld
+    "opf" => PMD.solve_mc_opf,
+    "pf" => PMD.solve_mc_pf,
+    "mld" => PMD.solve_mc_mld
 )
 
 
