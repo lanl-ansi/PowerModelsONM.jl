@@ -1,6 +1,6 @@
 ""
 function run_mn_mc_osw_mld_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)
-    return PMD.run_mc_model(data, model_type, solver, build_mn_mc_osw_mld_mi; multinetwork=true, kwargs...)
+    return PMD.solve_mc_model(data, model_type, solver, build_mn_mc_osw_mld_mi; multinetwork=true, kwargs...)
 end
 
 
@@ -81,7 +81,7 @@ end
 
 ""
 function run_mc_osw_mld_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)
-    return PMD.run_mc_model(data, model_type, solver, build_mc_osw_mld_mi; multinetwork=false, kwargs...)
+    return PMD.solve_mc_model(data, model_type, solver, build_mc_osw_mld_mi; multinetwork=false, kwargs...)
 end
 
 
