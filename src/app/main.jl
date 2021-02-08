@@ -78,7 +78,7 @@ function entrypoint(args::Dict{String,<:Any})
     apply_load_shed!(mn_data_math, result)
 
     # Optimal Switching
-    if haskey(data_eng, "switch") && !isempty(data_eng["switch"]) && any(sw["dispatchable"] == PMD.YES for (_,sw) in data_eng["switch"])
+    if !isempty(get(data_eng, "switch", Dict())) && any(sw["dispatchable"] == PMD.YES for (_,sw) in data_eng["switch"])
         osw_result = optimize_switches!(mn_data_math; solution_processors=[getproperty(PowerModelsONM, Symbol("sol_ldf2$(args["formulation"])!"))]);
     end
 
