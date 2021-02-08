@@ -371,9 +371,9 @@ version = "2.16.8+1"
 
 [[Memento]]
 deps = ["Dates", "Distributed", "JSON", "Serialization", "Sockets", "Syslogs", "Test", "TimeZones", "UUIDs"]
-git-tree-sha1 = "d6dfb54d7e8a9b4a2b1773acf7275a4f607906b2"
+git-tree-sha1 = "5b0f65a76a45d1e9a28f56c5c82743e4d0eecbe9"
 uuid = "f28f55f0-a522-5efc-85c2-fe41dfb9b2d9"
-version = "1.1.2"
+version = "1.0.0"
 
 [[Missings]]
 deps = ["DataAPI"]
@@ -477,6 +477,14 @@ repo-rev = "master"
 repo-url = "https://github.com/lanl-ansi/PowerModelsDistribution.jl.git"
 uuid = "d7431456-977f-11e9-2de3-97ff7677985e"
 version = "0.10.1"
+
+[[PowerModelsProtection]]
+deps = ["InfrastructureModels", "JSON", "JuMP", "LinearAlgebra", "MathOptInterface", "Memento", "PowerModels", "PowerModelsDistribution", "Printf"]
+git-tree-sha1 = "96ae19d795a841a2d71c2fdded162823059bbf26"
+repo-rev = "master"
+repo-url = "https://github.com/lanl-ansi/PowerModelsProtection.jl.git"
+uuid = "719c1aef-945b-435a-a240-4c2992e5e0df"
+version = "0.1.0"
 
 [[PrettyTables]]
 deps = ["Crayons", "Formatting", "Markdown", "Reexport", "Tables"]

@@ -16,6 +16,10 @@ module PowerModelsONM
 
     import Statistics: mean
 
+    # Additional PowerModels{x} Services
+    import PowerModelsProtection
+    # import PowerModelsStability
+
     function __init__()
         global _LOGGER = Memento.getlogger(PowerModelsDistribution._PM)
     end
