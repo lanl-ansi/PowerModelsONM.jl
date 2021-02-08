@@ -1,6 +1,6 @@
 ""
 function run_mc_osw_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)
-    return PMD.run_mc_model(data, model_type, solver, _build_mc_osw_mi; kwargs...)
+    return PMD.solve_mc_model(data, model_type, solver, _build_mc_osw_mi; kwargs...)
 end
 
 
@@ -8,7 +8,6 @@ end
 function _build_mc_osw_mi(pm::PMD.AbstractUBFModels)
     # Variables
     PMD.variable_mc_bus_voltage(pm)
-    PMD.variable_mc_branch_current(pm)
     PMD.variable_mc_branch_power(pm)
 
     PMD.variable_mc_switch_power(pm)
@@ -17,10 +16,10 @@ function _build_mc_osw_mi(pm::PMD.AbstractUBFModels)
     PMD.variable_mc_transformer_power(pm)
     PMD.variable_mc_generator_power(pm)
     PMD.variable_mc_load_power(pm)
-    PMD.variable_mc_storage_power_mi(pm; relax=true)
+    PMD.variable_mc_storage_power(pm)
 
     # Constraints
-    PMD.constraint_mc_model_current(pm)
+    PMD.constraint_mc_model_voltage(pm)
 
     for i in PMD.ids(pm, :ref_buses)
         PMD.constraint_mc_theta_ref(pm, i)
@@ -42,7 +41,7 @@ function _build_mc_osw_mi(pm::PMD.AbstractUBFModels)
 
     for i in PMD.ids(pm, :storage)
         PMD._PM.constraint_storage_state(pm, i)
-        PMD._PM.constraint_storage_complementarity_mi(pm, i)
+        PMD._PM.constraint_storage_complementarity_nl(pm, i)
         PMD.constraint_mc_storage_losses(pm, i)
         PMD.constraint_mc_storage_thermal_limit(pm, i)
     end
@@ -66,6 +65,8 @@ function _build_mc_osw_mi(pm::PMD.AbstractUBFModels)
         PMD.constraint_mc_transformer_power(pm, i)
     end
 
+    objective_mc_min_fuel_cost_switch(pm)
+end
 
 
 ""
