@@ -15,8 +15,6 @@ data_dss = PMD.parse_dss(network_file)
 
     data_eng["time_elapsed"] = 1.0  # 24 hours by default, 1 hr steps
 
-    apply_events!(data_eng, events)
-
     PMD.apply_voltage_bounds!(data_eng)
 
     # PMD.make_lossless!(data_eng)
