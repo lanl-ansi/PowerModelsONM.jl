@@ -13,6 +13,11 @@ function prepare_network_case(network_file::String; events::Vector{<:Dict{String
 
     data_eng = PMD.parse_opendss(data_dss; import_all=true)
 
+    # Allow all loads to be sheddable
+    for (_,load) in data_eng["load"]
+        load["dispatchable"] = PMD.YES
+    end
+
     data_eng["voltage_source"]["source"]["pg_lb"] = zeros(length(data_eng["voltage_source"]["source"]["connections"]))
     data_eng["time_elapsed"] = 1.0  # 24 hours by default, 1 hr steps
 
