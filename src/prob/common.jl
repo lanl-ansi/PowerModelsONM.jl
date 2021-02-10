@@ -1,4 +1,4 @@
-function optimize_switches!(mn_data_math::Dict{String,Any}; solution_processors::Vector=[])::Vector{Dict{String,Any}}
+function optimize_switches!(mn_data_math::Dict{String,Any}, events::Vector{<:Dict{String,<:Any}}; solution_processors::Vector=[])::Vector{Dict{String,Any}}
     cbc_solver = PMD.optimizer_with_attributes(Cbc.Optimizer, "logLevel"=>0, "threads"=>4)
     ipopt_solver = PMD.optimizer_with_attributes(Ipopt.Optimizer, "print_level"=>0, "tol"=>1e-4, "mu_strategy"=>"adaptive")
     juniper_solver = PMD.optimizer_with_attributes(Juniper.Optimizer, "nl_solver"=>ipopt_solver, "mip_solver"=>cbc_solver, "log_levels"=>[])
@@ -27,6 +27,9 @@ function optimize_switches!(mn_data_math::Dict{String,Any}; solution_processors:
 
     update_start_values!(mn_data_math, solution)
     update_switch_settings!(mn_data_math, solution)
+
+    apply_load_shed!(mn_data_math, Dict{String,Any}("solution" => solution))
+    update_post_event_actions_load_shed!(events, solution, mn_data_math["map"])
 
     return results
 end

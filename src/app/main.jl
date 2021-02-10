@@ -74,24 +74,18 @@ function entrypoint(args::Dict{String,<:Any})
     # NLP Solver to use for Load shed and OPF
     solver = build_solver_instance(args["solver-tolerance"], get(args, "verbose", false))
 
-    # Optimal Load Shed
-    result = solve_problem(PMD.solve_mn_mc_mld_simple, mn_data_math, PMD.LPUBFDiagPowerModel, solver; solution_processors=[getproperty(PowerModelsONM, Symbol("sol_ldf2$(args["formulation"])!"))])
-
-    # Apply the results of the load-shed to the MATHEMATICAL MODEL
-    apply_load_shed!(mn_data_math, result)
-
-    # Optimal Switching
+    # Optimal Switching and Load Shed
     if !isempty(get(data_eng, "switch", Dict())) && any(sw["dispatchable"] == PMD.YES for (_,sw) in data_eng["switch"])
-        osw_result = optimize_switches!(mn_data_math; solution_processors=[getproperty(PowerModelsONM, Symbol("sol_ldf2$(args["formulation"])!"))]);
-    end
+        osw_result = optimize_switches!(mn_data_math, events; solution_processors=[getproperty(PowerModelsONM, Symbol("sol_ldf2$(args["formulation"])!"))]);
 
-    # Output switching actions to output data
-    get_timestep_device_actions!(output_data, mn_data_math)
+        # Output switching actions to output data
+        get_timestep_device_actions!(output_data, mn_data_math)
+    end
 
     # Final optimal dispatch
     form = get_formulation(args["formulation"])
     problem = get_problem(args["problem"], haskey(mn_data_math, "nw"))
-    result = solve_problem(problem, mn_data_math, form, solver; solution_processors=[PMD.sol_data_model!])
+    result = solve_problem(PMD.solve_mn_mc_opf, mn_data_math, form, solver; solution_processors=[PMD.sol_data_model!])
 
     if haskey(args, "faults") && !isempty(args["faults"])
         faults = parse_faults(args["faults"])
@@ -111,7 +105,7 @@ function entrypoint(args::Dict{String,<:Any})
     protection_data = haskey(args, "protection-settings") && !isempty(args["protection-settings"]) && !isnothing(args["protection-settings"]) ? parse_protection_tables(args["protection-settings"]) : Dict{NamedTuple,Dict{String,Any}}()
     get_timestep_protection_settings!(output_data, protection_data)
 
-    # Pass events to output data
+    # Pass-through events to output data
     output_data["Events"] = events
 
     # Export final result dict (debugging)
