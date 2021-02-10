@@ -1,6 +1,6 @@
 ""
 function prepare_network_case(network_file::String; events::Vector{<:Dict{String,Any}}=Vector{Dict{String,Any}}([]))::Tuple{Dict{String,Any},Dict{String,Any}}
-data_dss = PMD.parse_dss(network_file)
+    data_dss = PMD.parse_dss(network_file)
 
     # TODO: explicitly support DELTA connected generators in LPUBFDiag
     for type in ["pvsystem", "generator"]
@@ -13,6 +13,7 @@ data_dss = PMD.parse_dss(network_file)
 
     data_eng = PMD.parse_opendss(data_dss; import_all=true)
 
+    data_eng["voltage_source"]["source"]["pg_lb"] = zeros(length(data_eng["voltage_source"]["source"]["connections"]))
     data_eng["time_elapsed"] = 1.0  # 24 hours by default, 1 hr steps
 
     PMD.apply_voltage_bounds!(data_eng)
