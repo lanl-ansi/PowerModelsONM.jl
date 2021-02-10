@@ -7,8 +7,11 @@ function optimize_switches!(mn_data_math::Dict{String,Any}; solution_processors:
     # PMD.JuMP.set_optimizer_attribute(gurobi_solver, "OutputFlag", 0)
 
     results = []
-    for (n,nw) in mn_data_math["nw"]
+    for n in sort([parse(Int, i) for i in keys(mn_data_math["nw"])])
+        n = "$n"
+        nw = mn_data_math["nw"][n]
         nw["per_unit"] = mn_data_math["per_unit"]
+
         if !isempty(results)
             update_start_values!(nw, results[end]["solution"])
             update_switch_settings!(nw, results[end]["solution"])
