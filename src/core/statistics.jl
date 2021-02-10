@@ -18,13 +18,18 @@ function get_timestep_voltage_stats!(output::Dict{String,<:Any}, sol_pu::Dict{St
 end
 
 
-function get_timestep_load_served!(output::Dict{String,<:Any}, sol_si::Dict{String,<:Any}, data_eng::Dict{String,<:Any})
+function get_timestep_load_served!(output::Dict{String,<:Any}, sol_si::Dict{String,<:Any}, mn_data_eng::Dict{String,<:Any})
     for i in sort([parse(Int, k) for k in keys(sol_si["nw"])])
-        original_load = sum([haskey(load, "time_series") ? sum(data_eng["time_series"][load["time_series"]["pd_nom"]]["values"][i]) : sum(load["pd_nom"]) for (_,load) in data_eng["load"]])
-        served_load = sum([sum(load["pd"]) for (_,load) in sol_si["nw"]["$i"]["load"]])
-        push!(output["Load served"]["Feeder load (%)"], served_load / original_load)  # FIX
-        push!(output["Load served"]["Microgrid load (%)"], 0.0)  # TODO
-        push!(output["Load served"]["Bonus load via microgrid (%)"], 0.0)  # TODO
+        original_load = sum([sum(load["pd_nom"]) for (_,load) in mn_data_eng["nw"]["$i"]["load"]])
+        feeder_served_load = sum([sum(vs["pg"]) for (_,vs) in sol_si["nw"]["$i"]["voltage_source"]])
+        der_non_storage_served_load = sum([sum(g["pg"]) for type in ["solar", "generator"] for (_,g) in get(sol_si["nw"]["$i"], type, Dict())])
+        der_storage_served_load = sum([sum(s["ps"]) for (_,s) in get(sol_si["nw"]["$i"], "storage", Dict())])
+        microgrid_served_load = (der_non_storage_served_load + der_storage_served_load) / original_load * 100
+        _bonus_load = (microgrid_served_load - 100)
+
+        push!(output["Load served"]["Feeder load (%)"], feeder_served_load / original_load * 100)  # CHECK
+        push!(output["Load served"]["Microgrid load (%)"], microgrid_served_load)  # CHECK
+        push!(output["Load served"]["Bonus load via microgrid (%)"], _bonus_load > 0 ? _bonus_load : 0.0)  # CHECK
     end
 end
 

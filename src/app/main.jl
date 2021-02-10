@@ -102,7 +102,7 @@ function entrypoint(args::Dict{String,<:Any})
 
     # Building output statistics
     get_timestep_voltage_stats!(output_data, sol_pu, data_eng)
-    get_timestep_load_served!(output_data, sol_si, data_eng)
+    get_timestep_load_served!(output_data, sol_si, mn_data_eng)
     get_timestep_generator_profiles!(output_data, sol_si)
     get_timestep_powerflow_output!(output_data, sol_si, data_eng)
     get_timestep_storage_soc!(output_data, sol_si, data_eng)
