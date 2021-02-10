@@ -42,8 +42,8 @@ function parse_commandline()
         "--solver-tolerance"
             help = "solver tolerance"
             default = 1e-6
-        "--export", "-e"
-            help = "path to export full PMD results"
+        "--debug-export-file"
+            help = "DEBUG Option: path to export full PMD results"
             default = ""
             arg_type = String
     end
@@ -109,16 +109,12 @@ function entrypoint(args::Dict{String,<:Any})
     output_data["Events"] = events
 
     # Export final result dict (debugging)
-    if !isempty(args["export"])
-        open(args["export"], "w") do f
-            JSON.print(f, result, 2)
-        end
+    if !isempty(args["debug-export-file"])
+        write_outputs(args["debug-export-file"], result)
     end
 
     # Save output data
-    open(args["output-file"], "w") do f
-        JSON.print(f, output_data, 2)
-    end
+    write_outputs(args["output-file"], output_data)
 end
 
 

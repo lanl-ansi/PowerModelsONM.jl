@@ -34,3 +34,11 @@ function build_blank_output(data_eng::Dict{String,Any})::Dict{String,Any}
         "Protection Settings" => Vector{Dict{String,Any}}([]),
     )
 end
+
+
+""
+function write_outputs(output_file::String, output_data::Dict{String,<:Any})
+    open(output_file, "w") do f
+        JSON.print(f, output_data, 2)
+    end
+end
