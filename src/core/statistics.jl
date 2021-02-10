@@ -88,3 +88,13 @@ function get_timestep_protection_settings!(output_data::Dict{String,<:Any}, prot
         end
     end
 end
+
+
+""
+function get_timestep_fault_currents!(output_data::Dict{String,<:Any}, fault_results::Vector{<:Dict{String,<:Any}})
+    for fault_result in fault_results
+        push!(output_data["Fault currents"], Dict{String,Any}(
+            i => bus["current"] for (i, bus) in fault_result["solution"]
+        ))
+    end
+end
