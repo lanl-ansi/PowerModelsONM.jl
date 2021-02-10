@@ -95,8 +95,8 @@ function build_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
     PMD.variable_mc_generator_power(pm)
     PMD.variable_mc_bus_voltage(pm)
 
-    PMD.variable_mc_load_indicator(pm; relax=true)
-    PMD.variable_mc_shunt_indicator(pm; relax=true)
+    PMD.variable_mc_load_indicator(pm; relax=false)
+    PMD.variable_mc_shunt_indicator(pm; relax=false)
     PMD.variable_mc_storage_power_mi(pm; relax=true)
 
     PMD.constraint_mc_model_current(pm)
@@ -116,7 +116,7 @@ function build_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
     for i in PMD.ids(pm, :storage)
         PMD._PM.constraint_storage_state(pm, i)
         PMD.constraint_mc_storage_losses(pm, i)
-        # PMD.constraint_mc_storage_thermal_limit(pm, i)
+        PMD.constraint_mc_storage_thermal_limit(pm, i)
         PMD._PM.constraint_storage_complementarity_mi(pm, i)
     end
 
@@ -131,7 +131,7 @@ function build_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
     end
 
     for i in PMD.ids(pm, :switch)
-        PMD.constraint_mc_switch_state_on_off(pm, i; relax=false)
+        PMD.constraint_mc_switch_state_on_off(pm, i; relax=true)
         PMD.constraint_mc_switch_thermal_limit(pm, i)
     end
 
@@ -139,5 +139,5 @@ function build_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
         PMD.constraint_mc_transformer_power(pm, i)
     end
 
-    PMD.objective_mc_min_load_setpoint_delta_simple_switch(pm)
+    objective_mc_min_load_setpoint_delta_simple_switch(pm)
 end

@@ -16,7 +16,7 @@ function optimize_switches!(mn_data_math::Dict{String,Any}; solution_processors:
             update_start_values!(nw, results[end]["solution"])
             update_switch_settings!(nw, results[end]["solution"])
         end
-        push!(results, run_mc_osw_mi(nw, PMD.LPUBFDiagPowerModel, juniper_solver; solution_processors=solution_processors))
+        push!(results, run_mc_osw_mld_mi(nw, PMD.LPUBFDiagPowerModel, juniper_solver; solution_processors=solution_processors))
     end
 
     solution = Dict("nw" => Dict("$n" => result["solution"] for (n, result) in enumerate(results)))

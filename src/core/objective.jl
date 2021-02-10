@@ -34,3 +34,21 @@ function objective_mc_min_fuel_cost_switch(pm::PMD._PM.AbstractPowerModel; repor
         for (n, nw_ref) in PMD.nws(pm))
     )
 end
+
+
+"simplified minimum load delta objective (continuous load shed)"
+function objective_mc_min_load_setpoint_delta_simple_switch(pm::PMD._PM.AbstractPowerModel)
+    state_start = Dict(
+        (n,l) => PMD.ref(pm, n, :switch, l, "state")
+        for (n, nw_ref) in PMD.nws(pm) for l in PMD.ids(pm, n, :switch)
+    )
+
+    PMD.JuMP.@objective(pm.model, Min,
+        sum(
+            sum( ((1 - PMD.var(pm, n, :z_demand, i))) for i in keys(nw_ref[:load])) +
+            sum( ((1 - PMD.var(pm, n, :z_shunt, i))) for (i,shunt) in nw_ref[:shunt])
+            # sum( PMD.var(pm, n, :switch_state, l) for l in PMD.ids(pm, n, :switch_dispatchable)) +
+            # 1e-3 * sum( (state_start[(n,l)] - PMD.var(pm, n, :switch_state, l)) * (round(state_start[(n,l)]) == 0 ? -1 : 1) for l in PMD.ids(pm, n, :switch_dispatchable))
+        for (n, nw_ref) in PMD.nws(pm))
+    )
+end
