@@ -15,6 +15,7 @@ function optimize_switches!(mn_data_math::Dict{String,Any}, events::Vector{<:Dic
         if !isempty(results)
             update_start_values!(nw, results[end]["solution"])
             update_switch_settings!(nw, results[end]["solution"])
+            update_storage_capacity!(nw, results[end]["solution"])
         end
         push!(results, run_mc_osw_mld_mi(nw, PMD.LPUBFDiagPowerModel, juniper_solver; solution_processors=solution_processors))
     end

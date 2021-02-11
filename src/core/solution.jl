@@ -160,3 +160,13 @@ function update_post_event_actions_load_shed!(events::Vector{<:Dict{String,<:Any
         end
     end
 end
+
+
+""
+function update_storage_capacity!(data::Dict{String,<:Any}, solution::Dict{String,<:Any})
+    for (i, strg) in get(solution, "storage", Dict())
+        # data["storage"][i]["energy"] = data["time_elapsed"]*(data["storage"][i]["charge_efficiency"]*strg["sc"] - strg["sd"]/data["storage"][i]["discharge_efficiency"]) + strg["energy"]
+        data["storage"][i]["energy"] = strg["se"]
+
+    end
+end
