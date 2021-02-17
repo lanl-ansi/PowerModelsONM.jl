@@ -36,6 +36,9 @@ function parse_commandline()
         "--events"
             help = "Events (contingencies) file"
             default = ""
+        "--inverters"
+            help = "inverter settings file for stability analysis"
+            default = ""
         "--verbose", "-v"
             help = "debug messages"
             action = :store_true
@@ -80,12 +83,18 @@ function entrypoint(args::Dict{String,<:Any})
 
         # Output switching actions to output data
         get_timestep_device_actions!(output_data, mn_data_math)
+        propagate_switch_settings!(mn_data_eng, mn_data_math)
     end
 
     # Final optimal dispatch
     form = get_formulation(args["formulation"])
     problem = get_problem(args["problem"], haskey(mn_data_math, "nw"))
     result = solve_problem(PMD.solve_mn_mc_opf, mn_data_math, form, solver; solution_processors=[PMD.sol_data_model!])
+
+    # Check if configurations are stable
+    inverters = haskey(args, "inverters") && !isempty(args["inverters"]) && !isnothing(args["inverters"]) ? parse_inverters(args["inverters"]) : Dict{String,Any}()
+    is_stable = analyze_stability(mn_data_eng, inverters)
+    get_timestep_stability!(output_data, is_stable)
 
     if haskey(args, "faults") && !isempty(args["faults"])
         faults = parse_faults(args["faults"])

@@ -61,3 +61,35 @@ function run_fault_study(mn_data_math::Dict{String,Any}, faults::Dict{String,Any
 
     return results
 end
+
+
+""
+function analyze_stability(mn_data_eng::Dict{String,<:Any}, inverters::Dict{String,<:Any})::Vector{Bool}
+    is_stable = Vector{Bool}([])
+    for n in sort([parse(Int, n) for n in keys(mn_data_eng["nw"])])
+        @info "performing stability check for timestep $(n)"
+        eng_data = deepcopy(mn_data_eng["nw"]["$(n)"])
+
+        PowerModelsStability.add_inverters!(eng_data, inverters)
+
+        ipopt_solver = PMD.optimizer_with_attributes(Ipopt.Optimizer, "tol"=>1e-5, "print_level"=>0)
+        opfSol, mpData_math = PowerModelsStability.run_mc_opf(eng_data, PMD.ACRPowerModel, ipopt_solver; solution_processors=[PMD.sol_data_model!])
+
+        @debug opfSol["termination_status"]
+
+        omega0 = inverters["omega0"]
+        rN = inverters["rN"]
+
+        Atot = PowerModelsStability.obtainGlobal_multi(mpData_math, opfSol, omega0, rN)
+        eigValList = eigvals(Atot)
+        statusTemp = true
+        for eig in eigValList
+            if eig.re > 0
+                statusTemp = false
+            end
+        end
+        push!(is_stable, statusTemp)
+    end
+
+    return is_stable
+end

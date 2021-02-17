@@ -14,11 +14,12 @@ module PowerModelsONM
     import DataFrames
     import Memento
 
+    import LinearAlgebra: eigvals
     import Statistics: mean
 
     # Additional PowerModels{x} Services
     import PowerModelsProtection
-    # import PowerModelsStability
+    import PowerModelsStability
 
     function __init__()
         global _LOGGER = Memento.getlogger(PowerModelsDistribution._PM)

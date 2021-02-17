@@ -69,8 +69,34 @@ function apply_events!(network::Dict{String,Any}, events::Vector{<:Dict{String,A
 end
 
 
+""
 function build_device_map(map::Vector{<:Dict{String,<:Any}}, device_type::String)::Dict{String,String}
     Dict{String,String}(
         string(split(item["to"], ".")[end]) => item["from"] for item in map if endswith(item["unmap_function"], "$(device_type)!")
     )
+end
+
+
+""
+function build_switch_map(map::Vector)::Dict{String,String}
+    switch_map = Dict{String,String}()
+    for item in map
+        if endswith(item["unmap_function"], "switch!")
+            math_id = isa(item["to"], Array) ? split(item["to"][end], ".")[end] : split(item["to"], ".")[end]
+            switch_map[math_id] = item["from"]
+        end
+    end
+    return switch_map
+end
+
+
+""
+function propagate_switch_settings!(mn_data_eng::Dict{String,<:Any}, mn_data_math::Dict{String,<:Any})
+    switch_map = build_switch_map(mn_data_math["map"])
+
+    for (n, nw) in mn_data_math["nw"]
+        for (i,sw) in get(nw, "switch", Dict())
+            mn_data_eng["nw"][n]["switch"][switch_map[i]]["state"] = PMD.SwitchState(Int(round(sw["state"])))
+        end
+    end
 end

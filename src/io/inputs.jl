@@ -42,6 +42,12 @@ end
 
 
 ""
+function parse_inverters(inverter_file::String)::Dict{String,Any}
+    PowerModelsStability.parse_json(inverter_file)
+end
+
+
+""
 function parse_protection_tables(protection_file::String)::Dict{NamedTuple,Dict{String,Any}}
     _tables = Dict()
 
