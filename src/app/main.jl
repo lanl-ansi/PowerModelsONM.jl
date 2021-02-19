@@ -98,10 +98,10 @@ function entrypoint(args::Dict{String,<:Any})
 
     if haskey(args, "faults") && !isempty(args["faults"])
         faults = parse_faults(args["faults"])
-        # fault_results = run_fault_study(mn_data_math, faults, solver);
+        fault_results = run_fault_study(mn_data_math, faults, solver);
 
         # Output bus fault currents to output data
-        # get_timestep_fault_currents!(output_data, fault_results)
+        get_timestep_fault_currents!(output_data, fault_results)
     end
 
     # Build solutions for statistics outputs

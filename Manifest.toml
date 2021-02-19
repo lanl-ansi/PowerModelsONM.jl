@@ -472,7 +472,7 @@ version = "0.17.4"
 
 [[PowerModelsDistribution]]
 deps = ["InfrastructureModels", "JSON", "JuMP", "LinearAlgebra", "MathOptInterface", "Memento", "PowerModels", "Statistics"]
-git-tree-sha1 = "02fa404a262fb0e2944835530665595bf2555211"
+git-tree-sha1 = "490dbacf414585c4b7c25319997b2b73a2a08aa2"
 repo-rev = "master"
 repo-url = "https://github.com/lanl-ansi/PowerModelsDistribution.jl.git"
 uuid = "d7431456-977f-11e9-2de3-97ff7677985e"
@@ -480,8 +480,8 @@ version = "0.10.1"
 
 [[PowerModelsProtection]]
 deps = ["InfrastructureModels", "JSON", "JuMP", "LinearAlgebra", "MathOptInterface", "Memento", "PowerModels", "PowerModelsDistribution", "Printf"]
-git-tree-sha1 = "96ae19d795a841a2d71c2fdded162823059bbf26"
-repo-rev = "master"
+git-tree-sha1 = "bae48ffbf84d23070e20da2207f9b17b60a4ddc3"
+repo-rev = "pmonm_fixes"
 repo-url = "https://github.com/lanl-ansi/PowerModelsProtection.jl.git"
 uuid = "719c1aef-945b-435a-a240-4c2992e5e0df"
 version = "0.1.0"

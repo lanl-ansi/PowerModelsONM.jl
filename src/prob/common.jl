@@ -51,11 +51,24 @@ end
 ""
 function run_fault_study(mn_data_math::Dict{String,Any}, faults::Dict{String,Any}, solver)::Vector{Dict{String,Any}}
     results = []
-    for (n, nw) in mn_data_math["nw"]
+    for n in sort([parse(Int, i) for i in keys(get(mn_data_math, "nw", Dict()))])
+        nw = deepcopy(mn_data_math["nw"]["$n"])
         nw["method"] = "PMD"
         nw["time_elapsed"] = 1.0
         nw["fault"] = faults
         nw["bus_lookup"] = mn_data_math["bus_lookup"]
+        nw["map"] = mn_data_math["map"]
+        nw["settings"] = mn_data_math["settings"]
+
+        if !isempty(get(nw, "switch", Dict()))
+            PowerModelsProtection.add_switch_impedance!(nw)
+        end
+
+        if haskey(nw, "storage") && !isempty(nw["storage"])
+            @warn "PowerModelsProtection cannot current support storage components due to missing constraints in IVR formulation, running without storage at timestep $n"
+            nw["storage"] = Dict{String,Any}()
+        end
+
         push!(results, PowerModelsProtection.run_mc_fault_study(nw, solver))
     end
 

@@ -86,9 +86,16 @@ end
 ""
 function get_timestep_fault_currents!(output_data::Dict{String,<:Any}, fault_results::Vector{<:Dict{String,<:Any}})
     for fault_result in fault_results
-        push!(output_data["Fault currents"], Dict{String,Any}(
-            i => bus["current"] for (i, bus) in fault_result["solution"]
-        ))
+        _output = Dict{String,Any}()
+        for (bus_id, bus_faults) in fault_result
+            for (fault_type, fault_type_results) in bus_faults
+                if !haskey(_output, fault_type)
+                    _output[fault_type] = Dict{String,Any}()
+                end
+                _output[fault_type][bus_id] = get(get(get(get(get(fault_type_results, "1", Dict()), "solution", Dict()), "fault", Dict()), "bus", Dict()), "current", [])
+            end
+        end
+        push!(output_data["Fault currents"], _output)
     end
 end
 

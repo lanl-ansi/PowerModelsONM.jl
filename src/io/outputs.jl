@@ -32,6 +32,8 @@ function build_blank_output(data_eng::Dict{String,Any})::Dict{String,Any}
         ),
         "Events" => Vector{Dict{String,Any}}([]),
         "Protection Settings" => Vector{Dict{String,Any}}([]),
+        "Fault currents" => Vector{Dict{String,Any}}([]),
+        "Small signal stable" => Vector{Bool}([]),
     )
 end
 
