@@ -57,8 +57,8 @@ function parse_protection_tables(protection_file::String)::Dict{NamedTuple,Dict{
         end
     end
 
-    _configs = _tables["Configuration"]
-    _switches = names(_configs)
+    _configs = haskey(_tables, "Configuration") ? _tables["Configuration"] : _tables["ConfigTable"]
+    _switches = [n for n in names(_configs) if !startswith(n, "Config")]
     _namedtuple_names = Tuple(Symbol(replace(sw, "'" => "")) for sw in _switches)
 
     configurations = Dict{String,NamedTuple}()
@@ -70,7 +70,7 @@ function parse_protection_tables(protection_file::String)::Dict{NamedTuple,Dict{
 
     protection_data = Dict{NamedTuple,Dict{String,Any}}()
     for (name, table) in _tables
-        if name != "Configuration"
+        if name != "Configuration" && name != "ConfigTable"
             protection_data[configurations[name]] = Dict{String,Any}(col => table[!, col] for col in names(table))
         end
     end
