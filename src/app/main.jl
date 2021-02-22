@@ -18,27 +18,35 @@ function parse_commandline()
     ArgParse.@add_arg_table! s begin
         "--network-file", "-n"
             help = "the power system network data file"
+            arg_type = String
         "--output-file", "-o"
             help = "path to output file"
             default = "./output.json"
+            arg_type = String
         "--formulation", "-f"
             help = "mathematical formulation to solve (lindistflow (default), acr, acp, nfa)"
             default = "lindistflow"
+            arg_type = String
         "--problem", "-p"
             help = "optimization problem type (opf, mld)"
             default = "opf"
+            arg_type = String
         "--protection-settings"
             help = "XLSX (Excel) File with Protection settings"
             default = ""
+            arg_type = String
         "--faults"
             help = "json file defining faults over which to perform fault study"
             default = ""
+            arg_type = String
         "--events"
             help = "Events (contingencies) file"
             default = ""
+            arg_type = String
         "--inverters"
             help = "inverter settings file for stability analysis"
             default = ""
+            arg_type = String
         "--verbose", "-v"
             help = "debug messages"
             action = :store_true
