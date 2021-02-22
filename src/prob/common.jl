@@ -90,8 +90,8 @@ function analyze_stability(mn_data_eng::Dict{String,<:Any}, inverters::Dict{Stri
 
         @debug opfSol["termination_status"]
 
-        omega0 = inverters["omega0"]
-        rN = inverters["rN"]
+        omega0 = get(inverters, "omega0", 376.9911)
+        rN = get(inverters, "rN", 1000)
 
         Atot = PowerModelsStability.obtainGlobal_multi(mpData_math, opfSol, omega0, rN)
         eigValList = eigvals(Atot)

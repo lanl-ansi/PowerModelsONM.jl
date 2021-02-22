@@ -100,9 +100,13 @@ function entrypoint(args::Dict{String,<:Any})
     result = solve_problem(PMD.solve_mn_mc_opf, mn_data_math, form, solver; solution_processors=[PMD.sol_data_model!])
 
     # Check if configurations are stable
-    inverters = haskey(args, "inverters") && !isempty(args["inverters"]) && !isnothing(args["inverters"]) ? parse_inverters(args["inverters"]) : Dict{String,Any}()
-    is_stable = analyze_stability(mn_data_eng, inverters)
-    get_timestep_stability!(output_data, is_stable)
+    if !isempty(get(args, "inverters", ""))
+        inverters = parse_inverters(args["inverters"])
+        is_stable = analyze_stability(mn_data_eng, inverters)
+
+        # Output if timesteps are small signal stable or not
+        get_timestep_stability!(output_data, is_stable)
+    end
 
     # perform fault studies
     if !isempty(get(args, "faults", ""))
