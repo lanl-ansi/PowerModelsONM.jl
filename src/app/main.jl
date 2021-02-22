@@ -69,10 +69,10 @@ function entrypoint(args::Dict{String,<:Any})
         silence!()
     end
 
-    # Load events
-    events = haskey(args, "events") && !isempty(args["events"]) && !isnothing(args["events"]) ? parse_events(args["events"]) : Vector{Dict{String,Any}}([])
+    # Load events, if any
+    events = !isempty(get(args, "events", "")) ? parse_events(args["events"]) : Vector{Dict{String,Any}}([])
 
-    # ENGINEERING MODEL, mutlinetwork and base case with timeseries objects
+    # build ENGINEERING MODEL, both mutlinetwork and base case with timeseries objects
     (data_eng, mn_data_eng) = prepare_network_case(args["network-file"]; events=events);
 
     # Initialize output data structure
@@ -104,7 +104,8 @@ function entrypoint(args::Dict{String,<:Any})
     is_stable = analyze_stability(mn_data_eng, inverters)
     get_timestep_stability!(output_data, is_stable)
 
-    if haskey(args, "faults") && !isempty(args["faults"])
+    # perform fault studies
+    if !isempty(get(args, "faults", ""))
         faults = parse_faults(args["faults"])
         fault_results = run_fault_study(mn_data_math, faults, solver);
 
