@@ -22,6 +22,7 @@ function prepare_network_case(network_file::String; events::Vector{<:Dict{String
     data_eng["time_elapsed"] = 1.0  # 24 hours by default, 1 hr steps
 
     PMD.apply_voltage_bounds!(data_eng)
+    apply_voltage_angle_bounds!(data_eng, 1)
 
     # PMD.make_lossless!(data_eng)
 
