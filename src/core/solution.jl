@@ -166,7 +166,7 @@ end
 function update_storage_capacity!(data::Dict{String,<:Any}, solution::Dict{String,<:Any})
     for (i, strg) in get(solution, "storage", Dict())
         # data["storage"][i]["energy"] = data["time_elapsed"]*(data["storage"][i]["charge_efficiency"]*strg["sc"] - strg["sd"]/data["storage"][i]["discharge_efficiency"]) + strg["energy"]
+        data["storage"][i]["_energy"] = deepcopy(data["storage"][i]["energy"])
         data["storage"][i]["energy"] = strg["se"]
-
     end
 end

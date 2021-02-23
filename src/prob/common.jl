@@ -17,7 +17,12 @@ function optimize_switches!(mn_data_math::Dict{String,Any}, events::Vector{<:Dic
             update_switch_settings!(nw, results[end]["solution"])
             update_storage_capacity!(nw, results[end]["solution"])
         end
-        push!(results, run_mc_osw_mld_mi(nw, PMD.LPUBFDiagPowerModel, juniper_solver; solution_processors=solution_processors))
+        r = run_mc_osw_mld_mi(nw, PMD.LPUBFDiagPowerModel, juniper_solver; solution_processors=solution_processors)
+
+        update_start_values!(nw, r["solution"])
+        update_switch_settings!(nw, r["solution"])
+
+        push!(results, r)
     end
 
     solution = Dict("nw" => Dict("$n" => result["solution"] for (n, result) in enumerate(results)))
@@ -26,8 +31,9 @@ function optimize_switches!(mn_data_math::Dict{String,Any}, events::Vector{<:Dic
     #results = run_mn_mc_osw_mi(mn_data_math, PMD.LPUBFDiagPowerModel, juniper_solver; solution_processors=solution_processors)
     #solution = results["solution"]
 
-    update_start_values!(mn_data_math, solution)
-    update_switch_settings!(mn_data_math, solution)
+    # TODO: moved to loop, re-enable if switching to mn problem
+    # update_start_values!(mn_data_math, solution)
+    # update_switch_settings!(mn_data_math, solution)
 
     apply_load_shed!(mn_data_math, Dict{String,Any}("solution" => solution))
     update_post_event_actions_load_shed!(events, solution, mn_data_math["map"])

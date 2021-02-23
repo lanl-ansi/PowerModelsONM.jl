@@ -97,7 +97,7 @@ function build_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
 
     PMD.variable_mc_load_indicator(pm; relax=false)
     PMD.variable_mc_shunt_indicator(pm; relax=false)
-    PMD.variable_mc_storage_power_mi(pm; relax=true)
+    PMD.variable_mc_storage_power_mi(pm; relax=false)
 
     PMD.constraint_mc_model_current(pm)
 
