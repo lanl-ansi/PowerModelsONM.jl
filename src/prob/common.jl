@@ -1,6 +1,6 @@
 function optimize_switches!(mn_data_math::Dict{String,Any}, events::Vector{<:Dict{String,<:Any}}; solution_processors::Vector=[])::Vector{Dict{String,Any}}
     cbc_solver = PMD.optimizer_with_attributes(Cbc.Optimizer, "logLevel"=>0, "threads"=>4)
-    ipopt_solver = PMD.optimizer_with_attributes(Ipopt.Optimizer, "print_level"=>0, "tol"=>1e-4, "mu_strategy"=>"adaptive")
+    ipopt_solver = PMD.optimizer_with_attributes(Ipopt.Optimizer, "print_level"=>0, "tol"=>1e-4)
     juniper_solver = PMD.optimizer_with_attributes(Juniper.Optimizer, "nl_solver"=>ipopt_solver, "mip_solver"=>cbc_solver, "log_levels"=>[])
 
     # gurobi_solver = Gurobi.Optimizer(GRB_ENV)
@@ -44,7 +44,7 @@ end
 
 ""
 function build_solver_instance(tolerance::Real, verbose::Bool=false)
-    return PMD.optimizer_with_attributes(Ipopt.Optimizer, "tol" => tolerance, "print_level" => verbose ? 3 : 0)
+    return PMD.optimizer_with_attributes(Ipopt.Optimizer, "tol" => tolerance, "print_level" => verbose ? 5 : 0)
 end
 
 
@@ -78,7 +78,7 @@ end
 
 
 ""
-function analyze_stability(mn_data_eng::Dict{String,<:Any}, inverters::Dict{String,<:Any})::Vector{Bool}
+function analyze_stability(mn_data_eng::Dict{String,<:Any}, inverters::Dict{String,<:Any}; verbose::Bool=false)::Vector{Bool}
     is_stable = Vector{Bool}([])
     for n in sort([parse(Int, n) for n in keys(mn_data_eng["nw"])])
         @info "performing stability check for timestep $(n)"
@@ -86,7 +86,8 @@ function analyze_stability(mn_data_eng::Dict{String,<:Any}, inverters::Dict{Stri
 
         PowerModelsStability.add_inverters!(eng_data, inverters)
 
-        ipopt_solver = PMD.optimizer_with_attributes(Ipopt.Optimizer, "tol"=>1e-5, "print_level"=>0)
+        ipopt_solver = PMD.optimizer_with_attributes(Ipopt.Optimizer, "tol"=>1e-4, "print_level"=>verbose ? 5 : 0)
+
         opfSol, mpData_math = PowerModelsStability.run_mc_opf(eng_data, PMD.ACRPowerModel, ipopt_solver; solution_processors=[PMD.sol_data_model!])
 
         @debug opfSol["termination_status"]

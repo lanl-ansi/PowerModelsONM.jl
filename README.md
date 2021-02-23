@@ -20,7 +20,7 @@ This will execute with the following defaults:
 
 - `"lindistflow"` formulation (LPUBFDiagPowerModel / LinDist3FlowPowerModel)
 - `"opf"` problem (Optimal Power Flow)
-- `1e-6` tolerance for Ipopt
+- `1e-4` tolerance for Ipopt
 
 ### Options
 
@@ -36,8 +36,7 @@ This will execute with the following defaults:
   - AC-polar (`"acp"`: slow, most accurate), or
   - network flow approximation (`"nfa"`: recommended for debugging, very fast, no voltages)
 - `-v` : verbose output to command line
-- `-solver-tolerance` : default `1e-6`, for debugging, shouldn't need to change
-- `--e` : exports the full results dict to the specified path
+- `--solver-tolerance` : default `1e-4`, for debugging, shouldn't need to change
 
 ### Recommended networks
 

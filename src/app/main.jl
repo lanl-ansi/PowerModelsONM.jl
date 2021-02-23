@@ -52,7 +52,7 @@ function parse_commandline()
             action = :store_true
         "--solver-tolerance"
             help = "solver tolerance"
-            default = 1e-6
+            default = 1e-4
         "--debug-export-file"
             help = "DEBUG Option: path to export full PMD results"
             default = ""
@@ -86,7 +86,7 @@ function entrypoint(args::Dict{String,<:Any})
     solver = build_solver_instance(args["solver-tolerance"], get(args, "verbose", false))
 
     # Optimal Switching and Load Shed
-    if !isempty(get(data_eng, "switch", Dict())) && any(sw["dispatchable"] == PMD.YES for (_,sw) in data_eng["switch"])
+    if any(get(sw, "dispatchable", PMD.NO) == PMD.YES for (_,sw) in get(data_eng, "switch", Dict()))
         osw_result = optimize_switches!(mn_data_math, events; solution_processors=[getproperty(PowerModelsONM, Symbol("sol_ldf2$(args["formulation"])!"))]);
 
         # Output switching actions to output data
@@ -102,7 +102,7 @@ function entrypoint(args::Dict{String,<:Any})
     # Check if configurations are stable
     if !isempty(get(args, "inverters", ""))
         inverters = parse_inverters(args["inverters"])
-        is_stable = analyze_stability(mn_data_eng, inverters)
+        is_stable = analyze_stability(mn_data_eng, inverters; verbose=get(args, "verbose", false))
 
         # Output if timesteps are small signal stable or not
         get_timestep_stability!(output_data, is_stable)
