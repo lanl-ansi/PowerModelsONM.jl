@@ -10,10 +10,10 @@ Also, note that Manifest.toml is currently needed in the repository because we a
 
 ## Running ONM
 
-To run this code, execute from the command line:
+To run this code, use the latest release binaries to execute from the command line:
 
 ```bash
-julia --project="path/to/PowerModelsONM" path/to/PowerModelsONM/cli/entrypoint.jl -n "path/to/Master.dss" -o "path/to/output.json"
+PowerModelsONM -n "path/to/Master.dss" -o "path/to/output.json"
 ```
 
 This will execute with the following defaults:
@@ -29,7 +29,6 @@ This will execute with the following defaults:
 - `-p` : problem type
   - optimal power flow ("opf": default, recommended),
   - maximal load delivery ("mld": will load shed, for debugging networks),
-  - power flow ("pf": no multinetwork equivalent, not for time series data)
 - `-f` : formulation
   - LinDistFlow approximation (`"lindistflow"`: default, recommended for speed, medium accuracy),
   - AC-rectangular (`"acr"`: slow, most accurate),
@@ -37,6 +36,11 @@ This will execute with the following defaults:
   - network flow approximation (`"nfa"`: recommended for debugging, very fast, no voltages)
 - `-v` : verbose output to command line
 - `--solver-tolerance` : default `1e-4`, for debugging, shouldn't need to change
+- `--debug-export-file` : exports the full results dict to the specified path
+- `--events`: Contingencies / Events file (JSON) to apply to the network at runtime
+- `--faults`: Pre-defined faults file (JSON) that contains faults over which to perform fault studies
+- `--inverters`: Inverter settings file (JSON) that contains information for stability analysis
+- `--protection-settings`: XLSX (Excel) file containing protection settings for various network configurations
 
 ### Recommended networks
 
@@ -45,8 +49,14 @@ From PowerModelsRONMLib, use the following networks:
 1. `iowa240/Master_hse_der_ts_03_05.dss`: 24h load shapes added to High Side Equivalent DER version for 03/05
 1. `iowa240/Master_hse_der_ts_03_06.dss`: 24h load shapes added to High Side Equivalent DER version for 03/06
 1. `iowa240/Master_hse_der_ts_03_15.dss`: 24h load shapes added to High Side Equivalent DER version for 03/15
-1. `iowa240/Master_hse_der_ts_03_05_c_1.dss`: 03/05 loadshapes with contingency on substation transformer
-1. `iowa240/Master_hse_der_ts_03_05_c_2.dss`: 03/05 loadshapes with contingency on feeder trunks
+<!-- 1. `iowa240/Master_hse_der_ts_03_05_c_1.dss`: 03/05 loadshapes with contingency on substation transformer -->
+<!-- 1. `iowa240/Master_hse_der_ts_03_05_c_2.dss`: 03/05 loadshapes with contingency on feeder trunks -->
+
+To apply contingencies, we need to use the Events format, e.g. `iowa240/outages/outage_1.json`, with the `--events` argument.
+
+For example, using the compiled binary and all available files for iowa-240:
+
+    PowerModelsONM -n "iowa240/Master_hsd_der_ts_03_05.dss" --events "iowa240/outages/outage_1.json --faults "iowa240/faults/faults.json" --protection-settings "iowa240/protection_settings/protection_settings.xlsx" --inverters "test/data/iowa240_inverters.json" -o "output.json"
 
 ## Output format
 
@@ -83,21 +93,39 @@ Dict{String,Any}(
     "Summary statistics" => Dict{String,Any}(
         "Additional stats" => "TBD"
     ),
+    "Events" => Vector{Dict{String,Any}}([]),
+    "Protection settings" => Vector{Dict{String,Any}}([]),
+    "Small signal stable" => Vector{Bool}([]),
+    "Device action timeline" => Vector{Dict{String,Any}}([]),
 )
 ```
 
+See API models in the `models` directory for details on the input and output formats.
+
+## Running during Development
+
+To run from within the Julia REPL,
+
+```julia
+args = Dict{String,Any}(
+    "network-file" => "../iowa240/Master_hse_der_ts_03_05.dss",
+    "output-file" => "output.json",
+    "debug-export-file" => "",
+    "formulation" => "lindistflow",
+    "problem" => "opf",
+    "solver-tolerance" => 1e-4,
+    "events" => "../iowa240/outages/outage_1.json",
+    "inverters" => "../test/data/iowa240_inverters.json",
+    "protection-settings" => "../iowa240/protection_settings/protection_settings.xlsx",
+    "faults" => "../iowa240/faults/faults.json",
+)
+
+using PowerModelsONM
+
+entrypoint(args)
+```
+
 ## Notes
-
-The following warning messages can be ignored, these will be fixed in a later update to the base PowerModelsDistribution code:
-
-```
-WARNING: Method definition _objective_min_fuel_cost_polynomial_linquad(PowerModels.AbstractPowerModel) in module PowerModels at /Users/dfobes/.julia/packages/PowerModels/72tBz/src/core/objective.jl:334 overw
-ritten in module PowerModelsDistribution at /Users/dfobes/.julia/packages/PowerModelsDistribution/WfxKs/src/core/objective.jl:115.
-  ** incremental compilation may be fatally broken for this module **
-
-WARNING: Method definition _objective_min_fuel_cost_polynomial_linquad##kw(Any, typeof(PowerModels._objective_min_fuel_cost_polynomial_linquad), PowerModels.AbstractPowerModel) in module PowerModels at /Users/dfobes/.julia/packages/PowerModels/72tBz/src/core/objective.jl:334 overwritten in module PowerModelsDistribution at /Users/dfobes/.julia/packages/PowerModelsDistribution/WfxKs/src/core/objective.jl:115.
-  ** incremental compilation may be fatally broken for this module **
-```
 
 ## License
 
