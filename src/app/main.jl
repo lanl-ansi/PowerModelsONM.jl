@@ -128,7 +128,7 @@ function entrypoint(args::Dict{String,<:Any})
     get_timestep_storage_soc!(output_data, sol_si, data_eng)
 
     # Get Protection Settings for Switch settings
-    protection_data = haskey(args, "protection-settings") && !isempty(args["protection-settings"]) && !isnothing(args["protection-settings"]) ? parse_protection_tables(args["protection-settings"]) : Dict{NamedTuple,Dict{String,Any}}()
+    protection_data = !isempty(get(args, "protection-settings", "")) && !isnothing(args["protection-settings"]) ? parse_protection_tables(args["protection-settings"]) : Dict{NamedTuple,Dict{String,Any}}()
     get_timestep_protection_settings!(output_data, protection_data)
 
     # Pass-through events to output data
