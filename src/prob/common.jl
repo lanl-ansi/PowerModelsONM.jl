@@ -8,6 +8,7 @@ function optimize_switches!(mn_data_math::Dict{String,Any}, events::Vector{<:Dic
 
     results = []
     for n in sort([parse(Int, i) for i in keys(mn_data_math["nw"])])
+        @info "running switch optimization at timestep $n"
         n = "$n"
         nw = mn_data_math["nw"][n]
         nw["per_unit"] = mn_data_math["per_unit"]
