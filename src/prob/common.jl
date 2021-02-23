@@ -65,7 +65,8 @@ function run_fault_study(mn_data_math::Dict{String,Any}, faults::Dict{String,Any
         end
 
         if haskey(nw, "storage") && !isempty(nw["storage"])
-            @warn "PowerModelsProtection cannot current support storage components due to missing constraints in IVR formulation, running without storage at timestep $n"
+            @warn "PowerModelsProtection cannot current support storage components due to missing constraints in IVR formulation, converting storage to generator at timestep $n"
+            convert_storage!(nw)
             nw["storage"] = Dict{String,Any}()
         end
 
