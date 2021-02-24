@@ -1,7 +1,7 @@
 name = "PowerModelsONM"
 uuid = "25264005-a304-4053-a338-565045d392ac"
 authors = ["David M Fobes <dfobes@lanl.gov>"]
-version = "0.3.2"
+version = "0.3.3"
 
 [deps]
 ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
@@ -23,11 +23,20 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 XLSX = "fdbf4ff8-1666-58a4-91e7-1b58723a45e0"
 
 [compat]
+ArgParse = "~1.1"
+Cbc = "~0.7.1"
+DataFrames = "~0.22"
 InfrastructureModels = "~0.5.3"
 Ipopt = ">= 0.4"
 JSON = "~0.21"
+Juniper = "~0.7"
 LoggingExtras = "~0.4.5"
 Memento = "~1"
+PackageCompiler = "~1.2.5"
+PowerModelsDistribution = "~0.10.2"
+PowerModelsProtection = "~0.2"
+PowerModelsStability = "~0.1"
+XLSX = "~0.7.6"
 julia = "^1"
 
 [extras]

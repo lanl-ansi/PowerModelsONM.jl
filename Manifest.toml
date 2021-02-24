@@ -58,9 +58,9 @@ version = "0.5.1"
 
 [[CategoricalArrays]]
 deps = ["DataAPI", "Future", "JSON", "Missings", "Printf", "Statistics", "StructTypes", "Unicode"]
-git-tree-sha1 = "99809999c8ee01fa89498480b147f7394ea5450f"
+git-tree-sha1 = "dbfddfafb75fae5356e00529ce67454125935945"
 uuid = "324d7699-5711-5eae-9e2f-1d82baa6b597"
-version = "0.9.2"
+version = "0.9.3"
 
 [[Cbc]]
 deps = ["BinaryProvider", "CEnum", "Cbc_jll", "Libdl", "MathOptInterface", "SparseArrays"]
@@ -490,7 +490,7 @@ version = "0.10.2"
 [[PowerModelsProtection]]
 deps = ["InfrastructureModels", "JSON", "JuMP", "LinearAlgebra", "MathOptInterface", "Memento", "PowerModels", "PowerModelsDistribution", "Printf"]
 git-tree-sha1 = "8caf179feaf6edd29b68da4a4781aa0342a3ebf4"
-repo-rev = "pmonm_fixes"
+repo-rev = "master"
 repo-url = "https://github.com/lanl-ansi/PowerModelsProtection.jl.git"
 uuid = "719c1aef-945b-435a-a240-4c2992e5e0df"
 version = "0.2.0"
