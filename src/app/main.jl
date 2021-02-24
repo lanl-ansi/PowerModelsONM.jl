@@ -97,6 +97,7 @@ function entrypoint(args::Dict{String,<:Any})
     # Final optimal dispatch
     form = get_formulation(args["formulation"])
     problem = get_problem(args["problem"], haskey(mn_data_math, "nw"))
+    @info "Running optimal dispatch $problem : $form"
     result = solve_problem(PMD.solve_mn_mc_opf, mn_data_math, form, solver; solution_processors=[PMD.sol_data_model!])
 
     # Check if configurations are stable

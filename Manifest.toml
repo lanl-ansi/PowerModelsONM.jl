@@ -323,6 +323,12 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 [[Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 
+[[LoggingExtras]]
+deps = ["Dates"]
+git-tree-sha1 = "95e675246b58a7cb1199a90cd50a25850ff215c7"
+uuid = "e6f89c97-d47a-5376-807f-9c37f3926c36"
+version = "0.4.5"
+
 [[METIS_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "2dc1a9fc87e57e32b1fc186db78811157b30c118"

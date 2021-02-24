@@ -13,6 +13,8 @@ module PowerModelsONM
     import XLSX
     import DataFrames
     import Memento
+    import Logging
+    import LoggingExtras
 
     import LinearAlgebra: eigvals
     import Statistics: mean

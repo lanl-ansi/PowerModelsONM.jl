@@ -1,4 +1,22 @@
+""
+function juniper_log_filter(log_args)
+    if log_args._module == "Juniper"
+        if log_args.level == :Error
+            return false
+        else
+            return true
+        end
+    end
+    return false
+end
+
+
+""
 function optimize_switches!(mn_data_math::Dict{String,Any}, events::Vector{<:Dict{String,<:Any}}; solution_processors::Vector=[])::Vector{Dict{String,Any}}
+    @info "running switching + load shed optimization"
+
+    filtered_logger = LoggingExtras.ActiveFilteredLogger(juniper_log_filter, Logging.global_logger())
+
     cbc_solver = PMD.optimizer_with_attributes(Cbc.Optimizer, "logLevel"=>0, "threads"=>4)
     ipopt_solver = PMD.optimizer_with_attributes(Ipopt.Optimizer, "print_level"=>0, "tol"=>1e-4)
     juniper_solver = PMD.optimizer_with_attributes(Juniper.Optimizer, "nl_solver"=>ipopt_solver, "mip_solver"=>cbc_solver, "log_levels"=>[])
@@ -8,7 +26,7 @@ function optimize_switches!(mn_data_math::Dict{String,Any}, events::Vector{<:Dic
 
     results = []
     for n in sort([parse(Int, i) for i in keys(mn_data_math["nw"])])
-        @info "running switch optimization at timestep $n"
+        @info "    running osw+mld at timestep $n"
         n = "$n"
         nw = mn_data_math["nw"][n]
         nw["per_unit"] = mn_data_math["per_unit"]
@@ -18,7 +36,9 @@ function optimize_switches!(mn_data_math::Dict{String,Any}, events::Vector{<:Dic
             update_switch_settings!(nw, results[end]["solution"])
             update_storage_capacity!(nw, results[end]["solution"])
         end
-        r = run_mc_osw_mld_mi(nw, PMD.LPUBFDiagPowerModel, juniper_solver; solution_processors=solution_processors)
+        r = Logging.with_logger(filtered_logger) do
+            r = run_mc_osw_mld_mi(nw, PMD.LPUBFDiagPowerModel, juniper_solver; solution_processors=solution_processors)
+        end
 
         update_start_values!(nw, r["solution"])
         update_switch_settings!(nw, r["solution"])
@@ -57,8 +77,10 @@ end
 
 ""
 function run_fault_study(mn_data_math::Dict{String,Any}, faults::Dict{String,Any}, solver)::Vector{Dict{String,Any}}
+    @info "Running fault studies"
     results = []
     for n in sort([parse(Int, i) for i in keys(get(mn_data_math, "nw", Dict()))])
+        @info "    running fault study at timestep $n"
         nw = deepcopy(mn_data_math["nw"]["$n"])
         nw["method"] = "PMD"
         nw["time_elapsed"] = 1.0
@@ -72,7 +94,7 @@ function run_fault_study(mn_data_math::Dict{String,Any}, faults::Dict{String,Any
         end
 
         if haskey(nw, "storage") && !isempty(nw["storage"])
-            @warn "PowerModelsProtection cannot current support storage components due to missing constraints in IVR formulation, converting storage to generator at timestep $n"
+            @info "    PowerModelsProtection does not yet support storage in IVR formulation, converting storage to generator at timestep $n"
             convert_storage!(nw)
             nw["storage"] = Dict{String,Any}()
         end
@@ -86,9 +108,10 @@ end
 
 ""
 function analyze_stability(mn_data_eng::Dict{String,<:Any}, inverters::Dict{String,<:Any}; verbose::Bool=false)::Vector{Bool}
+    @info "Running stability analysis"
     is_stable = Vector{Bool}([])
     for n in sort([parse(Int, n) for n in keys(mn_data_eng["nw"])])
-        @info "performing stability check for timestep $(n)"
+        @info "    running stability analysis at timestep $(n)"
         eng_data = deepcopy(mn_data_eng["nw"]["$(n)"])
 
         PowerModelsStability.add_inverters!(eng_data, inverters)
