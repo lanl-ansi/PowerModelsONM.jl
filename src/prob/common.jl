@@ -88,6 +88,7 @@ function run_fault_study(mn_data_math::Dict{String,Any}, faults::Dict{String,Any
         nw["bus_lookup"] = mn_data_math["bus_lookup"]
         nw["map"] = mn_data_math["map"]
         nw["settings"] = mn_data_math["settings"]
+        nw["per_unit"] = mn_data_math["per_unit"]
 
         if !isempty(get(nw, "switch", Dict()))
             PowerModelsProtection.add_switch_impedance!(nw)

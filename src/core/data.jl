@@ -102,7 +102,8 @@ function propagate_switch_settings!(mn_data_eng::Dict{String,<:Any}, mn_data_mat
 end
 
 
-"converts storage to generators TODO Remove once storage supported in IVR, assumes MATH Model, with solution already"
+# TODO: Remove once storage supported in IVR, assumes MATH Model, with solution already
+"converts storage to generators"
 function convert_storage!(nw::Dict{String,<:Any})
     for (i, strg) in get(nw, "storage", Dict())
         nw["gen"]["$(length(nw["gen"])+1)"] = Dict{String,Any}(
@@ -128,6 +129,9 @@ function convert_storage!(nw::Dict{String,<:Any})
 
             "index" => length(nw["gen"])+1,
             "source_id" => strg["source_id"],
+
+            "vbase" => nw["bus"]["$(strg["storage_bus"])"]["vbase"],  # grab vbase from bus
+            "zx" => [0, 0, 0], # dynamics required by PMP, treat like voltage source
         )
     end
 end

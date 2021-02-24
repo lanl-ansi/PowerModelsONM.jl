@@ -2,6 +2,7 @@
 
 ## v0.3.3
 
+- fixed bug in fault studies algorithm where storage->gen objects were missing vbase and zx parameters
 - updated log messages, and added LoggingExtras to control Juniper logging
 
 ## v0.3.2
