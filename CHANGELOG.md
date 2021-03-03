@@ -2,6 +2,7 @@
 
 ## staged
 
+- updated protections settings file parser for new format
 - refactored Powerflow output to be list of dicts, like the other output formats
 - added generation/storage setpoints to Powerflow output: "real power setpoint (kW)" and "reactive power setpoint (kVar)"
 
