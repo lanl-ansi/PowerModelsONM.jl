@@ -46,10 +46,38 @@ end
 
 function get_timestep_powerflow_output!(output::Dict{String,<:Any}, sol_pu::Dict{String,<:Any}, data_eng::Dict{String,<:Any})
     for i in sort([parse(Int, k) for k in keys(sol_pu["nw"])])
-        timestamp = "$(first(data_eng["time_series"]).second["time"][i])"
-        for (id,bus) in sol_pu["nw"]["$i"]["bus"]
-            output["Powerflow output"][timestamp][id]["voltage (V)"] = get(bus, "vm", zeros(length(data_eng["bus"][id]["terminals"])))
+        n = "$i"
+        nw = sol_pu["nw"][n]
+        nw_pf = Dict{String,Any}(
+            "bus" => Dict{String,Any}()
+        )
+        for (id,bus) in get(nw, "bus", Dict())
+            nw_pf["bus"][id] = Dict{String,Any}("voltage (V)" => get(bus, "vm", zeros(length(data_eng["bus"][id]["terminals"]))))
         end
+
+        if !isempty(get(nw, "storage", Dict()))
+            nw_pf["storage"] = Dict{String,Any}()
+            for (id,strg) in nw["storage"]
+                nw_pf["storage"][id] = Dict{String,Any}(
+                    "real power setpoint (kW)" => get(strg, "ps", zeros(length(data_eng["storage"][id]["connections"]))),
+                    "reactive power setpoint (kVar)" => get(strg, "qs", zeros(length(data_eng["storage"][id]["connections"])))
+                )
+            end
+        end
+
+        for gen_type in ["solar", "generator", "voltage_source"]
+            if !isempty(get(nw, gen_type, Dict()))
+                nw_pf[gen_type] = Dict{String,Any}()
+                for (id,gen) in nw[gen_type]
+                    nw_pf[gen_type][id] = Dict{String,Any}(
+                        "real power setpoint (kW)" => get(gen, "pg", zeros(length(data_eng[gen_type][id]["connections"]))),
+                        "reactive power setpoint (kVar)" => get(gen, "qg", zeros(length(data_eng[gen_type][id]["connections"])))
+                    )
+                end
+            end
+        end
+
+        push!(output["Powerflow output"], nw_pf)
     end
 end
 

@@ -1,5 +1,10 @@
 # PowerModelsONM Changelog
 
+## staged
+
+- refactored Powerflow output to be list of dicts, like the other output formats
+- added generation/storage setpoints to Powerflow output: "real power setpoint (kW)" and "reactive power setpoint (kVar)"
+
 ## v0.3.3
 
 - fixed bug in fault studies algorithm where storage->gen objects were missing vbase and zx parameters

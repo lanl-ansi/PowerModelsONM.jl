@@ -20,13 +20,7 @@ function build_blank_output(data_eng::Dict{String,Any})::Dict{String,Any}
         ),
         "Storage SOC (%)" => Vector{Real}([]),
         "Device action timeline" => Vector{Dict{String,Any}}([]),
-        "Powerflow output" => Dict{String,Dict{String,Any}}(
-            "$timestamp" => Dict{String,Any}(
-                id => Dict{String,Any}(
-                    "voltage (V)" => 0.0
-                ) for (id,_) in data_eng["bus"]
-            ) for timestamp in first(data_eng["time_series"]).second["time"]
-        ),
+        "Powerflow output" => Vector{Dict{String,Any}}([]),
         "Summary statistics" => Dict{String,Any}(
             "Additional stats" => "TBD"
         ),
