@@ -2,7 +2,7 @@ on:
   push:
     tags:
     - 'v*'
-name: Realease
+name: Release
 jobs:
   create_release:
     name: Create GitHub Release
@@ -51,6 +51,8 @@ jobs:
             ${{ runner.os }}-test-
             ${{ runner.os }}-
       - uses: julia-actions/julia-buildpkg@latest
+      - run: julia --color=yes --project -e 'using Pkg; Pkg.rm("Gurobi"); end'
+        shell: bash
       - name: Build binary
         shell: bash
         run: julia -q --project=. -e 'using PackageCompiler; create_app("$(pwd())", "build");'
