@@ -12,17 +12,10 @@ end
 
 
 ""
-function optimize_switches!(mn_data_math::Dict{String,Any}, events::Vector{<:Dict{String,<:Any}}; solution_processors::Vector=[])::Vector{Dict{String,Any}}
+function optimize_switches!(mn_data_math::Dict{String,Any}, solver; solution_processors::Vector=[])::Vector{Dict{String,Any}}
     @info "running switching + load shed optimization"
 
     filtered_logger = LoggingExtras.ActiveFilteredLogger(juniper_log_filter, Logging.global_logger())
-
-    cbc_solver = PMD.optimizer_with_attributes(Cbc.Optimizer, "logLevel"=>0, "threads"=>4)
-    ipopt_solver = PMD.optimizer_with_attributes(Ipopt.Optimizer, "print_level"=>0, "tol"=>1e-4)
-    juniper_solver = PMD.optimizer_with_attributes(Juniper.Optimizer, "nl_solver"=>ipopt_solver, "mip_solver"=>cbc_solver, "log_levels"=>[])
-
-    # gurobi_solver = Gurobi.Optimizer(GRB_ENV)
-    # PMD.JuMP.set_optimizer_attribute(gurobi_solver, "OutputFlag", 0)
 
     results = []
     for n in sort([parse(Int, i) for i in keys(mn_data_math["nw"])])
@@ -37,7 +30,7 @@ function optimize_switches!(mn_data_math::Dict{String,Any}, events::Vector{<:Dic
             update_storage_capacity!(nw, results[end]["solution"])
         end
         r = Logging.with_logger(filtered_logger) do
-            r = run_mc_osw_mld_mi(nw, PMD.LPUBFDiagPowerModel, juniper_solver; solution_processors=solution_processors)
+            r = run_mc_osw_mld_mi(nw, PMD.LPUBFDiagPowerModel, solver; solution_processors=solution_processors)
         end
 
         update_start_values!(nw, r["solution"])
@@ -49,7 +42,7 @@ function optimize_switches!(mn_data_math::Dict{String,Any}, events::Vector{<:Dic
     solution = Dict("nw" => Dict("$n" => result["solution"] for (n, result) in enumerate(results)))
 
     # TODO: Multinetwork problem
-    #results = run_mn_mc_osw_mi(mn_data_math, PMD.LPUBFDiagPowerModel, juniper_solver; solution_processors=solution_processors)
+    #results = run_mn_mc_osw_mi(mn_data_math, PMD.LPUBFDiagPowerModel, solver; solution_processors=solution_processors)
     #solution = results["solution"]
 
     # TODO: moved to loop, re-enable if switching to mn problem
@@ -70,8 +63,16 @@ end
 
 
 ""
-function build_solver_instance(tolerance::Real, verbose::Bool=false)
-    return PMD.optimizer_with_attributes(Ipopt.Optimizer, "tol" => tolerance, "print_level" => verbose ? 5 : 0)
+function build_solver_instance(tolerance::Real, verbose::Bool=false; use_gurobi::Bool=false)::Tuple
+    nlp_solver = PMD.optimizer_with_attributes(Ipopt.Optimizer, "tol" => tolerance, "print_level" => verbose ? 5 : 0)
+
+    if use_gurobi
+        mip_solver = PMD.optimizer_with_attributes(() -> Gurobi.Optimizer(GRB_ENV), "OutputFlag" => verbose ? 1 : 0, "NonConvex" => 2)
+    else
+        mip_solver = PMD.optimizer_with_attributes(Cbc.Optimizer, "logLevel"=> verbose ? 1 : 0)
+    end
+
+    return PMD.optimizer_with_attributes(Juniper.Optimizer, "nl_solver"=>nlp_solver, "mip_solver"=>mip_solver, "log_levels"=>[]), nlp_solver, mip_solver
 end
 
 
@@ -108,7 +109,7 @@ end
 
 
 ""
-function analyze_stability(mn_data_eng::Dict{String,<:Any}, inverters::Dict{String,<:Any}; verbose::Bool=false)::Vector{Bool}
+function analyze_stability(mn_data_eng::Dict{String,<:Any}, inverters::Dict{String,<:Any}, solver; verbose::Bool=false)::Vector{Bool}
     @info "Running stability analysis"
     is_stable = Vector{Bool}([])
     for n in sort([parse(Int, n) for n in keys(mn_data_eng["nw"])])
@@ -117,9 +118,7 @@ function analyze_stability(mn_data_eng::Dict{String,<:Any}, inverters::Dict{Stri
 
         PowerModelsStability.add_inverters!(eng_data, inverters)
 
-        ipopt_solver = PMD.optimizer_with_attributes(Ipopt.Optimizer, "tol"=>1e-4, "print_level"=>verbose ? 5 : 0)
-
-        opfSol, mpData_math = PowerModelsStability.run_mc_opf(eng_data, PMD.ACRPowerModel, ipopt_solver; solution_processors=[PMD.sol_data_model!])
+        opfSol, mpData_math = PowerModelsStability.run_mc_opf(eng_data, PMD.ACRPowerModel, solver; solution_processors=[PMD.sol_data_model!])
 
         @debug opfSol["termination_status"]
 

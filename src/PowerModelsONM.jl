@@ -7,6 +7,7 @@ module PowerModelsONM
     import Ipopt
     import Cbc
     import Juniper
+    import Gurobi
 
     import ArgParse
     import JSON
@@ -25,6 +26,7 @@ module PowerModelsONM
 
     function __init__()
         global _LOGGER = Memento.getlogger(PowerModelsDistribution._PM)
+        global GRB_ENV = Gurobi.Env()
     end
 
     include("core/common.jl")

@@ -57,6 +57,9 @@ function parse_commandline()
             help = "DEBUG Option: path to export full PMD results"
             default = ""
             arg_type = String
+        "--use-gurobi"
+            help = "flag to use commercial gurobi solver"
+            action = :store_true
     end
 
     return ArgParse.parse_args(s)
@@ -83,11 +86,11 @@ function entrypoint(args::Dict{String,<:Any})
     PMD.correct_network_data!(mn_data_math; make_pu=true)
 
     # NLP Solver to use for Load shed and OPF
-    solver = build_solver_instance(args["solver-tolerance"], get(args, "verbose", false))
+    juniper_solver, nlp_solver, mip_solver = build_solver_instance(args["solver-tolerance"], get(args, "verbose", false); use_gurobi=get(args, "use-gurobi", false))
 
     # Optimal Switching and Load Shed
     if any(get(sw, "dispatchable", PMD.NO) == PMD.YES for (_,sw) in get(data_eng, "switch", Dict()))
-        osw_result = optimize_switches!(mn_data_math, events; solution_processors=[getproperty(PowerModelsONM, Symbol("sol_ldf2$(args["formulation"])!"))]);
+        osw_result = optimize_switches!(mn_data_math, mip_solver; solution_processors=[getproperty(PowerModelsONM, Symbol("sol_ldf2$(args["formulation"])!"))]);
 
         # Output switching actions to output data
         get_timestep_device_actions!(output_data, mn_data_math)
@@ -98,12 +101,12 @@ function entrypoint(args::Dict{String,<:Any})
     form = get_formulation(args["formulation"])
     problem = get_problem(args["problem"], haskey(mn_data_math, "nw"))
     @info "Running optimal dispatch $problem : $form"
-    result = solve_problem(PMD.solve_mn_mc_opf, mn_data_math, form, solver; solution_processors=[PMD.sol_data_model!])
+    result = solve_problem(PMD.solve_mn_mc_opf, mn_data_math, form, juniper_solver; solution_processors=[PMD.sol_data_model!])
 
     # Check if configurations are stable
     if !isempty(get(args, "inverters", ""))
         inverters = parse_inverters(args["inverters"])
-        is_stable = analyze_stability(mn_data_eng, inverters; verbose=get(args, "verbose", false))
+        is_stable = analyze_stability(mn_data_eng, inverters, nlp_solver; verbose=get(args, "verbose", false))
 
         # Output if timesteps are small signal stable or not
         get_timestep_stability!(output_data, is_stable)
@@ -112,7 +115,7 @@ function entrypoint(args::Dict{String,<:Any})
     # perform fault studies
     if !isempty(get(args, "faults", ""))
         faults = parse_faults(args["faults"])
-        fault_results = run_fault_study(mn_data_math, faults, solver);
+        fault_results = run_fault_study(mn_data_math, faults, nlp_solver);
 
         # Output bus fault currents to output data
         get_timestep_fault_currents!(output_data, fault_results)
