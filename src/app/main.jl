@@ -79,7 +79,7 @@ function entrypoint(args::Dict{String,<:Any})
     (data_eng, mn_data_eng) = prepare_network_case(args["network-file"]; events=events);
 
     # Initialize output data structure
-    output_data = build_blank_output(data_eng)
+    output_data = build_blank_output(data_eng, args)
 
     # MATHEMATICAL MULTINETWORK MODEL
     mn_data_math = PMD._map_eng2math_multinetwork(mn_data_eng)
