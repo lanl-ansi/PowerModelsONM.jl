@@ -7,7 +7,12 @@ module PowerModelsONM
     import Ipopt
     import Cbc
     import Juniper
-    import Gurobi
+
+    try
+        @eval import Gurobi
+    catch err
+        @warn "Gurobi.jl not installed."
+    end
 
     import ArgParse
     import JSON
@@ -26,7 +31,10 @@ module PowerModelsONM
 
     function __init__()
         global _LOGGER = Memento.getlogger(PowerModelsDistribution._PM)
-        global GRB_ENV = Gurobi.Env()
+        try
+            global GRB_ENV = Gurobi.Env()
+        catch err
+        end
     end
 
     include("core/common.jl")
