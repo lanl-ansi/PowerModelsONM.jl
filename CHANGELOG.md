@@ -2,6 +2,7 @@
 
 ## staged
 
+- Fix bug in load served stats function when no DER in network
 - Add shedded loads to Device action timeline
 - Add runtime arguments to output
 - Add support for Gurobi solver (may break CI)
