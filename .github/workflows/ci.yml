@@ -32,7 +32,7 @@ jobs:
             ${{ runner.os }}-test-${{ env.cache-name }}-
             ${{ runner.os }}-test-
             ${{ runner.os }}-
-      - run: julia --color=yes --project -e 'using Pkg; Pkg.rm("Gurobi"); end'
+      - run: julia --color=yes --project -e 'using Pkg; Pkg.rm("Gurobi");'
         shell: bash
       - uses: julia-actions/julia-buildpkg@latest
         continue-on-error: ${{ matrix.version == 'nightly' }}
