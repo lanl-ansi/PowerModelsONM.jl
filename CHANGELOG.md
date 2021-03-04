@@ -2,6 +2,10 @@
 
 ## staged
 
+- Add shedded loads to Device action timeline
+- Add runtime arguments to output
+- Add support for Gurobi solver (may break CI)
+- mld problem upgrade, changes from "simple" mld problem to variant of full mld problem in PowerModelsDistribution
 - mld+osw objective tuning: disincentivize switching from current configuration
 - updated protections settings file parser for new format
 - refactored Powerflow output to be list of dicts, like the other output formats

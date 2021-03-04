@@ -50,7 +50,6 @@ function optimize_switches!(mn_data_math::Dict{String,Any}, solver; solution_pro
     # update_switch_settings!(mn_data_math, solution)
 
     apply_load_shed!(mn_data_math, Dict{String,Any}("solution" => solution))
-    update_post_event_actions_load_shed!(events, solution, mn_data_math["map"])
 
     return results
 end

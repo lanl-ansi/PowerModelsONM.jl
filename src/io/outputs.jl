@@ -1,6 +1,7 @@
 ""
-function build_blank_output(data_eng::Dict{String,Any})::Dict{String,Any}
+function build_blank_output(data_eng::Dict{String,Any}, args::Dict{String,<:Any})::Dict{String,Any}
     Dict{String,Any}(
+        "Runtime arguments" => args,
         "Simulation time steps" => Vector{String}(["$t" for t in first(data_eng["time_series"]).second["time"]]),
         "Load served" => Dict{String,Any}(
             "Feeder load (%)" => Vector{Real}([]),
@@ -21,9 +22,7 @@ function build_blank_output(data_eng::Dict{String,Any})::Dict{String,Any}
         "Storage SOC (%)" => Vector{Real}([]),
         "Device action timeline" => Vector{Dict{String,Any}}([]),
         "Powerflow output" => Vector{Dict{String,Any}}([]),
-        "Summary statistics" => Dict{String,Any}(
-            "Additional stats" => "TBD"
-        ),
+        "Summary statistics" => Dict{String,Any}(),
         "Events" => Vector{Dict{String,Any}}([]),
         "Protection Settings" => Vector{Dict{String,Any}}([]),
         "Fault currents" => Vector{Dict{String,Any}}([]),

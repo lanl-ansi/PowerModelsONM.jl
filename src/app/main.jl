@@ -93,7 +93,7 @@ function entrypoint(args::Dict{String,<:Any})
         osw_result = optimize_switches!(mn_data_math, mip_solver; solution_processors=[getproperty(PowerModelsONM, Symbol("sol_ldf2$(args["formulation"])!"))]);
 
         # Output switching actions to output data
-        get_timestep_device_actions!(output_data, mn_data_math)
+        get_timestep_device_actions!(output_data, osw_result, mn_data_math)
         propagate_switch_settings!(mn_data_eng, mn_data_math)
     end
 

@@ -82,12 +82,28 @@ function get_timestep_powerflow_output!(output::Dict{String,<:Any}, sol_pu::Dict
 end
 
 
-function get_timestep_device_actions!(output::Dict{String,<:Any}, mn_data_math::Dict{String,<:Any})
+function get_timestep_device_actions!(output::Dict{String,<:Any}, osw_result::Vector{<:Dict{String,<:Any}}, mn_data_math::Dict{String,<:Any})
     switch_map = build_switch_map(mn_data_math["map"])
+    load_map = build_device_map(mn_data_math["map"], "load")
     for i in sort([parse(Int, k) for k in keys(mn_data_math["nw"])])
-        push!(output["Device action timeline"], Dict{String,Any}(
+        n = "$i"
+        nw = mn_data_math["nw"][n]
+        oswr = get(osw_result[i], "solution", Dict())
+
+        _out = Dict{String,Any}(
             "Switch configurations" => Dict{String,Any}(switch_map[l] => isa(switch["state"], PMD.SwitchState) ? lowercase(string(switch["state"])) : lowercase(string(PMD.SwitchState(Int(round(switch["state"]))))) for (l, switch) in get(mn_data_math["nw"]["$i"], "switch", Dict()))
-        ))
+        )
+
+        shedded_loads = Vector{String}([])
+        for (id, load) in get(oswr, "load", Dict())
+            if !isapprox(get(load, "status", 1), 1) && nw["load"][id]["status"] != 0
+                push!(shedded_loads, load_map[id])
+            end
+        end
+
+        _out["Shedded loads"] = shedded_loads
+
+        push!(output["Device action timeline"], _out)
     end
 end
 
