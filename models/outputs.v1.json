@@ -123,6 +123,11 @@
       "items": {
         "type": "boolean"
       }
+    },
+    "Runtime timestamp": {
+      "type": "string",
+      "description": "Time at which ONM algorithm was executed",
+      "format": "date-time"
     }
   }
 }

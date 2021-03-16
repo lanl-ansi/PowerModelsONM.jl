@@ -27,6 +27,7 @@ function build_blank_output(data_eng::Dict{String,Any}, args::Dict{String,<:Any}
         "Protection Settings" => Vector{Dict{String,Any}}([]),
         "Fault currents" => Vector{Dict{String,Any}}([]),
         "Small signal stable" => Vector{Bool}([]),
+        "Runtime timestamp" => "$(Dates.now())",
     )
 end
 
