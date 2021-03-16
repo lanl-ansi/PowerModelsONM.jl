@@ -42,6 +42,7 @@ module PowerModelsONM
     include("core/constraint.jl")
     include("core/data.jl")
     include("core/objective.jl")
+    include("core/ref.jl")
     include("core/solution.jl")
     include("core/statistics.jl")
     include("core/variable.jl")

@@ -33,7 +33,7 @@ function optimize_switches!(mn_data_math::Dict{String,Any}, solver; solution_pro
             update_storage_capacity!(nw, results[end]["solution"])
         end
         r = Logging.with_logger(filtered_logger) do
-            r = run_mc_osw_mld_mi(nw, PMD.LPUBFDiagPowerModel, solver; solution_processors=solution_processors)
+            r = run_mc_osw_mld_mi(nw, PMD.LPUBFDiagPowerModel, solver; solution_processors=solution_processors, ref_extensions=[ref_add_load_blocks!])
         end
 
         update_start_values!(nw, r["solution"])
