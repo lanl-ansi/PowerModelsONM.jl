@@ -39,6 +39,7 @@ module PowerModelsONM
 
     include("core/common.jl")
     include("core/constraint_template.jl")
+    include("core/constraint.jl")
     include("core/data.jl")
     include("core/objective.jl")
     include("core/solution.jl")

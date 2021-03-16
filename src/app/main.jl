@@ -60,6 +60,10 @@ function parse_commandline()
         "--use-gurobi"
             help = "flag to use commercial gurobi solver"
             action = :store_true
+        "--max-switch-actions"
+            help = "maximum number of switching actions per step"
+            arg_type = Int
+            default = 0
     end
 
     return ArgParse.parse_args(s)
@@ -90,7 +94,12 @@ function entrypoint(args::Dict{String,<:Any})
 
     # Optimal Switching and Load Shed
     if any(get(sw, "dispatchable", PMD.NO) == PMD.YES for (_,sw) in get(data_eng, "switch", Dict()))
-        osw_result = optimize_switches!(mn_data_math, mip_solver; solution_processors=[getproperty(PowerModelsONM, Symbol("sol_ldf2$(args["formulation"])!"))]);
+        osw_result = optimize_switches!(
+            mn_data_math,
+            mip_solver;
+            solution_processors=[getproperty(PowerModelsONM, Symbol("sol_ldf2$(args["formulation"])!"))],
+            max_switch_actions=get(args, "max-switch-actions", 0)
+        );
 
         # Output switching actions to output data
         get_timestep_device_actions!(output_data, osw_result, mn_data_math)

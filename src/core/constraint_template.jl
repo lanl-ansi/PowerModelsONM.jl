@@ -19,3 +19,9 @@ function constraint_mc_power_balance_shed(pm::PMD._PM.AbstractPowerModel, i::Int
 
     constraint_mc_power_balance_shed(pm, nw, i, bus["terminals"], bus["grounded"], bus_arcs, bus_arcs_sw, bus_arcs_trans, bus_gens, bus_storage, bus_loads, bus_shunts)
 end
+
+
+"max switching actions per timestep constraint"
+function constraint_switch_state_max_actions(pm::PMD._PM.AbstractPowerModel; nw::Int=pm.cnw)
+    constraint_switch_state_max_actions(pm, nw)
+end

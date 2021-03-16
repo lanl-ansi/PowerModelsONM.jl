@@ -12,7 +12,7 @@ end
 
 
 ""
-function optimize_switches!(mn_data_math::Dict{String,Any}, solver; solution_processors::Vector=[])::Vector{Dict{String,Any}}
+function optimize_switches!(mn_data_math::Dict{String,Any}, solver; solution_processors::Vector=[], max_switch_actions::Int=0)::Vector{Dict{String,Any}}
     @info "running switching + load shed optimization"
 
     filtered_logger = LoggingExtras.ActiveFilteredLogger(juniper_log_filter, Logging.global_logger())
@@ -23,6 +23,9 @@ function optimize_switches!(mn_data_math::Dict{String,Any}, solver; solution_pro
         n = "$n"
         nw = mn_data_math["nw"][n]
         nw["per_unit"] = mn_data_math["per_unit"]
+        if max_switch_actions > 0
+            nw["max_switch_changes"] = max_switch_actions
+        end
 
         if !isempty(results)
             update_start_values!(nw, results[end]["solution"])
