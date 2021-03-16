@@ -240,3 +240,17 @@ function are_blocks_warm(data, blocks)
     end
     return is_warm
 end
+
+
+function is_block_warm(data, block)
+    active_gen_buses = Set([gen["gen_bus"] for (_,gen) in get(data, "gen", Dict()) if gen[pmd_component_status["gen"]] != pmd_component_status_inactive["gen"]])
+    active_storage_buses = Set([strg["storage_bus"] for (_,strg) in get(data, "storage", Dict()) if strg[pmd_component_status["storage"]] != pmd_component_status_inactive["storage"]])
+
+    for bus in block
+        if bus in active_gen_buses || bus in active_storage_buses
+            return true
+            break
+        end
+    end
+    return false
+end

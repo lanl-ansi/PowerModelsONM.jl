@@ -25,3 +25,9 @@ end
 function constraint_switch_state_max_actions(pm::PMD._PM.AbstractPowerModel; nw::Int=pm.cnw)
     constraint_switch_state_max_actions(pm, nw)
 end
+
+
+""
+function constraint_load_block_isolation(pm::PMD._PM.AbstractPowerModel; nw::Int=pm.cnw)
+    constraint_load_block_isolation(pm, nw)
+end
