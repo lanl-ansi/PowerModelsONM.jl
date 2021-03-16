@@ -44,6 +44,7 @@ module PowerModelsONM
     include("core/objective.jl")
     include("core/solution.jl")
     include("core/statistics.jl")
+    include("core/variable.jl")
 
     include("form/shared.jl")
 

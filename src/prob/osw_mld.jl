@@ -102,7 +102,7 @@ function build_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
     PMD.variable_mc_storage_indicator(pm, relax=false)
     PMD.variable_mc_storage_power_mi_on_off(pm, relax=false)
 
-    PMD.variable_mc_load_indicator(pm; relax=false)
+    variable_mc_load_indicator(pm; relax=false)
     PMD.variable_mc_shunt_indicator(pm; relax=false)
 
     PMD.constraint_mc_model_current(pm)
@@ -139,6 +139,7 @@ function build_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
         PMD.constraint_mc_thermal_limit_to(pm, i)
     end
 
+    constraint_switch_state_max_actions(pm)
     for i in PMD.ids(pm, :switch)
         PMD.constraint_mc_switch_state_on_off(pm, i; relax=true)
         PMD.constraint_mc_switch_thermal_limit(pm, i)

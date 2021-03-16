@@ -1,3 +1,26 @@
+const pmd_component_status = Dict(
+    "bus" => "bus_type",
+    "load" => "status",
+    "shunt" => "status",
+    "gen" => "gen_status",
+    "storage" => "status",
+    "switch" => "status",
+    "branch" => "br_status",
+    "transformer" => "status",
+)
+
+const pmd_component_status_inactive = Dict(
+    "bus" => 4,
+    "load" => 0,
+    "shunt" => 0,
+    "gen" => 0,
+    "storage" => 0,
+    "switch" => 0,
+    "branch" => 0,
+    "transformer" => 0,
+)
+
+
 ""
 function _make_dict_keys_str(dict::Dict{<:Any,<:Any})
     o = Dict{String,Any}()
@@ -145,4 +168,75 @@ function apply_voltage_angle_bounds!(eng::Dict{String,<:Any}, vad::Real)
             line["vad_ub"] = fill( vad, length(line["f_connections"]))
         end
     end
+end
+
+
+function identify_cold_loads(data)
+    blocks = identify_load_blocks(data)
+    is_warm = are_blocks_warm(data, blocks)
+
+    load2block_map = Dict()
+    for (l,load) in get(data, "load", Dict())
+        for block in blocks
+            if load["load_bus"] in block
+                load2block_map[parse(Int,l)] = block
+                break
+            end
+        end
+    end
+
+    return Dict(l => !is_warm[block] for (l,block) in load2block_map)
+end
+
+
+function identify_load_blocks(data; edges=["branch", "transformer", "switch"])
+    active_bus = Dict{Any,Dict{String,Any}}(x for x in data["bus"] if x.second[pmd_component_status["bus"]] != pmd_component_status_inactive["bus"])
+    active_bus_ids = Set{Any}([parse(Int,i) for (i,bus) in active_bus])
+
+    neighbors = Dict{Any,Vector{Any}}(i => [] for i in active_bus_ids)
+    for edge_type in edges
+        for (id, edge_obj) in get(data, edge_type, Dict{Any,Dict{String,Any}}())
+            if edge_type == "switch"
+                if edge_obj[pmd_component_status[edge_type]] != pmd_component_status_inactive[edge_type] && edge_obj["state"] != 0
+                    push!(neighbors[edge_obj["f_bus"]], edge_obj["t_bus"])
+                    push!(neighbors[edge_obj["t_bus"]], edge_obj["f_bus"])
+                end
+            else
+                if edge_obj[pmd_component_status[edge_type]] != pmd_component_status_inactive[edge_type]
+                    push!(neighbors[edge_obj["f_bus"]], edge_obj["t_bus"])
+                    push!(neighbors[edge_obj["t_bus"]], edge_obj["f_bus"])
+                end
+            end
+        end
+    end
+
+    component_lookup = Dict(i => Set{Any}([i]) for i in active_bus_ids)
+    touched = Set{Any}()
+
+    for i in active_bus_ids
+        if !(i in touched)
+            PMD._PM._cc_dfs(i, neighbors, component_lookup, touched)
+        end
+    end
+
+    ccs = (Set(values(component_lookup)))
+
+    return ccs
+end
+
+
+function are_blocks_warm(data, blocks)
+    active_gen_buses = Set([gen["gen_bus"] for (_,gen) in get(data, "gen", Dict()) if gen[pmd_component_status["gen"]] != pmd_component_status_inactive["gen"]])
+    active_storage_buses = Set([strg["storage_bus"] for (_,strg) in get(data, "storage", Dict()) if strg[pmd_component_status["storage"]] != pmd_component_status_inactive["storage"]])
+
+    is_warm = Dict(block => false for block in blocks)
+    for block in blocks
+        for bus in block
+            if bus in active_gen_buses || bus in active_storage_buses
+                is_warm[block] = true
+                break
+            end
+        end
+    end
+    return is_warm
 end
