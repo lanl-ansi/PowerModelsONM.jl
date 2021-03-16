@@ -4,10 +4,5 @@
   "x-tags": [
     "output"
   ],
-  "properties": {
-    "id": {
-      "type": "string"
-    }
-  },
   "description": "TODO"
 }

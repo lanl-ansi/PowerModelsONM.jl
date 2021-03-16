@@ -6,31 +6,31 @@
   ],
   "description": "Main output schema for PowerModelsONM",
   "properties": {
-    "simulation_time_steps": {
+    "Simulation time steps": {
       "type": "array",
       "items": {
         "type": "string",
         "format": "date-time"
       }
     },
-    "load_served": {
+    "Load served": {
       "type": "object",
       "properties": {
-        "feeder_load_percent": {
+        "Feeder load (%)": {
           "type": "array",
           "items": {
             "type": "number",
             "format": "float"
           }
         },
-        "microgrid_load_percent": {
+        "Microgrid load (%)": {
           "type": "array",
           "items": {
             "type": "number",
             "format": "float"
           }
         },
-        "bonus_load_via_microgrid_percent": {
+        "Bonus load via microgrid (%)": {
           "type": "array",
           "items": {
             "type": "number",
@@ -39,28 +39,28 @@
         }
       }
     },
-    "generator_profiles": {
+    "Generator profiles": {
       "type": "object",
       "properties": {
-        "grid_mix_kw": {
+        "Grid mix (kW)": {
           "type": "array",
           "items": {
             "type": "number"
           }
         },
-        "solar_dg_kw": {
+        "Solar DG (kW)": {
           "type": "array",
           "items": {
             "type": "number"
           }
         },
-        "energy_storage_kw": {
+        "Energy storage (kW)": {
           "type": "array",
           "items": {
             "type": "number"
           }
         },
-        "diesel_dg_kw": {
+        "Diesel DG (kW)": {
           "type": "array",
           "items": {
             "type": "number"
@@ -68,22 +68,22 @@
         }
       }
     },
-    "voltages": {
+    "Voltages": {
       "type": "object",
       "properties": {
-        "min_voltage_pu": {
+        "Min voltage (p.u.)": {
           "type": "array",
           "items": {
             "type": "number"
           }
         },
-        "mean_voltage_pu": {
+        "Mean voltage (p.u.)": {
           "type": "array",
           "items": {
             "type": "number"
           }
         },
-        "max_voltage_pu": {
+        "Max voltage (p.u.)": {
           "type": "array",
           "items": {
             "type": "number"
@@ -91,29 +91,38 @@
         }
       }
     },
-    "storage_soc_percent": {
+    "Storage SOC (%)": {
       "type": "array",
       "items": {
         "type": "number"
       }
     },
-    "device_activation_timeline": {
-      "type": "array",
-      "items": {
-        "$ref": "./device_activation.v1.json"
-      }
+    "Device action timeline": {
+      "$ref": "./device_action_timeline.v1.json"
     },
-    "powerflow_output": {
+    "Powerflow output": {
       "$ref": "./powerflow.v1.json"
     },
-    "summary_statistics": {
-      "type": "object"
+    "Summary statistics": {
+      "$ref": "./summary_statistics.v1.json"
     },
-    "events": {
+    "Events": {
       "$ref": "./events.v1.json"
     },
-    "protection_settings": {
+    "Protection settings": {
       "$ref": "./protection_settings.v1.json"
+    },
+    "Runtime arguments": {
+      "$ref": "./runtime_arguments.v1.json"
+    },
+    "Fault currents": {
+      "$ref": "./fault_currents.v1.json"
+    },
+    "Small signal stable": {
+      "type": "array",
+      "items": {
+        "type": "boolean"
+      }
     }
   }
 }

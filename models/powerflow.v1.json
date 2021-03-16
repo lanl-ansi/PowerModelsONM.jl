@@ -1,16 +1,97 @@
 {
   "title": "powerflow",
-  "type": "object",
+  "type": "array",
   "x-tags": [
     "output"
   ],
-  "properties": {
-    "id": {
-      "type": "string"
-    },
-    "voltage_v": {
-      "type": "number"
+  "description": "Powerflow output schema",
+  "items": {
+    "type": "object",
+    "properties": {
+      "voltage_source": {
+        "type": "object",
+        "properties": {
+          "real power setpoint (kW)": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "reactive power setpoint (kVar)": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        }
+      },
+      "generator": {
+        "type": "object",
+        "properties": {
+          "real power setpoint (kW)": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "reactive power setpoint (kVar)": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        }
+      },
+      "solar": {
+        "type": "object",
+        "properties": {
+          "real power setpoint (kW)": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "reactive power setpoint (kVar)": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        }
+      },
+      "bus": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "object",
+            "properties": {
+              "Voltage (V)": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "storage": {
+        "type": "object",
+        "properties": {
+          "real power setpoint": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "reactive power setpoint": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        }
+      }
     }
-  },
-  "description": "Powerflow output schema"
+  }
 }

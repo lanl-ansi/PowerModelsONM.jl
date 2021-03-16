@@ -41,6 +41,8 @@ This will execute with the following defaults:
 - `--faults`: Pre-defined faults file (JSON) that contains faults over which to perform fault studies
 - `--inverters`: Inverter settings file (JSON) that contains information for stability analysis
 - `--protection-settings`: XLSX (Excel) file containing protection settings for various network configurations
+- `--max-switch-actions`: maximum allowed switching actions per timestep
+- `--timestep-duration`: duration of time between timesteps in hours
 
 ### Recommended networks
 
@@ -83,16 +85,8 @@ Dict{String,Any}(
     ),
     "Storage SOC (%)" => Vector{Real}([]),
     "Device action timeline" => Vector{Dict{String,Any}}([]),
-    "Powerflow output" => Dict{String,Dict{String,Dict{String,Vector{Real}}}}(
-        "$timestamp" => Dict{String,Dict{String,Vector{Real}}}(
-            id => Dict{String,Vector{Real}}(
-                "voltage (V)" => 0.0
-            ) for (id,_) in buses
-        ) for timestamp in timestampes
-    ),
-    "Summary statistics" => Dict{String,Any}(
-        "Additional stats" => "TBD"
-    ),
+    "Powerflow output" => Vector{Dict{String,Any}}([]),
+    "Summary statistics" => Dict{String,Any}(),
     "Events" => Vector{Dict{String,Any}}([]),
     "Protection settings" => Vector{Dict{String,Any}}([]),
     "Small signal stable" => Vector{Bool}([]),
