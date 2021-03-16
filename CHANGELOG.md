@@ -2,6 +2,8 @@
 
 ## staged
 
+- Add initial support for cold-load-pickup, with helper functions for calculating load blocks
+- Add constraint for maximum allowed switching actions per timestep
 - Fix bug in load served stats function when no DER in network
 - Add shedded loads to Device action timeline
 - Add runtime arguments to output
