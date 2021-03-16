@@ -2,12 +2,12 @@
 function juniper_log_filter(log_args)
     if log_args._module == "Juniper"
         if log_args.level == :Error
-            return false
-        else
             return true
+        else
+            return false
         end
     end
-    return false
+    return true
 end
 
 
