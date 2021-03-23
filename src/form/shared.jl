@@ -109,4 +109,3 @@ function PowerModelsDistribution.constraint_mc_switch_state_on_off(pm::PMD.LPUBF
         end
     end
 end
-

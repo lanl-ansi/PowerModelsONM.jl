@@ -254,3 +254,19 @@ function is_block_warm(data, block)
     end
     return false
 end
+
+
+""
+function adjust_line_limits!(data_eng::Dict{String,<:Any}; scale::Real=10.0)
+    for type in ["line", "switch"]
+        if haskey(data_eng, type)
+            for (l, line) in data_eng[type]
+                for k in ["cm_ub", "cm_ub_b", "cm_ub_c"]
+                    if haskey(line, k)
+                        line[k] .*= scale
+                    end
+                end
+            end
+        end
+    end
+end
