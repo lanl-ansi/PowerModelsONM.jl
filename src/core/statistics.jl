@@ -23,7 +23,7 @@ function get_timestep_load_served!(output::Dict{String,<:Any}, sol_si::Dict{Stri
         original_load = sum([sum(load["pd_nom"]) for (_,load) in mn_data_eng["nw"]["$i"]["load"]])
         feeder_served_load = sum([sum(vs["pg"]) for (_,vs) in sol_si["nw"]["$i"]["voltage_source"]])
         der_non_storage_served_load = !isempty(get(sol_si["nw"]["$i"], "generator", Dict())) || !isempty(get(sol_si["nw"]["$i"], "solar", Dict())) ? sum([sum(g["pg"]) for type in ["solar", "generator"] for (_,g) in get(sol_si["nw"]["$i"], type, Dict())]) : 0.0
-        der_storage_served_load = !isempty(get(sol_si["nw"]["$i"], "storage", Dict())) ? sum([sum(s["ps"]) for (_,s) in get(sol_si["nw"]["$i"], "storage", Dict())]) : 0.0
+        der_storage_served_load = !isempty(get(sol_si["nw"]["$i"], "storage", Dict())) ? sum([-sum(s["ps"]) for (_,s) in get(sol_si["nw"]["$i"], "storage", Dict())]) : 0.0
         microgrid_served_load = (der_non_storage_served_load + der_storage_served_load) / original_load * 100
         _bonus_load = (microgrid_served_load - 100)
 
@@ -38,7 +38,7 @@ function get_timestep_generator_profiles!(output::Dict{String,<:Any}, sol_si::Di
     for i in sort([parse(Int, k) for k in keys(sol_si["nw"])])
         push!(output["Generator profiles"]["Grid mix (kW)"], sum(Float64[sum(vsource["pg"]) for (_,vsource) in get(sol_si["nw"]["$i"], "voltage_source", Dict())]))
         push!(output["Generator profiles"]["Solar DG (kW)"], sum(Float64[sum(solar["pg"]) for (_,solar) in get(sol_si["nw"]["$i"], "solar", Dict())]))
-        push!(output["Generator profiles"]["Energy storage (kW)"], sum(Float64[sum(storage["ps"]) for (_,storage) in get(sol_si["nw"]["$i"], "storage", Dict())]))
+        push!(output["Generator profiles"]["Energy storage (kW)"], sum(Float64[-sum(storage["ps"]) for (_,storage) in get(sol_si["nw"]["$i"], "storage", Dict())]))
         push!(output["Generator profiles"]["Diesel DG (kW)"], sum(Float64[sum(gen["pg"]) for (_,gen) in get(sol_si["nw"]["$i"], "generator", Dict())]))
     end
 end
