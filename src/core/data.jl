@@ -105,7 +105,15 @@ function build_switch_map(map::Vector)::Dict{String,String}
     switch_map = Dict{String,String}()
     for item in map
         if endswith(item["unmap_function"], "switch!")
-            math_id = isa(item["to"], Array) ? split(item["to"][end], ".")[end] : split(item["to"], ".")[end]
+            if isa(item["to"], Array)
+                for _to in item["to"]
+                    if startswith(_to, "switch")
+                        math_id = split(_to, ".")[end]
+                    end
+                end
+            else
+                math_id = split(item["to"], ".")[end]
+            end
             switch_map[math_id] = item["from"]
         end
     end
