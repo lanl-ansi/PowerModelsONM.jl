@@ -2,6 +2,8 @@
 
 ## staged
 
+- Fix switch map function (was grabbing wrong math id)
+- Add helper function to adjust line limits
 - Fix sign of storage outputs
 - Updated output specification documentation
 - Add initial support for cold-load-pickup, with helper functions for calculating load blocks
