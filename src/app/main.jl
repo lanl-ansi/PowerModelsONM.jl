@@ -64,6 +64,10 @@ function parse_commandline()
             help = "maximum number of switching actions per step"
             arg_type = Int
             default = 0
+        "--timestep-hours"
+            help = "number of hours between each timestep (uniform)"
+            arg_type = Real
+            default = 1.0
     end
 
     return ArgParse.parse_args(s)
@@ -80,7 +84,7 @@ function entrypoint(args::Dict{String,<:Any})
     events = !isempty(get(args, "events", "")) ? parse_events(args["events"]) : Vector{Dict{String,Any}}([])
 
     # build ENGINEERING MODEL, both mutlinetwork and base case with timeseries objects
-    (data_eng, mn_data_eng) = prepare_network_case(args["network-file"]; events=events);
+    (data_eng, mn_data_eng) = prepare_network_case(args["network-file"]; events=events, time_elapsed=get(args, "timestep-hours", 1.0));
 
     # Initialize output data structure
     output_data = build_blank_output(data_eng, args)
@@ -124,7 +128,7 @@ function entrypoint(args::Dict{String,<:Any})
     # perform fault studies
     if !isempty(get(args, "faults", ""))
         faults = parse_faults(args["faults"])
-        fault_results = run_fault_study(mn_data_math, faults, nlp_solver);
+        fault_results = run_fault_study(mn_data_math, faults, nlp_solver; time_elapsed=get(args, "timestep-hours", 1.0));
 
         # Output bus fault currents to output data
         get_timestep_fault_currents!(output_data, fault_results)

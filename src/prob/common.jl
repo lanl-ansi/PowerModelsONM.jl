@@ -79,14 +79,14 @@ end
 
 
 ""
-function run_fault_study(mn_data_math::Dict{String,Any}, faults::Dict{String,Any}, solver)::Vector{Dict{String,Any}}
+function run_fault_study(mn_data_math::Dict{String,Any}, faults::Dict{String,Any}, solver; time_elapsed::Real=1.0)::Vector{Dict{String,Any}}
     @info "Running fault studies"
     results = []
     for n in sort([parse(Int, i) for i in keys(get(mn_data_math, "nw", Dict()))])
         @info "    running fault study at timestep $n"
         nw = deepcopy(mn_data_math["nw"]["$n"])
         nw["method"] = "PMD"
-        nw["time_elapsed"] = 1.0
+        nw["time_elapsed"] = time_elapsed
         nw["fault"] = faults
         nw["bus_lookup"] = mn_data_math["bus_lookup"]
         nw["map"] = mn_data_math["map"]
