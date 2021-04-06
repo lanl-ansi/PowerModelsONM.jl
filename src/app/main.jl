@@ -69,19 +69,19 @@ function parse_commandline()
             arg_type = Real
             default = 1.0
         "--voltage-lower-bound"
-            help = ""
+            help = "voltage magnitude lower bound in per-unit"
             arg_type = Real
             default = 0.9
         "--voltage-upper-bound"
-            help = ""
+            help = "voltage magnitude upper bound in per-unit"
             arg_type = Real
             default = 1.1
         "--voltage-angle-difference"
-            help = ""
+            help = "voltage angle difference bound on lines/switches in degrees"
             arg_type = Real
             default = 3.0
         "--clpu-factor"
-            help = ""
+            help = "cold load pickup factor"
             arg_type = Real
             default = 2.0
     end
@@ -129,8 +129,7 @@ function entrypoint(args::Dict{String,<:Any})
 
     # Final optimal dispatch
     form = get_formulation(args["formulation"])
-    problem = get_problem(args["problem"], haskey(mn_data_math, "nw"))
-    @info "Running optimal dispatch $problem : $form"
+    @info "Running optimal dispatch solve_mn_mc_opf : $form"
     result = solve_problem(PMD.solve_mn_mc_opf, mn_data_math, form, juniper_solver; solution_processors=[PMD.sol_data_model!])
 
     # Check if configurations are stable
