@@ -50,9 +50,9 @@ jobs:
             ${{ runner.os }}-test-${{ env.cache-name }}-
             ${{ runner.os }}-test-
             ${{ runner.os }}-
-      - uses: julia-actions/julia-buildpkg@latest
       - run: julia --color=yes --project -e 'using Pkg; Pkg.rm("Gurobi");'
         shell: bash
+      - uses: julia-actions/julia-buildpkg@latest
       - name: Build binary
         shell: bash
         run: julia -q --project=. -e 'using PackageCompiler; create_app("$(pwd())", "build"; include_lazy_artifacts=false);'
