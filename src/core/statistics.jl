@@ -96,8 +96,8 @@ function get_timestep_device_actions!(output::Dict{String,<:Any}, osw_result::Ve
 
         shedded_loads = Vector{String}([])
         for (id, load) in get(oswr, "load", Dict())
-            if !isapprox(get(load, "status", 1), 1) && nw["load"][id]["status"] != 0
-                push!(shedded_loads, load_map[id])
+            if round(get(load, "status", 1)) ≉ 1
+               push!(shedded_loads, load_map[id])
             end
         end
 
