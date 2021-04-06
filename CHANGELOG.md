@@ -2,6 +2,10 @@
 
 ## staged
 
+- none
+
+## v0.4.0
+
 - Fix bug in osw_mld problems when using open-source solvers
 - Add support for timesteps in events being specified as integers
 - Updated weights in objective for osw_mld_mi problem
