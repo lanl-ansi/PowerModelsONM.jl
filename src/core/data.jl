@@ -48,6 +48,17 @@ function make_multinetwork!(data_eng, data_math, sol_pu, sol_si)
 end
 
 
+""
+function get_timestep(timestep::Union{Int,String}, network::Dict{String,<:Any})
+    if isa(timestep, Int)
+        return timestep
+    else
+        # TODO: Support timesteps in eng multinetwork data structure (PMD)
+        Int(round(parse(Float64, timestep)))
+    end
+end
+
+
 "expects engineering network (multi of single)"
 function apply_events!(network::Dict{String,Any}, events::Vector{<:Dict{String,Any}})
     for event in events
@@ -56,14 +67,14 @@ function apply_events!(network::Dict{String,Any}, events::Vector{<:Dict{String,A
         timestep = event["timestep"]
 
         if event["event_type"] == "switch"
-            start_timestep = Int(round(parse(Float64, timestep)))
+            start_timestep = get_timestep(timestep, network)
             if haskey(network, "nw")
                 if any(haskey(nw["switch"], asset_name) for (_,nw) in network["nw"])
                     for (n, nw) in network["nw"]
                         if parse(Int, n) >= start_timestep
                             if haskey(nw["switch"], asset_name)
                                 if haskey(event["event_data"], "status")
-                                    nw["switch"][asset_name]["status"] = Dict{Int,PMD.Status}(1 => PMD.ENABLED, 0 => PMD.DISABLED)[event["event_data"]["status"]]
+                                    nw["switch"][asset_name]["status"] = PMD.Status(event["event_data"]["status"])
                                 end
 
                                 if haskey(event["event_data"], "state")

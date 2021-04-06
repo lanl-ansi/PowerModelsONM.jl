@@ -2,6 +2,7 @@
 
 ## staged
 
+- Add support for timesteps in events being specified as integers
 - Updated weights in objective for osw_mld_mi problem
 - Un-relax on/off switch constraints in osw_mld_mi problem
 - Updated propagate_switch_changes! to black-out load block buses that are isolated
