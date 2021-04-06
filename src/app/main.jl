@@ -68,6 +68,22 @@ function parse_commandline()
             help = "number of hours between each timestep (uniform)"
             arg_type = Real
             default = 1.0
+        "--voltage-lower-bound"
+            help = ""
+            arg_type = Real
+            default = 0.9
+        "--voltage-upper-bound"
+            help = ""
+            arg_type = Real
+            default = 1.1
+        "--voltage-angle-difference"
+            help = ""
+            arg_type = Real
+            default = 3.0
+        "--clpu-factor"
+            help = ""
+            arg_type = Real
+            default = 2.0
     end
 
     return ArgParse.parse_args(s)
@@ -84,7 +100,7 @@ function entrypoint(args::Dict{String,<:Any})
     events = !isempty(get(args, "events", "")) ? parse_events(args["events"]) : Vector{Dict{String,Any}}([])
 
     # build ENGINEERING MODEL, both mutlinetwork and base case with timeseries objects
-    (data_eng, mn_data_eng) = prepare_network_case(args["network-file"]; events=events, time_elapsed=get(args, "timestep-hours", 1.0));
+    (data_eng, mn_data_eng) = prepare_network_case(args["network-file"]; events=events, time_elapsed=get(args, "timestep-hours", 1.0), vm_lb=get(args, "voltage-lower-bound", 0.9), vm_ub=get(args, "voltage-upper-bound", 1.1), vad=get(args, "voltage-angle-difference", 3.0), clpu_factor=get(args, "clpu-factor", 2.0));
 
     # Initialize output data structure
     output_data = build_blank_output(data_eng, args)

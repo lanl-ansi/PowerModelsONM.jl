@@ -2,6 +2,7 @@
 
 ## staged
 
+- Add cli arguments for voltage bounds and clpu-factor
 - Adjust default voltage magnitude (+-0.2) and voltage angle difference (+-5deg) bounds
 - Fix switch map function (was grabbing wrong math id)
 - Add helper function to adjust line limits
