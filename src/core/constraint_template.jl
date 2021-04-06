@@ -28,6 +28,6 @@ end
 
 
 ""
-function constraint_load_block_isolation(pm::PMD._PM.AbstractPowerModel; nw::Int=pm.cnw)
-    constraint_load_block_isolation(pm, nw)
+function constraint_load_block_isolation(pm::PMD._PM.AbstractPowerModel; nw::Int=pm.cnw, relax::Bool=true)
+    constraint_load_block_isolation(pm, nw; relax=relax)
 end

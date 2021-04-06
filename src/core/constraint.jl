@@ -11,11 +11,18 @@ end
 
 
 ""
-function constraint_load_block_isolation(pm::PMD._PM.AbstractPowerModel, nw::Int)
+function constraint_load_block_isolation(pm::PMD._PM.AbstractPowerModel, nw::Int; relax::Bool=true)
     for (b, block) in PMD.ref(pm, nw, :load_blocks)
+        z = PMD.var(pm, nw, :z_demand_blocks, b)
         for s in PMD.ref(pm, nw, :load_block_switches, b)
             if s in PMD.ids(pm, nw, :switch_dispatchable) && !is_block_warm(pm.data, block)
-                PMD.JuMP.@constraint(pm.model, !PMD.var(pm, nw, :z_demand_blocks, b) => {PMD.var(pm, nw, :switch_state, s) == 0})
+                state = PMD.var(pm, nw, :switch_state, s)
+                if relax
+                    PMD.JuMP.@constraint(pm.model, state <= z)
+                    PMD.JuMP.@constraint(pm.model, state >= 0)
+                else
+                    PMD.JuMP.@constraint(pm.model, !z => {state == 0})
+                end
             end
         end
     end

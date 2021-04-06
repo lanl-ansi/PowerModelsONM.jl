@@ -116,6 +116,7 @@ function entrypoint(args::Dict{String,<:Any})
     if any(get(sw, "dispatchable", PMD.NO) == PMD.YES for (_,sw) in get(data_eng, "switch", Dict()))
         osw_result = optimize_switches!(
             mn_data_math,
+            get(args, "use-gurobi", false) ? run_mc_osw_mld_mi : run_mc_osw_mld,
             get(args, "use-gurobi", false) ? mip_solver : juniper_solver;
             solution_processors=[getproperty(PowerModelsONM, Symbol("sol_ldf2$(args["formulation"])!"))],
             max_switch_actions=get(args, "max-switch-actions", 0)

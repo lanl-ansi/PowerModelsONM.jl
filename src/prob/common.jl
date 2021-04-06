@@ -12,7 +12,7 @@ end
 
 
 ""
-function optimize_switches!(mn_data_math::Dict{String,Any}, solver; solution_processors::Vector=[], max_switch_actions::Int=0)::Vector{Dict{String,Any}}
+function optimize_switches!(mn_data_math::Dict{String,Any}, osw_mld_prob::Function, solver; solution_processors::Vector=[], max_switch_actions::Int=0)::Vector{Dict{String,Any}}
     @info "running switching + load shed optimization"
 
     filtered_logger = LoggingExtras.ActiveFilteredLogger(juniper_log_filter, Logging.global_logger())
@@ -33,7 +33,7 @@ function optimize_switches!(mn_data_math::Dict{String,Any}, solver; solution_pro
             update_storage_capacity!(nw, results[end]["solution"])
         end
         r = Logging.with_logger(filtered_logger) do
-            r = run_mc_osw_mld_mi(nw, PMD.LPUBFDiagPowerModel, solver; solution_processors=solution_processors, ref_extensions=[ref_add_load_blocks!])
+            r = osw_mld_prob(nw, PMD.LPUBFDiagPowerModel, solver; solution_processors=solution_processors, ref_extensions=[ref_add_load_blocks!])
         end
 
         update_start_values!(nw, r["solution"])
