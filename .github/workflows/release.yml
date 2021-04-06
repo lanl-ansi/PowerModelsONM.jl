@@ -27,7 +27,7 @@ jobs:
     strategy:
       matrix:
         version:
-          - '1'
+          - '1.5'
         os:
           - ubuntu-latest
           - macOS-latest
@@ -40,16 +40,6 @@ jobs:
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
-      - uses: actions/cache@v2
-        env:
-          cache-name: cache-artifacts
-        with:
-          path: ~/.julia/artifacts
-          key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-test-${{ env.cache-name }}-
-            ${{ runner.os }}-test-
-            ${{ runner.os }}-
       - run: julia --color=yes --project -e 'using Pkg; Pkg.rm("Gurobi");'
         shell: bash
       - uses: julia-actions/julia-buildpkg@latest
