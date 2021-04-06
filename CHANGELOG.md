@@ -2,6 +2,7 @@
 
 ## staged
 
+- Un-relax on/off switch constraints in osw_mld_mi problem
 - Updated propagate_switch_changes! to black-out load block buses that are isolated
 - Add "Switch changes" to output specification
 - Update load shed update function to use status instead of pd/qd (only needed with continuous sheds)
