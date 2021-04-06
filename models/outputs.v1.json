@@ -128,6 +128,16 @@
       "type": "string",
       "description": "Time at which ONM algorithm was executed",
       "format": "date-time"
+    },
+    "Switch changes": {
+      "type": "array",
+      "description": "List of switches whose state changed between timesteps",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
     }
   }
 }

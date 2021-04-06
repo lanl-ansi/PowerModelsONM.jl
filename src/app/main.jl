@@ -123,6 +123,7 @@ function entrypoint(args::Dict{String,<:Any})
 
         # Output switching actions to output data
         get_timestep_device_actions!(output_data, osw_result, mn_data_math)
+        get_switch_changes!(output_data, mn_data_eng)
         propagate_switch_settings!(mn_data_eng, mn_data_math)
     end
 

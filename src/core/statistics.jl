@@ -150,3 +150,21 @@ end
 function get_timestep_stability!(output_data::Dict{String,<:Any}, is_stable::Vector{<:Bool})
     output_data["Small signal stable"] = is_stable
 end
+
+
+""
+function get_switch_changes!(output_data::Dict{String,<:Any}, mn_data_eng::Dict{String,<:Any})
+    output_data["Switch changes"] = Vector{Vector{String}}([])
+    _switch_configs = Dict(s => Dict(PMD.OPEN => "open", PMD.CLOSED => "closed")[sw["state"]] for (s,sw) in mn_data_eng["nw"]["1"]["switch"])
+    for timestep in output_data["Device action timeline"]
+        switch_configs = timestep["Switch configurations"]
+        _changes = Vector{String}([])
+        for (switch, state) in switch_configs
+            if get(_switch_configs, switch, state) != state
+                push!(_changes, switch)
+            end
+        end
+        _switch_configs = deepcopy(switch_configs)
+        push!(output_data["Switch changes"], _changes)
+    end
+end
