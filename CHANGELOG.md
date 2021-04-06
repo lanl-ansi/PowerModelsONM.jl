@@ -2,6 +2,7 @@
 
 ## staged
 
+- Updated propagate_switch_changes! to black-out load block buses that are isolated
 - Add "Switch changes" to output specification
 - Update load shed update function to use status instead of pd/qd (only needed with continuous sheds)
 - Add cli arguments for voltage bounds and clpu-factor

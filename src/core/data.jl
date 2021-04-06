@@ -129,6 +129,18 @@ function propagate_switch_settings!(mn_data_eng::Dict{String,<:Any}, mn_data_mat
         for (i,sw) in get(nw, "switch", Dict())
             mn_data_eng["nw"][n]["switch"][switch_map[i]]["state"] = PMD.SwitchState(Int(round(sw["state"])))
         end
+
+        blocks = identify_load_blocks(nw)
+        warm_blocks = are_blocks_warm(nw, blocks)
+        for (block, is_warm) in warm_blocks
+            if is_warm != 1
+                for bus in block
+                    nw["bus"]["$bus"]["bus_type"] = 4
+                end
+            end
+        end
+
+        PMD._PM.propagate_topology_status!(nw)
     end
 end
 
