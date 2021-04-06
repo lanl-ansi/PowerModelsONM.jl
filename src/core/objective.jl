@@ -85,16 +85,16 @@ function objective_mc_min_load_setpoint_delta_switch(pm::PMD._PM.AbstractPowerMo
         for (n, nw_ref) in PMD.nws(pm) for l in PMD.ids(pm, n, :switch)
     )
 
-    w = Dict(n => Dict(i => 10*get(load, "weight", 1.0) for (i,load) in PMD.ref(pm, n, :load)) for n in PMD.nw_ids(pm))
+    w = Dict(n => Dict(i => 100*get(load, "weight", 1.0) for (i,load) in PMD.ref(pm, n, :load)) for n in PMD.nw_ids(pm))
 
     PMD.JuMP.@objective(pm.model, Min,
         sum(
-            sum(                      10*(1 - PMD.var(pm, n, :z_voltage, i)) for (i,bus) in nw_ref[:bus]) +
-            sum( w[n][i]*sum(load["pd"])*(1 - PMD.var(pm, n, :z_demand, i)) for (i,load) in nw_ref[:load]) +
-            sum(        sum(shunt["gs"])*(1 - PMD.var(pm, n, :z_shunt, i)) for (i,shunt) in nw_ref[:shunt]) +
-            sum( sum(                         PMD.var(pm, n, :delta_pg, i)[c] for (idx,c) in enumerate(gen["connections"])) for (i,gen)  in nw_ref[:gen]) +
-            sum( sum(                         PMD.var(pm, n, :delta_ps, i)[c] for (idx,c) in enumerate(strg["connections"])) for (i,strg) in nw_ref[:storage]) +
-            sum( 1e-6 * (state_start[(n,l)] - PMD.var(pm, n, :switch_state, l)) * (round(state_start[(n,l)]) == 0 ? -1 : 1) for l in PMD.ids(pm, n, :switch_dispatchable))
+            sum(                                                    10*(1 - PMD.var(pm, n, :z_voltage, i)) for  (i,bus) in   nw_ref[:bus]) +
+            sum( w[n][i]*(1 - PMD.var(pm, n, :z_demand, i)) for  (i,load) in  nw_ref[:load]) +
+            sum(          sum(abs.(shunt["gs"]) .+ abs.(shunt["bs"])) *(1 - PMD.var(pm, n,  :z_shunt, i)) for (i,shunt) in nw_ref[:shunt]) +
+            sum( 1e-4 * sum(PMD.var(pm, n, :delta_pg, i)[c] for (idx,c) in enumerate(gen["connections"])) for (i,gen)  in nw_ref[:gen]) +
+            sum( 1e-4 * sum(PMD.var(pm, n, :delta_ps, i)[c] for (idx,c) in enumerate(strg["connections"])) for (i,strg) in nw_ref[:storage]) +
+            sum( 1e-3 * (state_start[(n,l)] - PMD.var(pm, n, :switch_state, l)) * (round(state_start[(n,l)]) ≈ 0 ? -1 : 1) for l in PMD.ids(pm, n, :switch_dispatchable))
         for (n, nw_ref) in PMD.nws(pm))
     )
 end
