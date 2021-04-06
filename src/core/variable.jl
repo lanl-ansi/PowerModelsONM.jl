@@ -41,7 +41,7 @@ function variable_mc_load_block_indicator(pm::PMD._PM.AbstractPowerModel; nw::In
         z_demand = PMD.var(pm, nw)[:z_demand_blocks] = PMD.JuMP.@variable(pm.model,
             [i in PMD.ids(pm, nw, :load_blocks)], base_name="$(nw)_z_demand",
             binary = true,
-            start = 1.0
+            start = 1
         )
     end
 
