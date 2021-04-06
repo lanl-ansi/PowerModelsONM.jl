@@ -2,6 +2,7 @@
 
 ## staged
 
+- Update load shed update function to use status instead of pd/qd (only needed with continuous sheds)
 - Add cli arguments for voltage bounds and clpu-factor
 - Adjust default voltage magnitude (+-0.2) and voltage angle difference (+-5deg) bounds
 - Fix switch map function (was grabbing wrong math id)

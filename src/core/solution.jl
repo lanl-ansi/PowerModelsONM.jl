@@ -11,15 +11,9 @@ end
 function apply_load_shed!(mn_data_math::Dict{String,<:Any}, result::Dict{String,<:Any})
     for (n,nw) in result["solution"]["nw"]
         for (l, load) in get(nw, "load", Dict())
-            mn_data_math["nw"][n]["load"][l]["pd_nom"] = load["pd"]
-            mn_data_math["nw"][n]["load"][l]["qd_nom"] = load["qd"]
-
-            mn_data_math["nw"][n]["load"][l]["pd"] = load["pd"]
-            mn_data_math["nw"][n]["load"][l]["qd"] = load["qd"]
+            mn_data_math["nw"][n]["load"][l]["status"] = load["status"]
         end
     end
-
-    update_start_values!(mn_data_math, result["solution"])
 end
 
 
