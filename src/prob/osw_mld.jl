@@ -140,7 +140,7 @@ function build_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
     end
 
     constraint_switch_state_max_actions(pm)
-    constraint_load_block_isolation(pm; relax=false)
+    # constraint_load_block_isolation(pm; relax=false)
     for i in PMD.ids(pm, :switch)
         PMD.constraint_mc_switch_state_on_off(pm, i; relax=false)
         PMD.constraint_mc_switch_thermal_limit(pm, i)
