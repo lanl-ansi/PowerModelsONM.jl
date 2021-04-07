@@ -13,16 +13,14 @@ end
 ""
 function constraint_load_block_isolation(pm::PMD._PM.AbstractPowerModel, nw::Int; relax::Bool=true)
     for (b, block) in PMD.ref(pm, nw, :load_blocks)
-        z = PMD.var(pm, nw, :z_demand_blocks, b)
+        z_demand = PMD.var(pm, nw, :z_demand_blocks, b)
         for s in PMD.ref(pm, nw, :load_block_switches, b)
-            if s in PMD.ids(pm, nw, :switch_dispatchable) && !is_block_warm(pm.data, block)
-                state = PMD.var(pm, nw, :switch_state, s)
-                if relax
-                    PMD.JuMP.@constraint(pm.model, state <= z)
-                    PMD.JuMP.@constraint(pm.model, state >= 0)
-                else
-                    PMD.JuMP.@constraint(pm.model, !z => {state == 0})
-                end
+            z_switch = PMD.var(pm, nw, :switch_state, s)
+            if relax
+                PMD.JuMP.@constraint(pm.model, z_switch <= z_demand)
+                PMD.JuMP.@constraint(pm.model, z_switch >= 0)
+            else
+                PMD.JuMP.@constraint(pm.model, !z_demand => {z_switch == 0})
             end
         end
     end
