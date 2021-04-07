@@ -17,7 +17,9 @@ function ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
         for (b,block) in nw_ref[:load_blocks]
             for (s,switch) in get(data, "switch", Dict())
                 if switch["f_bus"] in block || switch["t_bus"] in block
-                    push!(load_block_switches[b], parse(Int,s))
+                    if switch["dispatchable"] == 1 && switch["status"] == 1
+                        push!(load_block_switches[b], parse(Int,s))
+                    end
                 end
             end
         end
