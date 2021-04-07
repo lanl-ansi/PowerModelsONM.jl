@@ -12,7 +12,7 @@ end
 
 
 ""
-function optimize_switches!(mn_data_math::Dict{String,Any}, osw_mld_prob::Function, solver; solution_processors::Vector=[], max_switch_actions::Int=0)::Vector{Dict{String,Any}}
+function optimize_switches!(mn_data_math::Dict{String,Any}, osw_mld_prob::Function, solver; events::Dict{String,Any}=Dict{String,<:Any}(), solution_processors::Vector=[], max_switch_actions::Int=0)::Vector{Dict{String,Any}}
     @info "running switching + load shed optimization"
 
     filtered_logger = LoggingExtras.ActiveFilteredLogger(juniper_log_filter, Logging.global_logger())
@@ -29,7 +29,7 @@ function optimize_switches!(mn_data_math::Dict{String,Any}, osw_mld_prob::Functi
 
         if !isempty(results)
             update_start_values!(nw, results[end]["solution"])
-            update_switch_settings!(nw, results[end]["solution"])
+            update_switch_settings!(nw, results[end]["solution"]; events=get(events["nw"], "$n", Dict{String,Any}()))
             update_storage_capacity!(nw, results[end]["solution"])
         end
         r = Logging.with_logger(filtered_logger) do

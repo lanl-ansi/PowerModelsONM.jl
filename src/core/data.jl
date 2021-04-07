@@ -60,16 +60,27 @@ end
 
 
 "expects engineering network (multi of single)"
-function apply_events!(network::Dict{String,Any}, events::Vector{<:Dict{String,Any}})
+function apply_events!(network::Dict{String,Any}, events::Vector{<:Dict{String,Any}})::Dict{String,Any}
+    parsed_events = Dict{String,Any}("nw"=>Dict{String,Any}())
     for event in events
         source_id = event["affected_asset"]
         asset_type, asset_name = split(lowercase(source_id), ".")
         timestep = event["timestep"]
+        start_timestep = get_timestep(timestep, network)
+
+        if !haskey(parsed_events["nw"], "$start_timestep")
+            parsed_events["nw"]["$start_timestep"] = Dict{String,Any}()
+        end
 
         if event["event_type"] == "switch"
-            start_timestep = get_timestep(timestep, network)
+            if !haskey(parsed_events["nw"]["$start_timestep"], "switch")
+                parsed_events["nw"]["$start_timestep"]["switch"] = Dict{String,Any}()
+            end
+
             if haskey(network, "nw")
                 if any(haskey(nw["switch"], asset_name) for (_,nw) in network["nw"])
+                    parsed_events["nw"]["$start_timestep"]["switch"][asset_name] = get(event, "event_data", Dict{String,Any}())
+
                     for (n, nw) in network["nw"]
                         if parse(Int, n) >= start_timestep
                             if haskey(nw["switch"], asset_name)
@@ -100,6 +111,7 @@ function apply_events!(network::Dict{String,Any}, events::Vector{<:Dict{String,A
             @warn "event of type '$(event["event_type"])' at timestep $(timestep) is not yet supported in PowerModelsONM"
         end
     end
+    return parsed_events
 end
 
 

@@ -100,7 +100,7 @@ function entrypoint(args::Dict{String,<:Any})
     events = !isempty(get(args, "events", "")) ? parse_events(args["events"]) : Vector{Dict{String,Any}}([])
 
     # build ENGINEERING MODEL, both mutlinetwork and base case with timeseries objects
-    (data_eng, mn_data_eng) = prepare_network_case(args["network-file"]; events=events, time_elapsed=get(args, "timestep-hours", 1.0), vm_lb=get(args, "voltage-lower-bound", 0.9), vm_ub=get(args, "voltage-upper-bound", 1.1), vad=get(args, "voltage-angle-difference", 3.0), clpu_factor=get(args, "clpu-factor", 2.0));
+    (data_eng, mn_data_eng, parsed_events) = prepare_network_case(args["network-file"]; events=events, time_elapsed=get(args, "timestep-hours", 1.0), vm_lb=get(args, "voltage-lower-bound", 0.9), vm_ub=get(args, "voltage-upper-bound", 1.1), vad=get(args, "voltage-angle-difference", 3.0), clpu_factor=get(args, "clpu-factor", 2.0));
 
     # Initialize output data structure
     output_data = build_blank_output(data_eng, args)
@@ -119,7 +119,8 @@ function entrypoint(args::Dict{String,<:Any})
             get(args, "use-gurobi", false) ? run_mc_osw_mld_mi : run_mc_osw_mld,
             get(args, "use-gurobi", false) ? mip_solver : juniper_solver;
             solution_processors=[getproperty(PowerModelsONM, Symbol("sol_ldf2$(args["formulation"])!"))],
-            max_switch_actions=get(args, "max-switch-actions", 0)
+            max_switch_actions=get(args, "max-switch-actions", 0),
+            events=parsed_events
         );
 
         # Output switching actions to output data

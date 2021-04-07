@@ -1,5 +1,5 @@
 ""
-function prepare_network_case(network_file::String; events::Vector{<:Dict{String,Any}}=Vector{Dict{String,Any}}([]), time_elapsed::Real=1.0, vad::Real=3.0, vm_lb::Real=0.9, vm_ub::Real=1.1, clpu_factor::Real=2.0)::Tuple{Dict{String,Any},Dict{String,Any}}
+function prepare_network_case(network_file::String; events::Vector{<:Dict{String,Any}}=Vector{Dict{String,Any}}([]), time_elapsed::Real=1.0, vad::Real=3.0, vm_lb::Real=0.9, vm_ub::Real=1.1, clpu_factor::Real=2.0)::Tuple{Dict{String,Any},Dict{String,Any},Dict{String,Any}}
     data_dss = PMD.parse_dss(network_file)
 
     # TODO: explicitly support DELTA connected generators in LPUBFDiag
@@ -31,9 +31,9 @@ function prepare_network_case(network_file::String; events::Vector{<:Dict{String
 
     mn_data_eng = PMD._build_eng_multinetwork(data_eng)
 
-    apply_events!(mn_data_eng, events)
+    parsed_events = apply_events!(mn_data_eng, events)
 
-    return data_eng, mn_data_eng
+    return data_eng, mn_data_eng, parsed_events
 end
 
 
