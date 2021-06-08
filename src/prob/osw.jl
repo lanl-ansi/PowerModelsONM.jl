@@ -1,5 +1,5 @@
 ""
-function run_mc_osw_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)
+function solve_mc_osw_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)
     return PMD.solve_mc_model(data, model_type, solver, _build_mc_osw_mi; kwargs...)
 end
 
@@ -40,8 +40,8 @@ function _build_mc_osw_mi(pm::PMD.AbstractUBFModels)
     end
 
     for i in PMD.ids(pm, :storage)
-        PMD._PM.constraint_storage_state(pm, i)
-        PMD._PM.constraint_storage_complementarity_nl(pm, i)
+        PMD.constraint_storage_state(pm, i)
+        PMD.constraint_storage_complementarity_nl(pm, i)
         PMD.constraint_mc_storage_losses(pm, i)
         PMD.constraint_mc_storage_thermal_limit(pm, i)
     end
@@ -70,7 +70,7 @@ end
 
 
 ""
-function run_mn_mc_osw_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)
+function solve_mn_mc_osw_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)
     return PMD.solve_mc_model(data, model_type, solver, _build_mn_mc_osw_mi; multinetwork=true, kwargs...)
 end
 
@@ -113,7 +113,7 @@ function _build_mn_mc_osw_mi(pm::PMD.AbstractUBFModels)
         end
 
         for i in PMD.ids(pm, n, :storage)
-            PMD._PM.constraint_storage_complementarity_mi(pm, i; nw=n)
+            PMD.constraint_storage_complementarity_mi(pm, i; nw=n)
             PMD.constraint_mc_storage_losses(pm, i; nw=n)
             PMD.constraint_mc_storage_thermal_limit(pm, i; nw=n)
         end
@@ -143,12 +143,12 @@ function _build_mn_mc_osw_mi(pm::PMD.AbstractUBFModels)
     n_1 = network_ids[1]
 
     for i in PMD.ids(pm, :storage; nw=n_1)
-        PMD._PM.constraint_storage_state(pm, i; nw=n_1)
+        PMD.constraint_storage_state(pm, i; nw=n_1)
     end
 
     for n_2 in network_ids[2:end]
         for i in PMD.ids(pm, :storage; nw=n_2)
-            PMD._PM.constraint_storage_state(pm, i, n_1, n_2)
+            PMD.constraint_storage_state(pm, i, n_1, n_2)
         end
 
         n_1 = n_2

@@ -1,5 +1,5 @@
 "KCL for load shed problem with transformers"
-function constraint_mc_power_balance_shed(pm::PMD._PM.AbstractPowerModel, i::Int; nw::Int=pm.cnw)
+function constraint_mc_power_balance_shed(pm::PMD.AbstractUnbalancedPowerModel, i::Int; nw::Int=PMD.nw_id_default)
     bus = PMD.ref(pm, nw, :bus, i)
     bus_arcs = PMD.ref(pm, nw, :bus_arcs_conns_branch, i)
     bus_arcs_sw = PMD.ref(pm, nw, :bus_arcs_conns_switch, i)
@@ -22,12 +22,12 @@ end
 
 
 "max switching actions per timestep constraint"
-function constraint_switch_state_max_actions(pm::PMD._PM.AbstractPowerModel; nw::Int=pm.cnw)
+function constraint_switch_state_max_actions(pm::PMD.AbstractUnbalancedPowerModel; nw::Int=PMD.nw_id_default)
     constraint_switch_state_max_actions(pm, nw)
 end
 
 
-""
-function constraint_load_block_isolation(pm::PMD._PM.AbstractPowerModel; nw::Int=pm.cnw, relax::Bool=true)
+"constraint to ensure that load blocks are properly isolated by opening switches"
+function constraint_load_block_isolation(pm::PMD.AbstractUnbalancedPowerModel; nw::Int=PMD.nw_id_default, relax::Bool=true)
     constraint_load_block_isolation(pm, nw; relax=relax)
 end

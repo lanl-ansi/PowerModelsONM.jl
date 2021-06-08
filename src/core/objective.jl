@@ -1,5 +1,5 @@
 "gen connections adaptation of min fuel cost polynomial linquad objective"
-function objective_mc_min_fuel_cost_switch(pm::PMD._PM.AbstractPowerModel; report::Bool=true)
+function objective_mc_min_fuel_cost_switch(pm::PMD.AbstractUnbalancedPowerModel; report::Bool=true)
     gen_cost = Dict()
     for (n, nw_ref) in PMD.nws(pm)
         for (i,gen) in nw_ref[:gen]
@@ -37,7 +37,7 @@ end
 
 
 "simplified minimum load delta objective (continuous load shed)"
-function objective_mc_min_load_setpoint_delta_simple_switch(pm::PMD._PM.AbstractPowerModel)
+function objective_mc_min_load_setpoint_delta_simple_switch(pm::PMD.AbstractUnbalancedPowerModel)
     state_start = Dict(
         (n,l) => PMD.ref(pm, n, :switch, l, "state")
         for (n, nw_ref) in PMD.nws(pm) for l in PMD.ids(pm, n, :switch)
@@ -55,7 +55,7 @@ end
 
 
 "minimum load delta objective (continuous load shed) with storage"
-function objective_mc_min_load_setpoint_delta_switch(pm::PMD._PM.AbstractPowerModel)
+function objective_mc_min_load_setpoint_delta_switch(pm::PMD.AbstractUnbalancedPowerModel)
     for (n, nw_ref) in PMD.nws(pm)
         PMD.var(pm, n)[:delta_pg] = Dict(
             i => PMD.JuMP.@variable(

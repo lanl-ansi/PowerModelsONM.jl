@@ -1,0 +1,157 @@
+"""
+    parse_commandline()
+
+command line argument parsing
+"""
+function parse_commandline()
+    s = ArgParse.ArgParseSettings()
+
+    ArgParse.@add_arg_table! s begin
+        "--network", "-n"
+            help = "the power system network data file"
+            arg_type = String
+        "--output", "-o"
+            help = "path to output file"
+            default = ""
+            arg_type = String
+        "--faults", "-f"
+            help = "json file defining faults over which to perform fault study"
+            default = ""
+            arg_type = String
+        "--events", "-e"
+            help = "Events (contingencies) file"
+            default = ""
+            arg_type = String
+        "--inverters", "-i"
+            help = "inverter settings file for stability analysis"
+            default = ""
+            arg_type = String
+        "--settings", "-s"
+            help = "general settings file for setting custom bounds and microgrid metadata"
+            default = ""
+            arg_type = String
+        "--quiet", "-q"
+            help = "sets log level in ONM to :Error"
+            action = :store_true
+        "--verbose", "-v"
+            help = "info, warn messages for all packages"
+            action = :store_true
+        "--debug", "-d"
+            help = "debug messages and output of full results for each optimization step"
+            action = :store_true
+        "--gurobi", "-g"
+            help = "use the gurobi solver (must have been built with Gurobi.jl / a Gurobi binary, and have license)"
+            action = :store_true
+        "--opt-disp-formulation", "-f"
+            help = "mathematical formulation to solve for the final optimal dispatch (lindistflow (default), acr, acp, nfa)"
+            default = "lindistflow"
+            arg_type = String
+    end
+
+    # Depreciated Command Line Arguments
+    ArgParse.@add_arg_table! s begin
+        "--network-file"
+            help = "DEPRECIATED: use 'network'"
+            default = ""
+            arg_type = String
+        "--output-file"
+            help = "DEPRECIATED: use 'output'"
+            default = ""
+            arg_type = String
+        "--problem", "-p"
+            help = "DEPRECIATED: ignored"
+            default = "opf"
+            arg_type = String
+        "--formulation", "-f"
+            help = "DEPRECIATED: use 'opt-disp-formulation'"
+            default = ""
+            arg_type = String
+        "--protection-settings"
+            help = "DEPRECIATED: ignored"
+            default = ""
+            arg_type = String
+        "--debug-export-file"
+            help = "DEPRECIATED: use 'debug'"
+            default = ""
+            arg_type = String
+        "--use-gurobi"
+            help = "DEPRECIATED: use 'gurobi'"
+            action = :store_true
+        "--solver-tolerance"
+            help = "DEPRECIATED: use 'settings'"
+        "--max-switch-actions"
+            help = "DEPRECIATED: use 'settings'"
+            arg_type = Int
+        "--timestep-hours"
+            help = "DEPRECIATED: use 'settings'"
+            arg_type = Real
+        "--voltage-lower-bound"
+            help = "DEPRECIATED: use 'settings'"
+            arg_type = Real
+        "--voltage-upper-bound"
+            help = "DEPRECIATED: use 'settings'"
+            arg_type = Real
+        "--voltage-angle-difference"
+            help = "DEPRECIATED: use 'settings'"
+            arg_type = Real
+        "--clpu-factor"
+            help = "DEPRECIATED: use 'settings'"
+            arg_type = Real
+    end
+
+    return ArgParse.parse_args(s)
+end
+
+
+"""
+    sanitize_args!(args::Dic{String,Any})::Dict
+
+Sanitizes depreciated arguments into the correct new ones, and gives warnings
+"""
+function sanitize_args!(args::Dict{String,<:Any})::Dict{String,Any}
+    if !isempty(get(args, "network-file", ""))
+        @warn "'network-file' argument is being depreciated in favor of 'network', please update your code"
+        args["network"] = pop!(args, "network-file")
+    end
+
+    if !isempty(get(args, "output-file", ""))
+        @warn "'output-file' argument is being depreciated in favor of 'output', please update your code"
+        args["output"] = pop!(args, "output-file")
+    end
+
+    if !isempty(get(args, "protection-settings", ""))
+        delete!(args, "protection-settings")
+        @warn "'protection-settings' argument is depreciated, will be ignored"
+    end
+
+    if !isempty(get(args, "problem", ""))
+        delete!(args, "problem")
+        @warn "'problem' argument is depreciated, will be ignored"
+    end
+
+    if !isempty(get(args, "formulation", ""))
+        args["opt-disp-formulation"] = pop!(args, "formulation")
+        @warn "'formulation' argument is depreciated in favor of 'opt-disp-formulation', please update your code"
+    end
+
+    if haskey(args, "debug-export-file")
+        if !isempty(get(args, "debug-export-file", ""))
+            args["debug"] = true
+        end
+        @warn "'debug-export-file' argument is depreciated in favor of the 'debug' flag, file will be outputted to debug_{prob_type}_{current_time}.json, please update your code"
+        delete!(args, "debug-export-file")
+    end
+
+    if get(args, "use-gurobi", false)
+        args["gurobi"] = pop!(args, "use-gurobi")
+        @warn "'use-gurobi' flag is depreciated in favor of 'gurobi' flag, please update your code"
+    end
+
+    for arg in ["solver-tolerance", "max-switch-actions", "timestep-hours", "voltage-lower-bound", "voltage-upper-bound", "voltage-angle-difference", "clpu-factor"]
+        if haskey(args, arg)
+            @warn "'$arg' argument is depreciated in favor of 'settings' input file, please update code"
+        end
+    end
+
+    return args
+end

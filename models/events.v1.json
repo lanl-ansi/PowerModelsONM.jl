@@ -2,7 +2,7 @@
   "type": "array",
   "description": "",
   "minItems": 0,
-  "uniqueItems": true,
+  "uniqueItems": false,
   "x-examples": {
     "switch-example": [
       {
@@ -41,6 +41,7 @@
   },
   "items": {
     "type": "object",
+    "additionalProperties": false,
     "properties": {
       "timestep": {
         "type": [
@@ -67,50 +68,58 @@
         "example": "line.asset_name"
       },
       "event_data": {
-        "type": "object",
-        "properties": {
-          "duration_ms": {
-            "type": "number",
-            "minimum": -1,
-            "example": 100,
-            "format": "float",
-            "description": "Duration of a fault, in milliseconds, -1 ==> permanent fault"
+        "anyOf": [
+          {
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "Type of switch, e.g., \"fuse\", \"breaker\", \"recloser\", etc.",
+                "example": "breaker"
+              },
+              "state": {
+                "type": "string",
+                "description": "What is the state of the switch, \"open\" or \"closed\"? Only used if \"event_type\" is \"switch\".",
+                "enum": [
+                  "open",
+                  "closed"
+                ],
+                "example": "open"
+              },
+              "dispatchable": {
+                "type": "boolean",
+                "description": "Is the affected object dispatchable? (i.e., can be opened or closed), default is false"
+              },
+              "status": {
+                "type": "integer",
+                "enum": [
+                  0,
+                  1
+                ],
+                "example": 1,
+                "description": "Status of the object, if 0, completely outaged from the model. Default 1.",
+                "default": 1
+              }
+            }
           },
-          "type": {
-            "type": "string",
-            "description": "Type of switch, e.g., \"fuse\", \"breaker\", \"recloser\", etc.",
-            "example": "breaker"
-          },
-          "state": {
-            "type": "string",
-            "description": "What is the state of the switch, \"open\" or \"closed\"? Only used if \"event_type\" is \"switch\".",
-            "enum": [
-              "open",
-              "closed"
-            ],
-            "example": "open"
-          },
-          "dispatchable": {
-            "type": "boolean",
-            "description": "Is the affected object dispatchable? (i.e., can be opened or closed), default is false"
-          },
-          "pre_event_actions": {
-            "$ref": "./events.v1.json"
-          },
-          "post_event_actions": {
-            "$ref": "./events.v1.json"
-          },
-          "status": {
-            "type": "integer",
-            "enum": [
-              0,
-              1
-            ],
-            "example": 1,
-            "description": "Status of the object, if 0, completely outaged from the model. Default 1.",
-            "default": 1
+          {
+            "properties": {
+              "duration_ms": {
+                "type": "number",
+                "minimum": -1,
+                "description": "Duration of a fault, in milliseconds, -1 ==> permanent fault",
+                "format": "float",
+                "example": 100
+              },
+              "pre_event_actions": {
+                "$ref": "./events.v1.json"
+              },
+              "post_event_actions": {
+                "$ref": "./events.v1.json"
+              }
+            }
           }
-        }
+        ],
+        "type": "object"
       }
     },
     "required": [

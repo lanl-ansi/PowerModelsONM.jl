@@ -1,0 +1,47 @@
+{
+  "title": "input.v1",
+  "type": "object",
+  "properties": {
+    "network": {
+      "type": "string"
+    },
+    "output": {
+      "type": "string"
+    },
+    "events": {
+      "type": "string"
+    },
+    "faults": {
+      "type": "string"
+    },
+    "inverters": {
+      "type": "string"
+    },
+    "protection-settings": {
+      "type": "string",
+      "deprecated": true
+    },
+    "network-file": {
+      "type": "string",
+      "deprecated": true
+    },
+    "output-file": {
+      "type": "string",
+      "deprecated": true
+    },
+    "problem": {
+      "type": "string",
+      "deprecated": true
+    },
+    "microgrid_metadata": {
+      "$ref": "./microgrid_metadata.v1.json"
+    },
+    "settings": {
+      "$ref": "./runtime_settings.v1.json"
+    }
+  },
+  "required": [
+    "network",
+    "output"
+  ]
+}

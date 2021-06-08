@@ -89,9 +89,11 @@ function update_start_values!(data::Dict{String,<:Any}, solution::Dict{String,<:
         for (type, objs) in nw_sol
             if isa(objs, Dict)
                 for (i, obj) in objs
-                    for (k, v) in obj
-                        if !endswith(k, "_start")
-                            nws_data[n][type][i]["$(k)_start"] = v
+                    if isa(obj, Dict)
+                        for (k, v) in obj
+                            if !endswith(k, "_start")
+                                nws_data[n][type][i]["$(k)_start"] = v
+                            end
                         end
                     end
                 end
@@ -101,28 +103,37 @@ function update_start_values!(data::Dict{String,<:Any}, solution::Dict{String,<:
 end
 
 
-""
-function update_switch_settings!(data::Dict{String,<:Any}, solution::Dict{String,<:Any}; events::Dict{String,<:Any}=Dict{String,Any}())
-    if haskey(solution, "nw")
-        nws_solution = solution["nw"]
-        nws_data = data["nw"]
-        nws_events = events["nw"]
-    else
-        nws_solution = Dict("0" => solution)
-        nws_data = Dict("0" => data)
-        nws_events = Dict("0" => events)
-    end
+# ""
+# function update_switch_settings!(data::Dict{String,<:Any}, solution::Dict{String,<:Any}; events::Dict{String,<:Any}=Dict{String,Any}())
+#     if haskey(solution, "nw")
+#         nws_solution = solution["nw"]
+#         nws_data = data["nw"]
+#         nws_events = events["nw"]
+#     else
+#         nws_solution = Dict("0" => solution)
+#         nws_data = Dict("0" => data)
+#         nws_events = Dict("0" => events)
+#     end
 
-    for (n, nw_sol) in nws_solution
-        nw_events = get(nws_events, n, Dict())
-        nw_data = nws_data[n]
+#     for (n, nw_sol) in nws_solution
+#         nw_events = get(nws_events, n, Dict())
+#         nw_data = nws_data[n]
 
-        switch_events = get(nw_events, "switch", Dict())
-        for (l, switch) in get(nw_sol, "switch", Dict())
-            switch_event = get(switch_events, nw_data["switch"][l]["name"], Dict())
-            if haskey(switch, "state") && !haskey(switch_event, "state")
-                nws_data[n]["switch"][l]["state"] = switch["state"]
-            end
+#         switch_events = get(nw_events, "switch", Dict())
+#         for (l, switch) in get(nw_sol, "switch", Dict())
+#             switch_event = get(switch_events, nw_data["switch"][l]["name"], Dict())
+#             if haskey(switch, "state") && !haskey(switch_event, "state")
+#                 nws_data[n]["switch"][l]["state"] = switch["state"]
+#             end
+#         end
+#     end
+# end
+
+
+function update_switch_settings!(data, solution)
+    for (id, switch) in get(solution, "switch", Dict())
+        if haskey(switch, "state")
+            data["switch"][id]["state"] = switch["state"]
         end
     end
 end

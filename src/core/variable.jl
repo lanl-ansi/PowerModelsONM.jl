@@ -1,5 +1,5 @@
 "Create variables for demand status"
-function variable_mc_load_indicator(pm::PMD._PM.AbstractPowerModel; nw::Int=pm.cnw, relax::Bool=false, report::Bool=true)
+function variable_mc_load_indicator(pm::PMD.AbstractUnbalancedPowerModel; nw::Int=PMD.nw_id_default, relax::Bool=false, report::Bool=true)
     if relax
         z_demand = PMD.var(pm, nw)[:z_demand] = PMD.JuMP.@variable(pm.model,
             [i in PMD.ids(pm, nw, :load)], base_name="$(nw)_z_demand",
@@ -22,14 +22,14 @@ function variable_mc_load_indicator(pm::PMD._PM.AbstractPowerModel; nw::Int=pm.c
     pd = PMD.var(pm, nw)[:pd] = Dict(i => PMD.var(pm, nw)[:z_demand][i].*PMD.ref(pm, nw, :load, i)["pd"]*(is_cold[i] ? clpu_factors[i] : 1.0) for i in PMD.ids(pm, nw, :load))
     qd = PMD.var(pm, nw)[:qd] = Dict(i => PMD.var(pm, nw)[:z_demand][i].*PMD.ref(pm, nw, :load, i)["qd"]*(is_cold[i] ? clpu_factors[i] : 1.0) for i in PMD.ids(pm, nw, :load))
 
-    report && PMD._IM.sol_component_value(pm, nw, :load, :status, PMD.ids(pm, nw, :load), z_demand)
-    report && PMD._IM.sol_component_value(pm, nw, :load, :pd, PMD.ids(pm, nw, :load), pd)
-    report && PMD._IM.sol_component_value(pm, nw, :load, :qd, PMD.ids(pm, nw, :load), qd)
+    report && PMD._IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :load, :status, PMD.ids(pm, nw, :load), z_demand)
+    report && PMD._IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :load, :pd, PMD.ids(pm, nw, :load), pd)
+    report && PMD._IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :load, :qd, PMD.ids(pm, nw, :load), qd)
 end
 
 
 "create variables for demand status by load block"
-function variable_mc_load_block_indicator(pm::PMD._PM.AbstractPowerModel; nw::Int=pm.cnw, relax::Bool=false, report::Bool=true)
+function variable_mc_load_block_indicator(pm::PMD.AbstractUnbalancedPowerModel; nw::Int=PMD.nw_id_default, relax::Bool=false, report::Bool=true)
     if relax
         z_demand = PMD.var(pm, nw)[:z_demand_blocks] = PMD.JuMP.@variable(pm.model,
             [i in PMD.ids(pm, nw, :load_blocks)], base_name="$(nw)_z_demand",
@@ -55,7 +55,7 @@ function variable_mc_load_block_indicator(pm::PMD._PM.AbstractPowerModel; nw::In
     pd = PMD.var(pm, nw)[:pd] = Dict(i => PMD.var(pm, nw)[:z_demand][i].*PMD.ref(pm, nw, :load, i)["pd"] for i in PMD.ids(pm, nw, :load))
     qd = PMD.var(pm, nw)[:qd] = Dict(i => PMD.var(pm, nw)[:z_demand][i].*PMD.ref(pm, nw, :load, i)["qd"] for i in PMD.ids(pm, nw, :load))
 
-    report && PMD._IM.sol_component_value(pm, nw, :load, :status, PMD.ids(pm, nw, :load), PMD.var(pm, nw)[:z_demand])
-    report && PMD._IM.sol_component_value(pm, nw, :load, :pd, PMD.ids(pm, nw, :load), pd)
-    report && PMD._IM.sol_component_value(pm, nw, :load, :qd, PMD.ids(pm, nw, :load), qd)
+    report && PMD._IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :load, :status, PMD.ids(pm, nw, :load), PMD.var(pm, nw)[:z_demand])
+    report && PMD._IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :load, :pd, PMD.ids(pm, nw, :load), pd)
+    report && PMD._IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :load, :qd, PMD.ids(pm, nw, :load), qd)
 end

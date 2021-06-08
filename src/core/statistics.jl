@@ -1,16 +1,29 @@
-import Statistics: mean
-
-
-function get_voltage_stats(sol_pu::Dict{Any,<:Any}, data_eng::Dict{String,<:Any})
-    voltages = [get(bus, "vm", zeros(length(data_eng["bus"][id]["terminals"]))) for (id,bus) in sol_pu["bus"]]
+""
+function get_voltage_stats(sol::Dict{String,<:Any}, data_eng::Dict{String,<:Any}; per_unit::Bool=true)
+    if !per_unit
+        bus_vbase, line_vbase = PMD.calc_voltage_bases(data_eng, data_eng["settings"]["vbases_default"])
+        voltages = [get(bus, "vm", zeros(length(data_eng["bus"][id]["terminals"]))) ./ bus_vbase[id] for (id,bus) in sol["bus"]]
+    else
+        voltages = [get(bus, "vm", zeros(length(data_eng["bus"][id]["terminals"]))) for (id,bus) in sol["bus"]]
+    end
 
     return minimum(minimum.(voltages)), mean(mean.(voltages)), maximum(maximum.(voltages))
 end
 
 
+""
+get_timestep_voltage_stats!(args::Dict{String,<:Any}) = get_timestep_voltage_stats!(args["output_data"], get(args["optimal_dispatch_result"], "solution", Dict{String,Any}()), args["base_network"])
+
+
+""
 function get_timestep_voltage_stats!(output::Dict{String,<:Any}, sol_pu::Dict{String,<:Any}, data_eng::Dict{String,<:Any})
+    output["Voltages"]["Min voltage (p.u.)"] = Real[]
+    output["Voltages"]["Mean voltage (p.u.)"] = Real[]
+    output["Voltages"]["Max voltage (p.u.)"] = Real[]
+
+    per_unit = sol_pu["per_unit"]
     for i in sort([parse(Int, k) for k in keys(sol_pu["nw"])])
-        min_v, mean_v, max_v = get_voltage_stats(sol_pu["nw"]["$i"], data_eng)
+        min_v, mean_v, max_v = get_voltage_stats(sol_pu["nw"]["$i"], data_eng; per_unit=per_unit)
         push!(output["Voltages"]["Min voltage (p.u.)"], min_v)
         push!(output["Voltages"]["Mean voltage (p.u.)"], mean_v)
         push!(output["Voltages"]["Max voltage (p.u.)"], max_v)
@@ -18,7 +31,16 @@ function get_timestep_voltage_stats!(output::Dict{String,<:Any}, sol_pu::Dict{St
 end
 
 
+""
+get_timestep_load_served!(args::Dict{String,<:Any}) = get_timestep_load_served!(args["output_data"], get(args["optimal_dispatch_result"], "solution", Dict{String,Any}()), args["network"])
+
+
+""
 function get_timestep_load_served!(output::Dict{String,<:Any}, sol_si::Dict{String,<:Any}, mn_data_eng::Dict{String,<:Any})
+    output["Load served"]["Feeder load (%)"] = Real[]
+    output["Load served"]["Microgrid load (%)"] = Real[]
+    output["Load served"]["Bonus load via microgrid (%)"] = Real[]
+
     for i in sort([parse(Int, k) for k in keys(sol_si["nw"])])
         original_load = sum([sum(load["pd_nom"]) for (_,load) in mn_data_eng["nw"]["$i"]["load"]])
         feeder_served_load = sum([sum(vs["pg"]) for (_,vs) in sol_si["nw"]["$i"]["voltage_source"]])
@@ -34,7 +56,17 @@ function get_timestep_load_served!(output::Dict{String,<:Any}, sol_si::Dict{Stri
 end
 
 
+""
+get_timestep_generator_profiles!(args::Dict{String,<:Any}) = get_timestep_generator_profiles!(args["output_data"], get(args["optimal_dispatch_result"], "solution", Dict{String,Any}()))
+
+
+""
 function get_timestep_generator_profiles!(output::Dict{String,<:Any}, sol_si::Dict{String,<:Any})
+    output["Generator profiles"]["Grid mix (kW)"] = Real[]
+    output["Generator profiles"]["Solar DG (kW)"] = Real[]
+    output["Generator profiles"]["Energy storage (kW)"] = Real[]
+    output["Generator profiles"]["Diesel DG (kW)"] = Real[]
+
     for i in sort([parse(Int, k) for k in keys(sol_si["nw"])])
         push!(output["Generator profiles"]["Grid mix (kW)"], sum(Float64[sum(vsource["pg"]) for (_,vsource) in get(sol_si["nw"]["$i"], "voltage_source", Dict())]))
         push!(output["Generator profiles"]["Solar DG (kW)"], sum(Float64[sum(solar["pg"]) for (_,solar) in get(sol_si["nw"]["$i"], "solar", Dict())]))
@@ -44,12 +76,19 @@ function get_timestep_generator_profiles!(output::Dict{String,<:Any}, sol_si::Di
 end
 
 
+""
+get_timestep_powerflow_output!(args::Dict{String,<:Any}) = get_timestep_powerflow_output!(args["output_data"], get(args["optimal_dispatch_result"], "solution", Dict{String,Any}()), args["base_network"])
+
+
+""
 function get_timestep_powerflow_output!(output::Dict{String,<:Any}, sol_pu::Dict{String,<:Any}, data_eng::Dict{String,<:Any})
+    output["Powerflow output"] = Dict{String,Any}[]
+
     for i in sort([parse(Int, k) for k in keys(sol_pu["nw"])])
         n = "$i"
         nw = sol_pu["nw"][n]
         nw_pf = Dict{String,Any}(
-            "bus" => Dict{String,Any}()
+        "bus" => Dict{String,Any}()
         )
         for (id,bus) in get(nw, "bus", Dict())
             nw_pf["bus"][id] = Dict{String,Any}("voltage (V)" => get(bus, "vm", zeros(length(data_eng["bus"][id]["terminals"]))))
@@ -82,6 +121,31 @@ function get_timestep_powerflow_output!(output::Dict{String,<:Any}, sol_pu::Dict
 end
 
 
+get_timestep_device_actions!(args::Dict{String,<:Any}) = get_timestep_device_actions!(args["output_data"], args["optimal_switching_results"], args["network"])
+
+
+function get_timestep_device_actions!(output::Dict{String,<:Any}, osw_results::Dict{String,<:Any}, mn_data_eng::Dict{String,<:Any})
+    output["Device action timeline"] = Dict{String,Any}[]
+
+    for n in sort([parse(Int, k) for k in keys(mn_data_eng["nw"])])
+        _out = Dict{String,Any}(
+            "Switch configurations" => Dict{String,Any}(id => lowercase(string(switch["state"])) for (id, switch) in get(mn_data_eng["nw"]["$n"], "switch", Dict()))
+        )
+
+        shedded_loads = Vector{String}([])
+        for (id, load) in get(osw_results["$n"], "load", Dict())
+            if round(get(load, "status", 1)) ≉ 1
+               push!(shedded_loads, id)
+            end
+        end
+
+        _out["Shedded loads"] = shedded_loads
+
+        push!(output["Device action timeline"], _out)
+    end
+end
+
+
 function get_timestep_device_actions!(output::Dict{String,<:Any}, osw_result::Vector{<:Dict{String,<:Any}}, mn_data_math::Dict{String,<:Any})
     switch_map = build_switch_map(mn_data_math["map"])
     load_map = build_device_map(mn_data_math["map"], "load")
@@ -108,6 +172,11 @@ function get_timestep_device_actions!(output::Dict{String,<:Any}, osw_result::Ve
 end
 
 
+""
+get_timestep_storage_soc!(args::Dict{String,<:Any}) = get_timestep_storage_soc!(args["output_data"], get(args["optimal_dispatch_result"], "solution", Dict{String,Any}()), args["base_network"])
+
+
+""
 function get_timestep_storage_soc!(output::Dict{String,<:Any}, sol_si::Dict{String,<:Any}, data_eng::Dict{String,<:Any})
     for i in sort([parse(Int, k) for k in keys(sol_si["nw"])])
         push!(output["Storage SOC (%)"], 100.0 * sum(strg["se"] for strg in values(sol_si["nw"]["$i"]["storage"])) / sum(strg["energy_ub"] for strg in values(data_eng["storage"])))
@@ -115,6 +184,7 @@ function get_timestep_storage_soc!(output::Dict{String,<:Any}, sol_si::Dict{Stri
 end
 
 
+""
 function get_timestep_protection_settings!(output_data::Dict{String,<:Any}, protection_data::Dict)
     if !isempty(protection_data)
         prop_names = propertynames(first(protection_data).first)
@@ -147,18 +217,22 @@ end
 
 
 ""
-function get_timestep_stability!(output_data::Dict{String,<:Any}, is_stable::Vector{<:Bool})
+function get_timestep_stability!(output_data::Dict{String,<:Any}, is_stable::Vector{<:Union{Bool,Missing}})
     output_data["Small signal stable"] = is_stable
 end
+
+
+get_timestep_switch_changes!(args::Dict{String,<:Any}) = get_switch_changes!(args["output_data"], args["network"])
 
 
 ""
 function get_switch_changes!(output_data::Dict{String,<:Any}, mn_data_eng::Dict{String,<:Any})
     output_data["Switch changes"] = Vector{Vector{String}}([])
+
     _switch_configs = Dict(s => Dict(PMD.OPEN => "open", PMD.CLOSED => "closed")[sw["state"]] for (s,sw) in mn_data_eng["nw"]["1"]["switch"])
     for timestep in output_data["Device action timeline"]
         switch_configs = timestep["Switch configurations"]
-        _changes = Vector{String}([])
+        _changes = String[]
         for (switch, state) in switch_configs
             if get(_switch_configs, switch, state) != state
                 push!(_changes, switch)

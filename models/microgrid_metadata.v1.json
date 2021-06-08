@@ -1,0 +1,24 @@
+{
+  "type": "object",
+  "title": "microgrid_metadata",
+  "additionalProperties": false,
+  "properties": {
+    "microgrids": {
+      "type": "object",
+      "patternProperties": {
+        "^.+$": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "grid_forming_devices": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

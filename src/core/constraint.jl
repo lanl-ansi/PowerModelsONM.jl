@@ -1,5 +1,5 @@
 "max actions per timestep switch constraint"
-function constraint_switch_state_max_actions(pm::PMD._PM.AbstractPowerModel, nw::Int)
+function constraint_switch_state_max_actions(pm::PMD.AbstractUnbalancedPowerModel, nw::Int)
     max_switch_changes = get(pm.data, "max_switch_changes", length(get(pm.data, "switch", Dict())))
 
     state_start = Dict(
@@ -10,8 +10,8 @@ function constraint_switch_state_max_actions(pm::PMD._PM.AbstractPowerModel, nw:
 end
 
 
-""
-function constraint_load_block_isolation(pm::PMD._PM.AbstractPowerModel, nw::Int; relax::Bool=true)
+"constraint to ensure that load blocks get properly isolated by opening switches"
+function constraint_load_block_isolation(pm::PMD.AbstractUnbalancedPowerModel, nw::Int; relax::Bool=true)
     for (b, block) in PMD.ref(pm, nw, :load_blocks)
         z_demand = PMD.var(pm, nw, :z_demand_blocks, b)
         for s in PMD.ref(pm, nw, :load_block_switches, b)
