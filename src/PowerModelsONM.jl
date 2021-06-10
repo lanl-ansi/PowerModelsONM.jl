@@ -38,6 +38,9 @@ module PowerModelsONM
 
     function __init__()
         global _LOGGER = Logging.ConsoleLogger(; meta_formatter=PowerModelsDistribution._pmd_metafmt)
+        global _DEFAULT_LOGGER = Logging.current_logger()
+
+        Logging.global_logger(_LOGGER)
         try
             global GRB_ENV = Gurobi.Env()
         catch err

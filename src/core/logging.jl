@@ -18,7 +18,7 @@ silence!() = silence!(PowerModelsONM)
 Resets the log level to Info
 """
 function reset_logging_level!()
-    Logging.global_logger(_LOGGER)
+    Logging.global_logger(Logging.ConsoleLogger(; meta_formatter=PowerModelsDistribution._pmd_metafmt))
 end
 
 
@@ -42,7 +42,23 @@ set_logging_level!(level::Symbol) = set_logging_level!(PowerModelsONM, level)
 
 Helper function to create the filtered logger for PMD
 """
-function _make_filtered_logger(mod, level)
+function _make_filtered_logger(mods::Vector, level::Logging.LogLevel)
+    LoggingExtras.EarlyFilteredLogger(_LOGGER) do log
+        if any(log._module == mod for mod in mods) && log.level < level
+            return false
+        else
+            return true
+        end
+    end
+end
+
+
+"""
+    _make_filtered_logger(mod::Module, level::Logging.LogLevel)
+
+Helper function to create the filtered logger for PMD
+"""
+function _make_filtered_logger(mod::Module, level::Logging.LogLevel)
     LoggingExtras.EarlyFilteredLogger(_LOGGER) do log
         if log._module == mod && log.level < level
             return false
@@ -57,26 +73,23 @@ end
 _make_filtered_logger(level) = _make_filtered_logger(PowerModelsONM, level)
 
 
-
 """
     setup_logging!(args::Dict{String,<:Any})
 
 Configures logging based on runtime arguments, for use inside [`entrypoint`](@ref entrypoint)
 """
 function setup_logging!(args::Dict{String,<:Any})
+    mods = [PowerModelsDistribution, PowerModelsProtection, PowerModelsStability, Juniper]
     if get(args, "quiet", false)
-        loglevel = :Error
-        silence!(PowerModelsONM)
+        loglevel = Logging.Error
+        push!(mods, PowerModelsONM)
     elseif get(args, "verbose", false)
-        loglevel = :Info
+        loglevel = Logging.Info
     elseif get(args, "debug", false)
-        loglevel = :Debug
+        loglevel = Logging.Debug
     else
-        loglevel = :Error
+        loglevel = Logging.Error
     end
 
-    PMD.set_logging_level!(loglevel)
-    for mod in [PowerModelsProtection, PowerModelsStability, Juniper]
-        set_logging_level!(mod, loglevel)
-    end
+    Logging.global_logger(_make_filtered_logger(mods, loglevel))
 end
