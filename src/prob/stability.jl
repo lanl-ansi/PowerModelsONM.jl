@@ -35,7 +35,7 @@
 
 Runs small signal stability analysis using PowerModelsStability and determines if each timestep configuration is stable
 """
-function analyze_stability!(args::Dict{String,<:Any})
+function run_stability_analysis!(args::Dict{String,<:Any})
     @info "Running stability analysis"
 
     if !isempty(get(args, "inverters", ""))
@@ -57,7 +57,7 @@ function analyze_stability!(args::Dict{String,<:Any})
         PowerModelsStability.add_inverters!(nw, args["inverters"])
 
         math_model = PowerModelsStability.transform_data_model(nw)
-        opf_solution = PowerModelsStability.solve_mc_opf(math_model, PMD.ACPUPowerModel, args["nlp_solver"])
+        opf_solution = PowerModelsStability.solve_mc_opf(math_model, PMD.ACRUPowerModel, args["nlp_solver"]; solution_processors=[PMD.sol_data_model!])
 
         Atot = PowerModelsStability.obtainGlobal_multi(math_model, opf_solution, args["inverters"]["omega0"], args["inverters"]["rN"])
         eigValList = eigvals(Atot)

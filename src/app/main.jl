@@ -56,10 +56,9 @@ function entrypoint(args::Dict{String,<:Any})::Dict{String,Any}
 
     optimize_dispatch!(args)
 
-    # TODO
-    # run_stability_analysis!(args)
+    run_stability_analysis!(args)
 
-    PowerModelsONM.run_fault_studies!(args)
+    run_fault_studies!(args)
 
     analyze_results!(args)
 
