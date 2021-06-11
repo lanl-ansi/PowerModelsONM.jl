@@ -36,7 +36,6 @@ end
 set_logging_level!(level::Symbol) = set_logging_level!(PowerModelsONM, level)
 
 
-# TODO figure out how to filter multiple packages (or add/update the logger)
 """
     _make_filtered_logger(mod::Module, level::Logging.LogLevel)
 
@@ -79,16 +78,22 @@ _make_filtered_logger(level) = _make_filtered_logger(PowerModelsONM, level)
 Configures logging based on runtime arguments, for use inside [`entrypoint`](@ref entrypoint)
 """
 function setup_logging!(args::Dict{String,<:Any})
-    mods = [PowerModelsDistribution, PowerModelsProtection, PowerModelsStability, Juniper]
+    mods = [PowerModelsDistribution, PowerModelsProtection, PowerModelsStability, Juniper, JSONSchema]
     if get(args, "quiet", false)
         loglevel = Logging.Error
         push!(mods, PowerModelsONM)
+
+        # TODO remove need for Memento
+        PMD._IM.silence()
     elseif get(args, "verbose", false)
         loglevel = Logging.Info
     elseif get(args, "debug", false)
         loglevel = Logging.Debug
     else
         loglevel = Logging.Error
+
+        # TODO remove need for Memento
+        PMD._IM.silence()
     end
 
     Logging.global_logger(_make_filtered_logger(mods, loglevel))
