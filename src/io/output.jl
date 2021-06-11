@@ -57,7 +57,7 @@ end
 
 Initializes the output data strucutre inside of the args dict at "output_data"
 """
-function initialize_output!(args::Dict{String,<:Any})
+function initialize_output!(args::Dict{String,<:Any})::Dict{String,Any}
     args["output_data"] = initialize_output(args)
 end
 
@@ -67,7 +67,7 @@ end
 
 Adds statistics to "output_data"
 """
-function analyze_results!(args::Dict{String,<:Any})
+function analyze_results!(args::Dict{String,<:Any})::Dict{String,Any}
     if !haskey(args, "output_data")
         initialize_output!(args)
     end
@@ -82,4 +82,6 @@ function analyze_results!(args::Dict{String,<:Any})
     get_timestep_storage_soc!(args)
     get_timestep_device_actions!(args)
     get_timestep_switch_changes!(args)
+
+    return args["output_data"]
 end

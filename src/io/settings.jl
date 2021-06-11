@@ -3,7 +3,7 @@
 
 Parses settings file specifed in runtime arguments in-place
 """
-function parse_settings!(args::Dict{String,<:Any})
+function parse_settings!(args::Dict{String,<:Any}; apply::Bool=true, validate::Bool=true)::Dict{String,Any}
     if !isempty(get(args, "settings", ""))
         if isa(args["settings"], String)
             args["settings"] = parse_settings(args["settings"])
@@ -13,7 +13,9 @@ function parse_settings!(args::Dict{String,<:Any})
     end
 
     # TODO enable settings validation
-    # validate_runtime_settings(args["settings"])
+    # if validate && !validate_runtime_settings(args["settings"])
+    #     error("'settings' file could not be validated")
+    # end
 
     # Handle depreciated command line arguments
     haskey(args, "voltage-lower-bound") && _convert_to_settings!(args, "bus", "vm_lb", pop!(args, "voltage-lower-bound"))
@@ -29,7 +31,9 @@ function parse_settings!(args::Dict{String,<:Any})
         args["settings"]["max_switch_actions"] = fill(pop!(args, "max-switch-actions"), length(args["network"]["nw"]))
     end
 
-    apply_settings!(args)
+    apply && apply_settings!(args)
+
+    return args["settings"]
 end
 
 
