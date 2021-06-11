@@ -198,39 +198,6 @@ end
 
 # TODO: Remove once storage supported in IVR, assumes MATH Model, with solution already
 "converts storage to generators"
-# function convert_storage!(nw::Dict{String,<:Any})
-#     for (i, strg) in get(nw, "storage", Dict())
-#         nw["gen"]["$(length(nw["gen"])+1)"] = Dict{String,Any}(
-#             "name" => strg["name"],
-#             "gen_bus" => strg["storage_bus"],
-#             "connections" => strg["connections"],
-#             "configuration" => PMD.WYE,
-#             "control_mode" => PMD.FREQUENCYDROOP,
-#             "gen_status" => strg["status"],
-
-#             "pmin" => strg["ps"] .- 1e-9,
-#             "pmax" => strg["ps"] .+ 1e-9,
-#             "pg" => strg["ps"],
-#             "qmin" => strg["qs"] .- 1e-9,
-#             "qmax" => strg["qs"] .+ 1e-9,
-#             "qg" => strg["qs"],
-
-#             "model" => 2,
-#             "startup" => 0,
-#             "shutdown" => 0,
-#             "cost" => [100.0, 0.0],
-#             "ncost" => 2,
-
-#             "index" => length(nw["gen"])+1,
-#             "source_id" => strg["source_id"],
-
-#             "vbase" => nw["bus"]["$(strg["storage_bus"])"]["vbase"],  # grab vbase from bus
-#             "zx" => [0, 0, 0], # dynamics required by PMP, treat like voltage source
-#         )
-#     end
-# end
-
-
 function convert_storage!(nw::Dict{String,Any})
     for (i, strg) in get(nw, "storage", Dict())
         nw["generator"]["storage.$i"] = Dict{String,Any}(
