@@ -71,7 +71,6 @@ module PowerModelsONM
     include("io/json.jl")
     include("io/network.jl")
     include("io/output.jl")
-    include("io/protection.jl")
     include("io/settings.jl")
 
     include("prob/common.jl")
