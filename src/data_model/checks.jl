@@ -19,7 +19,7 @@ validate_events(data::Vector{<:Dict{String,<:Any}}) = _validate_against_schema(d
 
 
 """
-    validate_output(data::Dict{String,Any})::Bool
+    validate_output(data::Dict)::Bool
 
 Validates output data against models/outputs schema
 """
@@ -35,7 +35,7 @@ validate_powerflow(data::Vector{Dict{String,<:Any}}) = _validate_against_schema(
 
 
 """
-    validate_runtime_arguments(data::Dict{String,Any})::Bool
+    validate_runtime_arguments(data::Dict)::Bool
 
 Validates runtime_arguments data against models/runtime_arguments schema
 """
@@ -43,7 +43,7 @@ validate_runtime_arguments(data::Dict{String,<:Any}) = _validate_against_schema(
 
 
 """
-    validate_runtime_settings(data::Dict{String,Any})::Bool
+    validate_runtime_settings(data::Dict)::Bool
 
 Validates runtime_settings data against models/runtime_settings schema
 """
@@ -61,6 +61,14 @@ validate_device_action_timeline(data::Vector{Dict{String,<:Any}}) = _validate_ag
 """
     validate_fault_study(data::Vector{Dict})::Bool
 
-Validates fault study data against models/fault_study_results schema
+Validates fault study data against models/fault_studies schema
 """
-validate_fault_study(data::Vector{Dict{String,<:Any}}) = _validate_against_schema(data, "fault_study_results", "v1")
+validate_fault_studies(data::Vector{Dict{String,<:Any}}) = _validate_against_schema(data, "fault_studiess", "v1")
+
+
+"""
+    validate_fauls(data::Vector{Dict})::Bool
+
+Validates fault input data against models/faults schema
+"""
+validate_faults(data::Vector{Dict{String,<:Any}}) = _validate_against_schema(data, "faults", "v1")
