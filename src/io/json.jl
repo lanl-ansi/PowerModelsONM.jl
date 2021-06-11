@@ -18,7 +18,11 @@ function _fix_schema_refs!(model::Union{Vector,Dict})
 end
 
 
-""
+"""
+    load_schema(file::String)::Schema
+
+Loads a JSON Schema for validation, fixing the ref paths inside the schemas on load
+"""
 function load_schema(file::String)::JSONSchema.Schema
     model = JSON.parsefile(file)
     _fix_schema_refs!(model)
