@@ -27,6 +27,8 @@ module PowerModelsONM
     import Logging
     import LoggingExtras
 
+    import ProgressMeter: @showprogress
+
     import Dates
 
     import LinearAlgebra: eigvals
