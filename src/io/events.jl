@@ -1,99 +1,193 @@
 """
-    parse_events!(args::Dict{String,<:Any})
+    parse_events!(args::Dict{String,<:Any})::Dict
 
-Parses events file in-place (within the args Dict data structure), for use inside of [`entrypoint`](@ref entrypoint)
+Parses events file in-place using [`parse_faults`](@ref parse_faults), for use inside of [`entrypoint`](@ref entrypoint)
 """
-function parse_events!(args::Dict{String,<:Any})
-    args["events"] = !isempty(get(args, "events", "")) ? isa(args["events"], String) ? parse_events(args["events"]) : args["events"] : Dict{String,Any}[]
+function parse_events!(args::Dict{String,<:Any}; apply::Bool=true, validate::Bool=true)::Dict{String,Any}
+    args["events"] = !isempty(get(args, "events", "")) ? isa(args["events"], String) ? parse_events(args["events"]; validate=validate) : args["events"] : Dict{String,Any}[]
 
-    # TODO re-enable events validation
-    # if !validate_events(args["events"])
-    #     error("'events' file could not be validated")
-    # end
-
-    apply_events!(args)
+    return args["events"]
 end
 
 
 """
-    parse_events(events_file::String)
+    parse_events(events_file::String)::Dict
 
-Parses the events JSON file (no intepretations made)
+Parses the events JSON file (no intepretations made), and validates against JSON Schema in `models` folder if `validate=true` (default).
 """
-function parse_events(events_file::String)::Vector{Dict{String,Any}}
-    JSON.parsefile(events_file)
+function parse_events(events_file::String; validate::Bool=true)::Vector{Dict{String,Any}}
+    events = JSON.parsefile(events_file)
+
+    if validate && !validate_events(events)
+        error("'events' file could not be validated")
+    end
+
+    _fix_event_data_types!(events)
+
+    return events
+end
+
+
+function _fix_event_data_types!(events::Vector{<:Dict{String,<:Any}})::Vector{Dict{String,Any}}
+    for event in events
+        for (k,v) in event["event_data"]
+            if k == "dispatchable"
+                event[k] = PMD.Dispatchable(Int(v))
+            end
+
+            if k == "state"
+                event[k] = Dict("open" => PMD.OPEN, "closed" => PMD.CLOSED)[lowercase(v)]
+            end
+
+            if k == "status"
+                event[k] = PMD.Status(v)
+            end
+        end
+    end
+end
+
+"""
+    parse_events(raw_events::Vector{Dict}, mn_data::Dict)::Dict
+
+TODO documentation for parse_events
+"""
+function parse_events(raw_events::Vector{<:Dict{String,<:Any}}, mn_data::Dict{String,<:Any})::Dict{String,Any}
+    events = Dict{String,Any}()
+    for event in raw_events
+        n = _find_nw_id_from_timestep(mn_data, event["timestep"])
+
+        if !haskey(events, n)
+            events[n] = Dict{String,Any}()
+        end
+
+        if event["event_type"] == "switch"
+            switch_id = _find_switch_id_from_source_id(mn_data["nw"][n], event["affected_asset"])
+
+            events[n][switch_id] = Dict{String,Any}(
+                k => v for (k,v) in event["event_data"]
+            )
+        elseif event["event_type"] == "fault"
+            switch_ids = _find_switch_ids_by_faulted_asset(mn_data["nw"][n], event["affected_asset"])
+            n_next = _find_next_nw_id_from_fault_duration(mn_data, n, event["event_data"]["duration"])
+
+            if !ismissing(n_next)
+                if !haskey(events, n_next)
+                    events[n_next] = Dict{String,Any}()
+                end
+            end
+
+            for switch_id in switch_ids
+                events[n][switch_id] = Dict{String,Any}(
+                    "state" => PMD.OPEN,
+                    "dispatchable" => PMD.NO,
+                )
+                if !ismissing(n_next) && !haskey(events[n_next], switch_id)  # don't do it if there is already an event defined for switch_id at next timestep
+                    events[n_next][switch_id] = Dict{String,Any}(
+                        "dispatchable" => PMD.YES,
+                    )
+                end
+            end
+        else
+            @warn "event_type '$(event["event_type"])' not recognized, skipping"
+        end
+    end
+
+    return events
+end
+
+
+"""
+    parse_events(events_file::String, mn_data::Dict; validate::Bool=true)::Dict{String,Any}
+
+"""
+function parse_events(events_file::String, mn_data::Dict{String,<:Any}; validate::Bool=true)::Dict{String,Any}
+    parse_events(parse_events(events_file; validate=validate), mn_data)
 end
 
 
 """
     apply_events!(args::Dict{String,<:Any})
 
-Applies events in-place (within the args data structure), for use inside of [`entrypoint`](@ref entrypoint)
+Applies events in-place using [`apply_events`](@ref apply_events), for use inside of [`entrypoint`](@ref entrypoint)
 """
 function apply_events!(args::Dict{String,<:Any})
-    apply_events!(args["network"], args["events"])
+    args["network"] = apply_events(args["network"], args["events"])
 end
 
 
 """
-    apply_events!(network::Dict, events::Vector{Dict})::Dict
-
-Applies events to the __multinetwork__ `ENGINEERING` data structure
-
-## Notes
-
-Currently, only supports switch actions, fault actions to be added
 """
-function apply_events!(network::Dict{String,Any}, events::Vector{<:Dict{String,Any}})::Dict{String,Any}
-    parsed_events = Dict{String,Any}("nw"=>Dict{String,Any}())
-    for event in events
-        source_id = event["affected_asset"]
-        asset_type, asset_name = split(lowercase(source_id), ".")
-        timestep = event["timestep"]
-        start_timestep = get_timestep(timestep, network)
+function apply_events(mn_data::Dict{String,<:Any}, events::Dict{String,<:Any})::Dict{String,Any}
+    network = deepcopy(mn_data)
 
-        if !haskey(parsed_events["nw"], "$start_timestep")
-            parsed_events["nw"]["$start_timestep"] = Dict{String,Any}()
-        end
+    PMD._IM.update_data!(network, events)
 
-        if event["event_type"] == "switch"
-            if !haskey(parsed_events["nw"]["$start_timestep"], "switch")
-                parsed_events["nw"]["$start_timestep"]["switch"] = Dict{String,Any}()
-            end
+    return mn_data
+end
 
-            if haskey(network, "nw")
-                if any(haskey(nw["switch"], asset_name) for (_,nw) in network["nw"])
-                    parsed_events["nw"]["$start_timestep"]["switch"][asset_name] = get(event, "event_data", Dict{String,Any}())
 
-                    for (n, nw) in network["nw"]
-                        if parse(Int, n) >= start_timestep
-                            if haskey(nw["switch"], asset_name)
-                                if haskey(event["event_data"], "status")
-                                    nw["switch"][asset_name]["status"] = PMD.Status(event["event_data"]["status"])
-                                end
-
-                                if haskey(event["event_data"], "state")
-                                    nw["switch"][asset_name]["state"] = Dict{String,PMD.SwitchState}("closed"=>PMD.CLOSED, "open"=>PMD.OPEN)[lowercase(event["event_data"]["state"])]
-                                end
-
-                                if haskey(event["event_data"], "dispatchable")
-                                    nw["switch"][asset_name]["dispatchable"] = event["event_data"]["dispatchable"] ? PMD.YES : PMD.NO
-                                end
-                            else
-                                @info "switch '$(asset_name)' mentioned in events does not exist in data set at timestep $(n)"
-                            end
-                        end
-                    end
-                else
-                    @info  "switch '$(asset_name)' mentioned in events does not exist in data set"
-                end
-            else
-                network["switch"][asset_name]["state"] = Dict{String,PMD.SwitchState}("closed"=>PMD.CLOSED, "open"=>PMD.OPEN)
-            end
-
-        else
-            @warn "event of type '$(event["event_type"])' at timestep $(timestep) is not yet supported in PowerModelsONM"
+"helper function to find a switch id in the network model based on the dss `source_id`"
+function _find_switch_id_from_source_id(network::Dict{String,<:Any}, source_id::String)::String
+    for (id, switch) in get(network, "switch", Dict())
+        if switch["source_id"] == source_id
+            return id
         end
     end
-    return parsed_events
+    error("switch '$(source_id)' not found in network model, aborting")
+end
+
+
+"helper function to find which switches need to be opened to isolate a fault on asset given by `source_id`"
+function _find_switch_ids_by_faulted_asset(network::Dict{String,<:Any}, source_id::String)::Vector{String}
+    # TODO algorithm for isolating faults (heuristic)
+end
+
+
+"helper function to find the multinetwork id of the subnetwork corresponding most closely to a `timestep`"
+function _find_nw_id_from_timestep(network::Dict{String,<:Any}, timestep::Union{Real,String})::String
+    @assert PMD.ismultinetwork(network) "network data structure is not multinetwork"
+
+    if isa(timestep, Int) && all(isa(v, Int) for v in values(network["mn_lookup"])) || isa(timestep, String)
+        if isa(timestep, String)
+            timestep = all(isa(v, Int) for v in values(network["mn_lookup"])) ? parse(Int, timestep) : all(isa(v, Real) for v in values(network["mn_lookup"])) ? parse(Float16, timestep) : timestep
+        end
+
+        for (nw_id,ts) in network["mn_lookup"]
+            if ts == timestep
+                return nw_id
+            end
+        end
+    else
+        for (nw_id,ts) in network["mn_lookup"]
+            if ts ≈ timestep
+                return nw_id
+            end
+        end
+
+        timesteps = sort(collect(values(network["mn_lookup"])))
+        dist = timesteps .- timestep
+        ts = findfirst(x->x≈minimum(dist[dist .> 0]), timesteps)
+        for (nw_id, ts) in network["mn_lookup"]
+            if ts == timestep
+                return nw_id
+            end
+        end
+    end
+    error("could not find timestep '$(timestep)' in the multinetwork data structure")
+end
+
+
+"helper function to find the next timestep following a fault given its duration in ms"
+function _find_next_nw_id_from_fault_duration(network::Dict{String,<:Any}, nw_id::String, duration::Real)::Union{String,Missing}
+    current_timestep = network["mn_lookup"][nw_id]
+    mn_lookup_reverse = Dict{Any,String}(v => k for (k,v) in network["mn_lookup"])
+
+    timesteps = sort(collect(values(network["mn_lookup"])))
+    dist = timesteps .- current_timestep + (duration / 3.6e6)  # duration is in ms, timestep in hours
+    if all(dist .< 0)
+        return missing
+    else
+        ts = findfirst(x->x ≈ minimum(dist[dist .> 0]), timesteps)
+        return mn_lookup_reverse[ts]
+    end
 end
