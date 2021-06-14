@@ -20,7 +20,7 @@ end
 Parses network file given by runtime arguments into its base network, i.e., not expanded into a multinetwork,
 and multinetwork, which is the multinetwork `ENGINEERING` representation of the network.
 """
-function parse_network(network_file::Dict{String,<:Any})::Tuple{Dict{String,Any},Dict{String,Any}}
+function parse_network(network_file::String)::Tuple{Dict{String,Any},Dict{String,Any}}
     eng = PMD.parse_file(network_file; dss2eng_extensions=[PowerModelsProtection._dss2eng_solar_dynamics!, PowerModelsProtection._dss2eng_gen_dynamics!], transformations=[PMD.apply_kron_reduction!])
 
     mn_eng = PMD.make_multinetwork(eng)
