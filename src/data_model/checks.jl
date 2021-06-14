@@ -39,7 +39,7 @@ validate_powerflow(data::Vector{Dict{String,<:Any}}) = _validate_against_schema(
 
 Validates runtime_arguments data against models/runtime_arguments schema
 """
-validate_runtime_arguments(data::Dict{String,<:Any}) = _validate_against_schema(data, "runtime_arguments", "v1")
+validate_runtime_arguments(data::Dict) = _validate_against_schema(data, "runtime_arguments", "v1")
 
 
 """

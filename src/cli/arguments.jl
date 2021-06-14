@@ -99,7 +99,13 @@ function parse_commandline()
             arg_type = Real
     end
 
-    return ArgParse.parse_args(s)
+    arguments = ArgParse.parse_args(s)
+
+    if !validate_runtime_arguments(arguments)
+        error("invalid runtime arguments detected")
+    end
+
+    return arguments
 end
 
 
