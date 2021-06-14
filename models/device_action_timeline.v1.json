@@ -4,25 +4,48 @@
   "x-tags": [
     "output"
   ],
-  "description": "Device activation schema (TODO)",
+  "description": "Object for each timestep, in order, containing information about the switch topology and a list of each load that has been shed at that timestep.",
+  "examples": [
+    [
+      {
+        "Shedded loads": [
+          "load.123"
+        ],
+        "Switch configurations": {
+          "switch.123": "open",
+          "switch.456": "closed"
+        }
+      },
+      {
+        "Shedded loads": [],
+        "Switch configurations": {
+          "switch.123": "closed",
+          "switch.456": "closed"
+        }
+      }
+    ]
+  ],
   "items": {
     "type": "object",
     "properties": {
       "Shedded loads": {
         "type": "array",
+        "description": "A list of loads that have been shed at the current timestep",
         "items": {
           "type": "string"
         }
       },
       "Switch configurations": {
         "type": "object",
-        "properties": {
-          "name": {
+        "description": "Object containing all switches at their corresponding states at the current timestep",
+        "patternProperties": {
+          "^.+$": {
             "type": "string",
             "enum": [
               "open",
               "closed"
-            ]
+            ],
+            "description": "switch_name: state"
           }
         }
       }
