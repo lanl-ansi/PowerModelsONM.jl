@@ -83,5 +83,6 @@ function analyze_results!(args::Dict{String,<:Any})::Dict{String,Any}
     get_timestep_device_actions!(args)
     get_timestep_switch_changes!(args)
 
+    get_timestep_stability!(args)
     return args["output_data"]
 end

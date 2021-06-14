@@ -216,6 +216,9 @@ function get_timestep_fault_currents!(output_data::Dict{String,<:Any}, fault_res
 end
 
 
+get_timestep_stability!(args::Dict{String,<:Any}) = get_timestep_stability!(args["output_data"], Vector{<:Union{Missing,Bool}}([args["stability_results"]["$n"] for n in sort([parse(Int, i) for i in keys(args["stability_results"])])]))
+
+
 ""
 function get_timestep_stability!(output_data::Dict{String,<:Any}, is_stable::Vector{<:Union{Bool,Missing}})
     output_data["Small signal stable"] = is_stable
