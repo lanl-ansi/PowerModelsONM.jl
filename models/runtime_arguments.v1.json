@@ -2,76 +2,117 @@
   "title": "runtime_arguments.v1",
   "type": "object",
   "properties": {
+    "network": {
+      "type": "string"
+    },
+    "output": {
+      "type": "string"
+    },
+    "faults": {
+      "type": "string"
+    },
+    "events": {
+      "type": "string"
+    },
+    "inverters": {
+      "type": "string"
+    },
+    "settings": {
+      "type": "string"
+    },
+    "quiet": {
+      "type": "boolean",
+      "default": false
+    },
+    "verbose": {
+      "type": "boolean",
+      "default": false
+    },
+    "debug": {
+      "type": "boolean",
+      "default": false
+    },
+    "gurobi": {
+      "type": "boolean",
+      "default": false
+    },
+    "opt-disp-formulation": {
+      "type": "string",
+      "enum": [
+        "acp",
+        "acr",
+        "lindistflow",
+        "nfa"
+      ]
+    },
     "network-file": {
       "type": "string",
-      "description": "path to network case"
+      "deprecated": true
     },
     "output-file": {
       "type": "string",
-      "description": "path to output file (json)"
-    },
-    "formulation": {
-      "type": "string",
-      "description": "formulation",
-      "enum": [
-        "lindistflow",
-        "acr",
-        "nfa",
-        "acp"
-      ],
-      "default": "lindistflow"
+      "deprecated": true
     },
     "problem": {
       "type": "string",
-      "description": "problem type",
+      "deprecated": true,
       "enum": [
         "opf",
         "mld"
       ]
     },
+    "formulation": {
+      "type": "string",
+      "deprecated": true,
+      "enum": [
+        "acr",
+        "acp",
+        "lindistflow",
+        "nfa"
+      ]
+    },
     "protection-settings": {
       "type": "string",
-      "description": "XLSX (Excel) file containing protection settings for various network configurations"
-    },
-    "faults": {
-      "type": "string",
-      "description": "Pre-defined faults file (JSON) that contains faults over which to perform fault studies"
-    },
-    "events": {
-      "type": "string",
-      "description": "Contingencies / Events file (JSON) to apply to the network at runtime"
-    },
-    "inverters": {
-      "type": "string",
-      "description": "Inverter settings file (JSON) that contains information for stability analysis"
-    },
-    "verbose": {
-      "type": "boolean",
-      "description": "verbose output to command line"
-    },
-    "solver-tolerance": {
-      "type": "number",
-      "description": "for debugging, shouldn't need to change",
-      "format": "float",
-      "default": 0.0001
+      "deprecated": true
     },
     "debug-export-file": {
       "type": "string",
-      "description": "exports the full results dict to the specified path"
+      "deprecated": true
     },
     "use-gurobi": {
       "type": "boolean",
-      "description": "Use gurobi solver?"
+      "default": false,
+      "deprecated": true
+    },
+    "solver-tolerance": {
+      "type": "number",
+      "default": 0.0001,
+      "deprecated": true
     },
     "max-switch-actions": {
       "type": "integer",
-      "description": "Numer of allowed switching actions per timestep"
+      "default": 0,
+      "deprecated": true
     },
-    "timestep-duration": {
+    "timestep-hours": {
       "type": "number",
       "default": 1,
-      "format": "float",
-      "description": "Duration between timesteps in hours"
+      "deprecated": true
+    },
+    "voltage-lower-bound": {
+      "default": 0.8,
+      "deprecated": true,
+      "type": "number"
+    },
+    "voltage-upper-bound": {
+      "type": "number",
+      "default": 1.2,
+      "deprecated": true
+    },
+    "voltage-angle-difference": {
+      "type": "number",
+      "default": 5,
+      "deprecated": true
     }
   }
 }
