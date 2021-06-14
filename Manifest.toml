@@ -82,9 +82,9 @@ version = "0.60.2+6"
 
 [[ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "8b31cc69cbc38c5c826aaa1c890c694be3622d99"
+git-tree-sha1 = "d659e42240c2162300b321f05173cab5cc40a5ba"
 uuid = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
-version = "0.10.3"
+version = "0.10.4"
 
 [[Clp_jll]]
 deps = ["Artifacts", "CoinUtils_jll", "CompilerSupportLibraries_jll", "JLLWrappers", "Libdl", "OpenBLAS32_jll", "Osi_jll", "Pkg"]
@@ -362,9 +362,9 @@ uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 
 [[LoggingExtras]]
 deps = ["Dates", "Logging"]
-git-tree-sha1 = "59b45fd91b743dff047313bb7af0f84167aef80d"
+git-tree-sha1 = "dfeda1c1130990428720de0024d4516b1902ce98"
 uuid = "e6f89c97-d47a-5376-807f-9c37f3926c36"
-version = "0.4.6"
+version = "0.4.7"
 
 [[METIS_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -436,9 +436,9 @@ uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
 
 [[MutableArithmetics]]
 deps = ["LinearAlgebra", "SparseArrays", "Test"]
-git-tree-sha1 = "ad9b2bce6021631e0e20706d361972343a03e642"
+git-tree-sha1 = "3927848ccebcc165952dc0d9ac9aa274a87bfe01"
 uuid = "d8a4904e-b15c-11e9-3269-09a3773c0cb0"
-version = "0.2.19"
+version = "0.2.20"
 
 [[NLSolversBase]]
 deps = ["DiffResults", "Distributed", "FiniteDiff", "ForwardDiff"]
@@ -523,7 +523,7 @@ version = "0.18.1"
 deps = ["Dates", "InfrastructureModels", "JSON", "JuMP", "LinearAlgebra", "Logging", "LoggingExtras", "MathOptInterface", "Statistics"]
 path = "/Users/dfobes/.julia/dev/PowerModelsDistribution"
 uuid = "d7431456-977f-11e9-2de3-97ff7677985e"
-version = "0.11.2"
+version = "0.11.3"
 
 [[PowerModelsProtection]]
 deps = ["InfrastructureModels", "JuMP", "LinearAlgebra", "MathOptInterface", "PowerModels", "PowerModelsDistribution", "Printf"]
@@ -706,12 +706,6 @@ version = "1.0.2"
 
 [[Unicode]]
 uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
-
-[[XLSX]]
-deps = ["Dates", "EzXML", "Printf", "Tables", "ZipFile"]
-git-tree-sha1 = "7744a996cdd07b05f58392eb1318bca0c4cc1dc7"
-uuid = "fdbf4ff8-1666-58a4-91e7-1b58723a45e0"
-version = "0.7.6"
 
 [[XML2_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Libiconv_jll", "Pkg", "Zlib_jll"]
