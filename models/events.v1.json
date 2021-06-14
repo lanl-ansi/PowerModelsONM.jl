@@ -1,6 +1,6 @@
 {
   "type": "array",
-  "description": "",
+  "description": "A list of events, ordered (i.e., later events will overwrite earlier ones if there is a conflict), that can either be a switching action, or a fault.",
   "minItems": 0,
   "uniqueItems": false,
   "x-examples": {
@@ -42,15 +42,18 @@
   "items": {
     "type": "object",
     "additionalProperties": false,
+    "description": "Event definition",
     "properties": {
       "timestep": {
         "type": [
           "string",
-          "integer"
+          "integer",
+          "number"
         ],
         "minLength": 1,
         "pattern": "^\\d+\\.*\\d*",
-        "example": "1.0"
+        "example": "1.0",
+        "description": "Timestep, in string, integer, or float, that identifies the timestep at which this event is applied."
       },
       "event_type": {
         "type": "string",
@@ -59,17 +62,20 @@
           "fault",
           "switch"
         ],
-        "example": "switch"
+        "example": "switch",
+        "description": "The type of event (switch or fault)"
       },
       "affected_asset": {
         "type": "string",
-        "minLength": 1,
-        "pattern": "^\\w+\\.\\w+",
-        "example": "line.asset_name"
+        "minLength": 5,
+        "pattern": "^line\\..+$",
+        "example": "line.asset_name",
+        "description": "The asset that is being affected by the event"
       },
       "event_data": {
         "anyOf": [
           {
+            "description": "Switch event data",
             "properties": {
               "type": {
                 "type": "string",
@@ -87,7 +93,8 @@
               },
               "dispatchable": {
                 "type": "boolean",
-                "description": "Is the affected object dispatchable? (i.e., can be opened or closed), default is false"
+                "description": "Is the affected object dispatchable? (i.e., can be opened or closed), default is false",
+                "default": false
               },
               "status": {
                 "type": "integer",
@@ -102,6 +109,7 @@
             }
           },
           {
+            "description": "Fault event data",
             "properties": {
               "duration_ms": {
                 "type": "number",
@@ -113,6 +121,7 @@
             }
           }
         ],
+        "description": "The event data",
         "type": "object"
       }
     },
