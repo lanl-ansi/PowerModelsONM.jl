@@ -2,7 +2,7 @@
     run_fault_studies!(args::Dict{String,<:Any})
 
 Runs fault studies defined in faults.json. If no faults file is provided, it will automatically generate faults
-using `PowerModelsProtection.build_mc_fault_studies`.
+using `PowerModelsProtection.build_mc_fault_study`.
 """
 function run_fault_studies!(args::Dict{String,<:Any})::Dict{String,Any}
     @info "Running fault studies"
@@ -12,7 +12,7 @@ function run_fault_studies!(args::Dict{String,<:Any})::Dict{String,Any}
             args["faults"] = parse_faults(args["faults"])
         end
     else
-        args["faults"] = PowerModelsProtection.build_mc_fault_studies(args["base_network"])
+        args["faults"] = PowerModelsProtection.build_mc_fault_study(args["base_network"])
     end
 
     fault_studies_results = Dict{String,Any}()

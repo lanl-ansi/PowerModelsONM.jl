@@ -63,12 +63,14 @@ validate_device_action_timeline(data::Vector{Dict{String,<:Any}}) = _validate_ag
 
 Validates fault study data against models/fault_studies schema
 """
-validate_fault_studies(data::Vector{Dict{String,<:Any}}) = _validate_against_schema(data, "fault_studiess", "v1")
+validate_fault_studies(data::Vector) = _validate_against_schema(data, "fault_studies", "v1")
 
 
 """
-    validate_fauls(data::Vector{Dict})::Bool
+    validate_faults(data::Dict)::Bool
 
 Validates fault input data against models/faults schema
 """
-validate_faults(data::Vector{Dict{String,<:Any}}) = _validate_against_schema(data, "faults", "v1")
+validate_faults(data::Dict) = _validate_against_schema(data, "faults", "v1")
+
+

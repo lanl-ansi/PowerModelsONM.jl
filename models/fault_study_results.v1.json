@@ -2,6 +2,98 @@
   "title": "fault_currents.v1",
   "type": "array",
   "items": {
-    "type": "object"
+    "type": "object",
+    "patternProperties": {
+      "^.+_[3p|3pg|llg|ll|lg]_\\d+": {
+        "type": "object",
+        "properties": {
+          "fault": {
+            "type": "object",
+            "properties": {
+              "bus": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "g": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              },
+              "b": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              },
+              "connections": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "switch": {
+            "type": "object",
+            "patternProperties": {
+              "^.+$": {
+                "type": "object",
+                "properties": {
+                  "state": {
+                    "type": "string",
+                    "enum": [
+                      "open",
+                      "closed"
+                    ]
+                  },
+                  "fault_current": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  "Re(I0) (A)": {
+                    "type": "number"
+                  },
+                  "Re(I1) (A)": {
+                    "type": "number"
+                  },
+                  "Re(I2) (A)": {
+                    "type": "number"
+                  },
+                  "Im(I0) (A)": {
+                    "type": "number"
+                  },
+                  "Im(I1) (A)": {
+                    "type": "number"
+                  },
+                  "Im(I2) (A)": {
+                    "type": "number"
+                  },
+                  "|I0|": {
+                    "type": "number"
+                  },
+                  "|I1|": {
+                    "type": "number"
+                  },
+                  "|I2|": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }

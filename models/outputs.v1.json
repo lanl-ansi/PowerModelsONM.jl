@@ -116,7 +116,7 @@
       "$ref": "./runtime_arguments.v1.json"
     },
     "Fault currents": {
-      "$ref": "./fault_currents.v1.json"
+      "$ref": "./fault_study_results.v1.json"
     },
     "Small signal stable": {
       "type": "array",

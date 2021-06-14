@@ -527,7 +527,7 @@ version = "0.11.2"
 
 [[PowerModelsProtection]]
 deps = ["InfrastructureModels", "JuMP", "LinearAlgebra", "MathOptInterface", "PowerModels", "PowerModelsDistribution", "Printf"]
-git-tree-sha1 = "e355e8c5de644a05256628e2075c514075849f8a"
+git-tree-sha1 = "3ce9b28acb3fd3e0908d7d5597ae9de949c622fd"
 repo-rev = "ref/pmd-v11"
 repo-url = "https://github.com/lanl-ansi/PowerModelsProtection.jl.git"
 uuid = "719c1aef-945b-435a-a240-4c2992e5e0df"

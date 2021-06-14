@@ -199,19 +199,52 @@ function get_timestep_protection_settings!(output_data::Dict{String,<:Any}, prot
 end
 
 
-""
-function get_timestep_fault_currents!(output_data::Dict{String,<:Any}, fault_results::Vector{<:Dict{String,<:Any}})
-    for fault_result in fault_results
+get_timestep_fault_currents!(args::Dict{String,<:Any}) = get_timestep_fault_currents!(args["output_data"], args["faults"], args["fault_studies_results"])
+
+
+"""
+"""
+function get_timestep_fault_currents!(output_data::Dict{String,<:Any}, faults::Dict{String,<:Any}, fault_results::Dict{String,<:Any}, base_network::Dict{String,<:Any})
+    output_data["Fault currents"] = Dict{String,Any}[]
+
+    for n in sort([parse(Int, i) for i in keys(fault_results)])
         _output = Dict{String,Any}()
-        for (bus_id, bus_faults) in fault_result
-            for (fault_type, fault_type_results) in bus_faults
-                if !haskey(_output, fault_type)
-                    _output[fault_type] = Dict{String,Any}()
+        for (bus_id, fault_types) in fault_results["$n"]
+            for (fault_type, sub_faults) in fault_types
+                for (fault_id, result) in sub_faults
+                    # TODO support multiple faults?
+                    fault = first(faults[bus_id][fault_type][fault_id]["fault"]).second
+
+                    if !isempty(get(result, "solution", Dict()))
+                        _output["$(bus_id)_$(fault_type)_$(fault_id)"] = Dict{String,Any}(
+                            "fault" => Dict{String,Any}(
+                                "bus" => fault["bus"],
+                                "type" => fault["type"],
+                                "g" => fault["g"],
+                                "b" => fault["b"],
+                                "connections" => fault["connections"]
+                            ),
+                            "switch" => Dict{String,Any}(
+                                id => Dict{String,Any}(
+                                    "Voltage (V)" => result["solution"]["bus"][base_network["switch"][id]["f_bus"]]["vm"],
+                                    "Fault current (A)" => switch["fault_current"],
+                                    "Re(I0) (A)" => get(switch, "zero_sequence_current_real", 0.0),
+                                    "Re(I1) (A)" => get(switch, "positive_sequence_current_real", 0.0),
+                                    "Re(I2) (A)" => get(switch, "negative_sequence_current_real", 0.0),
+                                    "Im(I0) (A)" => get(switch, "zero_sequence_current_imag", 0.0),
+                                    "Im(I1) (A)" => get(switch, "positive_sequence_current_imag", 0.0),
+                                    "Im(I2) (A)" => get(switch, "negative_sequence_current_imag", 0.0),
+                                    "|I0| (A)" => get(switch, "zero_sequence_current_mag", 0.0),
+                                    "|I1| (A)" => get(switch, "positive_sequence_current_mag", 0.0),
+                                    "|I2| (A)" => get(switch, "negative_sequence_current_mag", 0.0),
+                                ) for (id, switch) in get(result["solution"], "switch", Dict())
+                            )
+                        )
+                    end
                 end
-                _output[fault_type][bus_id] = get(get(get(get(get(fault_type_results, "1", Dict()), "solution", Dict()), "fault", Dict()), "bus", Dict()), "current", [])
             end
         end
-        push!(output_data["Fault currents"], _output)
+        push!(output_data, _output)
     end
 end
 
