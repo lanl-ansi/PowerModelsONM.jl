@@ -5,7 +5,7 @@ Initializes the empty data structure for "output_data"
 """
 function initialize_output(args::Dict{String,<:Any})::Dict{String,Any}
     Dict{String,Any}(
-        "Runtime arguments" => args,
+        "Runtime arguments" => deepcopy(args),
         "Simulation time steps" => Any[],
         "Load served" => Dict{String,Any}(
             "Feeder load (%)" => Real[],
@@ -76,10 +76,13 @@ function analyze_results!(args::Dict{String,<:Any})::Dict{String,Any}
     args["output_data"]["Events"] = args["raw_events"]
 
     get_timestep_voltage_stats!(args)
+
     get_timestep_load_served!(args)
     get_timestep_generator_profiles!(args)
-    get_timestep_powerflow_output!(args)
     get_timestep_storage_soc!(args)
+
+    get_timestep_powerflow_output!(args)
+
     get_timestep_device_actions!(args)
     get_timestep_switch_changes!(args)
 
