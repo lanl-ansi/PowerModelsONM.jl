@@ -12,28 +12,35 @@ function parse_settings!(args::Dict{String,<:Any}; apply::Bool=true, validate::B
         args["settings"] = Dict{String,Any}()
     end
 
-    # TODO enable settings validation
-    # if validate && !validate_runtime_settings(args["settings"])
-    #     error("'settings' file could not be validated")
-    # end
+    if validate && !validate_network_settings(args["settings"])
+        error("'settings' file could not be validated")
+    end
 
     # Handle depreciated command line arguments
-    haskey(args, "voltage-lower-bound") && _convert_to_settings!(args, "bus", "vm_lb", pop!(args, "voltage-lower-bound"))
-    haskey(args, "voltage-upper-bound") && _convert_to_settings!(args, "bus", "vm_ub", pop!(args, "voltage-upper-bound"))
-    haskey(args, "voltage-angle-difference") && _convert_to_settings!(args, "line", "vad_lb", -args["voltage-angle-difference"])
-    haskey(args, "voltage-angle-difference") && _convert_to_settings!(args, "line", "vad_ub",  pop!(args, "voltage-angle-difference"))
-    haskey(args, "clpu-factor") && _convert_to_settings!(args, "load", "clpu_factor", pop!(args, "clpu-factor"); multiphase=false)
-    if haskey(args, "timestep-hours")
-        args["settings"]["time_elapsed"] = fill(pop!(args, "timestep-hours"), length(args["network"]["nw"]))
-    end
-
-    if haskey(args, "max-switch-actions")
-        args["settings"]["max_switch_actions"] = fill(pop!(args, "max-switch-actions"), length(args["network"]["nw"]))
-    end
+    _convert_depreciated_runtime_args!(args, args["settings"], args["base_network"], length(args["network"]["nw"]))
 
     apply && apply_settings!(args)
 
     return args["settings"]
+end
+
+
+""
+function _convert_depreciated_runtime_args!(runtime_args::Dict{String,<:Any}, settings::Dict{String,<:Any}, base_network::Dict{String,<:Any}, timesteps::Int)::Tuple{Dict{String,Any},Dict{String,Any}}
+    haskey(runtime_args, "voltage-lower-bound") && _convert_to_settings!(settings, base_network, "bus", "vm_lb", pop!(runtime_args, "voltage-lower-bound"))
+    haskey(runtime_args, "voltage-upper-bound") && _convert_to_settings!(settings, base_network, "bus", "vm_ub", pop!(runtime_args, "voltage-upper-bound"))
+    haskey(runtime_args, "voltage-angle-difference") && _convert_to_settings!(settings, base_network, "line", "vad_lb", -runtime_args["voltage-angle-difference"])
+    haskey(runtime_args, "voltage-angle-difference") && _convert_to_settings!(settings, base_network, "line", "vad_ub",  pop!(runtime_args, "voltage-angle-difference"))
+    haskey(runtime_args, "clpu-factor") && _convert_to_settings!(settings, base_network, "load", "clpu_factor", pop!(runtime_args, "clpu-factor"); multiphase=false)
+    if haskey(runtime_args, "timestep-hours")
+        settings["time_elapsed"] = fill(pop!(runtime_args, "timestep-hours"), timesteps)
+    end
+
+    if haskey(runtime_args, "max-switch-actions")
+        settings["max_switch_actions"] = fill(pop!(runtime_args, "max-switch-actions"), timesteps)
+    end
+
+    return runtime_args, settings
 end
 
 
@@ -68,20 +75,20 @@ end
 
 
 "converts depreciated global settings, e.g. voltage-lower-bound, to the proper way to specify settings"
-function _convert_to_settings!(args::Dict{String,<:Any}, asset_type::String, property::String, value::Any; multiphase::Bool=true)
-    if haskey(args["base_network"], asset_type)
-        if !haskey(args["settings"], asset_type)
-            args["settings"][asset_type] = Dict{String,Any}()
+function _convert_to_settings!(settings::Dict{String,<:Any}, base_network::Dict{String,<:Any}, asset_type::String, property::String, value::Any; multiphase::Bool=true)
+    if haskey(base_network, asset_type)
+        if !haskey(settings, asset_type)
+            settings[asset_type] = Dict{String,Any}()
         end
 
-        for (id, asset) in args["base_network"][asset_type]
-            if !haskey(args["settings"][asset_type], id)
-                args["settings"][asset_type][id] = Dict{String,Any}()
+        for (id, asset) in base_network[asset_type]
+            if !haskey(settings[asset_type], id)
+                settings[asset_type][id] = Dict{String,Any}()
             end
 
             nphases = asset_type == "bus" ? length(asset["terminals"]) : asset_type in PMD._eng_edge_elements ? asset_type == "transformer" && haskey(asset, "bus") ? length(asset["connections"][1]) : length(asset["f_connections"]) : length(asset["connections"])
 
-            args["settings"][asset_type][id][property] = multiphase ? fill(value, nphases) : value
+            settings[asset_type][id][property] = multiphase ? fill(value, nphases) : value
         end
     end
 end

@@ -1,0 +1,268 @@
+{
+  "title": "settings.v1",
+  "type": "object",
+  "properties": {
+    "max_switch_actions": {
+      "type": [
+        "array",
+        "number"
+      ],
+      "items": {
+        "type": "number"
+      }
+    },
+    "time_elapsed": {
+      "type": [
+        "array",
+        "number"
+      ],
+      "items": {
+        "type": "number"
+      }
+    },
+    "bus": {
+      "type": "object",
+      "patternProperties": {
+        "^.+$": {
+          "type": "object",
+          "properties": {
+            "microgrid_id": {
+              "type": "string"
+            },
+            "vm_lb": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            },
+            "vm_ub": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            },
+            "vm": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            },
+            "va": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            },
+            "status": {
+              "type": "integer",
+              "enum": [
+                0,
+                1
+              ],
+              "maximum": 1,
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "load": {
+      "type": "object",
+      "patternProperties": {
+        "^.+$": {
+          "type": "object",
+          "properties": {
+            "clpu_factor": {
+              "type": "number"
+            },
+            "clpu_duration": {
+              "type": "number"
+            },
+            "dispatchable": {
+              "type": "integer",
+              "enum": [
+                0,
+                1
+              ],
+              "minimum": 0,
+              "maximum": 1
+            },
+            "status": {
+              "type": "integer",
+              "enum": [
+                0,
+                1
+              ],
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        }
+      }
+    },
+    "storage": {
+      "type": "object",
+      "patternProperties": {
+        "^.+$": {
+          "type": "object",
+          "properties": {
+            "energy_ub": {
+              "type": "number"
+            },
+            "status": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1,
+              "enum": [
+                0,
+                1
+              ]
+            }
+          }
+        }
+      }
+    },
+    "line": {
+      "type": "object",
+      "patternProperties": {
+        "^.+$": {
+          "type": "object",
+          "properties": {
+            "vad_lb": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            },
+            "vad_ub": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            },
+            "cm_ub": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            },
+            "cm_ub_b": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            },
+            "status": {
+              "type": "integer",
+              "enum": [
+                0,
+                1
+              ],
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        }
+      }
+    },
+    "switch": {
+      "type": "object",
+      "patternProperties": {
+        "^.+$": {
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "enum": [
+                "open",
+                "closed"
+              ]
+            },
+            "dispatchable": {
+              "type": "integer",
+              "enum": [
+                0,
+                1
+              ],
+              "minimum": 0,
+              "maximum": 1
+            },
+            "status": {
+              "type": "integer",
+              "enum": [
+                0,
+                1
+              ],
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        }
+      }
+    }
+  },
+  "patternProperties": {
+    "^[generator|solar|voltage_source]$": {
+      "type": "object",
+      "patternProperties": {
+        "^.+$": {
+          "type": "object",
+          "properties": {
+            "pg_lb": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            },
+            "pg_ub": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            },
+            "pg": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            },
+            "qg_lb": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            },
+            "qg_ub": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            },
+            "qg": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            },
+            "control_mode": {
+              "type": "string",
+              "enum": [
+                "grid-forming",
+                "grid-following"
+              ]
+            },
+            "status": {
+              "type": "integer",
+              "enum": [
+                0,
+                1
+              ],
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        }
+      }
+    }
+  }
+}
