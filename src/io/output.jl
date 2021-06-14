@@ -73,7 +73,7 @@ function analyze_results!(args::Dict{String,<:Any})::Dict{String,Any}
     end
 
     args["output_data"]["Simulation time steps"] = [args["network"]["mn_lookup"]["$n"] for n in sort([parse(Int,i) for i in keys(args["network"]["mn_lookup"])]) ]
-    args["output_data"]["Events"] = args["events"]
+    args["output_data"]["Events"] = args["raw_events"]
 
     get_timestep_voltage_stats!(args)
     get_timestep_load_served!(args)

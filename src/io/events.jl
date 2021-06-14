@@ -3,8 +3,29 @@
 
 Parses events file in-place using [`parse_faults`](@ref parse_faults), for use inside of [`entrypoint`](@ref entrypoint)
 """
-function parse_events!(args::Dict{String,<:Any}; apply::Bool=true, validate::Bool=true)::Dict{String,Any}
-    args["events"] = !isempty(get(args, "events", "")) ? isa(args["events"], String) ? parse_events(args["events"]; validate=validate) : args["events"] : Dict{String,Any}[]
+function parse_events!(args::Dict{String,<:Any}; validate::Bool=true, apply::Bool=true)::Dict{String,Any}
+    if !isempty(get(args, "events", ""))
+        if isa(args["events"], String)
+            if isa(get(args, "network", ""), Dict)
+                args["raw_events"] = parse_events(args["events"]; validate=validate)
+                args["events"] = parse_events(deepcopy(args["raw_events"]), args["network"])
+            else
+                @warn "no network is loaded, cannot convert events into native multinetwork structure"
+                args["events"] = parse_events(args["events"])
+            end
+        elseif isa(args["events"], Vector) && isa(get(args, "network", ""), Dict)
+            parse_events(args["events"], args["network"])
+        end
+    else
+    end
+
+    if apply
+        if isa(get(args, "network", ""), Dict)
+            apply_events!(args)
+        else
+            error("cannot apply events, no multinetwork is loaded in 'network'")
+        end
+    end
 
     return args["events"]
 end
@@ -16,35 +37,37 @@ end
 Parses the events JSON file (no intepretations made), and validates against JSON Schema in `models` folder if `validate=true` (default).
 """
 function parse_events(events_file::String; validate::Bool=true)::Vector{Dict{String,Any}}
-    events = JSON.parsefile(events_file)
+    events = Vector{Dict{String,Any}}(JSON.parsefile(events_file))
 
     if validate && !validate_events(events)
         error("'events' file could not be validated")
     end
 
-    _fix_event_data_types!(events)
-
     return events
 end
 
 
+""
 function _fix_event_data_types!(events::Vector{<:Dict{String,<:Any}})::Vector{Dict{String,Any}}
     for event in events
         for (k,v) in event["event_data"]
             if k == "dispatchable"
-                event[k] = PMD.Dispatchable(Int(v))
+                event["event_data"][k] = PMD.Dispatchable(Int(v))
             end
 
             if k == "state"
-                event[k] = Dict("open" => PMD.OPEN, "closed" => PMD.CLOSED)[lowercase(v)]
+                event["event_data"][k] = Dict("open" => PMD.OPEN, "closed" => PMD.CLOSED)[lowercase(v)]
             end
 
             if k == "status"
-                event[k] = PMD.Status(v)
+                event["event_data"][k] = PMD.Status(v)
             end
         end
     end
+
+    return events
 end
+
 
 """
     parse_events(raw_events::Vector{Dict}, mn_data::Dict)::Dict
@@ -52,6 +75,8 @@ end
 TODO documentation for parse_events
 """
 function parse_events(raw_events::Vector{<:Dict{String,<:Any}}, mn_data::Dict{String,<:Any})::Dict{String,Any}
+    _fix_event_data_types!(raw_events)
+
     events = Dict{String,Any}()
     for event in raw_events
         n = _find_nw_id_from_timestep(mn_data, event["timestep"])
@@ -101,7 +126,8 @@ end
 
 """
 function parse_events(events_file::String, mn_data::Dict{String,<:Any}; validate::Bool=true)::Dict{String,Any}
-    parse_events(parse_events(events_file; validate=validate), mn_data)
+    raw_events = parse_events(events_file; validate=validate)
+    events = parse_events(raw_events, mn_data)
 end
 
 
