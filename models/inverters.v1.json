@@ -1,0 +1,98 @@
+{
+  "title": "inverters.v1",
+  "type": "object",
+  "properties": {
+    "inverters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "busID": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "inverter_bus": {
+            "type": "boolean"
+          },
+          "mp": {
+            "type": "number"
+          },
+          "mq": {
+            "type": "number"
+          },
+          "pg": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "pg_lb": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "pg_ub": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "qg": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "qg_lb": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "qg_ub": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "tau": {
+            "type": "number"
+          },
+          "vg": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "r": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            }
+          },
+          "x": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    },
+    "omega0": {
+      "type": "number"
+    },
+    "rN": {
+      "type": "integer"
+    }
+  }
+}

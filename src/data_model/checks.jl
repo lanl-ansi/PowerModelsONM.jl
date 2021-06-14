@@ -74,3 +74,9 @@ Validates fault input data against models/faults schema
 validate_faults(data::Dict) = _validate_against_schema(data, "faults", "v1")
 
 
+"""
+    validate_inverters(data::Dict)::Bool
+
+Validates inverter data against models/inverters schema
+"""
+validate_inverters(data::Dict) = _validate_against_schema(data, "inverters", "v1")
