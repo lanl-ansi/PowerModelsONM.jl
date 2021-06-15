@@ -1,7 +1,39 @@
 """
     parse_commandline()
 
-command line argument parsing
+Command line argument parsing
+
+## Supported command line arguments
+
+- `--network`, `-n`
+- `--output`, `-o`
+- `--faults`, `-f`
+- `--events`, `-e`
+- `--inverters`, `-i`
+- `--settings`, `-s`
+- `--quiet`, `-q`
+- `--verbose`, `-v`
+- `--debug`, `-d`
+- `--gurobi`, `-g`
+- `--opt-disp-formulation`,
+
+## Depreciated command line arguments
+
+- `--network-file`
+- `--output-file`
+- `--problem`, `-p`
+- `--formulation`
+- `--protection-settings`
+- `debug-export-file`
+- `--use-gurobi`
+- `--solver-tolerance`
+- `--max-switch-actions`
+- `--timestep-hours`
+- `--voltage-lower-bound`
+- `--voltage-upper-bound`
+- `--voltage-angle-difference`
+- `--clpu-factor`
+
 """
 function parse_commandline()
     s = ArgParse.ArgParseSettings()
@@ -42,7 +74,7 @@ function parse_commandline()
         "--gurobi", "-g"
             help = "use the gurobi solver (must have been built with Gurobi.jl / a Gurobi binary, and have license)"
             action = :store_true
-        "--opt-disp-formulation", "-f"
+        "--opt-disp-formulation"
             help = "mathematical formulation to solve for the final optimal dispatch (lindistflow (default), acr, acp, nfa)"
             default = "lindistflow"
             arg_type = String
@@ -62,7 +94,7 @@ function parse_commandline()
             help = "DEPRECIATED: ignored"
             default = "opf"
             arg_type = String
-        "--formulation", "-f"
+        "--formulation"
             help = "DEPRECIATED: use 'opt-disp-formulation'"
             default = ""
             arg_type = String
@@ -113,6 +145,17 @@ end
     sanitize_args!(args::Dic{String,Any})::Dict
 
 Sanitizes depreciated arguments into the correct new ones, and gives warnings
+
+## Depreciated argument conversions
+
+- `network-file` -> `network`
+- `output-file` -> `output`
+- `protection-settings` -> delete!
+- `problem` -> delete!
+- `formulation` -> `opt-disp-formulation`
+- `debug-export-file` -> `debug=true`
+- `use-gurobi` -> `gurobi`
+
 """
 function sanitize_args!(args::Dict{String,<:Any})::Dict{String,Any}
     if !isempty(get(args, "network-file", ""))
