@@ -1,2 +1,5 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+PowerModelsONM = "25264005-a304-4053-a338-565045d392ac"
+PowerModelsProtection = "719c1aef-945b-435a-a240-4c2992e5e0df"
+PowerModelsStability = "f9e4c324-c3b6-4bca-9c3d-419775f0bd17"
