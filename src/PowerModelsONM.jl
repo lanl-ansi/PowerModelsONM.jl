@@ -27,7 +27,7 @@ module PowerModelsONM
     import Logging
     import LoggingExtras
 
-    import ProgressMeter: @showprogress
+    import ProgressMeter: @showprogress, Progress, next!
 
     import Dates
 
