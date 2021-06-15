@@ -1,4 +1,12 @@
-""
+"""
+    solve_mc_osw_mi(data::Union{String,Dict}, model_type::Type, solver; kwargs...)::Dict
+
+Solves a multiconductor optimal switching (mixed-integer) problem using `model_type` and `solver`
+
+Calls back to PowerModelsDistribution.solve_mc_model, and therefore will accept any valid `kwargs`
+for that function. See PowerModelsDistribution [documentation](https://lanl-ansi.github.io/PowerModelsDistribution.jl/latest)
+for more details.
+"""
 function solve_mc_osw_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)
     return PMD.solve_mc_model(data, model_type, solver, _build_mc_osw_mi; kwargs...)
 end
@@ -69,7 +77,15 @@ function _build_mc_osw_mi(pm::PMD.AbstractUBFModels)
 end
 
 
-""
+"""
+    solve_mn_mc_osw_mi(data::Union{String,Dict}, model_type::Type, solver; kwargs...)::Dict
+
+Solves a __multinetwork__ multiconductor optimal switching (mixed-integer) problem using `model_type` and `solver`
+
+Calls back to PowerModelsDistribution.solve_mc_model, and therefore will accept any valid `kwargs`
+for that function. See PowerModelsDistribution [documentation](https://lanl-ansi.github.io/PowerModelsDistribution.jl/latest)
+for more details.
+"""
 function solve_mn_mc_osw_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)
     return PMD.solve_mc_model(data, model_type, solver, _build_mn_mc_osw_mi; multinetwork=true, kwargs...)
 end
