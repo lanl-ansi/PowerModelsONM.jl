@@ -65,7 +65,7 @@ function constraint_mc_power_balance_shed(
 end
 
 
-""
+"Linear switch power on/off constraint for LPUBFDiagModel"
 function PowerModelsDistribution.constraint_mc_switch_power_on_off(pm::PMD.LPUBFDiagModel, nw::Int, f_idx::Tuple{Int,Int,Int}; relax::Bool=false)
     i, f_bus, t_bus = f_idx
 
@@ -92,7 +92,7 @@ function PowerModelsDistribution.constraint_mc_switch_power_on_off(pm::PMD.LPUBF
 end
 
 
-""
+"Linear switch state on/off constraint for LPUBFDiagModel"
 function PowerModelsDistribution.constraint_mc_switch_state_on_off(pm::PMD.LPUBFDiagModel, nw::Int, i::Int, f_bus::Int, t_bus::Int, f_connections::Vector{Int}, t_connections::Vector{Int}; relax::Bool=false)
     w_fr = PMD.var(pm, nw, :w, f_bus)
     w_to = PMD.var(pm, nw, :w, t_bus)
