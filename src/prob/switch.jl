@@ -1,7 +1,8 @@
 """
     optimize_switches!(args::Dict{String,<:Any})
 
-Optimizes switch states (therefore shedding load or not) in-place, for use in [`entrypoint`](@ref entrypoint)
+Optimizes switch states (therefore shedding load or not) in-place, for use in [`entrypoint`](@ref entrypoint),
+using [`optimize_switches`]
 """
 function optimize_switches!(args::Dict{String,<:Any})::Dict{String,Any}
     @info "running switch optimization (mld)"
@@ -13,20 +14,33 @@ function optimize_switches!(args::Dict{String,<:Any})::Dict{String,Any}
         nw["data_model"] = args["network"]["data_model"]
 
         if haskey(results, "$(n-1)") && haskey(results["$(n-1)"], "solution")
-            update_switch_settings!(nw, results["$(n-1)"]["solution"])
-            update_storage_capacity!(nw, results["$(n-1)"]["solution"])
+            _update_switch_settings!(nw, results["$(n-1)"]["solution"])
+            _update_storage_capacity!(nw, results["$(n-1)"]["solution"])
         end
 
         prob = get(args, "gurobi", false) ? solve_mc_osw_mld_mi : solve_mc_osw_mld
 
-        results["$n"] = prob(nw, PMD.LPUBFDiagPowerModel, get(args, "gurobi", false) ? args["mip_solver"] : args["juniper_solver"]; solution_processors=[PMD.sol_data_model!], ref_extensions=[ref_add_load_blocks!])
+        results["$n"] = optimize_switches(nw, prob, get(args, "gurobi", false) ? args["mip_solver"] : args["juniper_solver"])
 
         delete!(nw, "data_model")
 
         if haskey(results["$n"], "solution")
-            update_switch_settings!(nw, results["$n"]["solution"])
+            _update_switch_settings!(nw, results["$n"]["solution"])
         end
     end
 
     args["optimal_switching_results"] = results
+end
+
+
+"""
+    optimize_switches(subnetwork::Dict{String,<:Any}, prob::Function, solver; formulation=PMD.LPUBFDiagPowerModel)::Dict{String,Any}
+
+Optimizes switch states for load shedding on a single subnetwork (not a multinetwork), using `prob` ([`solve_mc_osw_mld_mi`](@ref solve_mc_osw_mld_mi)
+or [`solve_mc_osw_mld`](@ref solve_mc_osw_mld)), `solver`.
+
+Optionally, a PowerModelsDistribution `formulation` can be set independently, but is LinDist3Flow by default.
+"""
+function optimize_switches(subnetwork::Dict{String,<:Any}, prob::Function, solver; formulation=PMD.LPUBFDiagPowerModel)::Dict{String,Any}
+    prob(subnetwork, formulation, solver; solution_processors=[PMD.sol_data_model!], ref_extensions=[ref_add_load_blocks!])
 end
