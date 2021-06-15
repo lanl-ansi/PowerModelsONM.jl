@@ -1,19 +1,18 @@
 """
-    parse_settings!(args::Dict{String,Any})
+    parse_settings!(args::Dict{String,Any}; validate::Bool=true):Dict
 
 Parses settings file specifed in runtime arguments in-place
+
+Will attempt to convert depreciated runtime arguments to appropriate network settings
+data structure.
 """
 function parse_settings!(args::Dict{String,<:Any}; apply::Bool=true, validate::Bool=true)::Dict{String,Any}
     if !isempty(get(args, "settings", ""))
         if isa(args["settings"], String)
-            args["settings"] = parse_settings(args["settings"])
+            args["settings"] = parse_settings(args["settings"]; validate=validate)
         end
     else
         args["settings"] = Dict{String,Any}()
-    end
-
-    if validate && !validate_network_settings(args["settings"])
-        error("'settings' file could not be validated")
     end
 
     # Handle depreciated command line arguments
@@ -25,7 +24,7 @@ function parse_settings!(args::Dict{String,<:Any}; apply::Bool=true, validate::B
 end
 
 
-""
+"helper function to convert depreciated runtime arguments to their appropriate network settings structure"
 function _convert_depreciated_runtime_args!(runtime_args::Dict{String,<:Any}, settings::Dict{String,<:Any}, base_network::Dict{String,<:Any}, timesteps::Int)::Tuple{Dict{String,Any},Dict{String,Any}}
     haskey(runtime_args, "voltage-lower-bound") && _convert_to_settings!(settings, base_network, "bus", "vm_lb", pop!(runtime_args, "voltage-lower-bound"))
     haskey(runtime_args, "voltage-upper-bound") && _convert_to_settings!(settings, base_network, "bus", "vm_ub", pop!(runtime_args, "voltage-upper-bound"))
@@ -45,12 +44,20 @@ end
 
 
 """
-    parse_settings(settings_file::String)::Dict{String,Any}
+    parse_settings(settings_file::String; validate::Bool=true)::Dict{String,Any}
 
-Parses settings.json file
+Parses network settings JSON file.
+
+If `validate`, will validate raw settings against JSON Schema
 """
-function parse_settings(settings_file::String)::Dict{String,Any}
-    JSON.parsefile(settings_file)
+function parse_settings(settings_file::String; validate::Bool=true)::Dict{String,Any}
+    settings = JSON.parsefile(settings_file)
+
+    if validate && !validate_network_settings(settings)
+        error("'settings' file could not be validated")
+    end
+
+    return settings
 end
 
 
@@ -63,8 +70,6 @@ function apply_settings!(args::Dict{String,Any})
     for (s, setting) in get(args, "settings", Dict())
         if s in PMD.pmd_eng_asset_types
             _apply_to_network!(args, s, setting)
-
-
         elseif s in ["time_elapsed", "max_switch_actions"]
             for n in sort([parse(Int, i) for i in keys(args["network"]["nw"])])
                 args["network"]["nw"]["$n"][s] = setting[n]
