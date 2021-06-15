@@ -1,76 +1,51 @@
-
-"Converts current upper bounds (cm_ub) on lines / switches to power upper bounds (sm_ub)"
-function convert_ub_cm2sm!(data::Dict{String,<:Any})
-    for k in ["switch", "line"]
-        if haskey(data, k)
-            for (_,l) in data[k]
-                cm_ub = pop!(l, "cm_ub")
-
-                bus = ieee13["bus"][l["f_bus"]]
-                terminals = bus["terminals"]
-                connections = [findfirst(isequal(cnd), terminals) for cnd in l["f_connections"]]
-
-                f_bus_sm_ub = cm_ub .* get(bus, "vm_ub", fill(Inf, length(terminals)))[connections]
-
-                bus = ieee13["bus"][l["t_bus"]]
-                terminals = bus["terminals"]
-                connections = [findfirst(isequal(cnd), terminals) for cnd in l["t_connections"]]
-
-                t_bus_sm_ub = cm_ub .* get(bus, "vm_ub", fill(Inf, length(terminals)))[connections]
-
-                l["sm_ub"] = max.(f_bus_sm_ub, t_bus_sm_ub)
-            end
-        end
+"builds a lookup list of what generators are connected to a given bus"
+function bus_gen_lookup(gen_data::Dict{String,<:Any}, bus_data::Dict{String,<:Any})
+    bus_gen = Dict(bus["bus_i"] => [] for (i,bus) in bus_data)
+    for (i,gen) in gen_data
+        push!(bus_gen[gen["gen_bus"]], gen)
     end
+    return bus_gen
 end
 
 
-""
-function adjust_line_limits!(data_eng::Dict{String,<:Any}; scale::Real=10.0)
-    for type in ["line", "switch"]
-        if haskey(data_eng, type)
-            for (l, line) in data_eng[type]
-                for k in ["cm_ub", "cm_ub_b", "cm_ub_c"]
-                    if haskey(line, k)
-                        line[k] .*= scale
-                    end
-                end
-            end
-        end
+"builds a lookup list of what loads are connected to a given bus"
+function bus_load_lookup(load_data::Dict{String,<:Any}, bus_data::Dict{String,<:Any})
+    bus_load = Dict(bus["bus_i"] => [] for (i,bus) in bus_data)
+    for (i,load) in load_data
+        push!(bus_load[load["load_bus"]], load)
     end
+    return bus_load
 end
 
 
-""
-function propagate_switch_settings!(mn_data_eng::Dict{String,<:Any}, mn_data_math::Dict{String,<:Any})
-    switch_map = build_switch_map(mn_data_math["map"])
-
-    for (n, nw) in mn_data_math["nw"]
-        for (i,sw) in get(nw, "switch", Dict())
-            mn_data_eng["nw"][n]["switch"][switch_map[i]]["state"] = PMD.SwitchState(Int(round(sw["state"])))
-        end
-
-        blocks = PMD.identify_load_blocks(nw)
-        warm_blocks = are_blocks_warm(nw, blocks)
-        for (block, is_warm) in warm_blocks
-            if is_warm != 1
-                for bus in block
-                    nw["bus"]["$bus"]["bus_type"] = 4
-                end
-            end
-        end
-
-       propagate_topology_status!(nw)
+"builds a lookup list of what shunts are connected to a given bus"
+function bus_shunt_lookup(shunt_data::Dict{String,<:Any}, bus_data::Dict{String,<:Any})
+    bus_shunt = Dict(bus["bus_i"] => [] for (i,bus) in bus_data)
+    for (i,shunt) in shunt_data
+        push!(bus_shunt[shunt["shunt_bus"]], shunt)
     end
+    return bus_shunt
+end
+
+
+"builds a lookup list of what storage is connected to a given bus"
+function bus_storage_lookup(storage_data::Dict{String,<:Any}, bus_data::Dict{String,<:Any})
+    bus_storage = Dict(bus["bus_i"] => [] for (i,bus) in bus_data)
+    for (i,storage) in storage_data
+        push!(bus_storage[storage["storage_bus"]], storage)
+    end
+    return bus_storage
 end
 
 
 """
+    propagate_topology_status!(data::Dict{String, <:Any})::Bool
+
 propagates inactive active network buses status to attached components so that
 the system status values are consistent.
 returns true if any component was modified.
 """
-function propagate_topology_status!(data::Dict{String, <:Any})
+function propagate_topology_status!(data::Dict{String, <:Any})::Bool
     revised = false
     pm_data = PMD.get_pmd_data(data)
 
@@ -86,8 +61,12 @@ function propagate_topology_status!(data::Dict{String, <:Any})
 end
 
 
-""
-function _propagate_topology_status!(data::Dict{String,<:Any})
+"""
+propagates inactive active network buses status to attached components so that
+the system status values are consistent.
+returns true if any component was modified.
+"""
+function _propagate_topology_status!(data::Dict{String,<:Any})::Bool
     buses = Dict(bus["bus_i"] => bus for (i,bus) in data["bus"])
 
     # compute what active components are incident to each bus
