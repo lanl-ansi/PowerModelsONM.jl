@@ -25,9 +25,17 @@ makedocs(
             "Getting Started" => "manual/quickguide.md",
         ],
         "Tutorials" => [
-            "Beginners Guide" => "tutorials/Beginners Guide.md",
+            # "Beginners Guide" => "tutorials/Beginners Guide.md",
         ],
         "API Reference" => [
+            "Data Handling" => "reference/data.md",
+            "Main Entrypoint" => "reference/entrypoint.md",
+            "Internal Functions" => "reference/internal.md",
+            "IO Functions" => "reference/io.md",
+            "Logging" => "reference/logging.md",
+            "Optimization Problems" => "reference/prob.md",
+            "Solution Statistics" => "reference/stats.md",
+            "Variables and Constraints" => "reference/variable_constraint.md"
         ],
         "Developer Docs" => [
         ],
