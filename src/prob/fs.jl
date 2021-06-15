@@ -47,11 +47,10 @@ end
 function _prepare_fault_study_multinetwork_data(network::Dict)
     mn_data = deepcopy(network)
 
-    PMD.apply_pmd!(convert_storage!, mn_data; apply_to_subnetworks=true)
-
     for (n,nw) in mn_data["nw"]
-        nw["data_model"] = PMD.ENGINEERING
+        nw["data_model"] = mn_data["data_model"]
         nw["method"] = "PMD"
+        convert_storage!(nw)
     end
 
     return mn_data
