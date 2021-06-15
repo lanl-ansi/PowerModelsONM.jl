@@ -57,7 +57,6 @@ module PowerModelsONM
     include("core/objective.jl")
     include("core/ref.jl")
     include("core/solution.jl")
-    include("core/statistics.jl")
     include("core/variable.jl")
 
     include("data_model/checks.jl")
@@ -80,6 +79,12 @@ module PowerModelsONM
     include("prob/osw.jl")
     include("prob/stability.jl")
     include("prob/switch.jl")
+
+    include("stats/actions.jl")
+    include("stats/dispatch.jl")
+    include("stats/fault.jl")
+    include("stats/microgrid.jl")
+    include("stats/stability.jl")
 
     include("cli/arguments.jl")
 
