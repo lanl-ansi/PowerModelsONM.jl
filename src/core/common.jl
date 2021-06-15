@@ -1,3 +1,4 @@
+"string to PowerModelsDistribution type conversion for opt-disp-formulation"
 const _formulations = Dict{String,Any}(
     "acr" => PMD.ACRUPowerModel,
     "acp" => PMD.ACPUPowerModel,
@@ -5,5 +6,6 @@ const _formulations = Dict{String,Any}(
     "nfa" => PMD.NFAUPowerModel
 )
 
-get_formulation(form_string::String) = _formulations[form_string]
-get_formulation(form::Type) = form
+"helper function to convert from opt-disp-formulation string to PowerModelsDistribution Type"
+_get_formulation(form_string::String) = _formulations[form_string]
+_get_formulation(form::Type) = form
