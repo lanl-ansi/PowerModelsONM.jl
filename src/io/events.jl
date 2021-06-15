@@ -1,7 +1,11 @@
 """
     parse_events!(args::Dict{String,<:Any})::Dict
 
-Parses events file in-place using [`parse_faults`](@ref parse_faults), for use inside of [`entrypoint`](@ref entrypoint)
+Parses events file in-place using [`parse_events`](@ref parse_events), for use inside of [`entrypoint`](@ref entrypoint).
+
+If `validate`, will validate raw events json against JSON Schema.
+
+If `apply`, will apply the events to the multinetwork data structure.
 """
 function parse_events!(args::Dict{String,<:Any}; validate::Bool=true, apply::Bool=true)::Dict{String,Any}
     if !isempty(get(args, "events", ""))
@@ -47,8 +51,8 @@ function parse_events(events_file::String; validate::Bool=true)::Vector{Dict{Str
 end
 
 
-""
-function _fix_event_data_types!(events::Vector{<:Dict{String,<:Any}})::Vector{Dict{String,Any}}
+"helper function to convert JSON data types to native data types (Enums) in events"
+function _convert_event_data_types!(events::Vector{<:Dict{String,<:Any}})::Vector{Dict{String,Any}}
     for event in events
         for (k,v) in event["event_data"]
             if k == "dispatchable"
@@ -56,11 +60,11 @@ function _fix_event_data_types!(events::Vector{<:Dict{String,<:Any}})::Vector{Di
             end
 
             if k == "state"
-                event["event_data"][k] = Dict("open" => PMD.OPEN, "closed" => PMD.CLOSED)[lowercase(v)]
+                event["event_data"][k] = Dict("open" => PMD.OPEN, "closed" => PMD.CLOSED)[lowercase(string(v))]
             end
 
             if k == "status"
-                event["event_data"][k] = PMD.Status(v)
+                event["event_data"][k] = PMD.Status(Int(v))
             end
         end
     end
@@ -72,10 +76,29 @@ end
 """
     parse_events(raw_events::Vector{Dict}, mn_data::Dict)::Dict
 
-TODO documentation for parse_events
+Converts `raw_events`, e.g. loaded from JSON, and therefore in the format Vector{Dict}, to an internal data structure
+that closely matches the multinetwork data structure for easy merging (applying) to the multinetwork data structure.
+
+Will attempt to find the correct subnetwork from the specified timestep by using "mn_lookup" in the multinetwork
+data structure.
+
+## Switch events
+
+Will find the correct switch id from a `source_id`, i.e., the asset_type.name from the source file, which for switches
+will be `line.name`, and create a data structure containing the properties defined in `event_data` under the native
+ENGINEERING switch id.
+
+## Fault events
+
+Will attempt to find the appropriate switches that need to be OPEN to isolate a fault, and disable them, i.e.,
+set `dispatchable=false`, until the end of the `duration` of the fault, which is specified in milliseconds.
+
+It will re-enable the switches, i.e., set `dispatchable=true` after the fault has ended, if the next timestep
+exists, but will not automatically set the switches to CLOSED again; this is a decision for the algorithm
+[`optimize_switches`](@ref optimize_switches) to make.
 """
 function parse_events(raw_events::Vector{<:Dict{String,<:Any}}, mn_data::Dict{String,<:Any})::Dict{String,Any}
-    _fix_event_data_types!(raw_events)
+    _convert_event_data_types!(raw_events)
 
     events = Dict{String,Any}()
     for event in raw_events
@@ -124,6 +147,10 @@ end
 """
     parse_events(events_file::String, mn_data::Dict; validate::Bool=true)::Dict{String,Any}
 
+Parses raw events from `events_file` and passes it to [`parse_events`](@ref parse_events) to convert to the
+native data type.
+
+If `validate`, will check raw events against JSON Schema.
 """
 function parse_events(events_file::String, mn_data::Dict{String,<:Any}; validate::Bool=true)::Dict{String,Any}
     raw_events = parse_events(events_file; validate=validate)
@@ -142,11 +169,15 @@ end
 
 
 """
+    apply_events(mn_data::Dict, events::Dict)::Dict
+
+Creates a copy of the multinetwork data structure `mn_data` and applies the events in `events`
+to that data.
 """
 function apply_events(mn_data::Dict{String,<:Any}, events::Dict{String,<:Any})::Dict{String,Any}
     network = deepcopy(mn_data)
 
-    PMD._IM.update_data!(network, events)
+    PMD._IM.update_data!(network["nw"], events)
 
     return mn_data
 end
