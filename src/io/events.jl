@@ -105,13 +105,15 @@ function parse_events(raw_events::Vector{<:Dict{String,<:Any}}, mn_data::Dict{St
         n = _find_nw_id_from_timestep(mn_data, event["timestep"])
 
         if !haskey(events, n)
-            events[n] = Dict{String,Any}()
+            events[n] = Dict{String,Any}(
+                "switch" => Dict{String,Any}()
+            )
         end
 
         if event["event_type"] == "switch"
             switch_id = _find_switch_id_from_source_id(mn_data["nw"][n], event["affected_asset"])
 
-            events[n][switch_id] = Dict{String,Any}(
+            events[n]["switch"][switch_id] = Dict{String,Any}(
                 k => v for (k,v) in event["event_data"]
             )
         elseif event["event_type"] == "fault"
@@ -120,17 +122,19 @@ function parse_events(raw_events::Vector{<:Dict{String,<:Any}}, mn_data::Dict{St
 
             if !ismissing(n_next)
                 if !haskey(events, n_next)
-                    events[n_next] = Dict{String,Any}()
+                    events[n_next] = Dict{String,Any}(
+                        "switch" => Dict{String,Any}()
+                    )
                 end
             end
 
             for switch_id in switch_ids
-                events[n][switch_id] = Dict{String,Any}(
+                events[n]["switch"][switch_id] = Dict{String,Any}(
                     "state" => PMD.OPEN,
                     "dispatchable" => PMD.NO,
                 )
                 if !ismissing(n_next) && !haskey(events[n_next], switch_id)  # don't do it if there is already an event defined for switch_id at next timestep
-                    events[n_next][switch_id] = Dict{String,Any}(
+                    events[n_next]["switch"][switch_id] = Dict{String,Any}(
                         "dispatchable" => PMD.YES,
                     )
                 end
@@ -169,15 +173,21 @@ end
 
 
 """
-    apply_events(mn_data::Dict, events::Dict)::Dict
+    apply_events(network::Dict, events::Dict)::Dict
 
-Creates a copy of the multinetwork data structure `mn_data` and applies the events in `events`
+Creates a copy of the multinetwork data structure `network` and applies the events in `events`
 to that data.
 """
-function apply_events(mn_data::Dict{String,<:Any}, events::Dict{String,<:Any})::Dict{String,Any}
-    network = deepcopy(mn_data)
+function apply_events(network::Dict{String,<:Any}, events::Dict{String,<:Any})::Dict{String,Any}
+    mn_data = deepcopy(network)
 
-    PMD._IM.update_data!(network["nw"], events)
+    for (n,nw) in events
+        for (t,objs) in nw
+            for (id,obj) in objs
+                merge!(mn_data["nw"][n][t][id], obj)
+            end
+        end
+    end
 
     return mn_data
 end
