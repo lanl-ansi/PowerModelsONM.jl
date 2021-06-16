@@ -4,8 +4,10 @@
 Initializes the empty data structure for "output_data"
 """
 function initialize_output(args::Dict{String,<:Any})::Dict{String,Any}
+    deepcopy_args!(args)
+
     Dict{String,Any}(
-        "Runtime arguments" => deepcopy(args),
+        "Runtime arguments" => deepcopy(args["raw_args"]),
         "Simulation time steps" => Any[],
         "Load served" => Dict{String,Any}(
             "Feeder load (%)" => Real[],

@@ -137,6 +137,8 @@ function parse_commandline()
         error("invalid runtime arguments detected")
     end
 
+    deepcopy_args!(arguments)
+
     return arguments
 end
 
@@ -158,6 +160,8 @@ Sanitizes depreciated arguments into the correct new ones, and gives warnings
 
 """
 function sanitize_args!(args::Dict{String,<:Any})::Dict{String,Any}
+    deepcopy_args!(args)
+
     if !isempty(get(args, "network-file", ""))
         @warn "'network-file' argument is being depreciated in favor of 'network', please update your code"
         args["network"] = pop!(args, "network-file")
@@ -203,4 +207,17 @@ function sanitize_args!(args::Dict{String,<:Any})::Dict{String,Any}
     end
 
     return args
+end
+
+
+"""
+    deepcopy_args!(args::Dict{String,<:Any})::Dict{String,Any}
+
+Copies arguments to "raw_args" in-place in `args`, for use in [`entrypoint`](@ref entrypoint)
+"""
+function deepcopy_args!(args::Dict{String,<:Any})::Dict{String,Any}
+    if !haskey(args, "raw_args")
+        args["raw_args"] = deepcopy(args)
+    end
+    return args["raw_args"]
 end
