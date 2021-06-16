@@ -24,7 +24,7 @@ function run_stability_analysis!(args::Dict{String,<:Any}; validate::Bool=true, 
 
     network = _prepare_stability_multinetwork_data(args["network"], args["inverters"])
 
-    is_stable = Dict{String,Any}()
+    is_stable = Dict{String,Bool}()
     ns = sort([parse(Int, i) for i in keys(network["nw"])])
     @showprogress length(ns) "Running stability analysis... " for n in ns
         is_stable["$n"] = run_stability_analysis(network["nw"]["$n"], args["inverters"]["omega0"], args["inverters"]["rN"], args[solver]; formulation=formulation)
