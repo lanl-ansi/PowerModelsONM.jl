@@ -71,7 +71,7 @@ This expects the solutions from the MLD problem to have been merged into `networ
 function get_timestep_switch_changes(network::Dict{String,<:Any})::Vector{Vector{String}}
     switch_changes = Vector{String}[]
 
-    _switch_states = Dict(Dict(id => switch["state"] for (id, switch) in get(network["nw"][n], "switch", Dict())) for n in keys(network["nw"]))
+    _switch_states = Dict(n => Dict(id => switch["state"] for (id, switch) in get(network["nw"][n], "switch", Dict())) for n in keys(network["nw"]))
     ns = sort([parse(Int, i) for i in keys(network["nw"])])
     for (i,n) in enumerate(ns)
         _switch_changes = String[]

@@ -46,10 +46,10 @@ function get_timestep_fault_currents(fault_studies_results::Dict{String,<:Any}, 
                             ),
                             "switch" => Dict{String,Any}(
                                 id => Dict{String,Any}(
-                                    "|I| (A)" => haskey(switch, "cfr") && haskey(switch, "cfi") ? sqrt.(switch["cfr"].^2 + switch["cfi"].^2) : missing,
-                                    "|I0| (A)" => haskey(switch, "cf0r") && haskey(switch, "cf0i") ? sqrt(switch["cf0r"]^2+switch["cf0i"]^2) : missing,
-                                    "|I1| (A)" => haskey(switch, "cf1r") && haskey(switch, "cf1i") ? sqrt(switch["cf1r"]^2+switch["cf1i"]^2) : missing,
-                                    "|I2| (A)" => haskey(switch, "cf2r") && haskey(switch, "cf2i") ? sqrt(switch["cf2r"]^2+switch["cf2i"]^2) : missing,
+                                    "|I| (A)" => haskey(switch, "cfr_fr") && haskey(switch, "cfi_fr") ? sqrt.(switch["cfr_fr"].^2 + switch["cfi_fr"].^2) : missing,
+                                    "|I0| (A)" => haskey(switch, "cf0r_fr") && haskey(switch, "cf0i_fr") ? sqrt(switch["cf0r_fr"]^2+switch["cf0i_fr"]^2) : missing,
+                                    "|I1| (A)" => haskey(switch, "cf1r_fr") && haskey(switch, "cf1i_fr") ? sqrt(switch["cf1r_fr"]^2+switch["cf1i_fr"]^2) : missing,
+                                    "|I2| (A)" => haskey(switch, "cf2r_fr") && haskey(switch, "cf2i_fr") ? sqrt(switch["cf2r_fr"]^2+switch["cf2i_fr"]^2) : missing,
                                     # TODO add real and imaginary sequence currents
                                     "|V| (V)" => all(haskey(fault_result["solution"]["bus"][network["nw"]["$n"]["switch"][id]["f_bus"]], k) for k in ["vr", "vi"]) ? sqrt.(fault_result["solution"]["bus"][network["nw"]["$n"]["switch"][id]["f_bus"]]["vr"].^2+fault_result["solution"]["bus"][network["nw"]["$n"]["switch"][id]["f_bus"]]["vi"].^2) : missing
                                 ) for (id, switch) in get(fault_result["solution"], "switch", Dict())

@@ -85,6 +85,8 @@ function get_timestep_generator_profiles(solution::Dict{String,<:Any})::Dict{Str
         push!(generator_profiles["Energy storage (kW)"], sum(Float64[-sum(storage["ps"]) for (_,storage) in get(solution["nw"]["$n"], "storage", Dict())]))
         push!(generator_profiles["Diesel DG (kW)"], sum(Float64[sum(gen["pg"]) for (_,gen) in get(solution["nw"]["$n"], "generator", Dict())]))
     end
+
+    return generator_profiles
 end
 
 

@@ -47,7 +47,9 @@ function get_timestep_voltage_statistics(solution::Dict{String,<:Any}, network::
     )
     per_unit = get(solution, "per_unit", true)
     for n in sort([parse(Int,i) for i in keys(get(solution, "nw", Dict()))])
-        min_v, mean_v, max_v = get_voltage_min_mean_max(solution["nw"]["$n"], network["nw"]["$n"]; make_per_unit=make_per_unit && !per_unit)
+        nw = network["nw"]["$n"]
+        nw["data_model"] = network["data_model"]
+        min_v, mean_v, max_v = get_voltage_min_mean_max(solution["nw"]["$n"], nw; make_per_unit=make_per_unit && !per_unit)
         push!(voltages["Min voltage (p.u.)"], min_v)
         push!(voltages["Mean voltage (p.u.)"], mean_v)
         push!(voltages["Max voltage (p.u.)"], max_v)
@@ -77,7 +79,7 @@ from the optimal dispatch `solution`
 function get_timestep_dispatch(solution::Dict{String,<:Any})
     dispatch = Dict{String,Any}[]
 
-    for n in sort(parse(Int, i) for i in keys(get(solution, "nw", Dict())))
+    for n in sort([parse(Int, i) for i in keys(get(solution, "nw", Dict()))])
         _dispatch = Dict{String,Any}(
             "bus" => Dict{String,Any}(),
         )
@@ -100,4 +102,6 @@ function get_timestep_dispatch(solution::Dict{String,<:Any})
             )
         end
     end
+
+    return dispatch
 end
