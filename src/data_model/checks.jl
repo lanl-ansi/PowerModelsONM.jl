@@ -59,11 +59,11 @@ validate_device_action_timeline(data::Vector) = _validate_against_schema(data, "
 
 
 """
-    validate_fault_study(data::Vector{Dict})::Bool
+    validate_fault_currents(data::Vector{Dict})::Bool
 
-Validates fault study data against models/fault_studies schema
+Validates fault current output data against models/fault_currents schema
 """
-validate_fault_studies(data::Vector) = _validate_against_schema(data, "fault_studies", "v1")
+validate_fault_currents(data::Vector) = _validate_against_schema(data, "fault_currents", "v1")
 
 
 """
