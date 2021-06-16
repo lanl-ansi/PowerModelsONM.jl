@@ -1,7 +1,12 @@
 """
     optimize_dispatch!(args::Dict{String,<:Any})
 
-Solves optimal dispatch problem in-place, for use in [`entrypoint`](@ref entrypoint), using [`optimize_dispatch`](@ref optimize_dispatch)
+Solves optimal dispatch problem in-place, for use in [`entrypoint`](@ref entrypoint), using [`optimize_dispatch`](@ref optimize_dispatch).
+If you are using this to optimize after running [`optimize_switches!`](@ref optimize_switches!), this assumes that the correct
+switch states from those results have already been propagated into `args["network"]`
+
+If `update_network_data` (default: true) the results of the optimization will be automatically merged into
+`args["network"]`.
 """
 function optimize_dispatch!(args::Dict{String,<:Any}; update_network_data::Bool=true)::Dict{String,Any}
     args["opt-disp-formulation"] = _get_formulation(get(args, "opt-disp-formulation", "lindistflow"))
@@ -17,7 +22,7 @@ end
 """
     optimize_dispatch(network::Dict{String,<:Any}, formulation::Type, solver)::Dict{String,Any}
 
-Solve a multinetwork optimal power flow using `formulation` and `solver`
+Solve a multinetwork optimal power flow (`solve_mn_mc_opf`) using `formulation` and `solver`
 """
 function optimize_dispatch(network::Dict{String,<:Any}, formulation::Type, solver)::Dict{String,Any}
     @info "running optimal dispatch with $(formulation)"
