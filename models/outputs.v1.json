@@ -1,20 +1,25 @@
 {
-  "title": "output",
   "type": "object",
+  "title": "output",
   "x-tags": [
     "output"
   ],
   "description": "Main output schema for PowerModelsONM",
+  "additionalProperties": false,
   "properties": {
     "Simulation time steps": {
       "type": "array",
       "items": {
-        "type": "string",
+        "type": [
+          "string",
+          "number"
+        ],
         "format": "date-time"
       }
     },
     "Load served": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "Feeder load (%)": {
           "type": "array",
@@ -41,6 +46,7 @@
     },
     "Generator profiles": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "Grid mix (kW)": {
           "type": "array",
@@ -70,6 +76,7 @@
     },
     "Voltages": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "Min voltage (p.u.)": {
           "type": "array",
@@ -109,14 +116,11 @@
     "Events": {
       "$ref": "./events.v1.json"
     },
-    "Protection settings": {
-      "$ref": "./protection_settings.v1.json"
-    },
     "Runtime arguments": {
       "$ref": "./runtime_arguments.v1.json"
     },
     "Fault currents": {
-      "$ref": "./fault_study_results.v1.json"
+      "$ref": "./fault_currents.v1.json"
     },
     "Small signal stable": {
       "type": "array",

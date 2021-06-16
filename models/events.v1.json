@@ -76,6 +76,7 @@
         "anyOf": [
           {
             "description": "Switch event data",
+            "additionalProperties": false,
             "properties": {
               "type": {
                 "type": "string",
@@ -110,6 +111,7 @@
           },
           {
             "description": "Fault event data",
+            "additionalProperties": false,
             "properties": {
               "duration_ms": {
                 "type": "number",

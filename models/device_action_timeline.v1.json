@@ -27,6 +27,7 @@
   ],
   "items": {
     "type": "object",
+    "additionalProperties": false,
     "properties": {
       "Shedded loads": {
         "type": "array",

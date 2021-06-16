@@ -14,9 +14,16 @@
                 "type": "string"
               },
               "type": {
-                "type": "string"
+                "type": "string",
+                "enum": [
+                  "3p",
+                  "3pg",
+                  "ll",
+                  "lg",
+                  "llg"
+                ]
               },
-              "g": {
+              "conductance (S)": {
                 "type": "array",
                 "items": {
                   "type": "array",
@@ -25,7 +32,7 @@
                   }
                 }
               },
-              "b": {
+              "susceptance (S)": {
                 "type": "array",
                 "items": {
                   "type": "array",
@@ -48,14 +55,13 @@
               "^.+$": {
                 "type": "object",
                 "properties": {
-                  "state": {
-                    "type": "string",
-                    "enum": [
-                      "open",
-                      "closed"
-                    ]
+                  "|I| (A)": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
                   },
-                  "fault_current": {
+                  "|V| (V)": {
                     "type": "array",
                     "items": {
                       "type": "number"
@@ -79,13 +85,13 @@
                   "Im(I2) (A)": {
                     "type": "number"
                   },
-                  "|I0|": {
+                  "|I0| (A)": {
                     "type": "number"
                   },
-                  "|I1|": {
+                  "|I1| (A)": {
                     "type": "number"
                   },
-                  "|I2|": {
+                  "|I2| (A)": {
                     "type": "number"
                   }
                 }
