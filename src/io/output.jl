@@ -30,7 +30,6 @@ function initialize_output(args::Dict{String,<:Any})::Dict{String,Any}
         "Powerflow output" => Dict{String,Any}[],
         "Summary statistics" => Dict{String,Any}(),
         "Events" => Dict{String,Any}[],
-        "Protection Settings" => Dict{String,Any}[],
         "Fault currents" => Dict{String,Any}[],
         "Small signal stable" => Bool[],
         "Runtime timestamp" => "$(Dates.now())",
@@ -67,7 +66,20 @@ end
 """
     analyze_results!(args::Dict{String,<:Any})
 
-Adds statistics to "output_data"
+Adds information and statistics to "output_data", including
+
+- `"Runtime arguments"`: Copied from `args["raw_args"]`
+- `"Simulation time steps"`: Copied from `values(args["network"]["mn_lookup"])`, sorted by multinetwork id
+- `"Events"`: Copied from `args["raw_events"]`
+- `"Voltages"`: [`get_timestep_voltage_statistics!`](@ref get_timestep_voltage_statistics!)
+- `"Load served"`: [`get_timestep_load_served!`](@ref get_timestep_load_served!)
+- `"Generator profiles"`: [`get_timestep_generator_profiles!`](@ref get_timestep_generator_profiles!)
+- `"Storage SOC (%)"`: [`get_timestep_storage_soc!`](@ref get_timestep_storage_soc!)
+- `"Powerflow output"`: [`get_timestep_dispatch!`](@ref get_timestep_dispatch!)
+- `"Device action timeline"`: [`get_timestep_device_actions!`](@ref get_timestep_device_actions!)
+- `"Switch changes"`: [`get_timestep_switch_changes!`](@ref get_timestep_switch_changes!)
+- `"Small signal stability"`: [`get_timestep_stability!`](@ref get_timestep_stability!)
+- `"Fault currents"`: [`get_timestep_fault_currents!`](@ref get_timestep_fault_currents!)
 """
 function analyze_results!(args::Dict{String,<:Any})::Dict{String,Any}
     if !haskey(args, "output_data")
