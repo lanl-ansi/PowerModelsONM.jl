@@ -37,7 +37,7 @@ function identify_cold_loads(data::Dict{String,<:Any})::Dict{String,Bool}
     blocks = PMD.identify_load_blocks(data)
     is_warm = are_blocks_warm(data, blocks)
 
-    load2block_map = ()
+    load2block_map = Dict()
     for (l,load) in get(data, "load", Dict())
         for block in blocks
             if load["load_bus"] in block
@@ -47,7 +47,7 @@ function identify_cold_loads(data::Dict{String,<:Any})::Dict{String,Bool}
         end
     end
 
-    return Dict{String,Bool}(l => !is_warm[block] for (l,block) in load2block_map)
+    return Dict{String,Bool}("$l" => !is_warm[block] for (l,block) in load2block_map)
 end
 
 
