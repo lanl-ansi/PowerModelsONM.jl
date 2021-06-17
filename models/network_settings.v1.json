@@ -1,6 +1,7 @@
 {
-  "title": "settings.v1",
   "type": "object",
+  "title": "settings.v1",
+  "additionalProperties": false,
   "properties": {
     "max_switch_actions": {
       "type": [
