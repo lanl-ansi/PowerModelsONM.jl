@@ -39,7 +39,7 @@ function _convert_depreciated_runtime_args!(runtime_args::Dict{String,<:Any}, se
         settings["max_switch_actions"] = fill(pop!(runtime_args, "max-switch-actions"), timesteps)
     end
     if haskey(runtime_args, "solver-tolerance")
-        settings["solver_tolerance"] = pop!(runtime_args, "solver_tolerance")
+        settings["solver_tolerance"] = pop!(runtime_args, "solver-tolerance")
     end
 
     return runtime_args, settings
