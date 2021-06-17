@@ -2,6 +2,7 @@
   "type": "object",
   "title": "settings.v1",
   "additionalProperties": false,
+  "description": "Network settings to apply to the base network (all multinetwork timesteps), such as bus voltage bounds, load priorities, cold load pickup, and global settings such as maximum switch actions per timestep and time elapsed per time step.",
   "properties": {
     "max_switch_actions": {
       "type": [
@@ -20,6 +21,9 @@
       "items": {
         "type": "number"
       }
+    },
+    "solver_tolerance": {
+      "type": "number"
     },
     "bus": {
       "type": "object",
@@ -96,6 +100,9 @@
               ],
               "minimum": 0,
               "maximum": 1
+            },
+            "priority": {
+              "type": "number"
             }
           }
         }
