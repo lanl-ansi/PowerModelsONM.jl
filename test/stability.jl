@@ -1,3 +1,14 @@
-@testset "small signal stability checks" begin
+@testset "test small signal stability analysis" begin
+    args = Dict{String,Any}(
+        "network" => "../test/data/IEEE13Nodeckt_mod.dss",
+        "inverters" => "../test/data/inverters.json",
+    )
+
+    parse_network!(args)
+    build_solver_instances!(args)
+
+    # run_stability_analysis!(args)
+
+    # @test
 
 end

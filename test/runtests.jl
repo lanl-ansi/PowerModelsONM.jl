@@ -1,16 +1,32 @@
 using PowerModelsONM
 
-import Ipopt
+import JSON
+import PowerModelsDistribution
+
+const PMD = PowerModelsDistribution
 
 using Test
 
+setup_logging!(Dict{String,Any}("quiet"=>true))
+
 @testset "PowerModelsONM" begin
-    include("inputs.jl")
+    # initialization
+    include("args.jl")
+    include("schema.jl")
+
+    # inputs
+    include("io.jl")
     include("data.jl")
-    include("osw_mld.jl")
+
+    # problems
+    include("osw.jl")
     include("opf.jl")
-    include("fault_study.jl")
+    include("faults.jl")
     include("stability.jl")
-    include("protection.jl")
-    include("outputs.jl")
+
+    # outputs
+    include("stats.jl")
+
+    # full workflow
+    include("entrypoint.jl")
 end
