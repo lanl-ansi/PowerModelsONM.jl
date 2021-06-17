@@ -70,15 +70,29 @@ end
 Applies settings to the network
 """
 function apply_settings!(args::Dict{String,Any})
-    for (s, setting) in get(args, "settings", Dict())
+    args["network"] = apply_settings(args["network"], get(args, "settings", Dict()))
+end
+
+
+"""
+    apply_settings(network::Dict{String,<:Any}, settings::Dict{String,<:Any})::Dict{String,Any}
+
+Applies `settings` to multinetwork `network`
+"""
+function apply_settings(network::Dict{String,<:Any}, settings::Dict{String,<:Any})::Dict{String,Any}
+    mn_data = deepcopy(network)
+
+    for (s, setting) in settings
         if s in PMD.pmd_eng_asset_types
-            _apply_to_network!(args, s, setting)
+            _apply_to_network!(mn_data, s, setting)
         elseif s in ["time_elapsed", "max_switch_actions"]
-            for n in sort([parse(Int, i) for i in keys(args["network"]["nw"])])
-                args["network"]["nw"]["$n"][s] = setting[n]
+            for n in sort([parse(Int, i) for i in keys(mn_data["nw"])])
+                mn_data["nw"]["$n"][s] = setting[n]
             end
         end
     end
+
+    mn_data
 end
 
 
@@ -120,8 +134,8 @@ end
 
 
 "helper function that applies settings to the network objects of `type`"
-function _apply_to_network!(args::Dict{String,<:Any}, type::String, data::Dict{String,<:Any})
-    for (_,nw) in args["network"]["nw"]
+function _apply_to_network!(network::Dict{String,<:Any}, type::String, data::Dict{String,<:Any})
+    for (_,nw) in network["nw"]
         if haskey(nw, type)
             for (id, _data) in data
                 if haskey(nw[type], id)
