@@ -24,7 +24,7 @@ Command line argument parsing
 - `--problem`, `-p`
 - `--formulation`
 - `--protection-settings`
-- `debug-export-file`
+- `--debug-export-file`
 - `--use-gurobi`
 - `--solver-tolerance`
 - `--max-switch-actions`
