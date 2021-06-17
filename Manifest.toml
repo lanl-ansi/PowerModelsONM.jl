@@ -82,9 +82,9 @@ version = "0.60.2+6"
 
 [[ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "d659e42240c2162300b321f05173cab5cc40a5ba"
+git-tree-sha1 = "dbc9aae1227cfddaa9d2552f3ecba5b641f6cce9"
 uuid = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
-version = "0.10.4"
+version = "0.10.5"
 
 [[Clp_jll]]
 deps = ["Artifacts", "CoinUtils_jll", "CompilerSupportLibraries_jll", "JLLWrappers", "Libdl", "OpenBLAS32_jll", "Osi_jll", "Pkg"]
@@ -245,9 +245,9 @@ version = "0.1.0"
 
 [[InfrastructureModels]]
 deps = ["JuMP", "MathOptInterface", "Memento"]
-git-tree-sha1 = "dab3d9518327ccd79e509e596895779877c17cf9"
+git-tree-sha1 = "14ad999045d7ea263cb909b1942814850227d457"
 uuid = "2030c09a-7f63-5d83-885d-db604e0e9cc0"
-version = "0.6.0"
+version = "0.6.1"
 
 [[IniFile]]
 deps = ["Test"]
@@ -485,11 +485,9 @@ version = "0.108.5+4"
 
 [[PackageCompiler]]
 deps = ["Libdl", "Pkg", "UUIDs"]
-git-tree-sha1 = "011660c32f4d5eec5e8256fcb00e8b00c6fe881d"
-repo-rev = "sv-rb-lazy"
-repo-url = "https://github.com/JuliaLang/PackageCompiler.jl.git"
+git-tree-sha1 = "363f8327031df2b64942d4d17c13a8f8b3641300"
 uuid = "9b87118b-4619-50d2-8e1e-99f35a4d4d9d"
-version = "1.2.4"
+version = "1.2.6"
 
 [[Parameters]]
 deps = ["OrderedCollections", "UnPack"]
@@ -521,25 +519,23 @@ version = "0.18.1"
 
 [[PowerModelsDistribution]]
 deps = ["Dates", "InfrastructureModels", "JSON", "JuMP", "LinearAlgebra", "Logging", "LoggingExtras", "MathOptInterface", "Statistics"]
-path = "/Users/dfobes/.julia/dev/PowerModelsDistribution"
+git-tree-sha1 = "02bf35f951548da9dcdbbec233ff850da9438bf6"
 uuid = "d7431456-977f-11e9-2de3-97ff7677985e"
 version = "0.11.3"
 
 [[PowerModelsProtection]]
 deps = ["InfrastructureModels", "JuMP", "LinearAlgebra", "MathOptInterface", "PowerModels", "PowerModelsDistribution", "Printf"]
-git-tree-sha1 = "3ce9b28acb3fd3e0908d7d5597ae9de949c622fd"
-repo-rev = "ref/pmd-v11"
-repo-url = "https://github.com/lanl-ansi/PowerModelsProtection.jl.git"
+git-tree-sha1 = "0179f67370f1391001a10db3269af6892cec24da"
 uuid = "719c1aef-945b-435a-a240-4c2992e5e0df"
 version = "0.3.0"
 
 [[PowerModelsStability]]
 deps = ["InfrastructureModels", "JSON", "JuMP", "LinearAlgebra", "PowerModelsDistribution"]
-git-tree-sha1 = "7767e7237009f0a537712bc49fdb2b37b74c7f3e"
+git-tree-sha1 = "b7e51a6084c04fd228deaa52efbc48960ef88a66"
 repo-rev = "main"
 repo-url = "https://github.com/lanl-ansi/PowerModelsStability.jl"
 uuid = "f9e4c324-c3b6-4bca-9c3d-419775f0bd17"
-version = "0.2.0"
+version = "0.2.1"
 
 [[Preferences]]
 deps = ["TOML"]
