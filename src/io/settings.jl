@@ -26,8 +26,8 @@ end
 
 "helper function to convert depreciated runtime arguments to their appropriate network settings structure"
 function _convert_depreciated_runtime_args!(runtime_args::Dict{String,<:Any}, settings::Dict{String,<:Any}, base_network::Dict{String,<:Any}, timesteps::Int)::Tuple{Dict{String,Any},Dict{String,Any}}
-    haskey(runtime_args, "voltage-lower-bound") && _convert_to_settings!(settings, base_network, "bus", "vm_lb", pop!(runtime_args, "voltage-lower-bound"))
-    haskey(runtime_args, "voltage-upper-bound") && _convert_to_settings!(settings, base_network, "bus", "vm_ub", pop!(runtime_args, "voltage-upper-bound"))
+    haskey(runtime_args, "voltage-lower-bound") && _convert_voltage_bound_to_settings!(settings, base_network, "vm_lb", pop!(runtime_args, "voltage-lower-bound"))
+    haskey(runtime_args, "voltage-upper-bound") && _convert_voltage_bound_to_settings!(settings, base_network, "vm_ub", pop!(runtime_args, "voltage-upper-bound"))
     haskey(runtime_args, "voltage-angle-difference") && _convert_to_settings!(settings, base_network, "line", "vad_lb", -runtime_args["voltage-angle-difference"])
     haskey(runtime_args, "voltage-angle-difference") && _convert_to_settings!(settings, base_network, "line", "vad_ub",  pop!(runtime_args, "voltage-angle-difference"))
     haskey(runtime_args, "clpu-factor") && _convert_to_settings!(settings, base_network, "load", "clpu_factor", pop!(runtime_args, "clpu-factor"); multiphase=false)
@@ -98,6 +98,23 @@ function _convert_to_settings!(settings::Dict{String,<:Any}, base_network::Dict{
 
             settings[asset_type][id][property] = multiphase ? fill(value, nphases) : value
         end
+    end
+end
+
+
+"helper function to convert"
+function _convert_voltage_bound_to_settings!(settings::Dict{String,<:Any}, base_network::Dict{String,<:Any}, bound_name::String, bound_value::Real)
+    if !haskey(settings, "bus")
+        settings["bus"] = Dict{String,Any}()
+    end
+
+    bus_vbase, line_vbase = PMD.calc_voltage_bases(base_network, base_network["settings"]["vbases_default"])
+    for (id,bus) in get(base_network, "bus", Dict())
+        if !haskey(settings["bus"], id)
+            settings["bus"][id] = Dict{String,Any}()
+        end
+
+        settings["bus"][id][bound_name] = fill(bound_value * bus_vbase[id], length(bus["terminals"]))
     end
 end
 
