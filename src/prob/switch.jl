@@ -5,10 +5,9 @@ Optimizes switch states (therefore shedding load or not) in-place, for use in [`
 using [`optimize_switches`]
 """
 function optimize_switches!(args::Dict{String,<:Any})::Dict{String,Any}
-    @info "running switch optimization (mld)"
-
     results = Dict{String,Any}()
-    @showprogress for n in sort([parse(Int, i) for i in keys(args["network"]["nw"])])
+    ns = sort([parse(Int, i) for i in keys(args["network"]["nw"])])
+    @showprogress length(ns) "Running switch optimization (mld)... " for n in ns
         nw = args["network"]["nw"]["$n"]
 
         nw["data_model"] = args["network"]["data_model"]

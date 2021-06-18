@@ -11,8 +11,6 @@ Uses [`run_fault_study`](@ref run_fault_study) to solve the actual fault study.
 `solver` will determine which instantiated solver is used, `"nlp_solver"` or `"juniper_solver"`
 """
 function run_fault_studies!(args::Dict{String,<:Any}; solver::String="nlp_solver")::Dict{String,Any}
-    @info "Running fault studies"
-
     network = _prepare_fault_study_multinetwork_data(args["network"])
 
     if !isempty(get(args, "faults", ""))
@@ -24,7 +22,8 @@ function run_fault_studies!(args::Dict{String,<:Any}; solver::String="nlp_solver
     end
 
     fault_studies_results = Dict{String,Any}()
-    @showprogress for n in sort([parse(Int,i) for i in keys(args["network"]["nw"])])
+    ns = sort([parse(Int, i) for i in keys(args["network"]["nw"])])
+    @showprogress length(ns) "Running fault studies... " for n in ns
         fault_studies_results["$n"] = run_fault_study(network["nw"]["$n"], args["faults"], args[solver])
     end
 
