@@ -82,9 +82,9 @@ version = "0.60.2+6"
 
 [[ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "dbc9aae1227cfddaa9d2552f3ecba5b641f6cce9"
+git-tree-sha1 = "1499e49086faf92d3dca128d388f4afdf8220dc9"
 uuid = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
-version = "0.10.5"
+version = "0.10.6"
 
 [[Clp_jll]]
 deps = ["Artifacts", "CoinUtils_jll", "CompilerSupportLibraries_jll", "JLLWrappers", "Libdl", "OpenBLAS32_jll", "Osi_jll", "Pkg"]
@@ -412,9 +412,9 @@ uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
 
 [[Memento]]
 deps = ["Dates", "Distributed", "JSON", "Serialization", "Sockets", "Syslogs", "Test", "TimeZones", "UUIDs"]
-git-tree-sha1 = "d6dfb54d7e8a9b4a2b1773acf7275a4f607906b2"
+git-tree-sha1 = "19650888f97362a2ae6c84f0f5f6cda84c30ac38"
 uuid = "f28f55f0-a522-5efc-85c2-fe41dfb9b2d9"
-version = "1.1.2"
+version = "1.2.0"
 
 [[Missings]]
 deps = ["DataAPI"]
@@ -513,9 +513,9 @@ version = "1.2.1"
 
 [[PowerModels]]
 deps = ["InfrastructureModels", "JSON", "JuMP", "LinearAlgebra", "MathOptInterface", "Memento", "NLsolve", "SparseArrays"]
-git-tree-sha1 = "a91673c5bd092c83b47ff1f447757af9d39e68bb"
+git-tree-sha1 = "4df3b3fcc0fa188250151a897ea51676a6d97dc5"
 uuid = "c36e90e8-916a-50a6-bd94-075b64ef4655"
-version = "0.18.1"
+version = "0.18.2"
 
 [[PowerModelsDistribution]]
 deps = ["Dates", "InfrastructureModels", "JSON", "JuMP", "LinearAlgebra", "Logging", "LoggingExtras", "MathOptInterface", "Statistics"]
@@ -620,9 +620,9 @@ version = "0.2.5"
 
 [[StaticArrays]]
 deps = ["LinearAlgebra", "Random", "Statistics"]
-git-tree-sha1 = "42378d3bab8b4f57aa1ca443821b752850592668"
+git-tree-sha1 = "57a9b3c69933e15e5b7041b6a57d1533ef1a9882"
 uuid = "90137ffa-7385-5640-81b9-e52037218182"
-version = "1.2.2"
+version = "1.2.3"
 
 [[Statistics]]
 deps = ["LinearAlgebra", "SparseArrays"]

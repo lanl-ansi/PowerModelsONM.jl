@@ -4,7 +4,6 @@
         "events" => "../test/data/events.json",
     )
     initialize_output!(args)
-
     parse_network!(args)
     parse_events!(args)
     build_solver_instances!(args)
