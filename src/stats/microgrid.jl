@@ -111,7 +111,11 @@ function get_timestep_storage_soc(solution::Dict{String,<:Any}, network::Dict{St
     storage_soc = Real[]
 
     for n in sort([parse(Int, i) for i in keys(get(solution, "nw", Dict()))])
-        push!(storage_soc, 100.0 * sum(strg["se"] for strg in values(solution["nw"]["$n"]["storage"])) / sum(strg["energy_ub"] for strg in values(network["nw"]["$n"]["storage"])))
+        if !isempty(get(solution["nw"]["$n"], "storage", Dict()))
+            push!(storage_soc, 100.0 * sum(strg["se"] for strg in values(solution["nw"]["$n"]["storage"])) / sum(strg["energy_ub"] for strg in values(network["nw"]["$n"]["storage"])))
+        else
+            push!(storage_soc, NaN)
+        end
     end
 
     return storage_soc
