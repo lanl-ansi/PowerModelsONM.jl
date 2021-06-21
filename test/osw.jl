@@ -15,7 +15,7 @@
 
     optimize_switches!(args)
 
-    @test isapprox(args["optimal_switching_results"]["1"]["objective"], 200; atol=1)
+    @test isapprox(args["optimal_switching_results"]["1"]["objective"], 200; atol=2)
     @test isapprox(args["optimal_switching_results"]["2"]["objective"],   0.0015; atol=1e-4)
     @test isapprox(args["optimal_switching_results"]["3"]["objective"],   0.0016; atol=1e-4)
 
