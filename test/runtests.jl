@@ -24,9 +24,6 @@ setup_logging!(Dict{String,Any}("quiet"=>true))
     include("faults.jl")
     include("stability.jl")
 
-    # outputs
+    # full workflow and outputs
     include("stats.jl")
-
-    # full workflow
-    include("entrypoint.jl")
 end
