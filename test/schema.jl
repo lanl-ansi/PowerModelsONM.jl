@@ -6,7 +6,7 @@
     @test validate_inverters(inverters)
 
     settings = JSON.parsefile("../test/data/settings.json")
-    @test validate_network_settings(settings)
+    @test validate_settings(settings)
 
     faults = JSON.parsefile("../test/data/faults.json")
     @test validate_faults(faults)
