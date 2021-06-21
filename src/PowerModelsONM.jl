@@ -7,15 +7,12 @@ module PowerModelsONM
     import JuMP
     import JuMP: optimizer_with_attributes
 
+    import Requires: @require
+
     import Ipopt
     import Cbc
     import Juniper
-
-    try
-        @eval import Gurobi
-    catch err
-        @warn "Gurobi.jl not installed."
-    end
+    import Alpine
 
     import ArgParse
 
@@ -43,9 +40,9 @@ module PowerModelsONM
         global _DEFAULT_LOGGER = Logging.current_logger()
 
         Logging.global_logger(_LOGGER)
-        try
+
+        @require Gurobi="2e9cd046-0924-5485-92f1-d5272153d98b" begin
             global GRB_ENV = Gurobi.Env()
-        catch err
         end
     end
 

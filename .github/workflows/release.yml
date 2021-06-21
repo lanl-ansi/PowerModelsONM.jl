@@ -50,12 +50,10 @@ jobs:
             ${{ runner.os }}-test-${{ env.cache-name }}-
             ${{ runner.os }}-test-
             ${{ runner.os }}-
-      - run: julia --color=yes --project -e 'using Pkg; Pkg.rm("Gurobi");'
-        shell: bash
       - uses: julia-actions/julia-buildpkg@latest
       - name: Build binary
         shell: bash
-        run: julia -q --project=. -e 'using PackageCompiler; create_app("$(pwd())", "build"; include_lazy_artifacts=false);'
+        run: julia -q --project=. -e 'using PackageCompiler; create_app("$(pwd())", "build");'
       - name: Compress binary - windows
         if: matrix.os == 'windows-latest'
         run: 7z a -tzip -r build.zip ./build/*
