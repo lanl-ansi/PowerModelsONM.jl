@@ -4,6 +4,7 @@ authors = ["David M Fobes <dfobes@lanl.gov>"]
 version = "1.0.0"
 
 [deps]
+Alpine = "07493b3f-dabb-5b16-a503-4139292d7dd4"
 ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
 Cbc = "9961bab8-2fa3-5c5a-9d89-47fab24efd76"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
@@ -38,7 +39,7 @@ LoggingExtras = "~0.4.6"
 PackageCompiler = "~1.2.4"
 PowerModelsDistribution = "~0.11.3"
 PowerModelsProtection = "~0.3"
-PowerModelsStability = "~0.2"
+PowerModelsStability = "~0.2.1"
 ProgressMeter = "~1.7.1"
 julia = "^1.3"
 
