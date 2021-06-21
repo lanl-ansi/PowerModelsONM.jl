@@ -2,7 +2,6 @@ FROM julia:latest
 
 # Julia env
 ADD Project.toml /
-ADD Manifest.toml /
 
 # Source code
 ADD src /src
