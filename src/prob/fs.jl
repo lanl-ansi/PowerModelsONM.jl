@@ -1,6 +1,18 @@
 """
     run_fault_studies!(args::Dict{String,<:Any})
 
+Runs fault studies using `args["faults"]`, if defined, and stores the results in-place in
+`args["fault_stuides_results"]`, for use in [`entrypoint`](@ref entrypoint), using
+[`run_fault_studies`](@ref run_fault_studies)
+"""
+function run_fault_studies!(args::Dict{String,<:Any}; solver::String="nlp_solver")::Dict{String,Any}
+    args["fault_studies_results"] = run_fault_studies(args["network"], args["solvers"][solver]; faults=get(args, "faults", ""))
+end
+
+
+"""
+    run_fault_studies(args::Dict{String,<:Any}; solver::String="nlp_solver")::Dict{String,Any}
+
 Runs fault studies defined in faults.json. If no faults file is provided, it will automatically generate faults
 using `PowerModelsProtection.build_mc_fault_study`.
 
@@ -9,26 +21,28 @@ It will convert storage to limited generators, since storage is not yet supporte
 Uses [`run_fault_study`](@ref run_fault_study) to solve the actual fault study.
 
 `solver` will determine which instantiated solver is used, `"nlp_solver"` or `"juniper_solver"`
-"""
-function run_fault_studies!(args::Dict{String,<:Any}; solver::String="nlp_solver")::Dict{String,Any}
-    network = _prepare_fault_study_multinetwork_data(args["network"])
 
-    if !isempty(get(args, "faults", ""))
-        if isa(args["faults"], String)
-            args["faults"] = parse_faults(args["faults"])
+"""
+function run_fault_studies(network::Dict{String,<:Any}, solver; faults::Union{String,Dict{String,<:Any}}="")::Dict{String,Any}
+    mn_data = _prepare_fault_study_multinetwork_data(network)
+
+    if !isempty(faults)
+        if isa(faults, String)
+            faults = parse_faults(faults)
         end
     else
-        args["faults"] = PowerModelsProtection.build_mc_fault_study(args["base_network"])
+        faults = PowerModelsProtection.build_mc_fault_study(first(network["nw"]).second)
     end
 
     fault_studies_results = Dict{String,Any}()
-    ns = sort([parse(Int, i) for i in keys(args["network"]["nw"])])
+    ns = sort([parse(Int, i) for i in keys(mn_data["nw"])])
     @showprogress length(ns) "Running fault studies... " for n in ns
-        fault_studies_results["$n"] = run_fault_study(network["nw"]["$n"], args["faults"], args["solvers"][solver])
+        fault_studies_results["$n"] = run_fault_study(mn_data["nw"]["$n"], faults, solver)
     end
 
-    args["fault_studies_results"] = fault_studies_results
+    return fault_studies_results
 end
+
 
 
 """
