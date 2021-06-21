@@ -17,3 +17,12 @@ Private = false
 Order = [:function]
 Pages = ["data.jl"]
 ```
+
+## Solution Handling
+
+```@autodocs
+Modules = [PowerModelsONM]
+Private = false
+Order = [:function]
+Pages = ["solution.jl"]
+```
