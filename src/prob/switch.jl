@@ -4,7 +4,7 @@
 Optimizes switch states (therefore shedding load or not) in-place, for use in [`entrypoint`](@ref entrypoint),
 using [`optimize_switches`]
 
-Uses LPUBFDiagPowerModel (LinDist3Flow), and therefore requires `args["solvers"]["misoc_solver"]` to be specified
+Uses LPUBFDiagPowerModel (LinDist3Flow), and therefore requires `args["solvers"]["misocp_solver"]` to be specified
 """
 function optimize_switches!(args::Dict{String,<:Any})::Dict{String,Any}
     results = Dict{String,Any}()
@@ -21,7 +21,7 @@ function optimize_switches!(args::Dict{String,<:Any})::Dict{String,Any}
 
         prob = get(args, "gurobi", false) ? solve_mc_osw_mld_mi : solve_mc_osw_mld
 
-        results["$n"] = optimize_switches(nw, prob, args["solvers"]["misoc_solver"])
+        results["$n"] = optimize_switches(nw, prob, args["solvers"]["misocp_solver"])
 
         delete!(nw, "data_model")
 
