@@ -19,7 +19,7 @@ function optimize_switches!(args::Dict{String,<:Any})::Dict{String,Any}
             _update_storage_capacity!(nw, results["$(n-1)"]["solution"])
         end
 
-        prob = get(args, "gurobi", false) ? solve_mc_osw_mld_mi : solve_mc_osw_mld
+        prob = get(args, "gurobi", false) ? solve_mc_osw_mld_mi_indicator : solve_mc_osw_mld_mi
 
         results["$n"] = optimize_switches(nw, prob, args["solvers"]["misocp_solver"])
 
