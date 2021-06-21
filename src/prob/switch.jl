@@ -37,8 +37,8 @@ end
 """
     optimize_switches(subnetwork::Dict{String,<:Any}, prob::Function, solver; formulation=PMD.LPUBFDiagPowerModel)::Dict{String,Any}
 
-Optimizes switch states for load shedding on a single subnetwork (not a multinetwork), using `prob` ([`solve_mc_osw_mld_mi`](@ref solve_mc_osw_mld_mi)
-or [`solve_mc_osw_mld`](@ref solve_mc_osw_mld)), `solver`.
+Optimizes switch states for load shedding on a single subnetwork (not a multinetwork), using `prob` ([`solve_mc_osw_mld_mi_indicator`](@ref solve_mc_osw_mld_mi_indicator),
+if you are using a solver that supports indicator constraints like Gurobi or CPLEX, or [`solve_mc_osw_mld_mi`](@ref solve_mc_osw_mld_mi)), `solver`.
 
 Optionally, a PowerModelsDistribution `formulation` can be set independently, but is LinDist3Flow by default.
 """
