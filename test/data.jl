@@ -6,4 +6,6 @@
     math = PMD.transform_data_model(network)
 
     @test !all(values(identify_cold_loads(math["nw"]["1"])))
+
+    @test PowerModelsONM._get_formulation(PMD.ACPUPowerModel) == PMD.ACPUPowerModel
 end
