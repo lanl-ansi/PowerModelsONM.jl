@@ -5,6 +5,10 @@
         "settings" => "../test/data/settings.json",
         "inverters" => "../test/data/inverters.json",
         "faults" => "../test/data/faults.json",
+        "voltage-lower-bound" => 0.8,
+        "voltage-upper-bound" => 1.2,
+        "voltage-angle-difference" => 5.0,
+        "max-switch-actions" => 1,
         "quiet" => true
     )
 
