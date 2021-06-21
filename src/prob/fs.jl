@@ -5,13 +5,21 @@ Runs fault studies using `args["faults"]`, if defined, and stores the results in
 `args["fault_stuides_results"]`, for use in [`entrypoint`](@ref entrypoint), using
 [`run_fault_studies`](@ref run_fault_studies)
 """
-function run_fault_studies!(args::Dict{String,<:Any}; solver::String="nlp_solver")::Dict{String,Any}
-    args["fault_studies_results"] = run_fault_studies(args["network"], args["solvers"][solver]; faults=get(args, "faults", ""))
+function run_fault_studies!(args::Dict{String,<:Any}; validate::Bool=true, solver::String="nlp_solver")::Dict{String,Any}
+    if !isempty(get(args, "faults", ""))
+        if isa(args["faults"], String)
+            args["faults"] = parse_faults(args["faults"]; validate=validate)
+        end
+    else
+        args["faults"] = PowerModelsProtection.build_mc_fault_study(args["base_network"])
+    end
+
+    args["fault_studies_results"] = run_fault_studies(args["network"], args["solvers"][solver]; faults=args["faults"])
 end
 
 
 """
-    run_fault_studies(args::Dict{String,<:Any}; solver::String="nlp_solver")::Dict{String,Any}
+    run_fault_studies(network::Dict{String,<:Any}, solver; faults::Dict{String,<:Any}=Dict{String,Any}())::Dict{String,Any}
 
 Runs fault studies defined in faults.json. If no faults file is provided, it will automatically generate faults
 using `PowerModelsProtection.build_mc_fault_study`.
@@ -23,14 +31,10 @@ Uses [`run_fault_study`](@ref run_fault_study) to solve the actual fault study.
 `solver` will determine which instantiated solver is used, `"nlp_solver"` or `"juniper_solver"`
 
 """
-function run_fault_studies(network::Dict{String,<:Any}, solver; faults::Union{String,Dict{String,<:Any}}="")::Dict{String,Any}
+function run_fault_studies(network::Dict{String,<:Any}, solver; faults::Dict{String,<:Any}=Dict{String,Any}())::Dict{String,Any}
     mn_data = _prepare_fault_study_multinetwork_data(network)
 
-    if !isempty(faults)
-        if isa(faults, String)
-            faults = parse_faults(faults)
-        end
-    else
+    if isempty(faults)
         faults = PowerModelsProtection.build_mc_fault_study(first(network["nw"]).second)
     end
 
