@@ -101,6 +101,8 @@ function get_timestep_dispatch(solution::Dict{String,<:Any})
                 "voltage (V)" => haskey(bus, "vr") && haskey(bus, "vi") ? sqrt.(bus["vr"].^2 + bus["vi"].^2) : bus["vm"],
             )
         end
+
+        push!(dispatch, _dispatch)
     end
 
     return dispatch
