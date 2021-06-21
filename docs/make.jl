@@ -23,7 +23,7 @@ makedocs(
         "installation.md",
         "Manual" => [
             "Getting Started" => "manual/quickguide.md",
-            "Optimal Switching Algorithm" => "manual/optimal_switching_mld.jl",
+            "Optimal Switching Algorithm" => "manual/optimal_switching_mld.md",
         ],
         "Tutorials" => [
             # "Beginners Guide" => "tutorials/Beginners Guide.md",
