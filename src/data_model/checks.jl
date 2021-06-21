@@ -43,11 +43,11 @@ validate_faults(data::Dict) = _validate_against_schema(data, "faults", "v1")
 
 
 """
-    validate_network_settings(data::Dict)::Bool
+    validate_settings(data::Dict)::Bool
 
 Validates runtime_settings data against models/runtime_settings schema
 """
-validate_network_settings(data::Dict) = _validate_against_schema(data, "network_settings", "v1")
+validate_settings(data::Dict) = _validate_against_schema(data, "settings", "v1")
 
 
 """

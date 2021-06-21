@@ -56,7 +56,7 @@ If `validate`, will validate raw settings against JSON Schema
 function parse_settings(settings_file::String; validate::Bool=true)::Dict{String,Any}
     settings = JSON.parsefile(settings_file)
 
-    if validate && !validate_network_settings(settings)
+    if validate && !validate_settings(settings)
         error("'settings' file could not be validated")
     end
 
