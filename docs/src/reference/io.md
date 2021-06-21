@@ -15,7 +15,9 @@ parse_inverters
 ```@docs
 apply_events
 apply_events!
+apply_settings
 apply_settings!
+initialize_output
 ```
 
 ## Writers

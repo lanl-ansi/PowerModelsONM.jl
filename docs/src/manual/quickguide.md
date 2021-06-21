@@ -16,7 +16,7 @@ The binary builds available on GitHub under [Releases](https://github.com/lanl-a
 path/to/PowerModelsONM_binary -n "path/to/network.dss" -o "path/to/output.json"
 ```
 
-Alternatively, you may wish to use PowerModelsONM from the Julia REPL, which if you want to use custom [solvers](@ref Optimization-solvers) is advisable. You should have your custom solvers installed in your primary Julia environment (_e.g._, v1.6), and launch the REPL with the command:
+Alternatively, you may wish to use PowerModelsONM from the Julia REPL, which if you want to use custom [Optimizers](@ref) is advisable. You should have your custom solvers installed in your primary Julia environment (_e.g._, v1.6), and launch the REPL with the command:
 
 ```bash
 julia --project=path/to/PowerModelsONM
@@ -30,7 +30,7 @@ using PowerModelsONM
 
 For more detailed use of PowerModelsONM from the REPL, read the [Beginner's Tutorial](@ref Introduction-to-PowerModelsONM)
 
-## Optimization solvers
+## Optimizers
 
 Although PowerModelsONM includes some open source solvers by default, namely
 

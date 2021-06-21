@@ -26,3 +26,12 @@ Private = false
 Order = [:function]
 Pages = ["objective.jl"]
 ```
+
+## Ref extensions
+
+```@autodocs
+Modules = [PowerModelsONM]
+Private = false
+Order = [:function]
+Pages = ["ref.jl"]
+```
