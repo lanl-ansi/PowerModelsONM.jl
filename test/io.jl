@@ -60,7 +60,7 @@
         args, settings = PowerModelsONM._convert_depreciated_runtime_args!(args, Dict{String,Any}(), base_network, length(network["nw"]))
 
         @test all(!haskey(args, k) for k in orig_keys)
-        @test settings["solver_tolerance"] == 1e-4
+        @test settings["nlp_solver_tol"] == 1e-4
 
         _network = apply_settings(network, settings)
         @test all(all(l["clpu_factor"] == 2.0 for l in values(nw["load"])) for nw in values(_network["nw"]))

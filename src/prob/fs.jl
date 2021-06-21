@@ -24,7 +24,7 @@ function run_fault_studies!(args::Dict{String,<:Any}; solver::String="nlp_solver
     fault_studies_results = Dict{String,Any}()
     ns = sort([parse(Int, i) for i in keys(args["network"]["nw"])])
     @showprogress length(ns) "Running fault studies... " for n in ns
-        fault_studies_results["$n"] = run_fault_study(network["nw"]["$n"], args["faults"], args[solver])
+        fault_studies_results["$n"] = run_fault_study(network["nw"]["$n"], args["faults"], args["solvers"][solver])
     end
 
     args["fault_studies_results"] = fault_studies_results

@@ -22,7 +22,10 @@
         "type": "number"
       }
     },
-    "solver_tolerance": {
+    "nlp_solver_tol": {
+      "type": "number"
+    },
+    "mip_solver_tol": {
       "type": "number"
     },
     "bus": {

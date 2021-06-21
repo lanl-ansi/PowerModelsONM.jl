@@ -8,6 +8,8 @@ If `validate`, raw inverters data will be validated against JSON schema
 The formulation can be specified with `formulation`, but note that it must result in `"vm"` and `"va"` variables in the
 solution, or else `PowerModelsDistribution.sol_data_model!` must support converting the voltage variables into
 polar coordinates.
+
+`solver` (default: `"nlp_solver"`) specifies which solver in `args["solvers"]` to use for the stability analysis (NLP OPF)
 """
 function run_stability_analysis!(args::Dict{String,<:Any}; validate::Bool=true, formulation::Type=PMD.ACRUPowerModel, solver::String="nlp_solver")::Dict{String,Any}
     if !isempty(get(args, "inverters", ""))
@@ -27,7 +29,7 @@ function run_stability_analysis!(args::Dict{String,<:Any}; validate::Bool=true, 
     is_stable = Dict{String,Bool}()
     ns = sort([parse(Int, i) for i in keys(network["nw"])])
     @showprogress length(ns) "Running stability analysis... " for n in ns
-        is_stable["$n"] = run_stability_analysis(network["nw"]["$n"], args["inverters"]["omega0"], args["inverters"]["rN"], args[solver]; formulation=formulation)
+        is_stable["$n"] = run_stability_analysis(network["nw"]["$n"], args["inverters"]["omega0"], args["inverters"]["rN"], args["solvers"][solver]; formulation=formulation)
     end
 
     args["stability_results"] = is_stable
