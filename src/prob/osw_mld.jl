@@ -38,7 +38,7 @@ function _build_mn_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
         end
 
         for i in PMD.ids(pm, n, :bus)
-            constraint_mc_power_balance_shed(pm, i; nw=n)
+            PMD.constraint_mc_power_balance_shed(pm, i; nw=n)
         end
 
         for i in PMD.ids(pm, n, :storage)
