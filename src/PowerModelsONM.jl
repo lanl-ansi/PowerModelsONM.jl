@@ -16,8 +16,6 @@ module PowerModelsONM
 
     import ArgParse
 
-    import DataFrames
-
     import JSON
     import JSONSchema
 
