@@ -15,10 +15,10 @@
 
     @testset "test events parsing" begin
         raw_events = parse_events("../test/data/events.json")
-        @test length(raw_events) == 2
+        @test length(raw_events) == 3
 
         events = parse_events(raw_events, network)
-        @test isa(events, Dict) && length(events) == 1
+        @test isa(events, Dict) && length(events) == 2
         @test events["1"]["switch"]["671700"]["dispatchable"] == PMD.NO
         @test events["1"]["switch"]["671700"]["state"] == PMD.OPEN
         @test events["1"]["switch"]["671700"]["status"] == PMD.ENABLED
@@ -27,6 +27,13 @@
         @test _network["nw"]["1"]["switch"]["671700"]["state"] == PMD.OPEN
         @test _network["nw"]["1"]["switch"]["671700"]["dispatchable"] == PMD.NO
         @test _network["nw"]["1"]["switch"]["671700"]["status"] == PMD.ENABLED
+        @test _network["nw"]["1"]["switch"]["671692"]["dispatchable"] == PMD.NO
+
+        @test _network["nw"]["2"]["switch"]["671700"]["dispatchable"] == PMD.YES
+        @test _network["nw"]["2"]["switch"]["671692"]["dispatchable"] == PMD.NO
+
+        @test _network["nw"]["3"]["switch"]["671700"]["dispatchable"] == PMD.YES
+        @test _network["nw"]["3"]["switch"]["671692"]["dispatchable"] == PMD.NO
     end
 
     @testset "test settings parsing" begin

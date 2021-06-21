@@ -20,5 +20,13 @@
             "type": "fuse",
             "status": 1
         }
-    }
+    },
+    {
+        "affected_asset": "line.671700",
+        "event_type": "switch",
+        "timestep": 2,
+        "event_data": {
+            "dispatchable": true
+        }
+     }
 ]

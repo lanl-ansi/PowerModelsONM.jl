@@ -181,9 +181,9 @@ to that data.
 function apply_events(network::Dict{String,<:Any}, events::Dict{String,<:Any})::Dict{String,Any}
     mn_data = deepcopy(network)
 
-    ns = sort([parse(Int, i) for i in keys(events)])
+    ns = sort([parse(Int, i) for i in keys(network["nw"])])
     for (i,n) in enumerate(ns)
-        nw = events["$n"]
+        nw = get(events, "$n", Dict())
         for (t,objs) in nw
             for (id,obj) in objs
                 # Apply to all subnetworks starting with the current one until the end
