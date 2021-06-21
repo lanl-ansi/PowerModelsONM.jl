@@ -1,33 +1,3 @@
-"helper function to build a map from MATH to ENGINEERING for `device_type`"
-function _build_device_map(map::Vector{<:Dict{String,<:Any}}, device_type::String)::Dict{String,String}
-    Dict{String,String}(
-        string(split(item["to"], ".")[end]) => item["from"] for item in map if endswith(item["unmap_function"], "$(device_type)!")
-    )
-end
-
-
-"helper function to build a map from MATH to ENGINEERING for switches"
-function _build_switch_map(map::Vector)::Dict{String,String}
-    switch_map = Dict{String,String}()
-    for item in map
-        if endswith(item["unmap_function"], "switch!")
-            if isa(item["to"], Array)
-                for _to in item["to"]
-                    if startswith(_to, "switch")
-                        math_id = split(_to, ".")[end]
-                        break
-                    end
-                end
-            else
-                math_id = split(item["to"], ".")[end]
-            end
-            switch_map[math_id] = item["from"]
-        end
-    end
-    return switch_map
-end
-
-
 """
     identify_cold_loads(data::Dict)::Dict{String,Bool}
 

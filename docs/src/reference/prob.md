@@ -4,11 +4,9 @@
 
 ```@docs
 optimize_switches
+solve_mc_osw_mld_mi_indicator
 solve_mc_osw_mld_mi
-solve_mc_osw_mld
-solve_mn_mc_osw_mld_mi
-solve_mc_osw_mi
-solve_mn_mc_osw_mi
+solve_mn_mc_osw_mld_mi_indicator
 ```
 
 ## Optimal Dispatch
@@ -27,4 +25,9 @@ run_fault_study
 
 ```@docs
 run_stability_analysis
+```
+
+## Optimization solvers
+```@docs
+build_solver_instances
 ```

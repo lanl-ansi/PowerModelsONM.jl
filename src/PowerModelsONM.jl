@@ -71,7 +71,6 @@ module PowerModelsONM
     include("prob/dispatch.jl")
     include("prob/fs.jl")
     include("prob/osw_mld.jl")
-    include("prob/osw.jl")
     include("prob/stability.jl")
     include("prob/switch.jl")
 
