@@ -26,7 +26,7 @@ makedocs(
             "Optimal Switching Algorithm" => "manual/optimal_switching_mld.md",
         ],
         "Tutorials" => [
-            # "Beginners Guide" => "tutorials/Beginners Guide.md",
+            "Beginners Guide" => "tutorials/Beginners Guide.md",
         ],
         "API Reference" => [
             "Data Handling" => "reference/data.md",
