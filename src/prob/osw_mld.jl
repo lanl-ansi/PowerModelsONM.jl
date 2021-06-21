@@ -95,17 +95,20 @@ end
 
 Solves a multiconductor optimal switching (mixed-integer) problem using `model_type` and `solver`
 
+Uses [indicator constraints](https://jump.dev/JuMP.jl/stable/manual/constraints/#Indicator-constraints), so
+requires a solver that supports them (e.g., Gurobi or CPLEX)
+
 Calls back to PowerModelsDistribution.solve_mc_model, and therefore will accept any valid `kwargs`
 for that function. See PowerModelsDistribution [documentation](https://lanl-ansi.github.io/PowerModelsDistribution.jl/latest)
 for more details.
 """
 function solve_mc_osw_mld_mi_indicator(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)
-    return PMD.solve_mc_model(data, model_type, solver, _build_mc_osw_mld_mi; multinetwork=false, kwargs...)
+    return PMD.solve_mc_model(data, model_type, solver, _build_mc_osw_mld_mi_indicator; multinetwork=false, kwargs...)
 end
 
 
 "Multinetwork load shedding problem for Branch Flow model"
-function _build_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
+function _build_mc_osw_mld_mi_indicator(pm::PMD.AbstractUBFModels)
     PMD.variable_mc_bus_voltage_indicator(pm; relax=false)
     PMD.variable_mc_bus_voltage_on_off(pm)
 
