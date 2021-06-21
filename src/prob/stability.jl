@@ -1,7 +1,9 @@
 """
     run_stability_analysis!(args::Dict{String,<:Any}; validate::Bool=true, formulation::Type=PMD.ACRPowerModel)::Dict{String,Any}
 
-Runs small signal stability analysis using PowerModelsStability and determines if each timestep configuration is stable
+Runs small signal stability analysis using PowerModelsStability and determines if each timestep configuration is stable,
+in-place, storing the results in `args["stability_results"]`, for use in [`entrypoint`](@ref entrypoint), Uses
+[`run_stability_analysis`](@ref run_stability_analysis)
 
 If `validate`, raw inverters data will be validated against JSON schema
 
@@ -11,7 +13,7 @@ polar coordinates.
 
 `solver` (default: `"nlp_solver"`) specifies which solver in `args["solvers"]` to use for the stability analysis (NLP OPF)
 """
-function run_stability_analysis!(args::Dict{String,<:Any}; validate::Bool=true, formulation::Type=PMD.ACRUPowerModel, solver::String="nlp_solver")::Dict{String,Any}
+function run_stability_analysis!(args::Dict{String,<:Any}; validate::Bool=true, formulation::Type=PMD.ACRUPowerModel, solver::String="nlp_solver")::Dict{String,Bool}
     if !isempty(get(args, "inverters", ""))
         if isa(args["inverters"], String)
             args["inverters"] = parse_inverters(args["inverters"]; validate=validate)
@@ -24,15 +26,33 @@ function run_stability_analysis!(args::Dict{String,<:Any}; validate::Bool=true, 
         )
     end
 
-    network = _prepare_stability_multinetwork_data(args["network"], args["inverters"])
+    args["stability_results"] = run_stability_analysis(args["network"], args["inverters"], args["solvers"][solver]; formulation=formulation)
+end
+
+
+"""
+    run_stability_analysis(network, inverters::Dict{String,<:Any}, solver; formulation::Type=PMD.ACRUPowerModel)::Dict{String,Any}
+
+Runs small signal stability analysis using PowerModelsStability and determines if each timestep configuration is stable
+
+`inverters` is an already parsed inverters file using [`parse_inverters`](@ref parse_inverters)
+
+The formulation can be specified with `formulation`, but note that it must result in `"vm"` and `"va"` variables in the
+solution, or else `PowerModelsDistribution.sol_data_model!` must support converting the voltage variables into
+polar coordinates.
+
+`solver` for stability analysis (NLP OPF)
+"""
+function run_stability_analysis(network, inverters::Dict{String,<:Any}, solver; formulation::Type=PMD.ACRUPowerModel)::Dict{String,Bool}
+    mn_data = _prepare_stability_multinetwork_data(network, inverters)
 
     is_stable = Dict{String,Bool}()
-    ns = sort([parse(Int, i) for i in keys(network["nw"])])
+    ns = sort([parse(Int, i) for i in keys(mn_data["nw"])])
     @showprogress length(ns) "Running stability analysis... " for n in ns
-        is_stable["$n"] = run_stability_analysis(network["nw"]["$n"], args["inverters"]["omega0"], args["inverters"]["rN"], args["solvers"][solver]; formulation=formulation)
+        is_stable["$n"] = run_stability_analysis(mn_data["nw"]["$n"], inverters["omega0"], inverters["rN"], solver; formulation=formulation)
     end
 
-    args["stability_results"] = is_stable
+    return is_stable
 end
 
 
