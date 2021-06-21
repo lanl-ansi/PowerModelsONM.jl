@@ -5,7 +5,7 @@ Gets the stability at each timestep and applies it in-place to args, for use in
 [`entrypoint`](@ref entrypoint), using [`get_timestep_stability`](@ref get_timestep_stability)
 """
 function get_timestep_stability!(args::Dict{String,<:Any})::Vector{Bool}
-    args["output_data"]["Small signal stability"] = get_timestep_stability(get(args, "stability_results", Dict{String,Bool}()))
+    args["output_data"]["Small signal stable"] = get_timestep_stability(get(args, "stability_results", Dict{String,Bool}()))
 end
 
 
