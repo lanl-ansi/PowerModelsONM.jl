@@ -23,7 +23,9 @@ makedocs(
         "installation.md",
         "Manual" => [
             "Getting Started" => "manual/quickguide.md",
-            "Optimal Switching Algorithm" => "manual/optimal_switching_mld.md",
+            "The ONM Workflow" => "manual/onm_workflow.md",
+            "Optimal Switch / Load shed Mathematical Model" => "manual/osw_mld_model.md",
+            "Optimal Dispatch Mathematical Model" => "manual/opf_model.md",
         ],
         "Tutorials" => [
             "Beginners Guide" => "tutorials/Beginners Guide.md",
