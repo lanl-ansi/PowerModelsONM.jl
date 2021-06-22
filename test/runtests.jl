@@ -7,7 +7,7 @@ const PMD = PowerModelsDistribution
 
 using Test
 
-setup_logging!(Dict{String,Any}("quiet"=>true))
+silence!()
 
 @testset "PowerModelsONM" begin
     # initialization
