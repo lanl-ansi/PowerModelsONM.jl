@@ -29,4 +29,55 @@
     @test all(haskey(args, k) && args[k] == raw_args[k] for k in ["solver-tolerance", "max-switch-actions", "timestep-hours", "voltage-lower-bound", "voltage-upper-bound", "voltage-angle-difference", "clpu-factor"])
 
     @test haskey(args, "raw_args") && args["raw_args"] == raw_args
+
+    append!(Base.ARGS, String[
+        "-n", "../test/data/IEEE13Nodeckt_mod.dss",
+        "-o", "../test/data/test-out.json",
+        "-f", "../test/data/faults.json",
+        "-i", "../test/data/inverters.json",
+        "-s", "../test/data/settings.json",
+        "-e", "../test/data/events.json",
+        "-q",
+        "-v",
+        "-d",
+        "-g",
+        "--opt-disp-formulation", "acr",
+        "-p", "opf",
+        "--protection-settings", "../test/data/protection_settings.xlsx",
+        "--solver-tolerance", "0.0001",
+        "--max-switch-actions", "1",
+        "--timestep-hours", "1",
+        "--voltage-lower-bound", "0.9",
+        "--voltage-upper-bound", "1.1",
+        "--voltage-angle-difference", "5",
+        "--clpu-factor", "2"
+        ]
+    )
+
+    args = parse_commandline()
+    delete!(args, "raw_args")
+
+    @test args == Dict{String,Any}(
+        "network" => "../test/data/IEEE13Nodeckt_mod.dss",
+        "output" => "../test/data/test-out.json",
+        "faults" => "../test/data/faults.json",
+        "inverters" => "../test/data/inverters.json",
+        "settings" => "../test/data/settings.json",
+        "events" => "../test/data/events.json",
+        "quiet" => true,
+        "verbose" => true,
+        "debug" => true,
+        "gurobi" => true,
+        "opt-disp-formulation" => "acr",
+        "problem" => "opf",
+        "protection-settings" => "../test/data/protection_settings.xlsx",
+        "solver-tolerance" => 1e-4,
+        "max-switch-actions" => 1,
+        "timestep-hours" => 1.0,
+        "voltage-lower-bound" => 0.9,
+        "voltage-upper-bound" => 1.1,
+        "voltage-angle-difference" => 5.0,
+        "clpu-factor" => 2.0,
+        "use-gurobi" => false  # flags are always stored, even if not set
+    )
 end

@@ -1,5 +1,5 @@
 """
-    parse_commandline()
+    parse_commandline(; validate::Bool=true)::Dict{String,Any}
 
 Command line argument parsing
 
@@ -35,13 +35,18 @@ Command line argument parsing
 - `--clpu-factor`
 
 """
-function parse_commandline()
-    s = ArgParse.ArgParseSettings()
+function parse_commandline(; validate::Bool=true)::Dict{String,Any}
+    s = ArgParse.ArgParseSettings(
+        prog = "PowerModelsONM",
+        description = "Optimization library for the operation and restoration of networked microgrids",
+        autofix_names = false,
+    )
 
     ArgParse.@add_arg_table! s begin
         "--network", "-n"
             help = "the power system network data file"
             arg_type = String
+            # required = true
         "--output", "-o"
             help = "path to output file"
             default = ""
@@ -111,29 +116,36 @@ function parse_commandline()
             action = :store_true
         "--solver-tolerance"
             help = "DEPRECIATED: use 'settings'"
+            arg_type = Float64
         "--max-switch-actions"
             help = "DEPRECIATED: use 'settings'"
             arg_type = Int
         "--timestep-hours"
             help = "DEPRECIATED: use 'settings'"
-            arg_type = Real
+            arg_type = Float64
         "--voltage-lower-bound"
             help = "DEPRECIATED: use 'settings'"
-            arg_type = Real
+            arg_type = Float64
         "--voltage-upper-bound"
             help = "DEPRECIATED: use 'settings'"
-            arg_type = Real
+            arg_type = Float64
         "--voltage-angle-difference"
             help = "DEPRECIATED: use 'settings'"
-            arg_type = Real
+            arg_type = Float64
         "--clpu-factor"
             help = "DEPRECIATED: use 'settings'"
-            arg_type = Real
+            arg_type = Float64
     end
 
     arguments = ArgParse.parse_args(s)
 
-    if !validate_runtime_arguments(arguments)
+    for arg in collect(keys(arguments))
+        if isnothing(arguments[arg]) || isempty(arguments[arg])
+            delete!(arguments, arg)
+        end
+    end
+
+    if validate && !validate_runtime_arguments(arguments)
         error("invalid runtime arguments detected")
     end
 
@@ -144,7 +156,7 @@ end
 
 
 """
-    sanitize_args!(args::Dic{String,Any})::Dict
+    sanitize_args!(args::Dict{String,<:Any})::Dict{String,Any}
 
 Sanitizes depreciated arguments into the correct new ones, and gives warnings
 
@@ -211,7 +223,7 @@ end
 
 
 """
-    deepcopy_args!(args::Dict{String,<:Any})::Dict{String,Any}
+    _deepcopy_args!(args::Dict{String,<:Any})::Dict{String,Any}
 
 Copies arguments to "raw_args" in-place in `args`, for use in [`entrypoint`](@ref entrypoint)
 """

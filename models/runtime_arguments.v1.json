@@ -1,6 +1,7 @@
 {
-  "title": "runtime_arguments.v1",
   "type": "object",
+  "title": "runtime_arguments.v1",
+  "additionalProperties": false,
   "properties": {
     "network": {
       "type": "string"
@@ -113,6 +114,9 @@
       "type": "number",
       "default": 5,
       "deprecated": true
+    },
+    "clpu-factor": {
+      "type": "number"
     }
   }
 }
