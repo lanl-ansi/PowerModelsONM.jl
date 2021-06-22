@@ -41,6 +41,8 @@ makedocs(
             "Variables and Constraints" => "reference/variable_constraint.md"
         ],
         "Developer Docs" => [
+            "Contributing Guide" => "developer/contributing.md",
+            "Style Guide" => "developer/style.md",
         ],
     ]
 )
