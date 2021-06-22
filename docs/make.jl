@@ -6,15 +6,23 @@ import Gumbo
 
 
 const _FAST = findfirst(isequal("--fast"), ARGS) !== nothing
+const _PDF = findfirst(isequal("--pdf"), ARGS) !== nothing
 
-makedocs(
-    modules = [PowerModelsONM],
+# compile pdf docs?
+if !_PDF
     format = Documenter.HTML(
         analytics = "",
         mathengine = Documenter.MathJax(),
         prettyurls=false,
-        collapselevel=1,
-    ),
+        collapselevel=2,
+    )
+else
+    format = Documenter.LaTeX()
+end
+
+makedocs(
+    modules = [PowerModelsONM],
+    format = format,
     strict=false,
     sitename = "PowerModelsONM",
     authors = "David M Fobes and contributors",
