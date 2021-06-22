@@ -1,5 +1,5 @@
 """
-    parse_events!(args::Dict{String,<:Any})::Dict
+    parse_events!(args::Dict{String,<:Any}; validate::Bool=true, apply::Bool=true)::Dict{String,Any}
 
 Parses events file in-place using [`parse_events`](@ref parse_events), for use inside of [`entrypoint`](@ref entrypoint).
 
@@ -36,7 +36,7 @@ end
 
 
 """
-    parse_events(events_file::String)::Dict
+    parse_events(events_file::String; validate::Bool=true)::Vector{Dict{String,Any}}
 
 Parses the events JSON file (no intepretations made), and validates against JSON Schema in `models` folder if `validate=true` (default).
 """
@@ -74,7 +74,7 @@ end
 
 
 """
-    parse_events(raw_events::Vector{Dict}, mn_data::Dict)::Dict
+    parse_events(raw_events::Vector{<:Dict{String,<:Any}}, mn_data::Dict{String,<:Any})::Dict{String,Any}
 
 Converts `raw_events`, e.g. loaded from JSON, and therefore in the format Vector{Dict}, to an internal data structure
 that closely matches the multinetwork data structure for easy merging (applying) to the multinetwork data structure.
@@ -149,7 +149,7 @@ end
 
 
 """
-    parse_events(events_file::String, mn_data::Dict; validate::Bool=true)::Dict{String,Any}
+    parse_events(events_file::String, mn_data::Dict{String,<:Any}; validate::Bool=true)::Dict{String,Any}
 
 Parses raw events from `events_file` and passes it to [`parse_events`](@ref parse_events) to convert to the
 native data type.
@@ -163,17 +163,17 @@ end
 
 
 """
-    apply_events!(args::Dict{String,<:Any})
+    apply_events!(args::Dict{String,<:Any})::Dict{String,Any}
 
 Applies events in-place using [`apply_events`](@ref apply_events), for use inside of [`entrypoint`](@ref entrypoint)
 """
-function apply_events!(args::Dict{String,<:Any})
+function apply_events!(args::Dict{String,<:Any})::Dict{String,Any}
     args["network"] = apply_events(args["network"], args["events"])
 end
 
 
 """
-    apply_events(network::Dict, events::Dict)::Dict
+    apply_events(network::Dict{String,<:Any}, events::Dict{String,<:Any})::Dict{String,Any}
 
 Creates a copy of the multinetwork data structure `network` and applies the events in `events`
 to that data.

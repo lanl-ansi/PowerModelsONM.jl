@@ -1,5 +1,5 @@
 """
-    optimize_dispatch!(args::Dict{String,<:Any})
+    optimize_dispatch!(args::Dict{String,<:Any}; update_network_data::Bool=true, solver::String="nlp_solver")::Dict{String,Any}
 
 Solves optimal dispatch problem in-place, for use in [`entrypoint`](@ref entrypoint), using [`optimize_dispatch`](@ref optimize_dispatch).
 If you are using this to optimize after running [`optimize_switches!`](@ref optimize_switches!), this assumes that the correct

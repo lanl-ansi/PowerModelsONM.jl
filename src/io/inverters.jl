@@ -1,5 +1,5 @@
 """
-    parse_inverters(inverter_file::String; validate::Bool=true)::Dict
+    parse_inverters(inverter_file::String; validate::Bool=true)::Dict{String,Any}
 
 Parses an inverters JSON file, used in [`run_stability_analysis!`](@ref run_stability_analysis!)
 

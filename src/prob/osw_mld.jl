@@ -1,5 +1,5 @@
 """
-    solve_mn_mc_osw_mld_mi_indicator(data::Union{String,Dict}, model_type::Type, solver; kwargs...)::Dict
+    solve_mn_mc_osw_mld_mi_indicator(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)::Dict{String,Any}
 
 Solves a __multinetwork__ multiconductor optimal switching (mixed-integer) problem using `model_type` and `solver`
 
@@ -10,7 +10,7 @@ Calls back to PowerModelsDistribution.solve_mc_model, and therefore will accept 
 for that function. See PowerModelsDistribution [documentation](https://lanl-ansi.github.io/PowerModelsDistribution.jl/latest)
 for more details.
 """
-function solve_mn_mc_osw_mld_mi_indicator(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)
+function solve_mn_mc_osw_mld_mi_indicator(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)::Dict{String,Any}
     return PMD.solve_mc_model(data, model_type, solver, _build_mn_mc_osw_mld_mi_indicator; multinetwork=true, kwargs...)
 end
 
@@ -91,7 +91,7 @@ end
 
 
 """
-    solve_mc_osw_mld_mi(data::Union{String,Dict}, model_type::Type, solver; kwargs...)::Dict
+    solve_mc_osw_mld_mi_indicator(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)::Dict{String,Any}
 
 Solves a multiconductor optimal switching (mixed-integer) problem using `model_type` and `solver`
 
@@ -102,7 +102,7 @@ Calls back to PowerModelsDistribution.solve_mc_model, and therefore will accept 
 for that function. See PowerModelsDistribution [documentation](https://lanl-ansi.github.io/PowerModelsDistribution.jl/latest)
 for more details.
 """
-function solve_mc_osw_mld_mi_indicator(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)
+function solve_mc_osw_mld_mi_indicator(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)::Dict{String,Any}
     return PMD.solve_mc_model(data, model_type, solver, _build_mc_osw_mld_mi_indicator; multinetwork=false, kwargs...)
 end
 
@@ -177,7 +177,7 @@ end
 
 
 """
-    solve_mc_osw_mld_mi(data::Union{String,Dict}, model_type::Type, solver; kwargs...)::Dict
+    solve_mc_osw_mld_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)::Dict{String,Any}
 
 Solves a multiconductor optimal switching (relaxed, i.e., _not_ mixed-integer) problem using `model_type` and `solver`
 
@@ -185,7 +185,7 @@ Calls back to PowerModelsDistribution.solve_mc_model, and therefore will accept 
 for that function. See PowerModelsDistribution [documentation](https://lanl-ansi.github.io/PowerModelsDistribution.jl/latest)
 for more details.
 """
-function solve_mc_osw_mld_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)
+function solve_mc_osw_mld_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)::Dict{String,Any}
     return PMD.solve_mc_model(data, model_type, solver, _build_mc_osw_mld_mi; multinetwork=false, kwargs...)
 end
 

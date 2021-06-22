@@ -6,7 +6,7 @@ Helper function for PowerModelsProtection fault studies to convert storage to ge
 PowerModelsProtection currently does not support storage object constraints / variables, so this is a
 workaround until those constraints/variables are added.
 
-This works on ENGINEERING subnetworks (not multinetworks).
+This works on `ENGINEERING` subnetworks (not multinetworks).
 """
 function convert_storage!(nw::Dict{String,Any})
     for (i, strg) in get(nw, "storage", Dict())

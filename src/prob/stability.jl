@@ -1,5 +1,5 @@
 """
-    run_stability_analysis!(args::Dict{String,<:Any}; validate::Bool=true, formulation::Type=PMD.ACRPowerModel)::Dict{String,Any}
+    run_stability_analysis!(args::Dict{String,<:Any}; validate::Bool=true, formulation::Type=PMD.ACRUPowerModel, solver::String="nlp_solver")::Dict{String,Bool}
 
 Runs small signal stability analysis using PowerModelsStability and determines if each timestep configuration is stable,
 in-place, storing the results in `args["stability_results"]`, for use in [`entrypoint`](@ref entrypoint), Uses
@@ -31,7 +31,7 @@ end
 
 
 """
-    run_stability_analysis(network, inverters::Dict{String,<:Any}, solver; formulation::Type=PMD.ACRUPowerModel)::Dict{String,Any}
+    run_stability_analysis(network, inverters::Dict{String,<:Any}, solver; formulation::Type=PMD.ACRUPowerModel)::Dict{String,Bool}
 
 Runs small signal stability analysis using PowerModelsStability and determines if each timestep configuration is stable
 

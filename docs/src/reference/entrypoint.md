@@ -22,3 +22,9 @@ analyze_results!
 parse_commandline
 sanitize_args!
 ```
+
+## Binary Operations
+
+```@docs
+julia_main
+```

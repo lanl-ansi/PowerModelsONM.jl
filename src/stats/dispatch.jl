@@ -10,7 +10,7 @@ end
 
 
 """
-    get_voltage_min_mean_max(solution::Dict, data::Dict; per_unit::Bool=true)::Tuple
+    get_voltage_min_mean_max(solution::Dict{String,<:Any}, data::Dict{String,<:Any}; make_per_unit::Bool=true)::Tuple{Real,Real,Real}
 
 Calculates the minimum, mean, and maximum of the voltages across a network (not a multinetwork)
 
@@ -32,7 +32,7 @@ end
 
 
 """
-    get_timestep_voltage_statistics(solution::Dict, network::Dict)::Dict
+    get_timestep_voltage_statistics(solution::Dict{String,<:Any}, network::Dict{String,<:Any}; make_per_unit::Bool=true)::Dict{String,Vector{Real}}
 
 Returns statistics on the Minimum, Mean, and Maximum voltages for each timestep using [`get_voltage_min_mean_max`](@ref get_voltage_min_mean_max)
 
@@ -71,12 +71,12 @@ end
 
 
 """
-    get_timestep_dispatch(solution::Dict{String,<:Any})
+    get_timestep_dispatch(solution::Dict{String,<:Any})::Vector{Dict{String,Any}}
 
 Returns the dispatch information for generation assets (generator, storage, solar, voltage_source) and bus voltage magnitudes in SI units for each timestep
 from the optimal dispatch `solution`
 """
-function get_timestep_dispatch(solution::Dict{String,<:Any})
+function get_timestep_dispatch(solution::Dict{String,<:Any})::Vector{Dict{String,Any}}
     dispatch = Dict{String,Any}[]
 
     for n in sort([parse(Int, i) for i in keys(get(solution, "nw", Dict()))])

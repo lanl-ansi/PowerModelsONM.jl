@@ -18,19 +18,19 @@ end
 
 
 """
-    apply_switch_configurations!(network::Dict{String,<:Any}, optimal_switching_results::Dict{String,<:Any})
+    apply_switch_solutions!(network::Dict{String,<:Any}, optimal_switching_results::Dict{String,<:Any})::Dict{String,Any}
 
 Updates a multinetwork `network` in-place with the results from optimal switching `optimal_switching_results`.
 
 Used when not using the in-place version of [`optimize_switches!`](@ref optimize_switches!).
 """
-function apply_switch_solutions!(network::Dict{String,<:Any}, optimal_switching_results::Dict{String,<:Any})
+function apply_switch_solutions!(network::Dict{String,<:Any}, optimal_switching_results::Dict{String,<:Any})::Dict{String,Any}
     network = apply_switch_solutions(network, optimal_switching_results)
 end
 
 
 """
-    apply_switch_solutions(network::Dict, optimal_switching_results::Dict)::Dict
+    apply_switch_solutions(network::Dict{String,<:Any}, optimal_switching_results::Dict{String,<:Any})::Dict{String,Any}
 
 Creates a copy of the `network` with the solution copied in from `optimal_switching_results`
 """

@@ -18,6 +18,7 @@ optimize_dispatch
 ## Fault stuides
 
 ```@docs
+run_fault_studies
 run_fault_study
 ```
 

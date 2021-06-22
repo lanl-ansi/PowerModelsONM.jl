@@ -1,5 +1,5 @@
 """
-    run_fault_studies!(args::Dict{String,<:Any})
+    run_fault_studies!(args::Dict{String,<:Any}; validate::Bool=true, solver::String="nlp_solver")::Dict{String,Any}
 
 Runs fault studies using `args["faults"]`, if defined, and stores the results in-place in
 `args["fault_stuides_results"]`, for use in [`entrypoint`](@ref entrypoint), using
@@ -50,7 +50,7 @@ end
 
 
 """
-    run_fault_study(subnetwork::Dict, faults::Dict, solver)::Dict
+    run_fault_study(subnetwork::Dict{String,<:Any}, faults::Dict{String,<:Any}, solver)::Dict{String,Any}
 
 Uses `PowerModelsProtection.solve_mc_fault_study` to solve multiple faults defined in `faults`, applied
 to `subnetwork`, i.e., not a multinetwork, using a nonlinear `solver`.

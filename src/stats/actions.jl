@@ -1,5 +1,5 @@
 """
-    get_timestep_device_actions!(args::Dict{String,<:Any})
+    get_timestep_device_actions!(args::Dict{String,<:Any})::Vector{Dict{String,Any}}
 
 Gets the device actions at every timestep using [`get_timestep_device_actions`](@ref get_timestep_device_actions)
 and applies it in place to args, for use in [`entrypoint`](@ref entrypoint).
@@ -10,7 +10,7 @@ end
 
 
 """
-    get_timestep_device_actions(network::Dict{String,<:Any}, mld_results::Dict{String,<:Any})::Vector{Dict}
+    get_timestep_device_actions(network::Dict{String,<:Any}, mld_results::Dict{String,<:Any})::Vector{Dict{String,Any}}
 
 From the multinetwork `network`, determines the switch configuration at each timestep. If the switch does not exist
 in `mld_results`, the state will default back to the state given in the original network. This could happen if the switch
@@ -52,18 +52,18 @@ end
 
 
 """
-    get_timestep_switch_changes!(args::Dict)::Vector
+    get_timestep_switch_changes!(args::Dict{String,<:Any})::Vector{Vector{String}}
 
 Gets the switch changes via [`get_timestep_switch_changes`](@ref get_timestep_switch_changes)
 and applies it in-place to args, for use with [`entrypoint`](@ref entrypoint)
 """
-function get_timestep_switch_changes!(args::Dict{String,<:Any})
+function get_timestep_switch_changes!(args::Dict{String,<:Any})::Vector{Vector{String}}
     args["output_data"]["Switch changes"] = get_timestep_switch_changes(args["network"])
 end
 
 
 """
-    get_timestep_switch_changes(network::Dict)::Vector{Vector{String}}
+    get_timestep_switch_changes(network::Dict{String,<:Any})::Vector{Vector{String}}
 
 Gets a list of switches whose state has changed between timesteps (always expect the first timestep to be an empty list).
 This expects the solutions from the MLD problem to have been merged into `network`

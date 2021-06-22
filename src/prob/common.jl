@@ -1,5 +1,5 @@
 """
-    build_solver_instances!(args::Dict{String,Any})
+    build_solver_instances!(args::Dict{String,<:Any})::Dict{String,Any}
 
 Creates the Optimizers in-place (within the args dict data structure), for use inside [`entrypoint`](@ref entrypoint),
 using [`build_solver_instances`](@ref build_solver_instances), assigning them to `args["solvers"]``
@@ -29,7 +29,7 @@ end
 
 
 """
-    build_solver_instances(; nlp_solver=missing, nlp_solver_tol=1e-4, misocp_solver=missing, minlp_solver=missing, gurobi=false, mip_solver_tol=1e-4, verbose::Bool=false, debug::Bool=false)::Dict
+    build_solver_instances(; nlp_solver=missing, nlp_solver_tol::Real=1e-4, mip_solver=missing, mip_solver_tol::Real=1e-4, minlp_solver=missing, misocp_solver=missing, gurobi::Bool=false, verbose::Bool=false, debug::Bool=false)::Dict{String,Any}
 
 Returns solver instances as a Dict ready for use with JuMP Models, for NLP (`"nlp_solver"`), MIP (`"mip_solver"`), MINLP (`"minlp_solver"`), and (MI)SOC (`"misocp_solver"`) problems.
 

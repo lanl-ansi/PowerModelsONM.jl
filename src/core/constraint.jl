@@ -1,4 +1,14 @@
-"max actions per timestep switch constraint"
+@doc raw"""
+    constraint_switch_state_max_actions(pm::PMD.AbstractUnbalancedPowerModel, nw::Int)
+
+max actions per timestep switch constraint
+
+```math
+\begin{align}
+& \sum_{\substack{i\in S}}{\Delta^{sw}_i} \leq z^{swu}
+\end{align}
+```
+"""
 function constraint_switch_state_max_actions(pm::PMD.AbstractUnbalancedPowerModel, nw::Int)
     max_switch_actions = get(pm.data, "max_switch_actions", length(get(pm.data, "switch", Dict())))
 
@@ -10,7 +20,18 @@ function constraint_switch_state_max_actions(pm::PMD.AbstractUnbalancedPowerMode
 end
 
 
-"constraint to ensure that load blocks get properly isolated by opening switches"
+@doc raw"""
+    constraint_load_block_isolation(pm::PMD.AbstractUnbalancedPowerModel, nw::Int; relax::Bool=true)
+
+constraint to ensure that load blocks get properly isolated by opening switches
+
+```math
+\begin{align}
+& z^{sw}_i \leq z^d_b\ \forall i \in S,\forall b \in L \\
+& z^{sw}_i \geq 0\ \forall i \in S
+\end{align}
+```
+"""
 function constraint_load_block_isolation(pm::PMD.AbstractUnbalancedPowerModel, nw::Int; relax::Bool=true)
     for (b, block) in PMD.ref(pm, nw, :load_blocks)
         z_demand = PMD.var(pm, nw, :z_demand_blocks, b)

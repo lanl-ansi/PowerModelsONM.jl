@@ -54,7 +54,7 @@ end
 
 
 """
-    initialize_output!(args::Dict{String,Any})
+    initialize_output!(args::Dict{String,<:Any})::Dict{String,Any}
 
 Initializes the output data strucutre inside of the args dict at "output_data"
 """
@@ -64,7 +64,7 @@ end
 
 
 """
-    analyze_results!(args::Dict{String,<:Any})
+    analyze_results!(args::Dict{String,<:Any})::Dict{String,Any}
 
 Adds information and statistics to "output_data", including
 

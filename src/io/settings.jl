@@ -1,5 +1,5 @@
 """
-    parse_settings!(args::Dict{String,Any}; validate::Bool=true):Dict
+    parse_settings!(args::Dict{String,<:Any}; apply::Bool=true, validate::Bool=true)::Dict{String,Any}
 
 Parses settings file specifed in runtime arguments in-place
 
@@ -65,11 +65,11 @@ end
 
 
 """
-    apply_settings!(args::Dict{String,Any})
+    apply_settings!(args::Dict{String,Any})::Dict{String,Any}
 
 Applies settings to the network
 """
-function apply_settings!(args::Dict{String,Any})
+function apply_settings!(args::Dict{String,Any})::Dict{String,Any}
     args["network"] = apply_settings(args["network"], get(args, "settings", Dict()))
 end
 

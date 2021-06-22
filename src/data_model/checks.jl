@@ -15,7 +15,7 @@ end
 
 Validates runtime_arguments data against models/runtime_arguments schema
 """
-validate_runtime_arguments(data::Dict) = _validate_against_schema(data, "runtime_arguments", "v1")
+validate_runtime_arguments(data::Dict)::Bool = _validate_against_schema(data, "runtime_arguments", "v1")
 
 
 """
@@ -23,7 +23,7 @@ validate_runtime_arguments(data::Dict) = _validate_against_schema(data, "runtime
 
 Validates events data against models/events schema
 """
-validate_events(data::Vector) = _validate_against_schema(data, "events", "v1")
+validate_events(data::Vector)::Bool = _validate_against_schema(data, "events", "v1")
 
 
 """
@@ -31,7 +31,7 @@ validate_events(data::Vector) = _validate_against_schema(data, "events", "v1")
 
 Validates inverter data against models/inverters schema
 """
-validate_inverters(data::Dict) = _validate_against_schema(data, "inverters", "v1")
+validate_inverters(data::Dict)::Bool = _validate_against_schema(data, "inverters", "v1")
 
 
 """
@@ -39,7 +39,7 @@ validate_inverters(data::Dict) = _validate_against_schema(data, "inverters", "v1
 
 Validates fault input data against models/faults schema
 """
-validate_faults(data::Dict) = _validate_against_schema(data, "faults", "v1")
+validate_faults(data::Dict)::Bool = _validate_against_schema(data, "faults", "v1")
 
 
 """
@@ -47,7 +47,7 @@ validate_faults(data::Dict) = _validate_against_schema(data, "faults", "v1")
 
 Validates runtime_settings data against models/runtime_settings schema
 """
-validate_settings(data::Dict) = _validate_against_schema(data, "settings", "v1")
+validate_settings(data::Dict)::Bool = _validate_against_schema(data, "settings", "v1")
 
 
 """
@@ -55,4 +55,4 @@ validate_settings(data::Dict) = _validate_against_schema(data, "settings", "v1")
 
 Validates output data against models/outputs schema
 """
-validate_output(data::Dict) = _validate_against_schema(data, "outputs", "v1")
+validate_output(data::Dict)::Bool = _validate_against_schema(data, "outputs", "v1")

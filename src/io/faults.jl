@@ -1,5 +1,5 @@
 """
-    parse_faults(faults_file::String; validate::Bool=true)::Dict
+    parse_faults(faults_file::String; validate::Bool=true)::Dict{String,Any}
 
 Parses fault JSON input files which have the same structure as the outputs
 from `PowerModelsProtection.build_mc_fault_stuides`

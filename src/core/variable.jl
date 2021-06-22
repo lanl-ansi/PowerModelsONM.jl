@@ -1,4 +1,8 @@
-"create variables for demand status by load block"
+"""
+    variable_mc_load_block_indicator(pm::PMD.AbstractUnbalancedPowerModel; nw::Int=PMD.nw_id_default, relax::Bool=false, report::Bool=true)
+
+create variables for demand status by load block
+"""
 function variable_mc_load_block_indicator(pm::PMD.AbstractUnbalancedPowerModel; nw::Int=PMD.nw_id_default, relax::Bool=false, report::Bool=true)
     if relax
         z_demand = PMD.var(pm, nw)[:z_demand_blocks] = PMD.JuMP.@variable(pm.model,

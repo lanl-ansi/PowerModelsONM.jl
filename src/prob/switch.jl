@@ -1,5 +1,5 @@
 """
-    optimize_switches!(args::Dict{String,<:Any})
+    optimize_switches!(args::Dict{String,<:Any})::Dict{String,Any}
 
 Optimizes switch states (therefore shedding load or not) in-place, for use in [`entrypoint`](@ref entrypoint),
 using [`optimize_switches`]
