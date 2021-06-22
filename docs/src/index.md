@@ -32,9 +32,17 @@ PowerModelsONM depends on several other PowerModels(...) packages from the Infra
 
 ### PowerModelsDistribution
 
+[PowerModelsDistribution.jl](https://github.com/lanl-ansi/PowerModelsDistribution.jl) is a Julia/JuMP-based package for modeling unbalanced (i.e., multiconductor) power networks. This is the primary modeling framework utilized in PowerModelsONM, and contains the primary logic for optimization and parsing of network data.
+
 ### PowerModelsProtection
 
+[PowerModelsProtection.jl](https://github.com/lanl-ansi/PowerModelsProtection.jl) is a Julia/JuMP-based package for performing fault studies on both transmission (via extentions to [PowerModels.jl](https://github.com/lanl-ansi/PowerModels.jl)) and distribution (via extensions to [PowerModelsDistribution.jl](https://github.com/lanl-ansi/PowerModelsDistribution.jl)). In the future, the goal is to include optimal protection coordination formulations and constraints for optimal switching problems.
+
+PowerModelsONM utilizes PowerModelsProtection to perform fault analysis after optimizing the switch configurations and dispatch by using an unbalanced IVR formuation.
+
 ### PowerModelsStability
+
+[PowerModelsStability.jl](https://github.com/lanl-ansi/PowerModelsStability.jl) is a Julia/JuMP-based package for performing small signal stability analysis on distribution data sets (via extensions to [PowerModelsDistribution.jl](https://github.com/lanl-ansi/PowerModelsDistribution.jl)). Currently the capabilities of this tool are somewhat limited, as they are under active research and development; this capability is completely novel in this context. PowerModelsONM uses PowerModelsStability to report whether the resulting network configurations are small signal stable at each timestep.
 
 ## License
 
