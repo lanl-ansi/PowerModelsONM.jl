@@ -1,11 +1,31 @@
 {
-  "title": "fault_currents.v1",
+  "meta:license": [
+    "Copyright (c) 2020, Triad National Security, LLC.",
+    "This code is provided under a BSD license as part of the Multi-Infrastructure Control",
+    "and Optimization Toolkit (MICOT) project, LA-CC-13-108.",
+    "You may not use this file except in compliance with the License. You may obtain a copy",
+    "of the License at https://github.com/lanl-ansi/PowerModelsONM.jl/blob/main/LICENSE.md"
+  ],
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "schemas/fault_currents",
+  "title": "Fault currents",
   "type": "array",
+  "x-tags": [
+    "output"
+  ],
+  "examples": [
+    [
+      {}
+    ]
+  ],
+  "description": "Collection of data about fault currents collected from the outputs of fault studies using PowerModelsProtection",
   "items": {
     "type": "object",
+    "description": "fault studies results",
     "patternProperties": {
       "^.+_[3p|3pg|llg|ll|lg]_\\d+": {
         "type": "object",
+        "description": "busName_faultType_faultID",
         "properties": {
           "fault": {
             "type": "object",

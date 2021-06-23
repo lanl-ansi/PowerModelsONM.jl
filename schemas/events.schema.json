@@ -1,6 +1,15 @@
 {
+  "meta:license": [
+    "Copyright (c) 2020, Triad National Security, LLC.",
+    "This code is provided under a BSD license as part of the Multi-Infrastructure Control",
+    "and Optimization Toolkit (MICOT) project, LA-CC-13-108.",
+    "You may not use this file except in compliance with the License. You may obtain a copy",
+    "of the License at https://github.com/lanl-ansi/PowerModelsONM.jl/blob/main/LICENSE.md"
+  ],
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "schemas/device_action_timeline",
   "type": "array",
-  "description": "A list of events, ordered (i.e., later events will overwrite earlier ones if there is a conflict), that can either be a switching action, or a fault.",
+  "description": "A list of events, ordered (_i.e._, later events will overwrite earlier ones if there is a conflict), that can either be a switching action, or a fault.",
   "minItems": 0,
   "uniqueItems": false,
   "x-examples": {
@@ -133,5 +142,25 @@
       "affected_asset",
       "event_data"
     ]
-  }
+  },
+  "title": "Events",
+  "x-tags": [
+    "input",
+    "output"
+  ],
+  "examples": [
+    [
+      {
+        "timestep": 1,
+        "event_type": "switch",
+        "affected_asset": "line.switch_name",
+        "event_data": {
+          "type": "breaker",
+          "state": "open",
+          "dispatchable": false,
+          "status": 1
+        }
+      }
+    ]
+  ]
 }

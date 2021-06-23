@@ -1,6 +1,15 @@
 {
+  "meta:license": [
+    "Copyright (c) 2020, Triad National Security, LLC.",
+    "This code is provided under a BSD license as part of the Multi-Infrastructure Control",
+    "and Optimization Toolkit (MICOT) project, LA-CC-13-108.",
+    "You may not use this file except in compliance with the License. You may obtain a copy",
+    "of the License at https://github.com/lanl-ansi/PowerModelsONM.jl/blob/main/LICENSE.md"
+  ],
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "schemas/runtime_arguments",
   "type": "object",
-  "title": "runtime_arguments.v1",
+  "title": "Runtime arguments",
   "additionalProperties": false,
   "properties": {
     "network": {
@@ -118,5 +127,21 @@
     "clpu-factor": {
       "type": "number"
     }
-  }
+  },
+  "x-tags": [
+    "input"
+  ],
+  "examples": [
+    {
+      "network": "../test/data/IEEE13Nodeckt_mod.dss",
+      "gurobi": false,
+      "settings": "../test/data/settings.json",
+      "faults": "../test/data/faults.json",
+      "inverters": "../test/data/inverters.json",
+      "events": "../test/data/events.json",
+      "quiet": true,
+      "opt-disp-formulation": "acr"
+    }
+  ],
+  "description": "The allowed runtime arguments for PowerModelsONM's entrypoint"
 }

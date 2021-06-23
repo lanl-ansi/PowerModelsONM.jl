@@ -73,16 +73,17 @@ Markdown files should be properly formatted, particularly when including tables.
 
 It is important that new functions, variables, constraints, etc. all go into appropriate places in the code base so that future maintenance and debugging is easier. Pay attention to the current file structure and attempt to conform as best as possible to it. In general
 
-- `/src/app` contains the main ONM workflow, for uses in binaries, docker images, etc.
-- `/src/cli` contains the runtime arguments for the command line
-- `/src/core` contains the core logic of the package, including variable creation and constraint templates, _i.e._ things that are agnostic to the formulation
-- `/src/data_model` contains all of the logic to transform between the `ENGINEERING` and `MATHEMATICAL` data models and model creation helper tools
+- `src/app` contains the main ONM workflow, for uses in binaries, docker images, etc.
+- `src/cli` contains the runtime arguments for the command line
+- `src/core` contains the core logic of the package, including variable creation and constraint templates, _i.e._ things that are agnostic to the formulation
+- `src/data_model` contains all of the logic to transform between the `ENGINEERING` and `MATHEMATICAL` data models and model creation helper tools
 - `src/form` contains formulation specific variable and constraint functions, organized under separate files for different formulations
 - `src/io` contains all of the tools to parse and save files, in particular all of the logic necessary to parse dss files and output json files
 - `src/prob` contains all problem specifications
 - `src/stats` contains all statistical analysis functions
 - `docs/src` contains all source markdown files for the documentation
 - `examples` contains Pluto.jl notebooks with walkthroughs of PowerModelsONM for new users
+- `schemas` contains JSON Schemas for supported I/O file formats
 
 # Dependencies (Project.toml)
 

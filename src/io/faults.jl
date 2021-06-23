@@ -48,7 +48,7 @@ For more details see PowerModelsProtection's [documentation](https://github.io/l
 
 ## Validation
 
-If `validate=true` (default), the parsed data structure will be validated against the latest JSON Schema contained in the `models` folder.
+If `validate=true` (default), the parsed data structure will be validated against the latest [Faults Schema](@ref Faults-Schema).
 """
 function parse_faults(faults_file::String; validate::Bool=true)::Dict{String,Any}
     faults = JSON.parsefile(faults_file)

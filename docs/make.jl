@@ -1,6 +1,8 @@
 using Documenter
 using PowerModelsONM
 
+import NodeJS
+
 import Pluto
 import Gumbo
 
@@ -20,39 +22,81 @@ else
     format = Documenter.LaTeX()
 end
 
+pages = [
+    "Introduction" => "index.md",
+    "installation.md",
+    "Manual" => [
+        "Getting Started" => "manual/quickguide.md",
+        "The ONM Workflow" => "manual/onm_workflow.md",
+        "Optimal Switch / Load shed Mathematical Model" => "manual/osw_mld_model.md",
+        "Optimal Dispatch Mathematical Model" => "manual/opf_model.md",
+    ],
+    "Tutorials" => [
+        "Beginners Guide" => "tutorials/Beginners Guide.md",
+    ],
+    "API Reference" => [
+        "Data Handling" => "reference/data.md",
+        "Main Entrypoint" => "reference/entrypoint.md",
+        "Internal Functions" => "reference/internal.md",
+        "IO Functions" => "reference/io.md",
+        "Logging" => "reference/logging.md",
+        "Optimization Problems" => "reference/prob.md",
+        "Solution Statistics" => "reference/stats.md",
+        "Variables and Constraints" => "reference/variable_constraint.md"
+    ],
+    "Developer Docs" => [
+        "Contributing Guide" => "developer/contributing.md",
+        "Style Guide" => "developer/style.md",
+    ],
+]
+
+# Build schema documentation
+try
+    try
+        @assert "6.0.3" == chomp(read(`jsonschema2md --version`, String))
+    catch
+        install_jsonschema2md_status = chomp(read(`$(NodeJS.npm_cmd()) install -g @adobe/jsonschema2md`, String))
+    end
+    run_jsonschema2md_status = chomp(read(`jsonschema2md -d schemas -o docs/src/schemas -x - -n`, String))
+
+    schema_basenames = [split(file, ".")[1] for file in readdir("schemas") if endswith(file, "schema.json")]
+    schema_files = collect(readdir("docs/src/schemas"))
+
+    for file in schema_files
+        doc = open("docs/src/schemas/$file", "r") do io
+            replace(
+                replace(
+                    replace(
+                        read(io,String),
+                        "../../../schemas/" => "https://raw.githubusercontent.com/lanl-ansi/PowerModelsONM.jl/main/models/"
+                    ),
+                    r"(\[.+\])?\((.+)?\s\".+\"\)" => s"\1(\2)",
+                ),
+                "patternproperties-\\" => "patternproperties-"
+            )
+        end
+
+        open("docs/src/schemas/$file", "w") do io
+            write(io, doc)
+        end
+    end
+
+    schema_docs = "Schema Documentation" => [
+        titlecase(join(split(bn, "_"), " ")) => "schemas/$(bn).md" for bn in schema_basenames
+    ]
+    push!(pages, schema_docs)
+catch e
+    error("json schema documentation build failed, skipping: $e")
+end
+
+# build documents
 makedocs(
     modules = [PowerModelsONM],
     format = format,
     strict=false,
     sitename = "PowerModelsONM",
     authors = "David M Fobes and contributors",
-    pages = [
-        "Introduction" => "index.md",
-        "installation.md",
-        "Manual" => [
-            "Getting Started" => "manual/quickguide.md",
-            "The ONM Workflow" => "manual/onm_workflow.md",
-            "Optimal Switch / Load shed Mathematical Model" => "manual/osw_mld_model.md",
-            "Optimal Dispatch Mathematical Model" => "manual/opf_model.md",
-        ],
-        "Tutorials" => [
-            "Beginners Guide" => "tutorials/Beginners Guide.md",
-        ],
-        "API Reference" => [
-            "Data Handling" => "reference/data.md",
-            "Main Entrypoint" => "reference/entrypoint.md",
-            "Internal Functions" => "reference/internal.md",
-            "IO Functions" => "reference/io.md",
-            "Logging" => "reference/logging.md",
-            "Optimization Problems" => "reference/prob.md",
-            "Solution Statistics" => "reference/stats.md",
-            "Variables and Constraints" => "reference/variable_constraint.md"
-        ],
-        "Developer Docs" => [
-            "Contributing Guide" => "developer/contributing.md",
-            "Style Guide" => "developer/style.md",
-        ],
-    ]
+    pages = pages
 )
 
 # Insert HTML rendered from Pluto.jl into tutorial stubs as iframes

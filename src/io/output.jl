@@ -28,7 +28,7 @@ function initialize_output(args::Dict{String,<:Any})::Dict{String,Any}
         "Storage SOC (%)" => Real[],
         "Device action timeline" => Dict{String,Any}[],
         "Powerflow output" => Dict{String,Any}[],
-        "Summary statistics" => Dict{String,Any}(),
+        "Additional statistics" => Dict{String,Any}(),
         "Events" => Dict{String,Any}[],
         "Fault currents" => Dict{String,Any}[],
         "Small signal stable" => Bool[],

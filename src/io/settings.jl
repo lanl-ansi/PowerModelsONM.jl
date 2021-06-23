@@ -5,6 +5,10 @@ Parses settings file specifed in runtime arguments in-place
 
 Will attempt to convert depreciated runtime arguments to appropriate network settings
 data structure.
+
+## Validation
+
+If `validate=true` (default), the parsed data structure will be validated against the latest [Settings Schema](@ref Settings-Schema).
 """
 function parse_settings!(args::Dict{String,<:Any}; apply::Bool=true, validate::Bool=true)::Dict{String,Any}
     if !isempty(get(args, "settings", ""))
@@ -51,7 +55,9 @@ end
 
 Parses network settings JSON file.
 
-If `validate`, will validate raw settings against JSON Schema
+## Validation
+
+If `validate=true` (default), the parsed data structure will be validated against the latest [Settings Schema](@ref Settings-Schema).
 """
 function parse_settings(settings_file::String; validate::Bool=true)::Dict{String,Any}
     settings = JSON.parsefile(settings_file)

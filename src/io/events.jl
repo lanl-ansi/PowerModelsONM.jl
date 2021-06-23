@@ -3,9 +3,11 @@
 
 Parses events file in-place using [`parse_events`](@ref parse_events), for use inside of [`entrypoint`](@ref entrypoint).
 
-If `validate`, will validate raw events json against JSON Schema.
-
 If `apply`, will apply the events to the multinetwork data structure.
+
+## Validation
+
+If `validate=true` (default), the parsed data structure will be validated against the latest [Events Schema](@ref Events-Schema).
 """
 function parse_events!(args::Dict{String,<:Any}; validate::Bool=true, apply::Bool=true)::Dict{String,Any}
     if !isempty(get(args, "events", ""))
@@ -38,7 +40,11 @@ end
 """
     parse_events(events_file::String; validate::Bool=true)::Vector{Dict{String,Any}}
 
-Parses the events JSON file (no intepretations made), and validates against JSON Schema in `models` folder if `validate=true` (default).
+Parses an events file into a raw events data structure
+
+## Validation
+
+If `validate=true` (default), the parsed data structure will be validated against the latest [Events Schema](@ref Events-Schema).
 """
 function parse_events(events_file::String; validate::Bool=true)::Vector{Dict{String,Any}}
     events = Vector{Dict{String,Any}}(JSON.parsefile(events_file))
@@ -154,7 +160,9 @@ end
 Parses raw events from `events_file` and passes it to [`parse_events`](@ref parse_events) to convert to the
 native data type.
 
-If `validate`, will check raw events against JSON Schema.
+## Validation
+
+If `validate=true` (default), the parsed data structure will be validated against the latest [Events Schema](@ref Events-Schema).
 """
 function parse_events(events_file::String, mn_data::Dict{String,<:Any}; validate::Bool=true)::Dict{String,Any}
     raw_events = parse_events(events_file; validate=validate)
