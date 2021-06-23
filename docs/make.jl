@@ -57,10 +57,14 @@ try
     catch
         install_jsonschema2md_status = chomp(read(`$(NodeJS.npm_cmd()) install -g @adobe/jsonschema2md`, String))
     end
-    run_jsonschema2md_status = chomp(read(`jsonschema2md -d schemas -o docs/src/schemas -x - -n`, String))
+
+    schemas_out_dir = joinpath(dirname(pathof(PowerModelsONM)), "..", "docs", "src", "schemas")
+    mkpath(schemas_out_dir)
+
+    run_jsonschema2md_status = chomp(read(`jsonschema2md -d schemas -o $(schemas_out_dir) -x - -n`, String))
 
     schema_basenames = [split(file, ".")[1] for file in readdir("schemas") if endswith(file, "schema.json")]
-    schema_files = collect(readdir("docs/src/schemas"))
+    schema_files = collect(readdir(schemas_out_dir))
 
     for file in schema_files
         doc = open("docs/src/schemas/$file", "r") do io
