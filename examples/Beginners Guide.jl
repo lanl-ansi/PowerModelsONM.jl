@@ -9,7 +9,7 @@ begin
 	import Pkg
 	Pkg.activate(mktempdir())
 	Pkg.add(Pkg.PackageSpec(; name="PowerModelsONM", url="https://github.com/lanl-ansi/PowerModelsONM.jl", rev="pmd-v0.11"))
-	# TODO replace with master branch
+	# TODO replace with main branch
 end
 
 
@@ -27,7 +27,7 @@ To use PowerModelsONM, you will need to install the package via
 
 - `Pkg.add()` and `PackageSpec` (see below), 
 - download one of the binaries from [PowerModelsONM Releases](https://github.com/lanl-ansi/PowerModelsONM.jl/releases) (experimental), or 
-- build a docker image locally with our included [Dockerfile](https://github.com/lanl-ansi/PowerModelsONM.jl/blob/master/Dockerfile).
+- build a docker image locally with our included [Dockerfile](https://github.com/lanl-ansi/PowerModelsONM.jl/blob/main/Dockerfile).
 
 In this Pluto notebook, we will install via the built-in Julia Package Manager:
 """

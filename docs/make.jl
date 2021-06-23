@@ -98,8 +98,9 @@ if !_FAST
     end
 end
 
-
+# Deploy to github.io
 deploydocs(
     repo = "github.com/lanl-ansi/PowerModelsDistribution.jl.git",
     push_preview = false,
+    devbranch = "main",
 )

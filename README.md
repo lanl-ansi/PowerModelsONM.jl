@@ -50,7 +50,7 @@ This code is provided under a BSD license as part of the Multi-Infrastructure Co
 [github-actions-img]: https://github.com/lanl-ansi/PowerModelsONM.jl/workflows/CI/badge.svg
 [github-actions-url]: https://github.com/lanl-ansi/PowerModelsONM.jl/actions/workflows/ci.yml
 
-[codecov-img]: https://codecov.io/gh/lanl-ansi/PowerModelsONM.jl/branch/master/graph/badge.svg
+[codecov-img]: https://codecov.io/gh/lanl-ansi/PowerModelsONM.jl/branch/main/graph/badge.svg
 [codecov-url]: https://codecov.io/gh/lanl-ansi/PowerModelsONM.jl
 
 [contrib-url]: https://lanl-ansi.github.io/PowerModelsONM.jl/stable/developer/contributing.html
