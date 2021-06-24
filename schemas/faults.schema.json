@@ -79,6 +79,7 @@
             "^\\d+$": {
               "type": "object",
               "description": "enumerated faults in case there are more than one fault of the same type on the same bus",
+              "additionalProperties": false,
               "properties": {
                 "name": {
                   "type": "string",

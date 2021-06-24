@@ -74,6 +74,7 @@
           "fault": {
             "type": "object",
             "description": "The fault object which idenifies the details about the fault that was applied in this particular study",
+            "additionalProperties": false,
             "properties": {
               "bus": {
                 "type": "string",
@@ -128,6 +129,7 @@
               "^.+$": {
                 "type": "object",
                 "description": "switch (protection) object",
+                "additionalProperties": false,
                 "properties": {
                   "|I| (A)": {
                     "type": "array",

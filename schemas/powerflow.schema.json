@@ -14,63 +14,6 @@
     "output"
   ],
   "description": "The schema for the powerflow outputs from [`optimize_dispatch`](@ref optimize_dispatch), which include real and reactive power setpoints at generation objects, which include diesel generators (`generator`), substations/grid/feeder (`voltage_source`), solar PV (`solar`), or energy storage (`storage`), and voltage magnitudes at buses. All values are in SI units.",
-  "items": {
-    "type": "object",
-    "additionalProperties": false,
-    "properties": {
-      "bus": {
-        "type": "object",
-        "additionalProperties": false,
-        "description": "Bus objects indexed by name",
-        "patternProperties": {
-          "^.+$": {
-            "type": "object",
-            "additionalProperties": false,
-            "description": "Bus object",
-            "properties": {
-              "Voltage (V)": {
-                "type": "array",
-                "description": "Voltage magnitudes in Volts",
-                "items": {
-                  "type": "number"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "patternProperties": {
-      "^[generator|voltage_source|solar|storage]$": {
-        "type": "object",
-        "additionalProperties": false,
-        "description": "Generation types: diesel generators (`generator`), or substations (`voltage_source`), or solar PV (`solar`), or energy storage (`storage`)",
-        "patternProperties": {
-          "^.+$": {
-            "type": "object",
-            "additionalProperties": false,
-            "description": "generation object",
-            "properties": {
-              "real power setpoint (kW)": {
-                "type": "array",
-                "description": "real power setpoints in kW",
-                "items": {
-                  "type": "number"
-                }
-              },
-              "reactive power setpoint (kVar)": {
-                "type": "array",
-                "description": "reactive power setpoint in kVar",
-                "items": {
-                  "type": "number"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
   "examples": [
     [
       {
@@ -111,5 +54,144 @@
         }
       }
     ]
-  ]
+  ],
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "generator": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Generation types: diesel generators (`generator`), or substations (`voltage_source`), or solar PV (`solar`), or energy storage (`storage`)",
+        "patternProperties": {
+          "^.+$": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "generation object",
+            "properties": {
+              "real power setpoint (kW)": {
+                "type": "array",
+                "description": "real power setpoints in kW",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "reactive power setpoint (kVar)": {
+                "type": "array",
+                "description": "reactive power setpoint in kVar",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "voltage_source": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Generation types: diesel generators (`generator`), or substations (`voltage_source`), or solar PV (`solar`), or energy storage (`storage`)",
+        "patternProperties": {
+          "^.+$": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "generation object",
+            "properties": {
+              "real power setpoint (kW)": {
+                "type": "array",
+                "description": "real power setpoints in kW",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "reactive power setpoint (kVar)": {
+                "type": "array",
+                "description": "reactive power setpoint in kVar",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "solar": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Generation types: diesel generators (`generator`), or substations (`voltage_source`), or solar PV (`solar`), or energy storage (`storage`)",
+        "patternProperties": {
+          "^.+$": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "generation object",
+            "properties": {
+              "real power setpoint (kW)": {
+                "type": "array",
+                "description": "real power setpoints in kW",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "reactive power setpoint (kVar)": {
+                "type": "array",
+                "description": "reactive power setpoint in kVar",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "storage": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Generation types: diesel generators (`generator`), or substations (`voltage_source`), or solar PV (`solar`), or energy storage (`storage`)",
+        "patternProperties": {
+          "^.+$": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "generation object",
+            "properties": {
+              "real power setpoint (kW)": {
+                "type": "array",
+                "description": "real power setpoints in kW",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "reactive power setpoint (kVar)": {
+                "type": "array",
+                "description": "reactive power setpoint in kVar",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "bus": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Bus objects indexed by name",
+        "patternProperties": {
+          "^.+$": {
+            "type": "object",
+            "description": "Bus object",
+            "additionalProperties": false,
+            "properties": {
+              "voltage (V)": {
+                "type": "array",
+                "description": "Voltage magnitudes in Volts",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 }

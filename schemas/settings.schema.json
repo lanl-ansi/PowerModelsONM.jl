@@ -35,29 +35,221 @@
     }
   ],
   "properties": {
-    "max_switch_actions": {
-      "type": [
-        "array",
-        "number"
-      ],
-      "description": "The maximum allowed switching actions per timestep (or at each timestep, if an array)",
-      "items": {
-        "type": "number"
+    "generator": {
+      "type": "object",
+      "description": "generation objects, excluding storage, which has different properties, indexed by name",
+      "patternProperties": {
+        "^.+$": {
+          "type": "object",
+          "description": "generation object",
+          "properties": {
+            "pg_lb": {
+              "type": "array",
+              "description": "real power lower bounds in kW",
+              "items": {
+                "type": "number"
+              }
+            },
+            "pg_ub": {
+              "type": "array",
+              "description": "real power upper bounds in kW",
+              "items": {
+                "type": "number"
+              }
+            },
+            "pg": {
+              "type": "array",
+              "description": "real power setpoint in kW",
+              "items": {
+                "type": "number"
+              }
+            },
+            "qg_lb": {
+              "type": "array",
+              "description": "Reactive power lower bounds in kVar",
+              "items": {
+                "type": "number"
+              }
+            },
+            "qg_ub": {
+              "type": "array",
+              "description": "Reactive power upper bounds in kVar",
+              "items": {
+                "type": "number"
+              }
+            },
+            "qg": {
+              "type": "array",
+              "description": "Reactive power setpoint in kVar",
+              "items": {
+                "type": "number"
+              }
+            },
+            "control_mode": {
+              "type": "string",
+              "description": "The control mode, _i.e._ `FREQUENCYDROOP` (grid-following) or `ISOCHRONOUS` (grid-forming)",
+              "enum": [
+                "FREQUENCYDROOP",
+                "ISOCHRONOUS"
+              ]
+            },
+            "status": {
+              "type": "integer",
+              "enum": [
+                0,
+                1
+              ],
+              "minimum": 0,
+              "maximum": 1,
+              "description": "The status of the generation object, _i.e._ enabled (`1`) or disabled (`0`)"
+            }
+          }
+        }
       }
     },
-    "time_elapsed": {
-      "type": [
-        "array",
-        "number"
-      ],
-      "description": "The time elapsed, in hours for each timestep, or individually after each timestep if an array",
-      "items": {
-        "type": "number"
+    "solar": {
+      "type": "object",
+      "description": "generation objects, excluding storage, which has different properties, indexed by name",
+      "patternProperties": {
+        "^.+$": {
+          "type": "object",
+          "description": "generation object",
+          "properties": {
+            "pg_lb": {
+              "type": "array",
+              "description": "real power lower bounds in kW",
+              "items": {
+                "type": "number"
+              }
+            },
+            "pg_ub": {
+              "type": "array",
+              "description": "real power upper bounds in kW",
+              "items": {
+                "type": "number"
+              }
+            },
+            "pg": {
+              "type": "array",
+              "description": "real power setpoint in kW",
+              "items": {
+                "type": "number"
+              }
+            },
+            "qg_lb": {
+              "type": "array",
+              "description": "Reactive power lower bounds in kVar",
+              "items": {
+                "type": "number"
+              }
+            },
+            "qg_ub": {
+              "type": "array",
+              "description": "Reactive power upper bounds in kVar",
+              "items": {
+                "type": "number"
+              }
+            },
+            "qg": {
+              "type": "array",
+              "description": "Reactive power setpoint in kVar",
+              "items": {
+                "type": "number"
+              }
+            },
+            "control_mode": {
+              "type": "string",
+              "description": "The control mode, _i.e._ `FREQUENCYDROOP` (grid-following) or `ISOCHRONOUS` (grid-forming)",
+              "enum": [
+                "FREQUENCYDROOP",
+                "ISOCHRONOUS"
+              ]
+            },
+            "status": {
+              "type": "integer",
+              "enum": [
+                0,
+                1
+              ],
+              "minimum": 0,
+              "maximum": 1,
+              "description": "The status of the generation object, _i.e._ enabled (`1`) or disabled (`0`)"
+            }
+          }
+        }
       }
     },
-    "nlp_solver_tol": {
-      "type": "number",
-      "description": "The tolerance of the nlp solver"
+    "voltage_source": {
+      "type": "object",
+      "description": "generation objects, excluding storage, which has different properties, indexed by name",
+      "patternProperties": {
+        "^.+$": {
+          "type": "object",
+          "description": "generation object",
+          "properties": {
+            "pg_lb": {
+              "type": "array",
+              "description": "real power lower bounds in kW",
+              "items": {
+                "type": "number"
+              }
+            },
+            "pg_ub": {
+              "type": "array",
+              "description": "real power upper bounds in kW",
+              "items": {
+                "type": "number"
+              }
+            },
+            "pg": {
+              "type": "array",
+              "description": "real power setpoint in kW",
+              "items": {
+                "type": "number"
+              }
+            },
+            "qg_lb": {
+              "type": "array",
+              "description": "Reactive power lower bounds in kVar",
+              "items": {
+                "type": "number"
+              }
+            },
+            "qg_ub": {
+              "type": "array",
+              "description": "Reactive power upper bounds in kVar",
+              "items": {
+                "type": "number"
+              }
+            },
+            "qg": {
+              "type": "array",
+              "description": "Reactive power setpoint in kVar",
+              "items": {
+                "type": "number"
+              }
+            },
+            "control_mode": {
+              "type": "string",
+              "description": "The control mode, _i.e._ `FREQUENCYDROOP` (grid-following) or `ISOCHRONOUS` (grid-forming)",
+              "enum": [
+                "FREQUENCYDROOP",
+                "ISOCHRONOUS"
+              ]
+            },
+            "status": {
+              "type": "integer",
+              "enum": [
+                0,
+                1
+              ],
+              "minimum": 0,
+              "maximum": 1,
+              "description": "The status of the generation object, _i.e._ enabled (`1`) or disabled (`0`)"
+            }
+          }
+        }
+      }
     },
     "storage": {
       "type": "object",
@@ -272,80 +464,30 @@
           }
         }
       }
-    }
-  },
-  "patternProperties": {
-    "^[generator|solar|voltage_source]$": {
-      "type": "object",
-      "description": "generation objects, excluding storage, which has different properties, indexed by name",
-      "patternProperties": {
-        "^.+$": {
-          "type": "object",
-          "description": "generation object",
-          "properties": {
-            "pg_lb": {
-              "type": "array",
-              "description": "real power lower bounds in kW",
-              "items": {
-                "type": "number"
-              }
-            },
-            "pg_ub": {
-              "type": "array",
-              "description": "real power upper bounds in kW",
-              "items": {
-                "type": "number"
-              }
-            },
-            "pg": {
-              "type": "array",
-              "description": "real power setpoint in kW",
-              "items": {
-                "type": "number"
-              }
-            },
-            "qg_lb": {
-              "type": "array",
-              "description": "Reactive power lower bounds in kVar",
-              "items": {
-                "type": "number"
-              }
-            },
-            "qg_ub": {
-              "type": "array",
-              "description": "Reactive power upper bounds in kVar",
-              "items": {
-                "type": "number"
-              }
-            },
-            "qg": {
-              "type": "array",
-              "description": "Reactive power setpoint in kVar",
-              "items": {
-                "type": "number"
-              }
-            },
-            "control_mode": {
-              "type": "string",
-              "description": "The control mode, _i.e._ `FREQUENCYDROOP` (grid-following) or `ISOCHRONOUS` (grid-forming)",
-              "enum": [
-                "FREQUENCYDROOP",
-                "ISOCHRONOUS"
-              ]
-            },
-            "status": {
-              "type": "integer",
-              "enum": [
-                0,
-                1
-              ],
-              "minimum": 0,
-              "maximum": 1,
-              "description": "The status of the generation object, _i.e._ enabled (`1`) or disabled (`0`)"
-            }
-          }
-        }
+    },
+    "max_switch_actions": {
+      "type": [
+        "array",
+        "number"
+      ],
+      "description": "The maximum allowed switching actions per timestep (or at each timestep, if an array)",
+      "items": {
+        "type": "number"
       }
+    },
+    "time_elapsed": {
+      "type": [
+        "array",
+        "number"
+      ],
+      "description": "The time elapsed, in hours for each timestep, or individually after each timestep if an array",
+      "items": {
+        "type": "number"
+      }
+    },
+    "nlp_solver_tol": {
+      "type": "number",
+      "description": "The tolerance of the nlp solver"
     }
   }
 }
