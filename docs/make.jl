@@ -56,19 +56,20 @@ try
         @assert "6.0.3" == chomp(read(`jsonschema2md --version`, String))
     catch
         install_jsonschema2md_status = chomp(read(`$(NodeJS.npm_cmd()) install -g @adobe/jsonschema2md`, String))
-        error(install_jsonschema2md_status)
+        path_of_jsonschema2md = split(split(install_jsonschema2md_status, "\n")[1], " -> ")[1]
     end
 
+    schemas_in_dir = joinpath(dirname(pathof(PowerModelsONM)), "..", "schemas")
     schemas_out_dir = joinpath(dirname(pathof(PowerModelsONM)), "..", "docs", "src", "schemas")
     mkpath(schemas_out_dir)
 
-    run_jsonschema2md_status = chomp(read(`jsonschema2md -d schemas -o $(schemas_out_dir) -x - -n`, String))
+    run_jsonschema2md_status = chomp(read(`$(path_of_jsonschema2md) -d $(schemas_in_dir) -o $(schemas_out_dir) -x - -n`, String))
 
-    schema_basenames = [split(file, ".")[1] for file in readdir("schemas") if endswith(file, "schema.json")]
+    schema_basenames = [split(file, ".")[1] for file in readdir(schemas_in_dir) if endswith(file, "schema.json")]
     schema_files = collect(readdir(schemas_out_dir))
 
     for file in schema_files
-        doc = open("docs/src/schemas/$file", "r") do io
+        doc = open(joinpath(schemas_out_dir, file), "r") do io
             replace(
                 replace(
                     replace(
@@ -81,7 +82,7 @@ try
             )
         end
 
-        open("docs/src/schemas/$file", "w") do io
+        open(joinpath(schemas_out_dir, file), "w") do io
             write(io, doc)
         end
     end
