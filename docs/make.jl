@@ -52,8 +52,9 @@ pages = [
 
 # Build schema documentation
 try
+    path_of_jsonschema2md = "jsonschema2md"
     try
-        @assert "6.0.3" == chomp(read(`jsonschema2md --version`, String))
+        @assert "6.0.3" == chomp(read(`$(path_of_jsonschema2md) --version`, String))
     catch
         install_jsonschema2md_status = chomp(read(`$(NodeJS.npm_cmd()) install -g @adobe/jsonschema2md`, String))
         path_of_jsonschema2md = split(split(install_jsonschema2md_status, "\n")[1], " -> ")[1]
@@ -92,7 +93,7 @@ try
     ]
     push!(pages, schema_docs)
 catch e
-    error("json schema documentation build failed, skipping: $e")
+    @warn "json schema documentation build failed, skipping: $e"
 end
 
 # build documents

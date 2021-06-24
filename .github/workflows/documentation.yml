@@ -17,6 +17,11 @@ jobs:
           version: '1'
       - name: Install Dependencies
         run: julia --project=docs -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '16.x'
+      - name: Install jsonschema2md
+        run: npm install -g jsonschema2md
       - name: Build and Deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
