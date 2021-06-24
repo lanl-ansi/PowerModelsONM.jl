@@ -156,7 +156,7 @@ end
 
 # Deploy to github.io
 deploydocs(
-    repo = "github.com/lanl-ansi/PowerModelsDistribution.jl.git",
+    repo = "github.com/lanl-ansi/PowerModelsONM.jl.git",
     push_preview = false,
     devbranch = "main",
 )
