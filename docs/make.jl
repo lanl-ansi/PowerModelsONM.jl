@@ -80,7 +80,7 @@ try
                 replace(
                     replace(
                         read(io,String),
-                        "../../../schemas/" => "https://raw.githubusercontent.com/lanl-ansi/PowerModelsONM.jl/main/models/"
+                        "../../../schemas/" => "https://raw.githubusercontent.com/lanl-ansi/PowerModelsONM.jl/main/schemas/"
                     ),
                     r"(\[.+\])?\((.+)?\s\".+\"\)" => s"\1(\2)",
                 ),
