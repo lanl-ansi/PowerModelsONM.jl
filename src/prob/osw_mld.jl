@@ -1,11 +1,22 @@
-""
-function run_mn_mc_osw_mld_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)
-    return PMD.solve_mc_model(data, model_type, solver, build_mn_mc_osw_mld_mi; multinetwork=true, kwargs...)
+"""
+    solve_mn_mc_osw_mld_mi_indicator(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)::Dict{String,Any}
+
+Solves a __multinetwork__ multiconductor optimal switching (mixed-integer) problem using `model_type` and `solver`
+
+Uses [indicator constraints](https://jump.dev/JuMP.jl/stable/manual/constraints/#Indicator-constraints), so
+requires a solver that supports them (e.g., Gurobi or CPLEX)
+
+Calls back to PowerModelsDistribution.solve_mc_model, and therefore will accept any valid `kwargs`
+for that function. See PowerModelsDistribution [documentation](https://lanl-ansi.github.io/PowerModelsDistribution.jl/latest)
+for more details.
+"""
+function solve_mn_mc_osw_mld_mi_indicator(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)::Dict{String,Any}
+    return PMD.solve_mc_model(data, model_type, solver, _build_mn_mc_osw_mld_mi_indicator; multinetwork=true, kwargs...)
 end
 
 
 "Multinetwork load shedding problem for Branch Flow model"
-function build_mn_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
+function _build_mn_mc_osw_mld_mi_indicator(pm::PMD.AbstractUBFModels)
     for (n, network) in PMD.nws(pm)
         PMD.variable_mc_branch_current(pm; nw=n)
         PMD.variable_mc_branch_power(pm; nw=n)
@@ -30,13 +41,13 @@ function build_mn_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
         end
 
         for i in PMD.ids(pm, n, :bus)
-            constraint_mc_power_balance_shed(pm, i; nw=n)
+            PMD.constraint_mc_power_balance_shed(pm, i; nw=n)
         end
 
         for i in PMD.ids(pm, n, :storage)
             PMD.constraint_mc_storage_losses(pm, i; nw=n)
             # PMD.constraint_mc_storage_thermal_limit(pm, i; nw=n)
-            PMD._PM.constraint_storage_complementarity_mi(pm, i; nw=n)
+            PMD.constraint_storage_complementarity_mi(pm, i; nw=n)
         end
 
         for i in PMD.ids(pm, n, :branch)
@@ -64,12 +75,12 @@ function build_mn_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
     n_1 = network_ids[1]
 
     for i in PMD.ids(pm, :storage; nw=n_1)
-        PMD._PM.constraint_storage_state(pm, i; nw=n_1)
+        PMD.constraint_storage_state(pm, i; nw=n_1)
     end
 
     for n_2 in network_ids[2:end]
         for i in PMD.ids(pm, :storage; nw=n_2)
-            PMD._PM.constraint_storage_state(pm, i, n_1, n_2)
+            PMD.constraint_storage_state(pm, i, n_1, n_2)
         end
 
         n_1 = n_2
@@ -79,14 +90,25 @@ function build_mn_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
 end
 
 
-""
-function run_mc_osw_mld_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)
-    return PMD.solve_mc_model(data, model_type, solver, build_mc_osw_mld_mi; multinetwork=false, kwargs...)
+"""
+    solve_mc_osw_mld_mi_indicator(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)::Dict{String,Any}
+
+Solves a multiconductor optimal switching (mixed-integer) problem using `model_type` and `solver`
+
+Uses [indicator constraints](https://jump.dev/JuMP.jl/stable/manual/constraints/#Indicator-constraints), so
+requires a solver that supports them (e.g., Gurobi or CPLEX)
+
+Calls back to PowerModelsDistribution.solve_mc_model, and therefore will accept any valid `kwargs`
+for that function. See PowerModelsDistribution [documentation](https://lanl-ansi.github.io/PowerModelsDistribution.jl/latest)
+for more details.
+"""
+function solve_mc_osw_mld_mi_indicator(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)::Dict{String,Any}
+    return PMD.solve_mc_model(data, model_type, solver, _build_mc_osw_mld_mi_indicator; multinetwork=false, kwargs...)
 end
 
 
 "Multinetwork load shedding problem for Branch Flow model"
-function build_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
+function _build_mc_osw_mld_mi_indicator(pm::PMD.AbstractUBFModels)
     PMD.variable_mc_bus_voltage_indicator(pm; relax=false)
     PMD.variable_mc_bus_voltage_on_off(pm)
 
@@ -122,8 +144,8 @@ function build_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
     end
 
     for i in PMD.ids(pm, :storage)
-        PMD._PM.constraint_storage_state(pm, i)
-        PMD._PM.constraint_storage_complementarity_mi(pm, i)
+        PMD.constraint_storage_state(pm, i)
+        PMD.constraint_storage_complementarity_mi(pm, i)
         PMD.constraint_mc_storage_on_off(pm, i)
         PMD.constraint_mc_storage_losses(pm, i)
         PMD.constraint_mc_storage_thermal_limit(pm, i)
@@ -154,31 +176,39 @@ function build_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
 end
 
 
-""
-function run_mc_osw_mld(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)
-    return PMD.solve_mc_model(data, model_type, solver, build_mc_osw_mld; multinetwork=false, kwargs...)
+"""
+    solve_mc_osw_mld_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)::Dict{String,Any}
+
+Solves a multiconductor optimal switching (relaxed, i.e., _not_ mixed-integer) problem using `model_type` and `solver`
+
+Calls back to PowerModelsDistribution.solve_mc_model, and therefore will accept any valid `kwargs`
+for that function. See PowerModelsDistribution [documentation](https://lanl-ansi.github.io/PowerModelsDistribution.jl/latest)
+for more details.
+"""
+function solve_mc_osw_mld_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)::Dict{String,Any}
+    return PMD.solve_mc_model(data, model_type, solver, _build_mc_osw_mld_mi; multinetwork=false, kwargs...)
 end
 
 
 "Multinetwork load shedding problem for Branch Flow model"
-function build_mc_osw_mld(pm::PMD.AbstractUBFModels)
-    PMD.variable_mc_bus_voltage_indicator(pm; relax=true)
+function _build_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
+    PMD.variable_mc_bus_voltage_indicator(pm; relax=false)
     PMD.variable_mc_bus_voltage_on_off(pm)
 
     PMD.variable_mc_branch_current(pm)
     PMD.variable_mc_branch_power(pm)
     PMD.variable_mc_switch_power(pm)
-    PMD.variable_mc_switch_state(pm; relax=true)
+    PMD.variable_mc_switch_state(pm; relax=false)
     PMD.variable_mc_transformer_power(pm)
 
-    PMD.variable_mc_gen_indicator(pm; relax=true)
+    PMD.variable_mc_gen_indicator(pm; relax=false)
     PMD.variable_mc_generator_power_on_off(pm)
 
-    PMD.variable_mc_storage_indicator(pm, relax=true)
-    PMD.variable_mc_storage_power_mi_on_off(pm, relax=true)
+    PMD.variable_mc_storage_indicator(pm, relax=false)
+    PMD.variable_mc_storage_power_mi_on_off(pm, relax=false)
 
-    variable_mc_load_block_indicator(pm; relax=true)
-    PMD.variable_mc_shunt_indicator(pm; relax=true)
+    variable_mc_load_block_indicator(pm; relax=false)
+    PMD.variable_mc_shunt_indicator(pm; relax=false)
 
     PMD.constraint_mc_model_current(pm)
 
@@ -197,8 +227,8 @@ function build_mc_osw_mld(pm::PMD.AbstractUBFModels)
     end
 
     for i in PMD.ids(pm, :storage)
-        PMD._PM.constraint_storage_state(pm, i)
-        PMD._PM.constraint_storage_complementarity_mi(pm, i)
+        PMD.constraint_storage_state(pm, i)
+        PMD.constraint_storage_complementarity_mi(pm, i)
         PMD.constraint_mc_storage_on_off(pm, i)
         PMD.constraint_mc_storage_losses(pm, i)
         PMD.constraint_mc_storage_thermal_limit(pm, i)

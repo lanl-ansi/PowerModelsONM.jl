@@ -1,11 +1,29 @@
 using PowerModelsONM
 
-import Ipopt
+import JSON
+import PowerModelsDistribution
 
-ipopt_solver = PowerModelsONM.PMD.optimizer_with_attributes(Ipopt.Optimizer, "tol"=>1e-6, "print_level"=>0)
+const PMD = PowerModelsDistribution
 
 using Test
 
+silence!()
+
 @testset "PowerModelsONM" begin
-    # TODO: add unit tests
+    # initialization
+    include("args.jl")
+    include("schema.jl")
+
+    # inputs
+    include("io.jl")
+    include("data.jl")
+
+    # problems
+    include("osw.jl")
+    include("opf.jl")
+    include("faults.jl")
+    include("stability.jl")
+
+    # full workflow and outputs
+    include("stats.jl")
 end

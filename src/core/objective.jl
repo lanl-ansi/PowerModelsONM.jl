@@ -1,61 +1,21 @@
-"gen connections adaptation of min fuel cost polynomial linquad objective"
-function objective_mc_min_fuel_cost_switch(pm::PMD._PM.AbstractPowerModel; report::Bool=true)
-    gen_cost = Dict()
-    for (n, nw_ref) in PMD.nws(pm)
-        for (i,gen) in nw_ref[:gen]
-            pg = sum( PMD.var(pm, n, :pg, i)[c] for c in gen["connections"] )
+@doc raw"""
+    objective_mc_min_load_setpoint_delta_switch(pm::PMD.AbstractUnbalancedPowerModel)
 
-            if length(gen["cost"]) == 1
-                gen_cost[(n,i)] = gen["cost"][1]
-            elseif length(gen["cost"]) == 2
-                gen_cost[(n,i)] = gen["cost"][1]*pg + gen["cost"][2]
-            elseif length(gen["cost"]) == 3
-                if gen["cost"][1] == 0
-                    gen_cost[(n,i)] = gen["cost"][2]*pg + gen["cost"][3]
-                else
-                    gen_cost[(n,i)] = gen["cost"][1]*pg^2 + gen["cost"][2]*pg + gen["cost"][3]
-                end
-            else
-                gen_cost[(n,i)] = 0.0
-            end
-        end
-    end
+minimum load delta objective (continuous load shed) with storage
 
-    state_start = Dict(
-        (n,l) => PMD.ref(pm, n, :switch, l, "state")
-        for (n, nw_ref) in PMD.nws(pm) for l in PMD.ids(pm, n, :switch)
-    )
-
-    return PMD.JuMP.@objective(pm.model, Min,
-        sum(
-            sum( gen_cost[(n,i)] for (i,gen) in nw_ref[:gen] ) +
-            sum( PMD.var(pm, n, :switch_state, l) for l in PMD.ids(pm, n, :switch_dispatchable)) +
-            sum( (state_start[(n,l)] - PMD.var(pm, n, :switch_state, l)) * (round(state_start[(n,l)]) == 0 ? -1 : 1) for l in PMD.ids(pm, n, :switch_dispatchable))
-        for (n, nw_ref) in PMD.nws(pm))
-    )
-end
-
-
-"simplified minimum load delta objective (continuous load shed)"
-function objective_mc_min_load_setpoint_delta_simple_switch(pm::PMD._PM.AbstractPowerModel)
-    state_start = Dict(
-        (n,l) => PMD.ref(pm, n, :switch, l, "state")
-        for (n, nw_ref) in PMD.nws(pm) for l in PMD.ids(pm, n, :switch)
-    )
-
-    PMD.JuMP.@objective(pm.model, Min,
-        sum(
-            sum( ((1 - PMD.var(pm, n, :z_demand, i))) for i in keys(nw_ref[:load])) +
-            sum( ((1 - PMD.var(pm, n, :z_shunt, i))) for (i,shunt) in nw_ref[:shunt]) +
-            # sum( PMD.var(pm, n, :switch_state, l) for l in PMD.ids(pm, n, :switch_dispatchable)) +
-            1e-3 * sum( (state_start[(n,l)] - PMD.var(pm, n, :switch_state, l)) * (round(state_start[(n,l)]) == 0 ? -1 : 1) for l in PMD.ids(pm, n, :switch_dispatchable))
-        for (n, nw_ref) in PMD.nws(pm))
-    )
-end
-
-
-"minimum load delta objective (continuous load shed) with storage"
-function objective_mc_min_load_setpoint_delta_switch(pm::PMD._PM.AbstractPowerModel)
+```math
+\begin{align}
+\mbox{minimize: } & \nonumber \\
+& \sum_{\substack{i\in N,c\in C}}{10 \left (1-z^v_i \right )} + \nonumber \\
+& \sum_{\substack{i\in L,c\in C}}{10 \omega_{i,c}\left |\Re{\left (S^d_i\right )}\right |\left ( 1-z^d_i \right ) } + \nonumber \\
+& \sum_{\substack{i\in H,c\in C}}{\left | \Re{\left (S^s_i \right )}\right | \left (1-z^s_i \right ) } + \nonumber \\
+& \sum_{\substack{i\in G,c\in C}}{\Delta^g_i } + \nonumber \\
+& \sum_{\substack{i\in B,c\in C}}{\Delta^b_i}  + \nonumber \\
+& \sum_{\substack{i\in S}}{\Delta^{sw}_i}
+\end{align}
+```
+"""
+function objective_mc_min_load_setpoint_delta_switch(pm::PMD.AbstractUnbalancedPowerModel)
     for (n, nw_ref) in PMD.nws(pm)
         PMD.var(pm, n)[:delta_pg] = Dict(
             i => PMD.JuMP.@variable(

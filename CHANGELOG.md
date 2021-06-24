@@ -2,6 +2,43 @@
 
 ## staged
 
+- none
+
+## v1.0.0
+
+- Complete refactor of PowerModelsONM API
+- Documentation of all functions and tutorials on usage now included
+- IEEE13 modified feeder added for unit testing
+- Gurobi removed as requirement, use Requires.jl to manage Gurobi GRB_ENV initialization
+- Requires PowerModelsDistribution v0.11.4+
+- Requires PowerModelsStability v0.2.1+
+- Requires PowerModelsProtection v0.3.0+
+- Adds JSONSchema, JuMP, ProgressMeter, Requires as dependencies
+- Removes DataFrames, Gurobi, Memento, XLSX as dependencies
+- Documenter build requires Pluto, Gumbo
+- Update Dockerfile for docker image builds
+- Update Makefile for easy testing and docs building
+- Added new "Fault currents" to output json schema
+- Added new "faults" to input json schema
+- Removed "Protection settings" from output json schema
+- Removed Manifest.toml from repo
+- Updated events input json schema to remove "pre_event_actions" and "post_event_actions" (revisit in future update)
+- Added runtime_arguments json schema for easier validation of inputs
+- Added inverters input json schema to validate inverters for stability analysis
+- Added settings input json schema for increased flexibility in defining network settings
+- Updated output json schema to be more restrictive
+- Improved logging experience, added --quiet flag
+- Reorganized code to be more managable, removed functions that are now in PowerModelsDistribution
+- Converted everything to use ENGINEERING model, instead of switching back and forth between MATHEMATICAL and ENGINEERING manually, significantly improving the user experience
+- Updated load block calculation algorithm
+- Added json schema validation functions, and `load_schema` function to automatically adjust refs
+- Simplified storage conversion for PowerModelsProtection calculations to use ENGINEERING model
+- Fixed bounds for switch power and state constraints for big-M formulation of the constraints
+- Depreciated runtime arguments in favor of more concise ones, and added warnings and conversions for old arguments via `sanitize_args!`
+- Refactored built-in solver creation to use Ipopt, Cbc, Juniper, Alpine, and Gurobi (if available)
+- Removed optimal switching problems (no MLD)
+- Renamed optimal switching mld problems to indicate if using indicator constraints, all remaining problems are mixed integer
+- Added examples for unit tests for faults, events, settings, inverters json files
 - Fix events getting overwritten in iterative osw_mld problem
 
 ## v0.4.0
