@@ -50,6 +50,7 @@ pages = [
     "Developer Docs" => [
         "Contributing Guide" => "developer/contributing.md",
         "Style Guide" => "developer/style.md",
+        "Roadmap" => "developer/roadmap.md",
     ],
 ]
 
