@@ -54,7 +54,8 @@ pages = [
 try
     path_of_jsonschema2md = "jsonschema2md"
     try
-        @assert "6.0.3" == chomp(read(`$(path_of_jsonschema2md) --version`, String))
+        jsonschema2md_version = chomp(read(`$(path_of_jsonschema2md) --version`, String))
+        @assert "6.0.3" == jsonschema2md_version
     catch
         install_jsonschema2md_status = chomp(read(`$(NodeJS.npm_cmd()) install -g @adobe/jsonschema2md`, String))
         path_of_jsonschema2md = split(split(install_jsonschema2md_status, "\n")[1], " -> ")[1]
