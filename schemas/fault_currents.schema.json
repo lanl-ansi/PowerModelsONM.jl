@@ -15,7 +15,51 @@
   ],
   "examples": [
     [
-      {}
+      {
+        "701_lg_1": {
+          "fault": {
+            "susceptance (S)": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ]
+            ],
+            "connections": [
+              1,
+              4
+            ],
+            "conductance (S)": [
+              [
+                100,
+                -100
+              ],
+              [
+                -100,
+                100
+              ]
+            ],
+            "bus": "701",
+            "type": "lg"
+          },
+          "switch": {
+            "671692": {
+              "|I| (A)": null,
+              "|I2| (A)": 0.8,
+              "|I0| (A)": 1.2,
+              "|I1| (A)": 90.1,
+              "|V| (V)": [
+                2.5,
+                2.5,
+                2.5
+              ]
+            }
+          }
+        }
+      }
     ]
   ],
   "description": "Collection of data about fault currents collected from the outputs of fault studies using PowerModelsProtection",
@@ -25,13 +69,15 @@
     "patternProperties": {
       "^.+_[3p|3pg|llg|ll|lg]_\\d+": {
         "type": "object",
-        "description": "busName_faultType_faultID",
+        "description": "Results enumerated by keys of the format `busName_faultType_faultID`",
         "properties": {
           "fault": {
             "type": "object",
+            "description": "The fault object which idenifies the details about the fault that was applied in this particular study",
             "properties": {
               "bus": {
-                "type": "string"
+                "type": "string",
+                "description": "The bus at which the fault was applied"
               },
               "type": {
                 "type": "string",
@@ -41,12 +87,15 @@
                   "ll",
                   "lg",
                   "llg"
-                ]
+                ],
+                "description": "The type of fault, _i.e._, three-phase (`3p`), three-phase-to-ground (`3pg`), line-to-line-to-ground (`llg`), line-to-line (`ll`), line-to-ground (`lg`)"
               },
               "conductance (S)": {
                 "type": "array",
+                "description": "conductance matrix of the fault in Siemens",
                 "items": {
                   "type": "array",
+                  "description": "row vector of the conductance matrix",
                   "items": {
                     "type": "number"
                   }
@@ -54,8 +103,10 @@
               },
               "susceptance (S)": {
                 "type": "array",
+                "description": "Susceptance matrix of the fault in Siemens, usually all zeros",
                 "items": {
                   "type": "array",
+                  "description": "Row vector of the susceptance matrix",
                   "items": {
                     "type": "number"
                   }
@@ -63,6 +114,7 @@
               },
               "connections": {
                 "type": "array",
+                "description": "connections (phases) over which the fault applies",
                 "items": {
                   "type": "integer"
                 }
@@ -71,54 +123,77 @@
           },
           "switch": {
             "type": "object",
+            "description": "switch objects indexed by name",
             "patternProperties": {
               "^.+$": {
                 "type": "object",
+                "description": "switch (protection) object",
                 "properties": {
                   "|I| (A)": {
                     "type": "array",
+                    "description": "Fault current magnitude in amps",
                     "items": {
                       "type": "number"
                     }
                   },
                   "|V| (V)": {
                     "type": "array",
+                    "description": "Bus voltage magnitude in volts",
                     "items": {
                       "type": "number"
                     }
                   },
                   "Re(I0) (A)": {
-                    "type": "number"
+                    "type": "number",
+                    "description": "Real part of the zero sequence current in amps"
                   },
                   "Re(I1) (A)": {
-                    "type": "number"
+                    "type": "number",
+                    "description": "Real part of the positive sequence current in amps"
                   },
                   "Re(I2) (A)": {
-                    "type": "number"
+                    "type": "number",
+                    "description": "Real part of the negative sequence current in amps"
                   },
                   "Im(I0) (A)": {
-                    "type": "number"
+                    "type": "number",
+                    "description": "Imaginary part of the zero sequence current in amps"
                   },
                   "Im(I1) (A)": {
-                    "type": "number"
+                    "type": "number",
+                    "description": "Imaginary part of the positive sequence current in amps"
                   },
                   "Im(I2) (A)": {
-                    "type": "number"
+                    "type": "number",
+                    "description": "Imaginary part of the negative sequence current in amps"
                   },
                   "|I0| (A)": {
-                    "type": "number"
+                    "type": "number",
+                    "description": "magnitude of zero sequence current in amps"
                   },
                   "|I1| (A)": {
-                    "type": "number"
+                    "type": "number",
+                    "description": "magnitude of positive sequence current in amps"
                   },
                   "|I2| (A)": {
-                    "type": "number"
+                    "type": "number",
+                    "description": "magnitude of negative sequence current in amps"
                   }
-                }
+                },
+                "required": [
+                  "|I| (A)",
+                  "|V| (V)",
+                  "|I0| (A)",
+                  "|I1| (A)",
+                  "|I2| (A)"
+                ]
               }
             }
           }
-        }
+        },
+        "required": [
+          "fault"
+        ]
       }
     }
   }

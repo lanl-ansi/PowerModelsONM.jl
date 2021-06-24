@@ -1,4 +1,6 @@
 {
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "meta:license": [
     "Copyright (c) 2020, Triad National Security, LLC.",
     "This code is provided under a BSD license as part of the Multi-Infrastructure Control",
@@ -6,104 +8,8 @@
     "You may not use this file except in compliance with the License. You may obtain a copy",
     "of the License at https://github.com/lanl-ansi/PowerModelsONM.jl/blob/main/LICENSE.md"
   ],
-  "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "schemas/inverters",
   "title": "Inverters",
-  "type": "object",
-  "properties": {
-    "inverters": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "busID": {
-            "type": "string"
-          },
-          "id": {
-            "type": "string"
-          },
-          "inverter_bus": {
-            "type": "boolean"
-          },
-          "mp": {
-            "type": "number"
-          },
-          "mq": {
-            "type": "number"
-          },
-          "pg": {
-            "type": "array",
-            "items": {
-              "type": "number"
-            }
-          },
-          "pg_lb": {
-            "type": "array",
-            "items": {
-              "type": "number"
-            }
-          },
-          "pg_ub": {
-            "type": "array",
-            "items": {
-              "type": "number"
-            }
-          },
-          "qg": {
-            "type": "array",
-            "items": {
-              "type": "number"
-            }
-          },
-          "qg_lb": {
-            "type": "array",
-            "items": {
-              "type": "number"
-            }
-          },
-          "qg_ub": {
-            "type": "array",
-            "items": {
-              "type": "number"
-            }
-          },
-          "tau": {
-            "type": "number"
-          },
-          "vg": {
-            "type": "array",
-            "items": {
-              "type": "number"
-            }
-          },
-          "r": {
-            "type": "array",
-            "items": {
-              "type": "array",
-              "items": {
-                "type": "number"
-              }
-            }
-          },
-          "x": {
-            "type": "array",
-            "items": {
-              "type": "array",
-              "items": {
-                "type": "number"
-              }
-            }
-          }
-        }
-      }
-    },
-    "omega0": {
-      "type": "number"
-    },
-    "rN": {
-      "type": "integer"
-    }
-  },
   "x-tags": [
     "input"
   ],
@@ -192,5 +98,123 @@
       "rN": 1000
     }
   ],
-  "description": "Inverters for stability analysis for PowerModelsStability"
+  "description": "Inverter settings used for stability analysis via PowerModelsStability.\n\nThe following properties will be familiar for existing generator objects\n\n- `pg`, `pg_ub`, and `pg_lb` are vectors real power injection settings, setpoint, upper bound, and lower bound, respectively, of the inverter object,\n- `qg`, `qg_ub`, and `qg_lb` are vectors reactive power injection settings, setpoint, upper bound, and lower bound, respectively, of the inverter object\n- `vg` is the voltage setpoint of the inverter object\n\nThe following are specific to inverters,\n\n- `mp` is the $P-f$ droop coefficient at the inverter\n- `mq` is the $Q-V$ droop coefficient at the inverter\n- `tau` is the time constant of the measurement filter\n- `r` and `x` are internal resistance/reactance of the inverter object\n\nThe following are global settings\n\n- `omega0` is the frequency setpoint\n- `rN` is the virtual resistor resistance, usually a large number\n",
+  "additionalProperties": false,
+  "properties": {
+    "inverters": {
+      "type": "array",
+      "description": "List of inverter objects",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Inverter object",
+        "properties": {
+          "busID": {
+            "type": "string",
+            "description": "ID of the bus at which the inverter is applied"
+          },
+          "id": {
+            "type": "string",
+            "description": "ID of the inverter object"
+          },
+          "inverter_bus": {
+            "type": "boolean",
+            "description": "Is the inverter object grid-forming?"
+          },
+          "mp": {
+            "type": "number",
+            "description": "$P-f$ droop coefficient"
+          },
+          "mq": {
+            "type": "number",
+            "description": "$Q-V$ droop coefficient"
+          },
+          "pg": {
+            "type": "array",
+            "description": "real power setpoint",
+            "items": {
+              "type": "number"
+            }
+          },
+          "pg_lb": {
+            "type": "array",
+            "description": "real power lower bounds",
+            "items": {
+              "type": "number"
+            }
+          },
+          "pg_ub": {
+            "type": "array",
+            "description": "real power upper bounds",
+            "items": {
+              "type": "number"
+            }
+          },
+          "qg": {
+            "type": "array",
+            "description": "reactive power setpoint",
+            "items": {
+              "type": "number"
+            }
+          },
+          "qg_lb": {
+            "type": "array",
+            "description": "reactive power lower bounds",
+            "items": {
+              "type": "number"
+            }
+          },
+          "qg_ub": {
+            "type": "array",
+            "description": "reactive power upper bounds",
+            "items": {
+              "type": "number"
+            }
+          },
+          "tau": {
+            "type": "number",
+            "description": "time constant of the measurement filter"
+          },
+          "vg": {
+            "type": "array",
+            "description": "voltage setpoint",
+            "items": {
+              "type": "number"
+            }
+          },
+          "r": {
+            "type": "array",
+            "description": "internal resistance",
+            "items": {
+              "type": "array",
+              "description": "row vector of the internal resistance",
+              "items": {
+                "type": "number"
+              }
+            }
+          },
+          "x": {
+            "type": "array",
+            "description": "internal reactance",
+            "items": {
+              "type": "array",
+              "description": "Row vector of the internal reactance",
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    },
+    "omega0": {
+      "type": "number",
+      "description": "frequency setpoint"
+    },
+    "rN": {
+      "type": "integer",
+      "description": "virtual resistor resistance"
+    }
+  }
 }

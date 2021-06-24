@@ -13,5 +13,86 @@
   "x-tags": [
     "output"
   ],
-  "description": "A place for additional statistics and analytics"
+  "description": "A place for additional statistics and analytics, which can be specified arbitrarily.",
+  "examples": [
+    {
+      "Protection settings": [
+        {
+          "primary pickup (A)": [
+            0
+          ],
+          "TDS": [
+            0
+          ],
+          "to": [
+            "string"
+          ],
+          "from": [
+            "string"
+          ],
+          "TOC": [
+            "string"
+          ],
+          "operating time (s)": [
+            0
+          ]
+        }
+      ]
+    }
+  ],
+  "properties": {
+    "Protection settings": {
+      "type": "array",
+      "description": "Example of additional information that can be included in Additional statistics",
+      "items": {
+        "type": "object",
+        "properties": {
+          "primary pickup (A)": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "TDS": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "to": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "from": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "TOC": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "operating time (s)": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "primary pickup (A)",
+          "TDS",
+          "to",
+          "from",
+          "TOC",
+          "operating time (s)"
+        ]
+      }
+    }
+  }
 }
