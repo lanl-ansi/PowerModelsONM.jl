@@ -56,6 +56,7 @@ try
         @assert "6.0.3" == chomp(read(`jsonschema2md --version`, String))
     catch
         install_jsonschema2md_status = chomp(read(`$(NodeJS.npm_cmd()) install -g @adobe/jsonschema2md`, String))
+        error(install_jsonschema2md_status)
     end
 
     schemas_out_dir = joinpath(dirname(pathof(PowerModelsONM)), "..", "docs", "src", "schemas")
