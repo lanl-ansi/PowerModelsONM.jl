@@ -10,7 +10,6 @@ The definitions of the sets involved remain unchanged w.r.t. the balanced OPF pr
 
 ```math
 \begin{align}
-%
 \mbox{sets:} & \nonumber \\
 & N \mbox{ - buses}\nonumber \\
 & R \mbox{ - references buses}\nonumber \\
@@ -19,7 +18,6 @@ The definitions of the sets involved remain unchanged w.r.t. the balanced OPF pr
 & L, L_i \mbox{ - loads and loads at bus $i$} \nonumber \\
 & S, S_i \mbox{ - shunts and shunts at bus $i$} \nonumber \\
 & C \mbox{ - conductors} \nonumber \\
-%
 \end{align}
 ```
 
@@ -38,7 +36,6 @@ where the set of conductors $C$ typically equals $\{ a,b,c\}$.
 & \mathbf{Y}_{ij}, \mathbf{Y}^c_{ij}, \mathbf{Y}^c_{ji}\in \mathbb{C}^{c\times c} \;\; \forall (i,j) \in E \nonumber \\
 & {s^u}_{ij,c}, \theta^{\Delta l}_{ij,c}, \theta^{\Delta u}_{ij,c} \in \mathbb{R}\;\; \forall (i,j) \in E, \forall c \in C \nonumber, {\mathbf{s}^u}_{ij} := [{s^u}_{ij,c}]_{c \in C} \\
 & V^{\text{ref}}_{i,c}  \in \mathbb{C} \;\; \forall r \in R;  \mathbf{V}^{\text{ref}}_{i} =  [V^{\text{ref}}_{i,c}]_{c \in C} \\
-%
 \end{align}
 ```
 
@@ -59,7 +56,6 @@ where superscript $-1$ indicates the matrix inverse. Note that $\mathbf{Y}_{ij}$
 & S^g_{k,c}  \in \mathbb{C} \;\; \forall k\in G, \forall c \in C \nonumber; \mathbf{S}^g_{k} := [S^g_{k,c}]_{c \in C} \\
 & V_{i,c}  \in \mathbb{C} \;\; \forall i\in N, \forall c \in C \nonumber; \mathbf{V}_{i} := [V_{i,c}]_{c \in C} \\
 & \mathbf{S}_{ij}  \in \mathbb{C}^{c\times c} \;\; \forall (i,j) \in E \cup E^R \\
-%
 \end{align}
 ```
 
@@ -68,10 +64,8 @@ where superscript $-1$ indicates the matrix inverse. Note that $\mathbf{Y}_{ij}$
 A complete mathematical model is as follows,
 
 ```math
-
 \begin{align}
 \mbox{minimize: } & \sum_{k \in G} c_{2k} \left( \sum_{c \in C} \Re(S^g_{k,c}) \right)^2 + c_{1k}  \sum_{c \in C} \Re(S^g_{k,c}) + c_{0k} \\
-%
 \mbox{subject to: } & \nonumber \\
 & \mathbf{V}_{i} = \mathbf{V}^{\text{ref}}_{i}   \;\; \forall r \in R \\
 & S^{gl}_{k,c} \leq S^g_{k,c} \leq S^{gu}_{k,c} \;\; \forall k \in G, \forall c \in C  \\
@@ -81,6 +75,5 @@ A complete mathematical model is as follows,
 & \mathbf{S}_{ji} = \mathbf{V}_j \mathbf{V}_j^H \left( \mathbf{Y}_{ij} + \mathbf{Y}^c_{ji} \right)^H - {\mathbf{V}^H_i \mathbf{V}_j} \mathbf{Y}^H_{ij} \;\; \forall (i,j)\in E \\
 & |diag(\mathbf{S}_{ij})| \leq \mathbf{s}^u_{ij} \;\; \forall (i,j) \in E \cup E^R \\
 & \theta^{\Delta l}_{ij,c} \leq \angle (V_{i,c} V^*_{j,c}) \leq \theta^{\Delta u}_{ij,c} \;\; \forall (i,j) \in E, \forall c \in C
-%
 \end{align}
 ```

@@ -1,16 +1,18 @@
 using Documenter
 using PowerModelsONM
 
+# imports to build schema documentation
 import NodeJS
 
+# imports to build pluto notebooks
 import Pluto
 import Gumbo
 
-
+# Command-line arguments
 const _FAST = findfirst(isequal("--fast"), ARGS) !== nothing
 const _PDF = findfirst(isequal("--pdf"), ARGS) !== nothing
 
-# compile pdf docs?
+# compile html or pdf docs?
 if !_PDF
     format = Documenter.HTML(
         analytics = "",
@@ -19,9 +21,10 @@ if !_PDF
         collapselevel=2,
     )
 else
-    format = Documenter.LaTeX()
+    format = Documenter.LaTeX(platform="docker")
 end
 
+# Pages of the documentation
 pages = [
     "Introduction" => "index.md",
     "installation.md",

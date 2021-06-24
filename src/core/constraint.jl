@@ -4,9 +4,7 @@
 max actions per timestep switch constraint
 
 ```math
-\begin{align}
-& \sum_{\substack{i\in S}}{\Delta^{sw}_i} \leq z^{swu}
-\end{align}
+\sum_{\substack{i\in S}}{\Delta^{sw}_i} \leq z^{swu}
 ```
 """
 function constraint_switch_state_max_actions(pm::PMD.AbstractUnbalancedPowerModel, nw::Int)
