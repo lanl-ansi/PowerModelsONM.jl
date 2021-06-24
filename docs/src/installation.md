@@ -3,8 +3,23 @@
 From Julia, PowerModelsONM is installed using the built-in package manager:
 
 ```julia
+pkg> add PowerModelsONM
+```
+
+or equivalently,
+
+```julia
 import Pkg
-Pkg.add(Pkg.PackageSpec(; name="PowerModelsONM", url="https://github.com/lanl-ansi/PowerModelsONM.jl", rev="v1.0.0"))
+Pkg.add("PowerModelsONM")
+```
+
+## Developer Installation
+
+To install PowerModelsONM as a developer,
+
+```julia
+import Pkg
+Pkg.develop(Pkg.PackageSpec(; name="PowerModelsONM", url="https://github.com/lanl-ansi/PowerModelsONM.jl"))
 ```
 
 From the command-line, outside Julia, one could download the repository, either via Github.com, or using git, _i.e._,
