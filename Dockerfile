@@ -1,10 +1,18 @@
 FROM julia:latest
 
+RUN apt-get update && \
+    apt-get -y --no-install-recommends install build-essential gcc fontconfig-config
+
 # Julia env
 ADD Project.toml /
 
 # Source code
 ADD src /src
+ADD schemas /schemas
+ADD test /test
+
+# License
+ADD LICENSE.md LICENSE
 
 # Instantiate Julia Env
 RUN julia -O3 --color=yes --compiled-modules=yes --sysimage-native-code=yes --project=/ -e 'using Pkg; Pkg.instantiate(); Pkg.build();'

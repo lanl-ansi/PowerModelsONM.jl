@@ -11,8 +11,8 @@ docs-fast:
 		julia --project=docs -e 'using Pkg; Pkg.develop(path=".")' && julia --project=docs make.jl --fast && julia --project=docs -e 'using Pkg; Pkg.rm("PowerModelsONM")'
 
 # build docker container
-build-docker:
-	docker build -f Dockerfile -t PowerModelsONM:dev ${CURDIR}
+build-container:
+	docker build -f Dockerfile -t powermodelsonm:${TAG} ${CURDIR}
 
 # build binary
 build-binary:
