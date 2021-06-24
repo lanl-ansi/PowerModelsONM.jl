@@ -1,8 +1,9 @@
 on:
   push:
     tags:
-    - 'v*'
-name: Release
+      - 'v*'
+
+name: Binary Build and Release
 jobs:
   create_release:
     name: Create GitHub Release
