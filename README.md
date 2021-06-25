@@ -2,9 +2,9 @@
 
 _An Optmization library for the operation and restoration of electric power distribution feeders featuring networked microgrids_
 
-|                              __Documentation__                              |                               __Build Status__                                |
-| :-------------------------------------------------------------------------: | :---------------------------------------------------------------------------: |
-| [![CI][docs-stable-img]][docs-stable-url] [![][docs-dev-img]][docs-dev-url] | [![][github-actions-img]][github-actions-url] [![][codecov-img]][codecov-url] |
+|                             __Documentation__                             |                               __Build Status__                                |
+| :-----------------------------------------------------------------------: | :---------------------------------------------------------------------------: |
+| [![][docs-stable-img]][docs-stable-url] [![][docs-dev-img]][docs-dev-url] | [![][github-actions-img]][github-actions-url] [![][codecov-img]][codecov-url] |
 
 This package combines various packages in the [InfrastructureModels.jl](https://github.com/lanl-ansi/InfrastructureModels.jl) optimization library ecosystem, particularly those related to electric power distribution.
 
@@ -27,8 +27,7 @@ julia> import Pkg; Pkg.add("PowerModelsONM")
 or to develop the package,
 
 ```julia
-import Pkg
-Pkg.develop(Pkg.PackageSpec(; name="PowerModelsONM", url="https://github.com/lanl-ansi/PowerModelsONM.jl"))
+julia> import Pkg; Pkg.develop(Pkg.PackageSpec(; name="PowerModelsONM", url="https://github.com/lanl-ansi/PowerModelsONM.jl"))
 ```
 
 ## Questions and contributions

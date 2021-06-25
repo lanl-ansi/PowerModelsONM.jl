@@ -10,6 +10,4 @@ docs/build
 output.json
 test_output*.json
 
-.ipynb_checkpoints/
-
 build/
