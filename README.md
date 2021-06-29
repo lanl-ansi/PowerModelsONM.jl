@@ -36,6 +36,8 @@ Usage questions can be posted on the [Github Discussions forum][discussions-url]
 
 Contributions, feature requests, and suggestions are welcome; please open an [issue][issues-url] if you encounter any problems. The [contributing page][contrib-url] has guidelines that should be followed when opening pull requests and contributing code.
 
+This software was supported by the Resilient Operations of Networked Microgrids project funded by the U.S. Department of Energy's Microgrid Research and Development Program.
+
 ## License
 
 This code is provided under a BSD license as part of the Multi-Infrastructure Control and Optimization Toolkit (MICOT) project, LA-CC-13-108.
