@@ -2,7 +2,8 @@
 
 ## staged
 
-- none
+- Added commandline argument `opt-disp-solver` to select which solver to use for optimal dispatch
+- Added commandline argument `skip`, to enable skipping of some parts of the entrypoint algorithm
 
 ## v1.0.0
 

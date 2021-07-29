@@ -1,3 +1,9 @@
+"Custom type for comma separated list to Vector{String}"
+function ArgParse.parse_item(::Type{Vector{String}}, x::AbstractString)
+    return Vector{String}([string(strip(item)) for item in split(x, ",")])
+end
+
+
 """
     parse_commandline(; validate::Bool=true)::Dict{String,Any}
 
@@ -15,7 +21,9 @@ Command line argument parsing
 - `--verbose`, `-v`
 - `--debug`, `-d`
 - `--gurobi`, `-g`
-- `--opt-disp-formulation`,
+- `--opt-disp-formulation`
+- `--opt-disp-solver`
+- `--skip`
 
 ## Depreciated command line arguments
 
@@ -83,6 +91,14 @@ function parse_commandline(; validate::Bool=true)::Dict{String,Any}
             help = "mathematical formulation to solve for the final optimal dispatch (lindistflow (default), acr, acp, nfa)"
             default = "lindistflow"
             arg_type = String
+        "--opt-disp-solver"
+            help = "optimization solver to use for the optimal dispatch problem (nlp_solver (default), misocp_solver, minlp_solver). Needs to match features in chosen opt-disp-formulation"
+            default = "nlp_solver"
+            arg_type = String
+        "--skip"
+            help = "comma separated list of parts of the algorithm to skip: faults, stability, dispatch, and/or switching"
+            arg_type = Vector{String}
+            default = String[]
     end
 
     # Depreciated Command Line Arguments

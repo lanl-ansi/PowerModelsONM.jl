@@ -42,6 +42,7 @@
         "-d",
         "-g",
         "--opt-disp-formulation", "acr",
+        "--opt-disp-solver", "misocp_solver",
         "-p", "opf",
         "--protection-settings", "../test/data/protection_settings.xlsx",
         "--solver-tolerance", "0.0001",
@@ -50,7 +51,8 @@
         "--voltage-lower-bound", "0.9",
         "--voltage-upper-bound", "1.1",
         "--voltage-angle-difference", "5",
-        "--clpu-factor", "2"
+        "--clpu-factor", "2",
+        "--skip", "faults, stability",
         ]
     )
 
@@ -69,6 +71,7 @@
         "debug" => true,
         "gurobi" => true,
         "opt-disp-formulation" => "acr",
+        "opt-disp-solver" => "misocp_solver",
         "problem" => "opf",
         "protection-settings" => "../test/data/protection_settings.xlsx",
         "solver-tolerance" => 1e-4,
@@ -78,6 +81,8 @@
         "voltage-upper-bound" => 1.1,
         "voltage-angle-difference" => 5.0,
         "clpu-factor" => 2.0,
-        "use-gurobi" => false  # flags are always stored, even if not set
+        "skip" => String["faults", "stability"],
+        # flags are always stored, even if not set
+        "use-gurobi" => false,
     )
 end

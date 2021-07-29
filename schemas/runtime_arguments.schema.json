@@ -82,6 +82,17 @@
       ],
       "description": "Formulation to use for [`optimize_dispath`](@ref optimize_dispatch), which includes the real power only formulation (`nfa`), the LinDist3Flow formulation (`lindistflow`), the AC-rectangular formulation (`acr`), or the AC-polar formulation (`acp`)"
     },
+    "opt-disp-solver": {
+      "type": "string",
+      "enum": [
+        "nlp_solver",
+        "misocp_solver",
+        "minlp_solver",
+        "mip_solver"
+      ],
+      "description": "Which solver (from the solver instances built-in to ONM) to use for the optimal dispatch problem. WARNING: solver capabilities should match the optimal dispatch formulation",
+      "default": "nlp_solver"
+    },
     "network-file": {
       "type": "string",
       "deprecated": true,
@@ -167,6 +178,20 @@
     "clpu-factor": {
       "type": "number",
       "description": "DEPRECIATED: the cold load pickup factor"
+    },
+    "skip": {
+      "type": "array",
+      "uniqueItems": true,
+      "description": "Parts of the ONM algorithm to skip, e.g. \"--skip faults\" to skip fault studies, or \"--skip faults,stability\" to skip both fault studies and stability analysis",
+      "items": {
+        "type": "string",
+        "enum": [
+          "stability",
+          "faults",
+          "dispatch",
+          "switching"
+        ]
+      }
     }
   }
 }

@@ -52,13 +52,21 @@ function entrypoint(args::Dict{String,<:Any})::Dict{String,Any}
 
     build_solver_instances!(args)
 
-    optimize_switches!(args)
+    if !("switching" in get(args, "skip", String[]))
+        optimize_switches!(args)
+    end
 
-    optimize_dispatch!(args)
+    if !("dispatch" in get(args, "skip", String[]))
+        optimize_dispatch!(args)
+    end
 
-    run_stability_analysis!(args)
+    if !("stability" in get(args, "skip", String[]))
+        run_stability_analysis!(args)
+    end
 
-    run_fault_studies!(args)
+    if !("faults" in get(args, "skip", String[]))
+        run_fault_studies!(args)
+    end
 
     analyze_results!(args)
 

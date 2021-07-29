@@ -10,7 +10,7 @@ If `update_network_data` (default: true) the results of the optimization will be
 
 `solver` (default: `"nlp_solver"`) specifies which solver to use for the OPF problem from `args["solvers"]`
 """
-function optimize_dispatch!(args::Dict{String,<:Any}; update_network_data::Bool=true, solver::String="nlp_solver")::Dict{String,Any}
+function optimize_dispatch!(args::Dict{String,<:Any}; update_network_data::Bool=true, solver::String=get(args, "opt-disp-solver", "nlp_solver"))::Dict{String,Any}
     args["opt-disp-formulation"] = _get_formulation(get(args, "opt-disp-formulation", "lindistflow"))
 
     args["network"] = apply_switch_solutions!(args["network"], get(args, "optimal_switching_results", Dict{String,Any}()))
