@@ -34,3 +34,19 @@ Ref extension to add load blocks to ref
 function ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
     PMD.apply_pmd!(_ref_add_load_blocks!, ref, data; apply_to_subnetworks=true)
 end
+
+
+"Ref extension to add max_switch_actions to ref, and set to Inf if option is missing"
+function _ref_add_max_switch_actions!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
+    ref[:max_switch_actions] = get(data, "max_switch_actions", Inf)
+end
+
+
+"""
+    ref_add_max_switch_actions!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
+
+Ref extension to add max_switch_actions to ref, and set to Inf if option is missing
+"""
+function ref_add_max_switch_actions!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
+    PMD.apply_pmd!(_ref_add_max_switch_actions!, ref, data; apply_to_subnetworks=true)
+end

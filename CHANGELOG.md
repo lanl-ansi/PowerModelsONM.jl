@@ -2,6 +2,9 @@
 
 ## staged
 
+- Refactored max switch actions constraint
+- Added new ref extension `ref_add_max_switch_actions!`, which will default to `Inf` if no `max_switch_actions` data is available in data model.
+- Fixed passing of `max_switch_actions` data from eng to math data model (req. PMD v0.11.5+)
 - Added a `--pretty-print` commandline argument to toggle pretty-printed json outputs
 - Added `switch` information to Powerflow output, including real and reactive power flow, voltages, and connections, all on the from-side
 - Added `connections`/`terminals` to Powerflow schema / outputs to make it easier to look up which value corresponds to which terminal

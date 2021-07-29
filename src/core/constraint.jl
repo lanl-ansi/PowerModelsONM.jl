@@ -8,13 +8,17 @@ max actions per timestep switch constraint
 ```
 """
 function constraint_switch_state_max_actions(pm::PMD.AbstractUnbalancedPowerModel, nw::Int)
-    max_switch_actions = get(pm.data, "max_switch_actions", length(get(pm.data, "switch", Dict())))
+    max_switch_actions = PMD.ref(pm, nw, :max_switch_actions)
 
-    state_start = Dict(
-        l => PMD.ref(pm, nw, :switch, l, "state") for l in PMD.ids(pm, nw, :switch)
-    )
+    delta_switch_states = Dict(l => PMD.JuMP.@variable(pm.model, base_name="$(nw)_delta_sw_state_$(l)") for l in PMD.ids(pm, nw, :switch_dispatchable))
+    for (l, dsw) in delta_switch_states
+        PMD.JuMP.@constraint(pm.model, dsw >= PMD.var(pm, nw, :switch_state, l) - PMD.JuMP.start_value(PMD.var(pm, nw, :switch_state, l)))
+        PMD.JuMP.@constraint(pm.model, dsw >= PMD.JuMP.start_value(PMD.var(pm, nw, :switch_state, l)) - PMD.var(pm, nw, :switch_state, l))
+    end
 
-    PMD.JuMP.@constraint(pm.model, sum((state_start[l] - PMD.var(pm, nw, :switch_state, l)) * (round(state_start[l]) == 0 ? -1 : 1) for l in PMD.ids(pm, nw, :switch_dispatchable)) <= max_switch_actions)
+    if max_switch_actions < Inf
+        PMD.JuMP.@constraint(pm.model, sum(dsw for (l, dsw) in delta_switch_states) <= max_switch_actions)
+    end
 end
 
 

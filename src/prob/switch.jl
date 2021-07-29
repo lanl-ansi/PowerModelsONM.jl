@@ -51,7 +51,14 @@ if you are using a solver that supports indicator constraints like Gurobi or CPL
 Optionally, a PowerModelsDistribution `formulation` can be set independently, but is LinDist3Flow by default.
 """
 function optimize_switches(subnetwork::Dict{String,<:Any}, prob::Function, solver; formulation=PMD.LPUBFDiagPowerModel)::Dict{String,Any}
-    prob(subnetwork, formulation, solver; solution_processors=[PMD.sol_data_model!], ref_extensions=[ref_add_load_blocks!])
+    prob(
+        subnetwork,
+        formulation,
+        solver;
+        solution_processors=[PMD.sol_data_model!],
+        ref_extensions=[ref_add_load_blocks!, ref_add_max_switch_actions!],
+        eng2math_passthrough=Dict{String,Vector{String}}("root"=>String["max_switch_actions"])
+    )
 end
 
 
