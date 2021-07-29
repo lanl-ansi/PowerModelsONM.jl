@@ -5,7 +5,7 @@ Gets the device actions at every timestep using [`get_timestep_device_actions`](
 and applies it in place to args, for use in [`entrypoint`](@ref entrypoint).
 """
 function get_timestep_device_actions!(args::Dict{String,<:Any})::Vector{Dict{String,Any}}
-    args["output_data"]["Device action timeline"] = get_timestep_device_actions(args["network"], args["optimal_switching_results"])
+    args["output_data"]["Device action timeline"] = get_timestep_device_actions(get(args, "network", Dict{String,Any}()), get(args, "optimal_switching_results", Dict{String,Any}()))
 end
 
 
@@ -23,7 +23,7 @@ shed at that timestep.
 function get_timestep_device_actions(network::Dict{String,<:Any}, mld_results::Dict{String,<:Any})::Vector{Dict{String,Any}}
     device_action_timeline = Dict{String,Any}[]
 
-    for n in sort([parse(Int, k) for k in keys(network["nw"])])
+    for n in sort([parse(Int, k) for k in keys(get(network, "nw", Dict{String,Any}()))])
         _out = Dict{String,Any}(
             "Switch configurations" => Dict{String,String}(),
             "Shedded loads" => String[],
@@ -58,7 +58,7 @@ Gets the switch changes via [`get_timestep_switch_changes`](@ref get_timestep_sw
 and applies it in-place to args, for use with [`entrypoint`](@ref entrypoint)
 """
 function get_timestep_switch_changes!(args::Dict{String,<:Any})::Vector{Vector{String}}
-    args["output_data"]["Switch changes"] = get_timestep_switch_changes(args["network"])
+    args["output_data"]["Switch changes"] = get_timestep_switch_changes(get(args, "network", Dict{String,Any}()))
 end
 
 
@@ -71,8 +71,8 @@ This expects the solutions from the MLD problem to have been merged into `networ
 function get_timestep_switch_changes(network::Dict{String,<:Any})::Vector{Vector{String}}
     switch_changes = Vector{String}[]
 
-    _switch_states = Dict(n => Dict(id => switch["state"] for (id, switch) in get(network["nw"][n], "switch", Dict())) for n in keys(network["nw"]))
-    ns = sort([parse(Int, i) for i in keys(network["nw"])])
+    _switch_states = Dict(n => Dict(id => switch["state"] for (id, switch) in get(network["nw"][n], "switch", Dict())) for n in keys(get(network, "nw", Dict{String,Any}())))
+    ns = sort([parse(Int, i) for i in keys(get(network, "nw", Dict{String,Any}()))])
     for (i,n) in enumerate(ns)
         _switch_changes = String[]
         if i > 1

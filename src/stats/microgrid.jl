@@ -5,7 +5,7 @@ Gets Load served statistics in-place in args, for use in [`entrypoint`](@ref ent
 using [`get_timestep_load_served`](@ref get_timestep_load_served).
 """
 function get_timestep_load_served!(args::Dict{String,<:Any})::Dict{String,Vector{Real}}
-    args["output_data"]["Load served"] = get_timestep_load_served(get(args["optimal_dispatch_result"], "solution", Dict()), args["network"])
+    args["output_data"]["Load served"] = get_timestep_load_served(get(get(args, "optimal_dispatch_result", Dict{String,Any}()), "solution", Dict{String,Any}()), args["network"])
 end
 
 
@@ -57,7 +57,7 @@ Gets generator profile statistics for each timestep in-place in args, for use in
 using [`get_timestep_generator_profiles`](@ref get_timestep_generator_profiles)
 """
 function get_timestep_generator_profiles!(args::Dict{String,<:Any})::Dict{String,Vector{Real}}
-    args["output_data"]["Generator profiles"] = get_timestep_generator_profiles(get(args["optimal_dispatch_result"], "solution", Dict{String,Any}()))
+    args["output_data"]["Generator profiles"] = get_timestep_generator_profiles(get(get(args, "optimal_dispatch_result", Dict{String,Any}()), "solution", Dict{String,Any}()))
 end
 
 
@@ -97,7 +97,7 @@ Gets storage energy remaining percentage for each timestep in-place in args, for
 using [`get_timestep_storage_soc`](@ref get_timestep_storage_soc)
 """
 function get_timestep_storage_soc!(args::Dict{String,<:Any})::Vector{Real}
-    args["output_data"]["Storage SOC (%)"] = get_timestep_storage_soc(get(args["optimal_dispatch_result"], "solution", Dict()), args["network"])
+    args["output_data"]["Storage SOC (%)"] = get_timestep_storage_soc(get(get(args, "optimal_dispatch_result", Dict{String,Any}()), "solution", Dict{String,Any}()), args["network"])
 end
 
 

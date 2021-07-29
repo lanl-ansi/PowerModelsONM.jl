@@ -5,7 +5,7 @@ Gets voltage statistics min, mean, max for each timestep in-place in args, for u
 using [`get_timestep_voltage_statistics`](@ref get_timestep_voltage_statistics)
 """
 function get_timestep_voltage_statistics!(args::Dict{String,<:Any})::Dict{String,Vector{Real}}
-    args["output_data"]["Voltages"] = get_timestep_voltage_statistics(get(args["optimal_dispatch_result"], "solution", Dict()), args["network"])
+    args["output_data"]["Voltages"] = get_timestep_voltage_statistics(get(get(args, "optimal_dispatch_result", Dict{String,Any}()), "solution", Dict{String,Any}()), args["network"])
 end
 
 
@@ -66,7 +66,7 @@ Gets the optimal dispatch results in-place in args, for use in [`entrypoint`](@r
 [`get_timestep_dispatch`](@ref get_timestep_dispatch).
 """
 function get_timestep_dispatch!(args::Dict{String,<:Any})::Vector{Dict{String,Any}}
-    args["output_data"]["Powerflow output"] = get_timestep_dispatch(get(args["optimal_dispatch_result"], "solution", Dict()))
+    args["output_data"]["Powerflow output"] = get_timestep_dispatch(get(get(args, "optimal_dispatch_result", Dict{String,Any}()), "solution", Dict{String,Any}()), get(args, "network", Dict{String,Any}()))
 end
 
 
@@ -76,7 +76,7 @@ end
 Returns the dispatch information for generation assets (generator, storage, solar, voltage_source) and bus voltage magnitudes in SI units for each timestep
 from the optimal dispatch `solution`
 """
-function get_timestep_dispatch(solution::Dict{String,<:Any})::Vector{Dict{String,Any}}
+function get_timestep_dispatch(solution::Dict{String,<:Any}, data::Dict{String,<:Any})::Vector{Dict{String,Any}}
     dispatch = Dict{String,Any}[]
 
     for n in sort([parse(Int, i) for i in keys(get(solution, "nw", Dict()))])

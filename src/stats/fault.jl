@@ -5,7 +5,7 @@ Gets fault currents for switches and corresponding fault from study in-place in 
 using [`get_timestep_fault_currents`](@ref get_timestep_fault_currents).
 """
 function get_timestep_fault_currents!(args::Dict{String,<:Any})::Vector{Dict{String,Any}}
-    args["output_data"]["Fault currents"] = get_timestep_fault_currents(args["fault_studies_results"], args["faults"], args["network"])
+    args["output_data"]["Fault currents"] = get_timestep_fault_currents(get(args, "fault_studies_results", Dict{String,Any}()), get(args, "faults", Dict{String,Any}()), args["network"])
 end
 
 
