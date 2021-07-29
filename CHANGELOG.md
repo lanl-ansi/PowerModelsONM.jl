@@ -2,6 +2,7 @@
 
 ## staged
 
+- Fixed bug in `get_timestep_fault_currents` where there was a typo in the variable name for phase currents
 - Added commandline argument `opt-disp-solver` to select which solver to use for optimal dispatch
 - Added commandline argument `skip`, to enable skipping of some parts of the entrypoint algorithm
 

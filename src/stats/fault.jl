@@ -46,7 +46,7 @@ function get_timestep_fault_currents(fault_studies_results::Dict{String,<:Any}, 
                             ),
                             "switch" => Dict{String,Any}(
                                 id => Dict{String,Any}(
-                                    "|I| (A)" => haskey(switch, "cfr_fr") && haskey(switch, "cfi_fr") ? sqrt.(switch["cfr_fr"].^2 + switch["cfi_fr"].^2) : missing,
+                                    "|I| (A)" => haskey(switch, "crsw_fr") && haskey(switch, "cisw_fr") ? sqrt.(switch["crsw_fr"].^2 + switch["cisw_fr"].^2) : missing,
                                     "|I0| (A)" => haskey(switch, "cf0r_fr") && haskey(switch, "cf0i_fr") ? sqrt(switch["cf0r_fr"]^2+switch["cf0i_fr"]^2) : missing,
                                     "|I1| (A)" => haskey(switch, "cf1r_fr") && haskey(switch, "cf1i_fr") ? sqrt(switch["cf1r_fr"]^2+switch["cf1i_fr"]^2) : missing,
                                     "|I2| (A)" => haskey(switch, "cf2r_fr") && haskey(switch, "cf2i_fr") ? sqrt(switch["cf2r_fr"]^2+switch["cf2i_fr"]^2) : missing,
