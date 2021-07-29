@@ -58,6 +58,7 @@
   "items": {
     "type": "object",
     "additionalProperties": false,
+    "description": "Timestep object",
     "properties": {
       "generator": {
         "type": "object",
@@ -81,6 +82,13 @@
                 "description": "reactive power setpoint in kVar",
                 "items": {
                   "type": "number"
+                }
+              },
+              "connections": {
+                "type": "array",
+                "description": "The connections (terminals) that the generator is connected to, in order",
+                "items": {
+                  "type": "integer"
                 }
               }
             }
@@ -110,6 +118,13 @@
                 "items": {
                   "type": "number"
                 }
+              },
+              "connections": {
+                "type": "array",
+                "description": "The connections (terminals) that the voltage source is connected to, in order",
+                "items": {
+                  "type": "integer"
+                }
               }
             }
           }
@@ -138,6 +153,13 @@
                 "items": {
                   "type": "number"
                 }
+              },
+              "connections": {
+                "type": "array",
+                "description": "The connections (terminals) that the solar PV is connected to, in order",
+                "items": {
+                  "type": "integer"
+                }
               }
             }
           }
@@ -151,7 +173,7 @@
           "^.+$": {
             "type": "object",
             "additionalProperties": false,
-            "description": "generation object",
+            "description": "storage object",
             "properties": {
               "real power setpoint (kW)": {
                 "type": "array",
@@ -165,6 +187,13 @@
                 "description": "reactive power setpoint in kVar",
                 "items": {
                   "type": "number"
+                }
+              },
+              "connections": {
+                "type": "array",
+                "description": "The connections (terminals) that the storage is connected to, in order",
+                "items": {
+                  "type": "integer"
                 }
               }
             }
@@ -184,6 +213,53 @@
               "voltage (V)": {
                 "type": "array",
                 "description": "Voltage magnitudes in Volts",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "terminals": {
+                "type": "array",
+                "description": "The active terminals on the bus, in order",
+                "items": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      },
+      "switch": {
+        "type": "object",
+        "description": "Switch objects indexed by name",
+        "patternProperties": {
+          "^.+$": {
+            "type": "object",
+            "description": "Switch object",
+            "properties": {
+              "real power flow (kW)": {
+                "type": "array",
+                "description": "The real power flow on the switch, coming from the from-side, in kW",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "reactive power flow (kVar)": {
+                "type": "array",
+                "description": "The reactive power flow through the switch coming from the from-side, in kVar",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "connections": {
+                "type": "array",
+                "description": "The connections (terminals) that the switch is connected to on the from-side, in order",
+                "items": {
+                  "type": "integer"
+                }
+              },
+              "voltage (V)": {
+                "type": "array",
+                "description": "The voltage on the from-side bus in Volts",
                 "items": {
                   "type": "number"
                 }

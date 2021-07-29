@@ -2,6 +2,8 @@
 
 ## staged
 
+- Added `switch` information to Powerflow output, including real and reactive power flow, voltages, and connections, all on the from-side
+- Added `connections`/`terminals` to Powerflow schema / outputs to make it easier to look up which value corresponds to which terminal
 - Fixed bug in `analyze_results!` functions where if some parts of the algorithm was not run, analyzing results would error
 - Fixed stats unit test where expected variance was too close to the allowed tolerance
 - Fixed bug in `get_timestep_fault_currents` where there was a typo in the variable name for phase currents

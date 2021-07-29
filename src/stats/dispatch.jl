@@ -89,8 +89,9 @@ function get_timestep_dispatch(solution::Dict{String,<:Any}, data::Dict{String,<
                 _dispatch[gen_type] = Dict{String,Any}()
                 for (id, gen) in solution["nw"]["$n"][gen_type]
                     _dispatch[gen_type][id] = Dict{String,Any}(
-                        "real power setpoint (kW)" => gen[p],
-                        "reactive power setpoint (kVar)" => gen[q],
+                        "real power setpoint (kW)" => get(gen, p, missing),
+                        "reactive power setpoint (kVar)" => get(gen, q, missing),
+                        "connections" => data["nw"]["$n"][gen_type][id]["connections"],
                     )
                 end
             end
@@ -98,7 +99,25 @@ function get_timestep_dispatch(solution::Dict{String,<:Any}, data::Dict{String,<
 
         for (id, bus) in get(solution["nw"]["$n"], "bus", Dict())
             _dispatch["bus"][id] = Dict{String,Any}(
-                "voltage (V)" => haskey(bus, "vr") && haskey(bus, "vi") ? sqrt.(bus["vr"].^2 + bus["vi"].^2) : bus["vm"],
+                "voltage (V)" => haskey(bus, "vr") && haskey(bus, "vi") ? sqrt.(bus["vr"].^2 + bus["vi"].^2) : haskey(bus, "w") ? sqrt.(bus["w"]) : get(bus, "vm", missing),
+                "terminals" => data["nw"]["$n"]["bus"][id]["terminals"],
+            )
+        end
+
+        if !isempty(get(solution["nw"]["$n"], "switch", Dict()))
+            _dispatch["switch"] = Dict{String,Any}()
+        end
+        for (id, switch) in get(solution["nw"]["$n"], "switch", Dict())
+            f_bus_id = data["nw"]["$n"]["switch"][id]["f_bus"]
+            terminals = data["nw"]["$n"]["bus"][f_bus_id]["terminals"]
+            bus = solution["nw"]["$n"]["bus"][f_bus_id]
+            connections = data["nw"]["$n"]["switch"][id]["f_connections"]
+
+            _dispatch["switch"][id] = Dict{String,Any}(
+                "real power flow (kW)" => get(switch, "psw_fr", missing),
+                "reactive power flow (kVar)" => get(switch, "qsw_fr", missing),
+                "voltage (V)" => haskey(bus, "vr") && haskey(bus, "vi") ? sqrt.(bus["vr"].^2 + bus["vi"].^2)[[findfirst(isequal(c), terminals) for c in connections]] : haskey(bus, "w") ? sqrt.(bus["w"])[[findfirst(isequal(c), terminals) for c in connections]] : haskey(bus, "vm") ? bus["vm"][[findfirst(isequal(c), terminals) for c in connections]] : missing,
+                "connections" => connections,
             )
         end
 
