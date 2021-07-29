@@ -73,7 +73,7 @@
 
         @test all(isapprox.(args["output_data"]["Generator profiles"]["Diesel DG (kW)"], 0.0))
         @test all(isapprox.(args["output_data"]["Generator profiles"]["Energy storage (kW)"], 0.0))
-        @test all(isapprox.(args["output_data"]["Generator profiles"]["Solar DG (kW)"], [193.5, 185.0, 89.7]; atol=1e-1))
+        @test all(isapprox.(args["output_data"]["Generator profiles"]["Solar DG (kW)"], [193.5, 185.0, 89.75]; atol=1e-1))
         @test all(isapprox.(args["output_data"]["Generator profiles"]["Grid mix (kW)"], [1759.5, 1869.9, 2699.5]; atol=1e-1))
 
     end
