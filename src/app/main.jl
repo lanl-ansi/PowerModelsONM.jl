@@ -75,11 +75,11 @@ function entrypoint(args::Dict{String,<:Any})::Dict{String,Any}
     end
 
     if !isempty(get(args, "output", ""))
-        write_json(args["output"], args["output_data"])
+        write_json(args["output"], args["output_data"]; indent=get(args, "pretty-print", false) ? 2 : missing)
     end
 
     if get(args, "debug", false)
-        write_json("debug_onm_$(Dates.format(Dates.now(), "yyyy-mm-dd--HH-MM-SS")).json", args)
+        write_json("debug_onm_$(Dates.format(Dates.now(), "yyyy-mm-dd--HH-MM-SS")).json", args; indent=get(args, "pretty-print", false) ? 2 : missing)
     end
 
     return args

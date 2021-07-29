@@ -2,6 +2,7 @@
 
 ## staged
 
+- Added a `--pretty-print` commandline argument to toggle pretty-printed json outputs
 - Added `switch` information to Powerflow output, including real and reactive power flow, voltages, and connections, all on the from-side
 - Added `connections`/`terminals` to Powerflow schema / outputs to make it easier to look up which value corresponds to which terminal
 - Fixed bug in `analyze_results!` functions where if some parts of the algorithm was not run, analyzing results would error

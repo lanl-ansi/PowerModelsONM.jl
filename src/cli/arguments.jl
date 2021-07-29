@@ -99,6 +99,9 @@ function parse_commandline(; validate::Bool=true)::Dict{String,Any}
             help = "comma separated list of parts of the algorithm to skip: faults, stability, dispatch, and/or switching"
             arg_type = Vector{String}
             default = String[]
+        "--pretty-print"
+            help = "flag to toggle pretty-printed output json"
+            action = :store_true
     end
 
     # Depreciated Command Line Arguments

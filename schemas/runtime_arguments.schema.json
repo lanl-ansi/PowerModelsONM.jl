@@ -192,6 +192,11 @@
           "switching"
         ]
       }
+    },
+    "pretty-print": {
+      "type": "boolean",
+      "description": "Toggle to enable pretty-printed output json",
+      "default": false
     }
   }
 }

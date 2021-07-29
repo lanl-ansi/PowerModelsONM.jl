@@ -53,6 +53,7 @@
         "--voltage-angle-difference", "5",
         "--clpu-factor", "2",
         "--skip", "faults, stability",
+        "--pretty-print",
         ]
     )
 
@@ -82,6 +83,7 @@
         "voltage-angle-difference" => 5.0,
         "clpu-factor" => 2.0,
         "skip" => String["faults", "stability"],
+        "pretty-print" => true,
         # flags are always stored, even if not set
         "use-gurobi" => false,
     )
