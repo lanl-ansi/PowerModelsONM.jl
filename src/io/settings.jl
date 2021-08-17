@@ -66,6 +66,8 @@ function parse_settings(settings_file::String; validate::Bool=true)::Dict{String
         error("'settings' file could not be validated")
     end
 
+    PMD.correct_json_import!(settings)
+
     return settings
 end
 
