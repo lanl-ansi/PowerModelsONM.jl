@@ -34,7 +34,7 @@ function get_timestep_load_served(solution::Dict{String,<:Any}, network::Dict{St
     for n in sort([parse(Int, i) for i in keys(get(solution, "nw", Dict()))])
         original_load = sum([sum(load["pd_nom"]) for (_,load) in network["nw"]["$n"]["load"]])
 
-        feeder_served_load = sum([sum(vs["pg"]) for (_,vs) in solution["nw"]["$n"]["voltage_source"]])
+        feeder_served_load = !isempty(get(solution["nw"]["$n"], "voltage_source", Dict())) ? sum(Float64[sum(vs["pg"]) for (_,vs) in get(solution["nw"]["$n"], "voltage_source", Dict())]) : 0.0
         der_non_storage_served_load = !isempty(get(solution["nw"]["$n"], "generator", Dict())) || !isempty(get(solution["nw"]["$n"], "solar", Dict())) ? sum([sum(g["pg"]) for type in ["solar", "generator"] for (_,g) in get(solution["nw"]["$n"], type, Dict())]) : 0.0
         der_storage_served_load = !isempty(get(solution["nw"]["$n"], "storage", Dict())) ? sum([-sum(s["ps"]) for (_,s) in get(solution["nw"]["$n"], "storage", Dict())]) : 0.0
 
