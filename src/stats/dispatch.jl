@@ -22,12 +22,12 @@ voltage bases across the network, the statistics will not make sense.
 function get_voltage_min_mean_max(solution::Dict{String,<:Any}, data::Dict{String,<:Any}; make_per_unit::Bool=true)::Tuple{Real,Real,Real}
     if make_per_unit
         bus_vbase, line_vbase = PMD.calc_voltage_bases(data, data["settings"]["vbases_default"])
-        voltages = [get(bus, "vm", zeros(length(data["bus"][id]["terminals"]))) ./ bus_vbase[id] for (id,bus) in solution["bus"]]
+        voltages = Real[get(bus, "vm", zeros(length(data["bus"][id]["terminals"]))) ./ bus_vbase[id] for (id,bus) in get(solution, "bus", Dict())]
     else
-        voltages = [get(bus, "vm", zeros(length(data["bus"][id]["terminals"]))) for (id,bus) in solution["bus"]]
+        voltages = Real[get(bus, "vm", zeros(length(data["bus"][id]["terminals"]))) for (id,bus) in get(solution, "bus", Dict())]
     end
 
-    return minimum(minimum.(voltages)), mean(mean.(voltages)), maximum(maximum.(voltages))
+    return isempty(voltages) ? (NaN, NaN, NaN) : (minimum(minimum.(voltages)), mean(mean.(voltages)), maximum(maximum.(voltages)))
 end
 
 
@@ -110,7 +110,7 @@ function get_timestep_dispatch(solution::Dict{String,<:Any}, data::Dict{String,<
         for (id, switch) in get(solution["nw"]["$n"], "switch", Dict())
             f_bus_id = data["nw"]["$n"]["switch"][id]["f_bus"]
             terminals = data["nw"]["$n"]["bus"][f_bus_id]["terminals"]
-            bus = solution["nw"]["$n"]["bus"][f_bus_id]
+            bus = get(get(solution["nw"]["$n"], "bus", Dict()), f_bus_id, Dict())
             connections = data["nw"]["$n"]["switch"][id]["f_connections"]
 
             _dispatch["switch"][id] = Dict{String,Any}(

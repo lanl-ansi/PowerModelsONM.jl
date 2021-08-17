@@ -2,7 +2,7 @@
 
 ## staged
 
-- none
+- Fixed bug where when running analysis functions if `"bus"` was missing from solution then functions would error. Changed to return `NaN` values
 
 ## v1.0.1
 
