@@ -1,7 +1,7 @@
 name = "PowerModelsONM"
 uuid = "25264005-a304-4053-a338-565045d392ac"
 authors = ["David M Fobes <dfobes@lanl.gov>"]
-version = "1.0.0"
+version = "1.0.1"
 
 [deps]
 Alpine = "07493b3f-dabb-5b16-a503-4139292d7dd4"

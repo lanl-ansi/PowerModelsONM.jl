@@ -2,6 +2,10 @@
 
 ## staged
 
+- none
+
+## v1.0.1
+
 - Fixed bug in entrypoint.jl where if `--gurobi` option was used, Gurobi.jl needed to be imported _before_ PowerModelsONM, but it wasn't
 - Refactored max switch actions constraint
 - Added new ref extension `ref_add_max_switch_actions!`, which will default to `Inf` if no `max_switch_actions` data is available in data model.
