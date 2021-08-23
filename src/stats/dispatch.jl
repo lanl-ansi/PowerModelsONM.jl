@@ -22,9 +22,9 @@ voltage bases across the network, the statistics will not make sense.
 function get_voltage_min_mean_max(solution::Dict{String,<:Any}, data::Dict{String,<:Any}; make_per_unit::Bool=true)::Tuple{Real,Real,Real}
     if make_per_unit
         bus_vbase, line_vbase = PMD.calc_voltage_bases(data, data["settings"]["vbases_default"])
-        voltages = Real[get(bus, "vm", zeros(length(data["bus"][id]["terminals"]))) ./ bus_vbase[id] for (id,bus) in get(solution, "bus", Dict())]
+        voltages = [get(bus, "vm", zeros(length(data["bus"][id]["terminals"]))) ./ bus_vbase[id] for (id,bus) in get(solution, "bus", Dict())]
     else
-        voltages = Real[get(bus, "vm", zeros(length(data["bus"][id]["terminals"]))) for (id,bus) in get(solution, "bus", Dict())]
+        voltages = [get(bus, "vm", zeros(length(data["bus"][id]["terminals"]))) for (id,bus) in get(solution, "bus", Dict())]
     end
 
     return isempty(voltages) ? (NaN, NaN, NaN) : (minimum(minimum.(voltages)), mean(mean.(voltages)), maximum(maximum.(voltages)))
