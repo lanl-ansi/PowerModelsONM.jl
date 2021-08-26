@@ -86,5 +86,6 @@
         "pretty-print" => true,
         # flags are always stored, even if not set
         "use-gurobi" => false,
+        "opt-switch-formulation" => "lindistflow",
     )
 end

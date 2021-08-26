@@ -72,13 +72,25 @@
       "default": false,
       "description": "A flag to signal to use the Gurobi solver"
     },
+    "opt-switch-formulation": {
+      "type": "string",
+      "enum": [
+        "lindistflow",
+        "nfa",
+        "fbs",
+        "fot"
+      ],
+      "default": "lindistflow"
+    },
     "opt-disp-formulation": {
       "type": "string",
       "enum": [
         "acp",
         "acr",
         "lindistflow",
-        "nfa"
+        "nfa",
+        "fbs",
+        "fot"
       ],
       "description": "Formulation to use for [`optimize_dispath`](@ref optimize_dispatch), which includes the real power only formulation (`nfa`), the LinDist3Flow formulation (`lindistflow`), the AC-rectangular formulation (`acr`), or the AC-polar formulation (`acp`)"
     },

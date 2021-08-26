@@ -3,7 +3,9 @@ const _formulations = Dict{String,Any}(
     "acr" => PMD.ACRUPowerModel,
     "acp" => PMD.ACPUPowerModel,
     "lindistflow" => PMD.LPUBFDiagPowerModel,
-    "nfa" => PMD.NFAUPowerModel
+    "nfa" => PMD.NFAUPowerModel,
+    "fot" => PMD.FOTUPowerModel,
+    "fbs" => PMD.FBSUBFPowerModel,
 )
 
 "helper function to convert from opt-disp-formulation string to PowerModelsDistribution Type"

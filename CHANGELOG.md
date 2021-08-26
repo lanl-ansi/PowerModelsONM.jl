@@ -2,6 +2,7 @@
 
 ## staged
 
+- Added new linear formulations from PowerModelsDistribution, FOT (First Order Taylor) and FBS (Forward-Backward Sweep)
 - Added Enum strings to settings schema as possible inputs to properties that accept them, e.g., status, dispatchable, state, etc.
 - Added `"cm_ub"` and `"cm_ub_b"` properties to the settings schema under switches
 - Fixed bug where ENUMs were not being converted when loading from settings file

@@ -88,12 +88,16 @@ function parse_commandline(; validate::Bool=true)::Dict{String,Any}
             help = "use the gurobi solver (must have been built with Gurobi.jl / a Gurobi binary, and have license)"
             action = :store_true
         "--opt-disp-formulation"
-            help = "mathematical formulation to solve for the final optimal dispatch (lindistflow (default), acr, acp, nfa)"
+            help = "mathematical formulation to solve for the final optimal dispatch (lindistflow (default), acr, acp, nfa, fot, fbs)"
             default = "lindistflow"
             arg_type = String
         "--opt-disp-solver"
             help = "optimization solver to use for the optimal dispatch problem (nlp_solver (default), misocp_solver, minlp_solver). Needs to match features in chosen opt-disp-formulation"
             default = "nlp_solver"
+            arg_type = String
+        "--opt-switch-formulation"
+            help = "mathematical formulation to solve for the optimal switching (lindistflow (default), nfa, fot, fbs)"
+            default = "lindistflow"
             arg_type = String
         "--skip"
             help = "comma separated list of parts of the algorithm to skip: faults, stability, dispatch, and/or switching"
