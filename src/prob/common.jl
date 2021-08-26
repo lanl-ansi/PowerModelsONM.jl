@@ -80,7 +80,6 @@ function build_solver_instances(; nlp_solver=missing, nlp_solver_tol::Real=1e-4,
                 Cbc.Optimizer,
                 "logLevel" => verbose || debug ? 1 : 0,
                 "presolve"=>"off",
-                "optcr"=>mip_gap
             )
         end
     end
