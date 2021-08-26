@@ -460,6 +460,20 @@
               "minimum": 0,
               "maximum": 1,
               "description": "the status of the asset, _i.e._ enabled (`1`) or disabled (`0`)"
+            },
+            "cm_ub": {
+              "type": "array",
+              "description": "current magnitude upper bound (normamps)",
+              "items": {
+                "type": "number"
+              }
+            },
+            "cm_ub_b": {
+              "type": "array",
+              "description": "current magnitude upper bound (emergamps)",
+              "items": {
+                "type": "number"
+              }
             }
           }
         }
