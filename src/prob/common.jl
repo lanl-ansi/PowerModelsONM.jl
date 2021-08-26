@@ -21,6 +21,7 @@ function build_solver_instances!(args::Dict{String,<:Any})::Dict{String,Any}
         misocp_solver = args["solvers"]["misocp_solver"],
         nlp_solver_tol=get(get(args, "settings", Dict()), "nlp_solver_tol", 1e-4),
         mip_solver_tol=get(get(args, "settings", Dict()), "mip_solver_tol", 1e-4),
+        mip_gap=get(get(args, "settings", Dict()), "mip_solver_gap", 0.05),
         verbose=get(args, "verbose", false),
         debug=get(args, "debug", false),
         gurobi=get(args, "gurobi", false)
@@ -36,36 +37,84 @@ Returns solver instances as a Dict ready for use with JuMP Models, for NLP (`"nl
 - `nlp_solver` (default: `missing`): If missing, will use Ipopt as NLP solver
 - `nlp_solver_tol` (default: `1e-4`): The solver tolerance
 - `mip_solver` (default: `missing`): If missing, will use Cbc as MIP solver, or Gurobi if `gurobi==true`
+- `mip_solver_tol` (default: 1e-4): The feasibility tolerance for the MIP solver
+- `mip_gap` (default: 0.05): The desired MIP Gap for the MIP Solver
 - `minlp_solver` (default: `missing`): If missing, will use Alpine with `nlp_solver` and `mip_solver`
 - `misocp_solver` (default: `missing`): If missing will use Juniper with `mip_solver`, or Gurobi if `gurobi==true`
 - `verbose` (default: `false`): Sets the verbosity of the solvers
 - `debug` (default: `false`): Sets the verbosity of the solvers even higher (if available)
 - `gurobi` (default: `false`): Use Gurobi for MIP / MISOC solvers
 """
-function build_solver_instances(; nlp_solver=missing, nlp_solver_tol::Real=1e-4, mip_solver=missing, mip_solver_tol::Real=1e-4, minlp_solver=missing, misocp_solver=missing, gurobi::Bool=false, verbose::Bool=false, debug::Bool=false)::Dict{String,Any}
+function build_solver_instances(; nlp_solver=missing, nlp_solver_tol::Real=1e-4, mip_solver=missing, mip_solver_tol::Real=1e-4, mip_gap::Real=0.05, minlp_solver=missing, misocp_solver=missing, gurobi::Bool=false, verbose::Bool=false, debug::Bool=false)::Dict{String,Any}
     if ismissing(nlp_solver)
-        nlp_solver = optimizer_with_attributes(Ipopt.Optimizer, "tol"=>nlp_solver_tol, "print_level"=>verbose ? 3 : debug ? 5 : 0)
+        nlp_solver = optimizer_with_attributes(
+            Ipopt.Optimizer,
+            "tol"=>nlp_solver_tol,
+            "print_level"=>verbose ? 3 : debug ? 5 : 0,
+            "mumps_mem_percent"=>200
+        )
     end
 
     if ismissing(mip_solver)
         if gurobi
-            mip_solver = optimizer_with_attributes(() -> Gurobi.Optimizer(GRB_ENV), "OutputFlag" => verbose || debug ? 1 : 0)
+            mip_solver = optimizer_with_attributes(
+                () -> Gurobi.Optimizer(GRB_ENV),
+                "OutputFlag"=>verbose || debug ? 1 : 0,
+                "NonConvex"=>2,
+                "MIPGap"=>mip_gap,
+                "GURO_PAR_DUMP"=>debug ? 1 : 0,
+                "FeasibilityTol"=>mip_solver_tol,
+                "IntFeasTol"=>mip_solver_tol,
+                "Presolve"=>0,
+                "NodefileStart"=>0.5,
+                "NodeMethod"=>2,
+                "Method"=>2,
+                "MIPFocus"=>1,
+                "ImproveStartNodes"=>20,
+                "BarHomogeneous"=>1,
+                "Heuristics"=>0.25,
+                "Cuts"=>3,
+            )
         else
-            mip_solver = optimizer_with_attributes(Cbc.Optimizer, "logLevel" => verbose || debug ? 1 : 0)
+            mip_solver = optimizer_with_attributes(
+                Cbc.Optimizer,
+                "logLevel" => verbose || debug ? 1 : 0,
+                "presolve"=>"off",
+                "optcr"=>mip_gap
+            )
         end
     end
 
     if ismissing(minlp_solver)
-        minlp_solver = optimizer_with_attributes(Alpine.Optimizer, JuMP.MOI.Silent() => verbose || debug, "nlp_solver" => nlp_solver, "mip_solver" => mip_solver, "presolve_bt" => true, "presolve_bt_max_iter" => 5, "disc_ratio" => 12)
+        minlp_solver = optimizer_with_attributes(
+            Alpine.Optimizer,
+            JuMP.MOI.Silent() => verbose || debug,
+            "nlp_solver" => nlp_solver,
+            "mip_solver" => mip_solver,
+            "presolve_bt" => false,
+            "presolve_bt_max_iter" => 5,
+            "disc_ratio" => 12
+        )
     end
 
     if ismissing(misocp_solver)
         if gurobi
-            misocp_solver = optimizer_with_attributes(() -> Gurobi.Optimizer(GRB_ENV), "OutputFlag"=>verbose || debug ? 1 : 0, "NonConvex"=>2)
+            misocp_solver = mip_solver
         else
-            misocp_solver = optimizer_with_attributes(Juniper.Optimizer, "nl_solver" => nlp_solver, "mip_solver" => mip_solver, "log_levels"=>verbose ? [:Error,:Warn] : debug ? [:Error,:Warn,:Info] : [])
+            misocp_solver = optimizer_with_attributes(
+                Juniper.Optimizer, "nl_solver" => nlp_solver,
+                "mip_solver" => mip_solver,
+                "log_levels"=>verbose ? [:Error,:Warn] : debug ? [:Error,:Warn,:Info] : [],
+                "mip_gap"=>mip_gap,
+                "traverse_strategy"=>:DFS,
+            )
         end
     end
 
-    return Dict{String,Any}("nlp_solver" => nlp_solver, "mip_solver" => mip_solver, "minlp_solver" => minlp_solver, "misocp_solver" => misocp_solver)
+    return Dict{String,Any}(
+        "nlp_solver" => nlp_solver,
+        "mip_solver" => mip_solver,
+        "minlp_solver" => minlp_solver,
+        "misocp_solver" => misocp_solver
+    )
 end
