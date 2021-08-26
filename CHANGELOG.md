@@ -2,6 +2,7 @@
 
 ## staged
 
+- Added Enum strings to settings schema as possible inputs to properties that accept them, e.g., status, dispatchable, state, etc.
 - Added `"cm_ub"` and `"cm_ub_b"` properties to the settings schema under switches
 - Fixed bug where ENUMs were not being converted when loading from settings file
 - Fixed bug where when collecting generation statistics, if voltage source was missing from solution `get_timestep_load_served` would error

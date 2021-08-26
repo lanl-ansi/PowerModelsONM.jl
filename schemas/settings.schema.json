@@ -94,13 +94,16 @@
               ]
             },
             "status": {
-              "type": "integer",
+              "type": [
+                "integer",
+                "string"
+              ],
               "enum": [
                 0,
-                1
+                1,
+                "ENABLED",
+                "DISABLED"
               ],
-              "minimum": 0,
-              "maximum": 1,
               "description": "The status of the generation object, _i.e._ enabled (`1`) or disabled (`0`)"
             }
           }
@@ -166,13 +169,16 @@
               ]
             },
             "status": {
-              "type": "integer",
+              "type": [
+                "integer",
+                "string"
+              ],
               "enum": [
                 0,
-                1
+                1,
+                "ENABLED",
+                "DISABLED"
               ],
-              "minimum": 0,
-              "maximum": 1,
               "description": "The status of the generation object, _i.e._ enabled (`1`) or disabled (`0`)"
             }
           }
@@ -238,13 +244,16 @@
               ]
             },
             "status": {
-              "type": "integer",
+              "type": [
+                "integer",
+                "string"
+              ],
               "enum": [
                 0,
-                1
+                1,
+                "ENABLED",
+                "DISABLED"
               ],
-              "minimum": 0,
-              "maximum": 1,
               "description": "The status of the generation object, _i.e._ enabled (`1`) or disabled (`0`)"
             }
           }
@@ -264,12 +273,15 @@
               "description": "upper bound of energy that can be stored in kWhrs"
             },
             "status": {
-              "type": "integer",
-              "minimum": 0,
-              "maximum": 1,
+              "type": [
+                "integer",
+                "string"
+              ],
               "enum": [
                 0,
-                1
+                1,
+                "ENABLED",
+                "DISABLED"
               ],
               "description": "the status of the asset, _i.e._ enabled (`1`) or disabled (`0`)"
             }
@@ -318,13 +330,16 @@
               }
             },
             "status": {
-              "type": "integer",
+              "type": [
+                "integer",
+                "string"
+              ],
               "enum": [
                 0,
-                1
+                1,
+                "ENABLED",
+                "DISABLED"
               ],
-              "maximum": 1,
-              "minimum": 0,
               "description": "the status of the asset, _i.e._ enabled (`1`) or disabled (`0`)"
             }
           }
@@ -348,23 +363,29 @@
               "description": "cold load pickup duration in ms"
             },
             "dispatchable": {
-              "type": "integer",
+              "type": [
+                "integer",
+                "string"
+              ],
               "enum": [
                 0,
-                1
+                1,
+                "YES",
+                "NO"
               ],
-              "minimum": 0,
-              "maximum": 1,
               "description": "Indicator for whether the load is individually dispatchable (_i.e._, can the load be shed autonomously, as opposed to only be sheddable via block isolation)"
             },
             "status": {
-              "type": "integer",
+              "type": [
+                "integer",
+                "string"
+              ],
               "enum": [
                 0,
-                1
+                1,
+                "ENABLED",
+                "DISABLED"
               ],
-              "minimum": 0,
-              "maximum": 1,
               "description": "the status of the asset, _i.e._ enabled (`1`) or disabled (`0`)"
             },
             "priority": {
@@ -406,19 +427,22 @@
             },
             "cm_ub_b": {
               "type": "array",
-              "description": "ncy upper bounds on line currents in Amps",
+              "description": "emergency upper bounds on line currents in Amps",
               "items": {
                 "type": "number"
               }
             },
             "status": {
-              "type": "integer",
+              "type": [
+                "integer",
+                "string"
+              ],
               "enum": [
                 0,
-                1
+                1,
+                "ENABLED",
+                "DISABLED"
               ],
-              "minimum": 0,
-              "maximum": 1,
               "description": "the status of the asset, _i.e._ enabled (`1`) or disabled (`0`)"
             }
           }
@@ -437,28 +461,36 @@
               "type": "string",
               "enum": [
                 "open",
-                "closed"
+                "closed",
+                "OPEN",
+                "CLOSED"
               ],
               "description": "The default state of the switch, _i.e._, `open` or `closed`"
             },
             "dispatchable": {
-              "type": "integer",
+              "type": [
+                "integer",
+                "string"
+              ],
               "enum": [
                 0,
-                1
+                1,
+                "YES",
+                "NO"
               ],
-              "minimum": 0,
-              "maximum": 1,
               "description": "is the switch autonomously operable by the ONM algorithm, _i.e._, yes (`1`) or no (`2`)"
             },
             "status": {
-              "type": "integer",
+              "type": [
+                "integer",
+                "string"
+              ],
               "enum": [
                 0,
-                1
+                1,
+                "ENABLED",
+                "DISABLED"
               ],
-              "minimum": 0,
-              "maximum": 1,
               "description": "the status of the asset, _i.e._ enabled (`1`) or disabled (`0`)"
             },
             "cm_ub": {
