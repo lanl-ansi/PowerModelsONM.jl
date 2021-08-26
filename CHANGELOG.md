@@ -2,6 +2,7 @@
 
 ## staged
 
+- Fixed bug in `get_timestep_switch_changes` where switch changes in the first step were not shown
 - Fixed bug in logic of `get_timestep_device_actions`, simplified algorithm
 - Added LightGraphs as a dependency
 - Added new linear formulations from PowerModelsDistribution, FOT (First Order Taylor) and FBS (Forward-Backward Sweep)

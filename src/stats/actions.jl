@@ -54,7 +54,7 @@ Gets the switch changes via [`get_timestep_switch_changes`](@ref get_timestep_sw
 and applies it in-place to args, for use with [`entrypoint`](@ref entrypoint)
 """
 function get_timestep_switch_changes!(args::Dict{String,<:Any})::Vector{Vector{String}}
-    args["output_data"]["Switch changes"] = get_timestep_switch_changes(get(args, "network", Dict{String,Any}()))
+    args["output_data"]["Switch changes"] = get_timestep_switch_changes(get(args, "network", Dict{String,Any}()), get(args, "optimal_switching_results", Dict{String,Any}()))
 end
 
 
@@ -64,18 +64,21 @@ end
 Gets a list of switches whose state has changed between timesteps (always expect the first timestep to be an empty list).
 This expects the solutions from the MLD problem to have been merged into `network`
 """
-function get_timestep_switch_changes(network::Dict{String,<:Any})::Vector{Vector{String}}
+function get_timestep_switch_changes(network::Dict{String,<:Any}, optimal_switching_results::Dict{String,<:Any}=Dict{String,Any}())::Vector{Vector{String}}
     switch_changes = Vector{String}[]
 
-    _switch_states = Dict(n => Dict(id => switch["state"] for (id, switch) in get(network["nw"][n], "switch", Dict())) for n in keys(get(network, "nw", Dict{String,Any}())))
-    ns = sort([parse(Int, i) for i in keys(get(network, "nw", Dict{String,Any}()))])
+    _switch_states = Dict(parse(Int,n) => Dict(id => get(switch, "state", missing) for (id, switch) in get(nw, "switch", Dict())) for (n,nw) in get(network, "nw", Dict()))
+    ns = sort([n for n in keys(_switch_states)])
     for (i,n) in enumerate(ns)
         _switch_changes = String[]
-        if i > 1
-            _prev_states = _switch_states["$(ns[i-1])"]
-            for (id, state) in _switch_states["$n"]
-                if state != _prev_states[id]
+        for (id, switch_state0) in _switch_states[n]
+            new_state = get(get(get(get(get(optimal_switching_results, "$n", Dict()), "solution", Dict()), "switch", Dict()), id, Dict()), "state", missing)
+            if !ismissing(new_state)
+                if new_state != switch_state0
                     push!(_switch_changes, id)
+                    for j in ns[i]:ns[end]
+                        _switch_states[j][id] = deepcopy(new_state)
+                    end
                 end
             end
         end
