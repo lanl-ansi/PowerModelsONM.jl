@@ -2,6 +2,7 @@
 
 ## staged
 
+- Changed `optimize_dispatch!` function to not overwrite base network data by default
 - Added `"mip_gap"` to the results dictionary, if it exists
 - Updated defaults for bundled solvers
 - Fixed bug in `get_timestep_switch_changes` where switch changes in the first step were not shown
