@@ -2,6 +2,7 @@
 
 ## staged
 
+- Fixed bug in logic of `get_timestep_device_actions`, simplified algorithm
 - Added LightGraphs as a dependency
 - Added new linear formulations from PowerModelsDistribution, FOT (First Order Taylor) and FBS (Forward-Backward Sweep)
 - Added Enum strings to settings schema as possible inputs to properties that accept them, e.g., status, dispatchable, state, etc.

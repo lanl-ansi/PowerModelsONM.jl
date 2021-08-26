@@ -20,7 +20,7 @@ Will output Vector{Dict} where each Dict will contain `"Switch configurations"`,
 and the switch state, `"open"` or `"closed"` as values, and `"Shedded loads"`, which is a list of load names that have been
 shed at that timestep.
 """
-function get_timestep_device_actions(network::Dict{String,<:Any}, mld_results::Dict{String,<:Any})::Vector{Dict{String,Any}}
+function get_timestep_device_actions(network::Dict{String,<:Any}, optimal_switching_results::Dict{String,<:Any})::Vector{Dict{String,Any}}
     device_action_timeline = Dict{String,Any}[]
 
     for n in sort([parse(Int, k) for k in keys(get(network, "nw", Dict{String,Any}()))])
@@ -29,18 +29,14 @@ function get_timestep_device_actions(network::Dict{String,<:Any}, mld_results::D
             "Shedded loads" => String[],
         )
         for (id, switch) in get(network["nw"]["$n"], "switch", Dict())
-            state = lowercase(string(switch["state"]))
-            if haskey(mld_results, "$n") && haskey(mld_results["$n"], "solution") && haskey(mld_results["$n"]["solution"], "switch") && haskey(mld_results["$n"]["solution"]["switch"], id) && haskey(mld_results["$n"]["solution"]["switch"][id], "state")
-                state = lowercase(string(mld_results["$n"]["solution"]["switch"][id]["state"]))
-            end
-            _out["Switch configurations"][id] = state
+            switch_solution = get(get(get(get(optimal_switching_results, "$n", Dict()), "solution", Dict()), "switch", Dict()), id, Dict())
+            _out["Switch configurations"][id] = lowercase(string(get(switch_solution, "state", switch["state"])))
         end
 
         for (id, load) in get(network["nw"]["$n"], "load", Dict())
-            if haskey(mld_results, "$n") && haskey(mld_results["$n"], "solution") && haskey(mld_results["$n"]["solution"], "load") && haskey(mld_results["$n"]["solution"]["load"], id) && haskey(mld_results["$n"]["solution"]["load"][id], "status")
-                if round(mld_results["$n"]["solution"]["load"][id]["status"]) ≉ 1
-                    push!(_out["Shedded loads"], id)
-                end
+            load_solution = get(get(get(get(optimal_switching_results, "$n", Dict()), "solution", Dict()), "load", Dict()), id, Dict())
+            if round(Int, get(load_solution, "status", 1)) != 1
+                push!(_out["Shedded loads"], id)
             end
         end
 
