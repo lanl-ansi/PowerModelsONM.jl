@@ -82,6 +82,25 @@
       ],
       "default": "lindistflow"
     },
+    "opt-switch-algorithm": {
+      "type": "string",
+      "description": "Flag to use multinetwork problem for optimal switching algorithm",
+      "enum": [
+        "iterative",
+        "global"
+      ],
+      "default": "iterative"
+    },
+    "opt-switch-solver": {
+      "type": "string",
+      "enum": [
+        "misocp_solver",
+        "nlp_solver",
+        "minlp_solver",
+        "mip_solver"
+      ],
+      "default": "misocp_solver"
+    },
     "opt-disp-formulation": {
       "type": "string",
       "enum": [
@@ -93,6 +112,15 @@
         "fot"
       ],
       "description": "Formulation to use for [`optimize_dispath`](@ref optimize_dispatch), which includes the real power only formulation (`nfa`), the LinDist3Flow formulation (`lindistflow`), the AC-rectangular formulation (`acr`), or the AC-polar formulation (`acp`)"
+    },
+    "opt-disp-algorithm": {
+      "type": "string",
+      "enum": [
+        "opf",
+        "mld",
+        "oltc"
+      ],
+      "default": "opf"
     },
     "opt-disp-solver": {
       "type": "string",

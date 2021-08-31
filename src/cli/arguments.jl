@@ -87,6 +87,10 @@ function parse_commandline(; validate::Bool=true)::Dict{String,Any}
         "--gurobi", "-g"
             help = "use the gurobi solver (must have been built with Gurobi.jl / a Gurobi binary, and have license)"
             action = :store_true
+        "--opt-disp-algorithm"
+            help = "option to choose which algorithm for optimal dispatch: opf (default), oltc, or mld"
+            default = "opf"
+            arg_type = String
         "--opt-disp-formulation"
             help = "mathematical formulation to solve for the final optimal dispatch (lindistflow (default), acr, acp, nfa, fot, fbs)"
             default = "lindistflow"
@@ -94,6 +98,14 @@ function parse_commandline(; validate::Bool=true)::Dict{String,Any}
         "--opt-disp-solver"
             help = "optimization solver to use for the optimal dispatch problem (nlp_solver (default), misocp_solver, minlp_solver). Needs to match features in chosen opt-disp-formulation"
             default = "nlp_solver"
+            arg_type = String
+        "--opt-switch-algorithm"
+            help = "option to switch between the 'global' multinetwork problem formulation and the 'iterative' version (default)"
+            default = "iterative"
+            arg_type = String
+        "--opt-switch-solver"
+            help = "option to choose which solver from the build_solver_instances function to use for the optimal switching algorithm"
+            default = "misocp_solver"
             arg_type = String
         "--opt-switch-formulation"
             help = "mathematical formulation to solve for the optimal switching (lindistflow (default), nfa, fot, fbs)"

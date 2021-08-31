@@ -2,6 +2,7 @@
 
 ## staged
 
+- Added arguments `--opt-switch-algorithm`, `--opt-switch-solver`, `--opt-disp-algorithm`
 - Changed `optimize_dispatch!` function to not overwrite base network data by default
 - Added `"mip_gap"` to the results dictionary, if it exists
 - Updated defaults for bundled solvers
