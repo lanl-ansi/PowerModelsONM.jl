@@ -2,6 +2,7 @@
 
 ## staged
 
+- Fixed typo in return type of `get_timestep_dispatch_optimization_metadata!`
 - Refactored block isolation to ensure switches are open if the block indicators of connected blocks are different
 - Refactored max switch actions to allow for unlimited switch opens (to shed load in emergencies)
 - Refactored objective function to be a balance of block weight, switch score, switch change penalty, and generation cost
