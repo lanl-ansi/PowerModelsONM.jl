@@ -4,7 +4,7 @@ const _formulations = Dict{String,Any}(
     "acp" => PMD.ACPUPowerModel,
     "lindistflow" => PMD.LPUBFDiagPowerModel,
     "nfa" => PMD.NFAUPowerModel,
-    "fot" => PMD.FOTUPowerModel,
+    "fot" => PMD.FOTRUPowerModel,
     "fbs" => PMD.FBSUBFPowerModel,
 )
 
