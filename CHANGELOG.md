@@ -2,6 +2,7 @@
 
 ## staged
 
+- Updated to PowerModelsDistribution v0.11.7
 - Added `"mip_solver_gap"` user option in settings schema
 - Added `"Optimal dispatch metadata"` and `"Optimal switching metadata"` to the output schema
 - Added arguments `--opt-switch-algorithm`, `--opt-switch-solver`, `--opt-disp-algorithm`
