@@ -2,6 +2,7 @@
 
 ## staged
 
+- Adjusted defaults for Juniper and Gurobi solvers
 - Fixed reference to `FOTUPowerModel` (should be `FOTRUPowerModel`)
 - Updated to PowerModelsDistribution v0.11.7
 - Added `"mip_solver_gap"` user option in settings schema
