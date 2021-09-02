@@ -2,9 +2,11 @@
     args = Dict{String,Any}(
         "network" => "../test/data/IEEE13Nodeckt_mod.dss",
         "faults" => "../test/data/faults.json",
+        "settings" => "../test/data/settings_no_strg.json",
     )
 
     parse_network!(args)
+    parse_settings!(args)
     build_solver_instances!(args)
 
     run_fault_studies!(args)

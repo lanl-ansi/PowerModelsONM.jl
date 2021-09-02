@@ -2,6 +2,7 @@
 
 ## staged
 
+- Added storage to the IEEE13 unit test case
 - Fixed bug where if opt-dispatch results were not obtained and/or merged into the network data, `convert_storage!` would fail
 - Adjusted defaults for Juniper and Gurobi solvers
 - Fixed reference to `FOTUPowerModel` (should be `FOTRUPowerModel`)

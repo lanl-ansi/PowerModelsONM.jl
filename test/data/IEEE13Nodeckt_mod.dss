@@ -79,8 +79,9 @@ New linecode.mtx607 nphases=1 BaseFreq=60
 
 
 !LOADSHAPE DEFINITION
-New LoadShape.microgrid1a interval=1 npts=3 useactual=no mult=(1.0, 1.0, 5.0)
-New LoadShape.microgrid1b interval=1 npts=3 useactual=no mult=(5.0, 1.0, 1.0)
+New LoadShape.microgrid1a interval=1 npts=5 useactual=no mult=(1.0, 1.0, 1.0, 1.0, 1.0)
+New LoadShape.microgrid1b interval=1 npts=5 useactual=no mult=(5.0, 1.0, 1.0, 1.0, 1.0)
+New LoadShape.microgrid1c interval=1 npts=5 useactual=no mult=(1.0, 1.0, 1.0, 1.0, 2.0)
 
 !LOAD DEFINITIONS
 ! New Load.671 Bus1=671.1.2.3  Phases=3 Conn=Delta Model=1 kV=4.16   kW=1155 kvar=660 vminpu=0.6 vmaxpu=1.4
@@ -135,6 +136,13 @@ New Load.702    Phases=3 Bus1=702.1.2.3 conn=wye model=1 kv=4.16 kw=50 kvar=20 d
 New Load.703    Phases=3 Bus1=703.1.2.3 conn=wye model=1 kv=4.16 kw=135 kvar=100 daily=microgrid1a
 
 New PVSystem.PV1  Phases=3 Bus1=703.1.2.3 kv=4.16 conn=wye irradiance=1 Pmpp=25 kva=210 pf=0.74
+
+New Line.703800 Phases=3 Bus1=703 Bus2=800 Switch=y r1=0 r0=0 x1=0 x0=0 c1=0 c0=0 enabled=y  normamps=800 emergamps=1000
+New Line.800801 Phases=3 Bus1=800 Bus2=801 Switch=y r1=0 r0=0 x1=0 x0=0 c1=0 c0=0 enabled=y  normamps=800 emergamps=1000
+
+New Load.801 Phases=3 Bus1=801 conn=wye model=1 kv=4.16 kw=30 kvar=12 daily=microgrid1c
+
+New Storage.Battery1 Phases=3 Bus1=801 kwhstored=100 kwhrated=120 kwrated=40 kvar=15 %idlingkw=0 %idlingkvar=0 %effcharge=100 %effdischarge=100 %charge=100 %discharge=100 %r=0 %x=0 enabled=y
 
 Set Voltagebases=[115, 4.16, .48]
 calcv
