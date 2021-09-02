@@ -2,6 +2,11 @@
 
 ## staged
 
+- Refactored block isolation to ensure switches are open if the block indicators of connected blocks are different
+- Refactored max switch actions to allow for unlimited switch opens (to shed load in emergencies)
+- Refactored objective function to be a balance of block weight, switch score, switch change penalty, and generation cost
+- Refactored to remove indicator constraint problems, and use the Big-M formulation of the indicator constraints by default (more stable)
+- Refactored to have a unified block indicator variable/constraint model, instead of having separate indicator variables for each of bus, load, shunt, gen, and storage
 - Added switch weights for use in objective function (to support switching where there is no loads on an intermediate bus)
 - Added storage to the IEEE13 unit test case
 - Fixed bug where if opt-dispatch results were not obtained and/or merged into the network data, `convert_storage!` would fail

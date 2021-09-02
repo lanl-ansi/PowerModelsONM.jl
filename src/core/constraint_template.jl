@@ -9,10 +9,10 @@ end
 
 
 """
-    constraint_load_block_isolation(pm::PMD.AbstractUnbalancedPowerModel; nw::Int=PMD.nw_id_default, relax::Bool=true)
+    constraint_block_isolation(pm::PMD.AbstractUnbalancedPowerModel; nw::Int=PMD.nw_id_default, relax::Bool=false)
 
-constraint to ensure that load blocks are properly isolated by opening switches
+constraint to ensure that blocks are properly isolated by open switches
 """
-function constraint_load_block_isolation(pm::PMD.AbstractUnbalancedPowerModel; nw::Int=PMD.nw_id_default, relax::Bool=true)
-    constraint_load_block_isolation(pm, nw; relax=relax)
+function constraint_block_isolation(pm::PMD.AbstractUnbalancedPowerModel; nw::Int=PMD.nw_id_default, relax::Bool=false)
+    constraint_block_isolation(pm, nw; relax=relax)
 end
