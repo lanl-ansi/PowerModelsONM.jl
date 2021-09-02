@@ -87,3 +87,40 @@ function get_timestep_switch_changes(network::Dict{String,<:Any}, optimal_switch
 
     return switch_changes
 end
+
+
+"""
+    get_timestep_switch_optimization_metadata!(args::Dict{String,<:Any})::Vector{Dict{String,Any}}
+
+Retrieves the switching optimization results metadata from the optimal switching solution via [`get_timestep_switch_optimization_metadata`](@ref get_timestep_switch_optimization_metadata)
+and applies it in-place to args, for use with [`entrypoint`](@ref entrypoint)
+"""
+function get_timestep_switch_optimization_metadata!(args::Dict{String,<:Any})::Vector{Dict{String,Any}}
+    args["output_data"]["Optimal switching metadata"] = get_timestep_switch_optimization_metadata(get(args, "optimal_switching_results", Dict{String,Any}()); opt_switch_algorithm=get(args, "opt-switch-algorithm", "iterative"))
+end
+
+
+"""
+    get_timestep_switch_optimization_metadata(optimal_switching_results::Dict{String,Any}; opt_switch_algorithm::String="iterative")::Vector{Dict{String,Any}}
+
+Gets the metadata from the optimal switching results for each timestep, returning a list of Dicts (if opt_switch_algorithm="iterative), or a list with a single
+Dict (if opt_switch_algorithm="global").
+"""
+function get_timestep_switch_optimization_metadata(optimal_switching_results::Dict{String,Any}; opt_switch_algorithm::String="iterative")::Vector{Dict{String,Any}}
+    results_metadata = Dict{String,Any}[]
+
+    if opt_switch_algorithm == "global" && !isempty(optimal_switching_results)
+        push!(results_metadata, filter(x->x.first!="solution", first(optimal_switching_results).second))
+    else
+        ns = sort([parse(Int, n) for n in keys(optimal_switching_results)])
+        for n in ns
+            push!(results_metadata, filter(x->x.first!="solution", optimal_switching_results["$n"]))
+        end
+    end
+
+    for _r in results_metadata
+        _sanitize_results_metadata!(_r)
+    end
+
+    return results_metadata
+end

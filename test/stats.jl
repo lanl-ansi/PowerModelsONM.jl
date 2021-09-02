@@ -46,7 +46,7 @@
             )
         ]
 
-        @test args["output_data"]["Switch changes"] == Vector{String}[String[], String["671700"], String["701702"]]
+        @test all(isapprox.(metadata["mip_gap"], 0.0; atol=1e-4) for metadata in args["output_data"]["Optimal switching metadata"])
     end
 
     @testset "test dispatch stats" begin
@@ -62,6 +62,8 @@
         @test all(isapprox.(args["output_data"]["Powerflow output"][1]["switch"]["671692"]["real power flow (kW)"], [485.0,68.0,290.0]; atol=1e-1))
         @test all(isapprox.(args["output_data"]["Powerflow output"][1]["switch"]["671692"]["reactive power flow (kVar)"], [-17.606,-172.830,-6.770]; atol=1e-1))
         @test all(isapprox.(args["output_data"]["Powerflow output"][1]["switch"]["671692"]["voltage (V)"], args["output_data"]["Powerflow output"][1]["bus"]["671"]["voltage (V)"]))
+
+        @test args["output_data"]["Optimal dispatch metadata"]["termination_status"] == "LOCALLY_SOLVED"
     end
 
     @testset "test fault stats" begin

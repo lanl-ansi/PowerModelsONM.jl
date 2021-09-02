@@ -81,6 +81,7 @@ module PowerModelsONM
     include("stats/fault.jl")
     include("stats/microgrid.jl")
     include("stats/stability.jl")
+    include("stats/utils.jl")
 
     include("cli/arguments.jl")
 

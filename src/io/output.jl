@@ -33,6 +33,8 @@ function initialize_output(args::Dict{String,<:Any})::Dict{String,Any}
         "Fault currents" => Dict{String,Any}[],
         "Small signal stable" => Bool[],
         "Runtime timestamp" => "$(Dates.now())",
+        "Optimal switching metadata" => Dict{String,Any}[],
+        "Optimal dispatch metadata" => Dict{String,Any}(),
     )
 end
 
@@ -96,9 +98,11 @@ function analyze_results!(args::Dict{String,<:Any})::Dict{String,Any}
     get_timestep_storage_soc!(args)
 
     get_timestep_dispatch!(args)
+    get_timestep_dispatch_optimization_metadata!(args)
 
     get_timestep_device_actions!(args)
     get_timestep_switch_changes!(args)
+    get_timestep_switch_optimization_metadata!(args)
 
     get_timestep_stability!(args)
 

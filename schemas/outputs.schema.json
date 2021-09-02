@@ -333,12 +333,12 @@
     "Voltages": {
       "type": "object",
       "additionalProperties": false,
+      "description": "Statistics about the voltage magnitudes at each timestep",
       "required": [
         "Min voltage (p.u.)",
         "Mean voltage (p.u.)",
         "Max voltage (p.u.)"
       ],
-      "description": "Statistics about the voltage magnitudes at each timestep",
       "properties": {
         "Min voltage (p.u.)": {
           "type": "array",
@@ -409,6 +409,16 @@
           "type": "string"
         }
       }
+    },
+    "Optimal switching metadata": {
+      "description": "Results (not the solutions) from the optimal switching alogrithm, including information about the solver, solve time, mip_gap, etc. If opt-switch-algorithm=global is used, there will only be a single dict",
+      "type": "array",
+      "items": {
+        "$ref": "./optimization_results_metadata.json"
+      }
+    },
+    "Optimal dispatch metadata": {
+      "$ref": "./optimization_results_metadata.json"
     }
   },
   "required": [

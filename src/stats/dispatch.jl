@@ -126,3 +126,25 @@ function get_timestep_dispatch(solution::Dict{String,<:Any}, data::Dict{String,<
 
     return dispatch
 end
+
+
+"""
+    get_timestep_dispatch_optimization_metadata!(args::Dict{String,<:Any})::VDict{String,Any}
+
+Retrieves the switching optimization results metadata from the optimal switching solution via [`get_timestep_dispatch_optimization_metadata`](@ref get_timestep_dispatch_optimization_metadata)
+and applies it in-place to args, for use with [`entrypoint`](@ref entrypoint)
+"""
+function get_timestep_dispatch_optimization_metadata!(args::Dict{String,<:Any})::VDict{String,Any}
+    args["output_data"]["Optimal dispatch metadata"] = get_timestep_dispatch_optimization_metadata(get(args, "optimal_dispatch_result", Dict{String,Any}()))
+end
+
+
+"""
+    get_timestep_dispatch_optimization_metadata(optimal_switching_results::Dict{String,Any}; opt_switch_algorithm::String="iterative")::Vector{Dict{String,Any}}
+
+Gets the metadata from the optimal switching results for each timestep, returning a list of Dicts (if opt_switch_algorithm="iterative), or a list with a single
+Dict (if opt_switch_algorithm="global").
+"""
+function get_timestep_dispatch_optimization_metadata(optimal_dispatch_result::Dict{String,Any})::Dict{String,Any}
+    return _sanitize_results_metadata!(filter(x->x.first!="solution", optimal_dispatch_result))
+end
