@@ -534,6 +534,13 @@
     "nlp_solver_tol": {
       "type": "number",
       "description": "The tolerance of the nlp solver"
+    },
+    "mip_solver_gap": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "default": 0.05,
+      "format": "float",
+      "description": "MIP Gap for MIP/MISOCP solvers"
     }
   }
 }
