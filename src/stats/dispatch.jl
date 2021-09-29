@@ -85,38 +85,47 @@ function get_timestep_dispatch(solution::Dict{String,<:Any}, data::Dict{String,<
         )
 
         for (gen_type, (p, q)) in [("storage", ("ps", "qs")), ("generator", ("pg", "qg")), ("solar", ("pg", "qg")), ("voltage_source", ("pg", "qg"))]
-            if !isempty(get(solution["nw"]["$n"], gen_type, Dict()))
+            if !isempty(get(data["nw"]["$n"], gen_type, Dict()))
+                _gen_type_sol = get(solution["nw"]["$n"], gen_type, Dict())
                 _dispatch[gen_type] = Dict{String,Any}()
-                for (id, gen) in solution["nw"]["$n"][gen_type]
+                for (id, _gen) in data["nw"]["$n"][gen_type]
+                    conns = _gen["connections"]
+                    gen = get(_gen_type_sol, id, Dict())
                     _dispatch[gen_type][id] = Dict{String,Any}(
-                        "real power setpoint (kW)" => get(gen, p, missing),
-                        "reactive power setpoint (kVar)" => get(gen, q, missing),
-                        "connections" => data["nw"]["$n"][gen_type][id]["connections"],
+                        "real power setpoint (kW)" => get(gen, p, zeros(length(conns))),
+                        "reactive power setpoint (kVar)" => get(gen, q, zeros(length(conns))),
+                        "connections" => conns,
                     )
                 end
             end
         end
 
-        for (id, bus) in get(solution["nw"]["$n"], "bus", Dict())
+        for (id, _bus) in get(data["nw"]["$n"], "bus", Dict())
+            bus = get(get(solution["nw"]["$n"], "bus", Dict()), id, Dict())
+            terms = _bus["terminals"]
             _dispatch["bus"][id] = Dict{String,Any}(
-                "voltage (V)" => haskey(bus, "vr") && haskey(bus, "vi") ? sqrt.(bus["vr"].^2 + bus["vi"].^2) : haskey(bus, "w") ? sqrt.(bus["w"]) : get(bus, "vm", missing),
-                "terminals" => data["nw"]["$n"]["bus"][id]["terminals"],
+                "voltage (V)" => haskey(bus, "vr") && haskey(bus, "vi") ? sqrt.(bus["vr"].^2 + bus["vi"].^2) : haskey(bus, "w") ? sqrt.(bus["w"]) : get(bus, "vm", zeros(length(terms))),
+                "terminals" => terms,
             )
         end
 
-        if !isempty(get(solution["nw"]["$n"], "switch", Dict()))
+        if !isempty(get(data["nw"]["$n"], "switch", Dict()))
             _dispatch["switch"] = Dict{String,Any}()
         end
-        for (id, switch) in get(solution["nw"]["$n"], "switch", Dict())
-            f_bus_id = data["nw"]["$n"]["switch"][id]["f_bus"]
+        for (id, _switch) in get(data["nw"]["$n"], "switch", Dict())
+            connections = _switch["f_connections"]
+
+            switch = get(get(solution["nw"]["$n"], "switch", Dict()), id, Dict())
+
+            f_bus_id = _switch["f_bus"]
             terminals = data["nw"]["$n"]["bus"][f_bus_id]["terminals"]
+
             bus = get(get(solution["nw"]["$n"], "bus", Dict()), f_bus_id, Dict())
-            connections = data["nw"]["$n"]["switch"][id]["f_connections"]
 
             _dispatch["switch"][id] = Dict{String,Any}(
-                "real power flow (kW)" => get(switch, "psw_fr", missing),
-                "reactive power flow (kVar)" => get(switch, "qsw_fr", missing),
-                "voltage (V)" => haskey(bus, "vr") && haskey(bus, "vi") ? sqrt.(bus["vr"].^2 + bus["vi"].^2)[[findfirst(isequal(c), terminals) for c in connections]] : haskey(bus, "w") ? sqrt.(bus["w"])[[findfirst(isequal(c), terminals) for c in connections]] : haskey(bus, "vm") ? bus["vm"][[findfirst(isequal(c), terminals) for c in connections]] : missing,
+                "real power flow (kW)" => get(switch, "psw_fr", zeros(length(connections))),
+                "reactive power flow (kVar)" => get(switch, "qsw_fr", zeros(length(connections))),
+                "voltage (V)" => haskey(bus, "vr") && haskey(bus, "vi") ? sqrt.(bus["vr"].^2 + bus["vi"].^2)[[findfirst(isequal(c), terminals) for c in connections]] : haskey(bus, "w") ? sqrt.(bus["w"])[[findfirst(isequal(c), terminals) for c in connections]] : haskey(bus, "vm") ? bus["vm"][[findfirst(isequal(c), terminals) for c in connections]] : zeros(length(terminals)),
                 "connections" => connections,
             )
         end

@@ -17,7 +17,7 @@
     @test all(all(isnan.(v)) for v in values(v_stats))
 
     disp_sol = get_timestep_dispatch(args["optimal_dispatch_result"]["solution"], args["network"])
-    @test all(all(ismissing(switch["voltage (V)"]) for switch in values(timestep["switch"])) for timestep in disp_sol)
+    @test all(all(all(switch["voltage (V)"] .== 0) for switch in values(timestep["switch"])) for timestep in disp_sol)
 
     args["opt-disp-formulation"] = "lindistflow"
     optimize_dispatch!(args)

@@ -43,6 +43,8 @@
         @test all(isapprox.(args["output_data"]["Powerflow output"][1]["switch"]["671692"]["voltage (V)"], args["output_data"]["Powerflow output"][1]["bus"]["671"]["voltage (V)"]))
 
         @test args["output_data"]["Optimal dispatch metadata"]["termination_status"] == "LOCALLY_SOLVED"
+
+        @test all(args["output_data"]["Powerflow output"][1]["bus"]["701"]["voltage (V)"] .== 0)
     end
 
     @testset "test fault stats" begin
