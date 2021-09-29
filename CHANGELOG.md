@@ -2,6 +2,7 @@
 
 ## staged
 
+- Fixed bug in `get_timestep_fault_currents` where if faults was still a string (not parsed, as in the case of using the `skip` argument) there would be an error
 - Fixed bug in `apply_events!`, and in particular `entrypoint` where if events were not defined, the algorithm would error
 
 ## v1.1.0
