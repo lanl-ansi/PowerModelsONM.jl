@@ -23,6 +23,7 @@ function parse_events!(args::Dict{String,<:Any}; validate::Bool=true, apply::Boo
             parse_events(args["events"], args["network"])
         end
     else
+        args["events"] = Dict{String,Any}()
     end
 
     if apply
@@ -176,7 +177,7 @@ end
 Applies events in-place using [`apply_events`](@ref apply_events), for use inside of [`entrypoint`](@ref entrypoint)
 """
 function apply_events!(args::Dict{String,<:Any})::Dict{String,Any}
-    args["network"] = apply_events(args["network"], args["events"])
+    args["network"] = apply_events(args["network"], get(args, "events", Dict{String,Any}()))
 end
 
 

@@ -2,7 +2,7 @@
 
 ## staged
 
-- none
+- Fixed bug in `apply_events!`, and in particular `entrypoint` where if events were not defined, the algorithm would error
 
 ## v1.1.0
 

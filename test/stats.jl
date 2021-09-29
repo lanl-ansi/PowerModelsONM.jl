@@ -1,5 +1,5 @@
 @testset "test statistical analysis functions" begin
-    args = Dict{String,Any}(
+    orig_args = Dict{String,Any}(
         "network" => "../test/data/IEEE13Nodeckt_mod.dss",
         "events" => "../test/data/events.json",
         "settings" => "../test/data/settings.json",
@@ -8,14 +8,14 @@
         "quiet" => true
     )
 
-    args = entrypoint(args)
+    args = entrypoint(deepcopy(orig_args))
 
     @testset "test output schema" begin
         @test validate_output(args["output_data"])
     end
 
     @testset "test action stats" begin
-        args["output_data"]["Device action timeline"] == Dict{String,Any}[
+        @test args["output_data"]["Device action timeline"] == Dict{String,Any}[
             Dict("Shedded loads" => ["701", "700"], "Switch configurations" => Dict("671692" => "closed", "671700" => "open", "703800" => "open", "800801" => "open", "701702" => "open"))
             Dict("Shedded loads" => String[], "Switch configurations" => Dict("671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "open"))
             Dict("Shedded loads" => String[], "Switch configurations" => Dict("671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "closed"))
@@ -65,5 +65,15 @@
 
     @testset "test stability stats" begin
         @test all(!i for i in args["output_data"]["Small signal stable"])
+    end
+
+    @testset "test missing events arg" begin
+        _args = deepcopy(orig_args)
+        delete!(_args, "events")
+        _args["skip"] = ["switching", "dispatch", "stability", "faults"]
+
+        _args = entrypoint(_args)
+
+        @test isa(_args["events"], Dict{String,Any}) && isempty(_args["events"])
     end
 end
