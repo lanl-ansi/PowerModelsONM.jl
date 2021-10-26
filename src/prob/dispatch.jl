@@ -44,6 +44,8 @@ function _prepare_dispatch_data(network::T, switching_solutions::Union{Missing,T
 
     if !ismissing(switching_solutions)
         for (n, results) in switching_solutions
+            shed = String[]
+
             nw = get(results, "solution", Dict())
 
             for (i,switch) in get(nw, "switch", Dict{String,Any}())
@@ -52,11 +54,36 @@ function _prepare_dispatch_data(network::T, switching_solutions::Union{Missing,T
                 end
             end
 
-            for type in ["bus", "load", "shunt", "generator", "solar", "voltage_source", "storage"]
-                for (i,obj) in get(nw, type, Dict{String,Any}())
-                    if round(Int, get(obj, "status", 1)) != 1
+            for (i,bus) in get(nw, "bus", Dict())
+                if round(Int, get(bus, "status", 1)) != 1
+                    data["nw"]["$n"]["bus"][i]["status"] = PMD.DISABLED
+                    push!(shed, i)
+                end
+            end
+
+            for type in ["load", "shunt", "generator", "solar", "voltage_source", "storage"]
+                for (i,obj) in get(data["nw"]["$n"], type, Dict{String,Any}())
+                    if obj["bus"] in shed
                         data["nw"]["$n"][type][i]["status"] = PMD.DISABLED
                     end
+                end
+            end
+
+            for (i,line) in get(data["nw"]["$n"], "line", Dict())
+                if line["f_bus"] in shed || line["t_bus"] in shed
+                    data["nw"]["$n"]["line"][i]["status"] = PMD.DISABLED
+                end
+            end
+
+            for (i,switch) in get(data["nw"]["$n"], "switch", Dict())
+                if switch["f_bus"] in shed || switch["t_bus"] in shed
+                    data["nw"]["$n"]["switch"][i]["status"] = PMD.DISABLED
+                end
+            end
+
+            for (i,transformer) in get(data["nw"]["$n"], "transformer", Dict())
+                if any(bus in shed for bus in transformer["bus"])
+                    data["nw"]["$n"]["transformer"][i]["status"] = PMD.DISABLED
                 end
             end
         end

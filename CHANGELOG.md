@@ -2,6 +2,7 @@
 
 ## staged
 
+- Updated `_prepare_dispatch_data` to correctly disable all relevant components in shed blocks
 - Fixed bug in Powerflow output where if objects were disabled (`"status" => DISABLED`) in the dispatch problem, due to being shed, they would not appear in the output. Now all objects in network will apear, with zeros when missing from the solution.
 - Updated to PowerModelsDistribution v0.11.10
 - Fixed bug in `get_timestep_fault_currents` where if faults was still a string (not parsed, as in the case of using the `skip` argument) there would be an error
