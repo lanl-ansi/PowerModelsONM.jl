@@ -2,6 +2,7 @@
 
 ## staged
 
+- Fixed bug in `build_solver_instances!` where if `"settings"` was still a String, building solvers would fail
 - Fixed bug in events parser to make all `affected_asset` values lowercase after validation
 - Fixed bug in events schema, where `affected_asset` needed to match `line\..+`, which excluded any capital letters in `line`
 - Updated `_prepare_dispatch_data` to correctly disable all relevant components in shed blocks

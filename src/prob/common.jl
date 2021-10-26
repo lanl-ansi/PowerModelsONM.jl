@@ -19,9 +19,9 @@ function build_solver_instances!(args::Dict{String,<:Any})::Dict{String,Any}
         mip_solver = args["solvers"]["mip_solver"],
         minlp_solver = args["solvers"]["minlp_solver"],
         misocp_solver = args["solvers"]["misocp_solver"],
-        nlp_solver_tol=get(get(args, "settings", Dict()), "nlp_solver_tol", 1e-4),
-        mip_solver_tol=get(get(args, "settings", Dict()), "mip_solver_tol", 1e-4),
-        mip_gap=get(get(args, "settings", Dict()), "mip_solver_gap", 0.05),
+        nlp_solver_tol=isa(get(args, "settings", ""), String) ? 1e-4 : get(get(args, "settings", Dict()), "nlp_solver_tol", 1e-4),
+        mip_solver_tol=isa(get(args, "settings", ""), String) ? 1e-4 : get(get(args, "settings", Dict()), "mip_solver_tol", 1e-4),
+        mip_gap=isa(get(args, "settings", ""), String) ? 0.05 : get(get(args, "settings", Dict()), "mip_solver_gap", 0.05),
         verbose=get(args, "verbose", false),
         debug=get(args, "debug", false),
         gurobi=get(args, "gurobi", false)
