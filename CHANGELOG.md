@@ -2,6 +2,7 @@
 
 ## staged
 
+- Updated to PowerModelsDistribution v0.12.0
 - Added support for CapControl in switching algorithm
 - Fixed bug in `build_solver_instances!` where if `"settings"` was still a String, building solvers would fail
 - Fixed bug in events parser to make all `affected_asset` values lowercase after validation
