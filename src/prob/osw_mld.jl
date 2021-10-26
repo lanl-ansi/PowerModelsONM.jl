@@ -19,9 +19,9 @@ function _build_mn_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
 
         PMD.variable_mc_bus_voltage_on_off(pm; nw=n)
 
-        PMD.variable_mc_branch_current(pm; nw=n)
-        PMD.variable_mc_branch_power(pm; nw=n)
-        PMD.variable_mc_switch_power(pm; nw=n)
+        PMD.variable_mc_branch_current(pm; nw=n, bounded=false)
+        PMD.variable_mc_branch_power(pm; nw=n, bounded=false)
+        PMD.variable_mc_switch_power(pm; nw=n, bounded=false)
         variable_mc_switch_state(pm; nw=n, relax=false)
         variable_mc_switch_fixed(pm; nw=n)
         PMD.variable_mc_transformer_power(pm; nw=n)
@@ -29,6 +29,8 @@ function _build_mn_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
         PMD.variable_mc_generator_power(pm; nw=n)
         PMD.variable_mc_storage_power(pm; nw=n)
         PMD.variable_mc_load_power(pm; nw=n)
+
+        PMD.variable_mc_capcontrol(pm; nw=n, relax=false)
 
         PMD.constraint_mc_model_current(pm; nw=n)
 
@@ -65,12 +67,16 @@ function _build_mn_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
 
             PMD.constraint_mc_thermal_limit_from(pm, i; nw=n)
             PMD.constraint_mc_thermal_limit_to(pm, i; nw=n)
+
+            PMD.constraint_mc_ampacity_from(pm, i; nw=n)
+            PMD.constraint_mc_ampacity_to(pm, i; nw=n)
         end
 
         constraint_block_isolation(pm; nw=n, relax=true)
         for i in PMD.ids(pm, n, :switch)
             PMD.constraint_mc_switch_state_on_off(pm, i; nw=n, relax=true)
             PMD.constraint_mc_switch_thermal_limit(pm, i; nw=n)
+            PMD.constraint_mc_switch_ampacity(pm, i; nw=n)
         end
 
         for i in PMD.ids(pm, n, :transformer)
@@ -122,15 +128,17 @@ function _build_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
 
     PMD.variable_mc_bus_voltage_on_off(pm)
 
-    PMD.variable_mc_branch_current(pm)
-    PMD.variable_mc_branch_power(pm)
-    PMD.variable_mc_switch_power(pm)
+    PMD.variable_mc_branch_current(pm; bounded=false)
+    PMD.variable_mc_branch_power(pm; bounded=false)
+    PMD.variable_mc_switch_power(pm; bounded=false)
     PMD.variable_mc_switch_state(pm; relax=false)
     PMD.variable_mc_transformer_power(pm)
 
     PMD.variable_mc_generator_power(pm)
     PMD.variable_mc_storage_power(pm)
     PMD.variable_mc_load_power(pm)
+
+    PMD.variable_mc_capcontrol(pm, relax=false)
 
     PMD.constraint_mc_model_current(pm)
 
@@ -168,6 +176,9 @@ function _build_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
 
         PMD.constraint_mc_thermal_limit_from(pm, i)
         PMD.constraint_mc_thermal_limit_to(pm, i)
+
+        PMD.constraint_mc_ampacity_from(pm, i)
+        PMD.constraint_mc_ampacity_to(pm, i)
     end
 
     constraint_switch_state_max_actions(pm)
@@ -175,6 +186,7 @@ function _build_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
     for i in PMD.ids(pm, :switch)
         PMD.constraint_mc_switch_state_on_off(pm, i; relax=true)
         PMD.constraint_mc_switch_thermal_limit(pm, i)
+        PMD.constraint_mc_switch_ampacity(pm, i)
     end
 
     for i in PMD.ids(pm, :transformer)

@@ -2,6 +2,7 @@
 
 ## staged
 
+- Updated power variables to be `bounded=false` in the switching problem, and use ampacity constraints only instead
 - Updated `sbase_default` to `1e3` to avoid convergence issues
 - Updated to PowerModelsDistribution v0.12.0
 - Added support for CapControl in switching algorithm
