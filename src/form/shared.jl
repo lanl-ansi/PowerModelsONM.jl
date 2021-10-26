@@ -88,9 +88,27 @@ function PowerModelsDistribution.constraint_mc_power_balance_shed(pm::PMD.LPUBFD
     qsw      = get(PMD.var(pm, nw),  :qsw, Dict()); PMD._check_var_keys(qsw, bus_arcs_sw, "reactive power", "switch")
     pt       = get(PMD.var(pm, nw),   :pt, Dict()); PMD._check_var_keys(pt, bus_arcs_trans, "active power", "transformer")
     qt       = get(PMD.var(pm, nw),   :qt, Dict()); PMD._check_var_keys(qt, bus_arcs_trans, "reactive power", "transformer")
-    z_block = PMD.var(pm, nw, :z_block, PMD.ref(pm, nw, :bus_block_map, i))
+    pd       = get(PMD.var(pm, nw), :pd_bus,  Dict()); PMD._check_var_keys(pd,  bus_loads, "active power", "load")
+    qd       = get(PMD.var(pm, nw), :qd_bus,  Dict()); PMD._check_var_keys(qd,  bus_loads, "reactive power", "load")
+    z_block  = PMD.var(pm, nw, :z_block, PMD.ref(pm, nw, :bus_block_map, i))
 
-    Gt, Bt = PMD._build_bus_shunt_matrices(pm, nw, terminals, bus_shunts)
+    uncontrolled_shunts = Tuple{Int,Vector{Int}}[]
+    controlled_shunts = Tuple{Int,Vector{Int}}[]
+
+    if !isempty(bus_shunts) && any(haskey(PMD.ref(pm, nw, :shunt, sh), "controls") for (sh, conns) in bus_shunts)
+        for (sh, conns) in bus_shunts
+            if haskey(PMD.ref(pm, nw, :shunt, sh), "controls")
+                push!(controlled_shunts, (sh,conns))
+            else
+                push!(uncontrolled_shunts, (sh, conns))
+            end
+        end
+    else
+        uncontrolled_shunts = bus_shunts
+    end
+
+    Gt, _ = PMD._build_bus_shunt_matrices(pm, nw, terminals, bus_shunts)
+    _, Bt = PMD._build_bus_shunt_matrices(pm, nw, terminals, uncontrolled_shunts)
 
     cstr_p = []
     cstr_q = []
@@ -99,25 +117,46 @@ function PowerModelsDistribution.constraint_mc_power_balance_shed(pm::PMD.LPUBFD
 
     for (idx, t) in ungrounded_terminals
         cp = PMD.JuMP.@constraint(pm.model,
-              sum(p[a][t] for (a, conns) in bus_arcs if t in conns)
+            sum(p[a][t] for (a, conns) in bus_arcs if t in conns)
             + sum(psw[a_sw][t] for (a_sw, conns) in bus_arcs_sw if t in conns)
             + sum(pt[a_trans][t] for (a_trans, conns) in bus_arcs_trans if t in conns)
             ==
             sum(pg[g][t] for (g, conns) in bus_gens if t in conns)
             - sum(ps[s][t] for (s, conns) in bus_storage if t in conns)
-            - sum(PMD.ref(pm, nw, :load, l, "pd")[findfirst(isequal(t), conns)] * z_block for (l, conns) in bus_loads if t in conns)
+            - sum(pd[l][t] * z_block for (l, conns) in bus_loads if t in conns)
             - sum((w[t] * PMD.LinearAlgebra.diag(Gt')[idx]) for (sh, conns) in bus_shunts if t in conns)
         )
         push!(cstr_p, cp)
+
+        for (sh, sh_conns) in controlled_shunts
+            if t in sh_conns
+                cq_cap = PMD.var(pm, nw, :capacitor_reactive_power, sh)[t]
+                cap_state = PMD.var(pm, nw, :capacitor_state, sh)[t]
+                bs = PMD.diag(PMD.ref(pm, nw, :shunt, sh, "bs"))[findfirst(isequal(t), sh_conns)]
+                w_min = PMD.JuMP.lower_bound(w[t])
+                w_max = PMD.JuMP.upper_bound(w[t])
+
+                # tie to z_block
+                PMD.JuMP.@constraint(pm.model, cap_state <= z_block)
+
+                # McCormick envelope constraints
+                PMD.JuMP.@constraint(pm.model, cq_cap ≥ bs*cap_state*w_min)
+                PMD.JuMP.@constraint(pm.model, cq_cap ≥ bs*w[t] + bs*cap_state*w_max - bs*w_max*z_block)
+                PMD.JuMP.@constraint(pm.model, cq_cap ≤ bs*cap_state*w_max)
+                PMD.JuMP.@constraint(pm.model, cq_cap ≤ bs*w[t] + bs*cap_state*w_min - bs*w_min*z_block)
+            end
+        end
+
         cq = PMD.JuMP.@constraint(pm.model,
-              sum(q[a][t] for (a, conns) in bus_arcs if t in conns)
+            sum(q[a][t] for (a, conns) in bus_arcs if t in conns)
             + sum(qsw[a_sw][t] for (a_sw, conns) in bus_arcs_sw if t in conns)
             + sum(qt[a_trans][t] for (a_trans, conns) in bus_arcs_trans if t in conns)
             ==
             sum(qg[g][t] for (g, conns) in bus_gens if t in conns)
             - sum(qs[s][t] for (s, conns) in bus_storage if t in conns)
-            - sum(PMD.ref(pm, nw, :load, l, "qd")[findfirst(isequal(t), conns)] * z_block for (l, conns) in bus_loads if t in conns)
-            - sum((-w[t] * PMD.LinearAlgebra.diag(Bt')[idx]) for (sh, conns) in bus_shunts if t in conns)
+            - sum(qd[l][t] * z_block for (l, conns) in bus_loads if t in conns)
+            - sum((-w[t] * PMD.LinearAlgebra.diag(Bt')[idx]) for (sh, conns) in uncontrolled_shunts if t in conns)
+            - sum(-PMD.var(pm, nw, :capacitor_reactive_power, sh)[t] for (sh, conns) in controlled_shunts if t in conns)
         )
         push!(cstr_q, cq)
     end
