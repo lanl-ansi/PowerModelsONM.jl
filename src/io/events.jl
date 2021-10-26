@@ -210,7 +210,7 @@ end
 "helper function to find a switch id in the network model based on the dss `source_id`"
 function _find_switch_id_from_source_id(network::Dict{String,<:Any}, source_id::String)::String
     for (id, switch) in get(network, "switch", Dict())
-        if switch["source_id"] == source_id
+        if switch["source_id"] == lowercase(source_id)
             return id
         end
     end

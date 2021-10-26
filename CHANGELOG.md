@@ -2,6 +2,7 @@
 
 ## staged
 
+- Fixed bug in events parser to make all `affected_asset` values lowercase after validation
 - Fixed bug in events schema, where `affected_asset` needed to match `line\..+`, which excluded any capital letters in `line`
 - Updated `_prepare_dispatch_data` to correctly disable all relevant components in shed blocks
 - Fixed bug in Powerflow output where if objects were disabled (`"status" => DISABLED`) in the dispatch problem, due to being shed, they would not appear in the output. Now all objects in network will apear, with zeros when missing from the solution.
