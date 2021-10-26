@@ -77,7 +77,7 @@
       "affected_asset": {
         "type": "string",
         "minLength": 5,
-        "pattern": "^line\\..+$",
+        "pattern": "^[Ll][Ii][Nn][Ee]\\..+$",
         "example": "line.asset_name",
         "description": "The asset that is being affected by the event"
       },
