@@ -2,6 +2,7 @@
 
 ## staged
 
+- Updated `sbase_default` to `1e3` to avoid convergence issues
 - Updated to PowerModelsDistribution v0.12.0
 - Added support for CapControl in switching algorithm
 - Fixed bug in `build_solver_instances!` where if `"settings"` was still a String, building solvers would fail
