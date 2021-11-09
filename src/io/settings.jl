@@ -93,7 +93,9 @@ function apply_settings(network::Dict{String,<:Any}, settings::Dict{String,<:Any
     for (s, setting) in settings
         if s in PMD.pmd_eng_asset_types
             _apply_to_network!(mn_data, s, setting)
-        elseif s in ["time_elapsed", "max_switch_actions"]
+        elseif s == "time_elapsed"
+            PMD.set_time_elapsed!(mn_data, setting)
+        elseif s == "max_switch_actions"
             for n in sort([parse(Int, i) for i in keys(mn_data["nw"])])
                 mn_data["nw"]["$n"][s] = setting[n]
             end
