@@ -2,6 +2,7 @@
 
 ## staged
 
+- Fixed `_find_nw_id_from_timestep` for updates from PowerModelsDistribution
 - Added `JuMP.lower_bound(x)` and `JuMP.upper_bound(x)` for `x::Float64`
 - Updated `constraint_mc_power_balance_shed` to be LP using McCormick envelopes
 - Updated `constraint_switch_max_actions` to be LP using McCormick envelopes

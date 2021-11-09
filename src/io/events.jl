@@ -228,17 +228,22 @@ end
 function _find_nw_id_from_timestep(network::Dict{String,<:Any}, timestep::Union{Real,String})::String
     @assert PMD.ismultinetwork(network) "network data structure is not multinetwork"
 
-    if isa(timestep, Int) && all(isa(v, Int) for v in values(network["mn_lookup"])) || isa(timestep, String)
-        if isa(timestep, String)
-            timestep = all(isa(v, Int) for v in values(network["mn_lookup"])) ? parse(Int, timestep) : all(isa(v, Real) for v in values(network["mn_lookup"])) ? parse(Float16, timestep) : timestep
-        end
-
+    if isa(timestep, Int) && all(isa(v, Int) for v in values(network["mn_lookup"]))
         for (nw_id,ts) in network["mn_lookup"]
             if ts == timestep
                 return nw_id
             end
         end
-    else
+    elseif isa(timestep, Int) && "$timestep" in keys(network["mn_lookup"])
+        return "$timestep"
+    elseif isa(timestep, String)
+        timestep = all(isa(v, Int) for v in values(network["mn_lookup"])) ? parse(Int, timestep) : all(isa(v, Real) for v in values(network["mn_lookup"])) ? parse(Float16, timestep) : timestep
+        for (nw_id,ts) in network["mn_lookup"]
+            if ts == timestep
+                return nw_id
+            end
+        end
+    elseif !all(isa(v, Int) for v in values(network["mn_lookup"]))
         for (nw_id,ts) in network["mn_lookup"]
             if ts ≈ timestep
                 return nw_id
