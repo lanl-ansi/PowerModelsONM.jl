@@ -2,6 +2,7 @@
 
 ## staged
 
+- Updated `constraint_switch_max_actions` to be LP using McCormick envelopes
 - Fixed network data preparation for optimal dispatch from switching results
 - Remove storage conversion hack for PowerModelsProtection, which now includes support for storage
 - Added support for load `priority`, bus `microgrid_id` to switching problem

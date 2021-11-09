@@ -12,8 +12,9 @@ function constraint_switch_state_max_actions(pm::PMD.AbstractUnbalancedPowerMode
 
     delta_switch_states = Dict(l => PMD.JuMP.@variable(pm.model, base_name="$(nw)_delta_sw_state_$(l)", start=0) for l in PMD.ids(pm, nw, :switch_dispatchable))
     for (l, dsw) in delta_switch_states
-        PMD.JuMP.@constraint(pm.model, dsw >= PMD.var(pm, nw, :switch_state, l) * (1 - PMD.JuMP.start_value(PMD.var(pm, nw, :switch_state, l))))
-        PMD.JuMP.@constraint(pm.model, dsw >= PMD.var(pm, nw, :switch_state, l) * (PMD.JuMP.start_value(PMD.var(pm, nw, :switch_state, l)) - 1))
+        state = PMD.var(pm, nw, :switch_state, l)
+        PMD.JuMP.@constraint(pm.model, dsw >=  state * (1 - PMD.JuMP.start_value(state)))
+        PMD.JuMP.@constraint(pm.model, dsw >= -state * (1 - PMD.JuMP.start_value(state)))
     end
 
     if max_switch_actions < Inf
@@ -36,8 +37,17 @@ function constraint_switch_state_max_actions(pm::PMD.AbstractUnbalancedPowerMode
 
     delta_switch_states = Dict(l => PMD.JuMP.@variable(pm.model, base_name="$(nw_2)_delta_sw_state_$(l)", start=0) for l in PMD.ids(pm, nw_2, :switch_dispatchable))
     for (l, dsw) in delta_switch_states
-        PMD.JuMP.@constraint(pm.model, dsw >= PMD.var(pm, nw_2, :switch_state, l) * (1 - PMD.var(pm, nw_1, :switch_state, l)))
-        PMD.JuMP.@constraint(pm.model, dsw >= PMD.var(pm, nw_2, :switch_state, l) * (PMD.var(pm, nw_1, :switch_state, l) - 1))
+        nw_1_state = PMD.var(pm, nw_1, :switch_state, l)
+        nw_2_state = PMD.var(pm, nw_2, :switch_state, l)
+
+        nw1_nw2_state = PMD.JuMP.@variable(pm.model, base_name="$(nw_1)_$(nw_2)_sw_state_$(l)")
+        PMD.JuMP.@constraint(pm.model, nw1_nw2_state >= 0)
+        PMD.JuMP.@constraint(pm.model, nw1_nw2_state >= nw_2_state + nw_1_state - 1)
+        PMD.JuMP.@constraint(pm.model, nw1_nw2_state <= nw_2_state)
+        PMD.JuMP.@constraint(pm.model, nw1_nw2_state <= nw_1_state)
+
+        PMD.JuMP.@constraint(pm.model, dsw >=  nw_2_state - nw1_nw2_state)
+        PMD.JuMP.@constraint(pm.model, dsw >= -nw_2_state + nw1_nw2_state)
     end
 
     if max_switch_actions < Inf
@@ -77,7 +87,7 @@ function constraint_block_isolation(pm::PMD.AbstractUnbalancedPowerModel, nw::In
         end
     end
 
-    for (b, block) in PMD.ref(pm, nw, :blocks)
+    for b in PMD.ids(pm, nw, :blocks)
         z_block = PMD.var(pm, nw, :z_block, b)
         n_gen = length(PMD.ref(pm, nw, :block_gens)) + length(PMD.ref(pm, nw, :block_storages))
 
