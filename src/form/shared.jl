@@ -115,6 +115,23 @@ function PowerModelsDistribution.constraint_mc_power_balance_shed(pm::PMD.LPUBFD
 
     ungrounded_terminals = [(idx,t) for (idx,t) in enumerate(terminals) if !grounded[idx]]
 
+    pd_zblock = Dict{Int,PMD.JuMP.Containers.DenseAxisArray{PMD.JuMP.VariableRef}}(l => PMD.JuMP.@variable(pm.model, [c in conns], base_name="$(nw)_pd_zblock_$(l)") for (l,conns) in bus_loads)
+    qd_zblock = Dict{Int,PMD.JuMP.Containers.DenseAxisArray{PMD.JuMP.VariableRef}}(l => PMD.JuMP.@variable(pm.model, [c in conns], base_name="$(nw)_qd_zblock_$(l)") for (l,conns) in bus_loads)
+
+    for (l,conns) in bus_loads
+        for c in conns
+            PMD.JuMP.@constraint(pm.model, pd_zblock[l][c] >= PMD.JuMP.lower_bound(pd[l][c]) * z_block)
+            PMD.JuMP.@constraint(pm.model, pd_zblock[l][c] >= PMD.JuMP.upper_bound(pd[l][c]) * z_block + pd[l][c] - PMD.JuMP.upper_bound(pd[l][c]))
+            PMD.JuMP.@constraint(pm.model, pd_zblock[l][c] <= PMD.JuMP.upper_bound(pd[l][c]) * z_block)
+            PMD.JuMP.@constraint(pm.model, pd_zblock[l][c] <= pd[l][c] + PMD.JuMP.lower_bound(pd[l][c]) * z_block - PMD.JuMP.lower_bound(pd[l][c]))
+
+            PMD.JuMP.@constraint(pm.model, qd_zblock[l][c] >= PMD.JuMP.lower_bound(qd[l][c]) * z_block)
+            PMD.JuMP.@constraint(pm.model, qd_zblock[l][c] >= PMD.JuMP.upper_bound(qd[l][c]) * z_block + qd[l][c] - PMD.JuMP.upper_bound(qd[l][c]))
+            PMD.JuMP.@constraint(pm.model, qd_zblock[l][c] <= PMD.JuMP.upper_bound(qd[l][c]) * z_block)
+            PMD.JuMP.@constraint(pm.model, qd_zblock[l][c] <= qd[l][c] + PMD.JuMP.lower_bound(qd[l][c]) * z_block - PMD.JuMP.lower_bound(qd[l][c]))
+        end
+    end
+
     for (idx, t) in ungrounded_terminals
         cp = PMD.JuMP.@constraint(pm.model,
             sum(p[a][t] for (a, conns) in bus_arcs if t in conns)
@@ -123,8 +140,8 @@ function PowerModelsDistribution.constraint_mc_power_balance_shed(pm::PMD.LPUBFD
             ==
             sum(pg[g][t] for (g, conns) in bus_gens if t in conns)
             - sum(ps[s][t] for (s, conns) in bus_storage if t in conns)
-            - sum(pd[l][t] * z_block for (l, conns) in bus_loads if t in conns)
-            - sum((w[t] * PMD.LinearAlgebra.diag(Gt')[idx]) for (sh, conns) in bus_shunts if t in conns)
+            - sum(pd_zblock[l][t] for (l, conns) in bus_loads if t in conns)
+            - sum((w[t] * LinearAlgebra.diag(Gt')[idx]) for (sh, conns) in bus_shunts if t in conns)
         )
         push!(cstr_p, cp)
 
@@ -154,8 +171,8 @@ function PowerModelsDistribution.constraint_mc_power_balance_shed(pm::PMD.LPUBFD
             ==
             sum(qg[g][t] for (g, conns) in bus_gens if t in conns)
             - sum(qs[s][t] for (s, conns) in bus_storage if t in conns)
-            - sum(qd[l][t] * z_block for (l, conns) in bus_loads if t in conns)
-            - sum((-w[t] * PMD.LinearAlgebra.diag(Bt')[idx]) for (sh, conns) in uncontrolled_shunts if t in conns)
+            - sum(qd_zblock[l][t] for (l, conns) in bus_loads if t in conns)
+            - sum((-w[t] * LinearAlgebra.diag(Bt')[idx]) for (sh, conns) in uncontrolled_shunts if t in conns)
             - sum(-PMD.var(pm, nw, :capacitor_reactive_power, sh)[t] for (sh, conns) in controlled_shunts if t in conns)
         )
         push!(cstr_q, cq)
