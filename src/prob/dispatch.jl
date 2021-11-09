@@ -39,7 +39,7 @@ end
 
 
 "prepares data for running a optimal dispatch problem, copying in solutions from the switching results, if present"
-function _prepare_dispatch_data(network::T, switching_solutions::Union{Missing,T})::T where T <: Dict{String,<:Any}
+function _prepare_dispatch_data(network::T, switching_solutions::Union{Missing,T}=missing)::T where T <: Dict{String,<:Any}
     data = deepcopy(network)
 
     if !ismissing(switching_solutions)
@@ -47,12 +47,6 @@ function _prepare_dispatch_data(network::T, switching_solutions::Union{Missing,T
             shed = String[]
 
             nw = get(results, "solution", Dict())
-
-            for (i,switch) in get(nw, "switch", Dict{String,Any}())
-                if haskey(switch, "state")
-                    data["nw"]["$n"]["switch"][i]["state"] = switch["state"]
-                end
-            end
 
             for (i,bus) in get(nw, "bus", Dict())
                 if round(Int, get(bus, "status", 1)) != 1
@@ -76,6 +70,10 @@ function _prepare_dispatch_data(network::T, switching_solutions::Union{Missing,T
             end
 
             for (i,switch) in get(data["nw"]["$n"], "switch", Dict())
+                if haskey(nw, "switch") && haskey(nw["switch"], i) && haskey(nw["switch"][i], "state")
+                    data["nw"]["$n"]["switch"][i]["state"] = nw["switch"][i]["state"]
+                end
+
                 if switch["f_bus"] in shed || switch["t_bus"] in shed
                     data["nw"]["$n"]["switch"][i]["status"] = PMD.DISABLED
                 end
