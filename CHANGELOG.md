@@ -2,6 +2,7 @@
 
 ## staged
 
+- Added `variable_mc_storage_indicator` due to overlap of `z_storage` with `z_block`
 - Added LinearAlgebra (stdlib) dependency
 - Fixed order of parsing in `entrypoint` (events should go *after* settings)
 - Add support for `null` values in settings schema, and new objects / fields

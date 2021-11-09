@@ -65,3 +65,9 @@ function variable_mc_switch_state(pm::PMD.AbstractUnbalancedPowerModel; nw::Int=
 
     report && PMD._IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :switch, :state, PMD.ids(pm, nw, :switch_dispatchable), state)
 end
+
+
+"do nothing, already have z_block"
+function PowerModelsDistribution.variable_mc_storage_indicator(pm::PMD.LPUBFDiagModel; nw::Int=PMD.nw_id_default, relax::Bool=false, report::Bool=true)
+end
+
