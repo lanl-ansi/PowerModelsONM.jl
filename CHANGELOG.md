@@ -2,6 +2,7 @@
 
 ## staged
 
+- Added support for "settings" (e.g., `sbase_default`) in settings schema / parsing
 - Updated `z_block` variable start
 - Added `variable_mc_load_power_on_off` to ensure pd/qd variables include zeros in bounds
 - Added support for OLTC and CAPC in switching problem

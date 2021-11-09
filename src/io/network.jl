@@ -22,7 +22,7 @@ and multinetwork, which is the multinetwork `ENGINEERING` representation of the 
 """
 function parse_network(network_file::String)::Tuple{Dict{String,Any},Dict{String,Any}}
     eng = PMD.parse_file(network_file; dss2eng_extensions=[PowerModelsProtection._dss2eng_solar_dynamics!, PowerModelsProtection._dss2eng_gen_dynamics!], transformations=[PMD.apply_kron_reduction!])
-    eng["settings"]["sbase_default"] = 1e3
+
 
     mn_eng = PMD.make_multinetwork(eng)
 
