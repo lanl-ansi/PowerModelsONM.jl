@@ -71,3 +71,85 @@ end
 function PowerModelsDistribution.variable_mc_storage_indicator(pm::PMD.LPUBFDiagModel; nw::Int=PMD.nw_id_default, relax::Bool=false, report::Bool=true)
 end
 
+
+"""
+The variable creation for the loads is rather complicated because Expressions
+are used wherever possible instead of explicit variables.
+Delta loads always need a current variable and auxilary power variable (X), and
+all other load model variables are then linear transformations of these
+(linear Expressions).
+Wye loads however, don't need any variables when the load is modelled as
+constant power or constant impedance. In all other cases (e.g. when a cone is
+used to constrain the power), variables need to be created.
+"""
+function variable_mc_load_power_on_off(pm::PMD.LPUBFDiagModel; nw=PMD.nw_id_default)
+    load_wye_ids = [id for (id, load) in PMD.ref(pm, nw, :load) if load["configuration"]==PMD.WYE]
+    load_del_ids = [id for (id, load) in PMD.ref(pm, nw, :load) if load["configuration"]==PMD.DELTA]
+    load_cone_ids = [id for (id, load) in PMD.ref(pm, nw, :load) if PMD._check_load_needs_cone(load)]
+    # create dictionaries
+    PMD.var(pm, nw)[:pd_bus] = Dict()
+    PMD.var(pm, nw)[:qd_bus] = Dict()
+    PMD.var(pm, nw)[:pd] = Dict()
+    PMD.var(pm, nw)[:qd] = Dict()
+    # now, create auxilary power variable X for delta loads
+    PMD.variable_mc_load_power_delta_aux(pm, load_del_ids; nw=nw)
+    # only delta loads need a current variable
+    PMD.variable_mc_load_current(pm, load_del_ids; nw=nw)
+    # for wye loads with a cone inclusion constraint, we need to create a variable
+    variable_mc_load_power_on_off(pm, intersect(load_wye_ids, load_cone_ids); nw=nw)
+end
+
+
+"""
+These variables reflect the power consumed by the load, NOT the power injected
+into the bus nodes; these variables only coincide for wye-connected loads
+with a grounded neutral.
+"""
+function variable_mc_load_power_on_off(pm::PMD.LPUBFDiagModel, load_ids::Vector{Int}; nw::Int=PMD.nw_id_default, bounded::Bool=true, report::Bool=true)
+    @assert(bounded)
+    # calculate bounds for all loads
+    pmin = Dict()
+    pmax = Dict()
+    qmin = Dict()
+    qmax = Dict()
+    for id in load_ids
+        load = PMD.ref(pm, nw, :load, id)
+        bus = PMD.ref(pm, nw, :bus, load["load_bus"])
+        pmin[id], pmax[id], qmin[id], qmax[id] = PMD._calc_load_pq_bounds(load, bus)
+    end
+
+    # create variables
+    connections = Dict(i => load["connections"] for (i,load) in PMD.ref(pm, nw, :load))
+
+    pd = Dict(i => JuMP.@variable(pm.model,
+        [c in connections[i]], base_name="$(nw)_pd_$(i)"
+        ) for i in load_ids
+    )
+    qd = Dict(i => JuMP.@variable(pm.model,
+        [c in connections[i]], base_name="$(nw)_qd_$(i)"
+        ) for i in load_ids
+    )
+
+    if bounded
+        for i in load_ids
+            load = PMD.ref(pm, nw, :load, i)
+            bus = PMD.ref(pm, nw, :bus, load["load_bus"])
+            pmin, pmax, qmin, qmax = PMD._calc_load_pq_bounds(load, bus)
+            for (idx,c) in enumerate(connections[i])
+                PMD.set_lower_bound(pd[i][c], min(pmin[idx], 0.0))
+                PMD.set_upper_bound(pd[i][c], max(pmax[idx], 0.0))
+                PMD.set_lower_bound(qd[i][c], min(qmin[idx], 0.0))
+                PMD.set_upper_bound(qd[i][c], max(qmax[idx], 0.0))
+            end
+        end
+    end
+
+    #store in dict, but do not overwrite
+    for i in load_ids
+        PMD.var(pm, nw)[:pd][i] = pd[i]
+        PMD.var(pm, nw)[:qd][i] = qd[i]
+    end
+
+    report && PMD._IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :load, :pd, load_ids, pd)
+    report && PMD._IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :load, :qd, load_ids, qd)
+end
