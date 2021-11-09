@@ -75,6 +75,18 @@ function PowerModelsDistribution.constraint_mc_switch_power_on_off(pm::PMD.LPUBF
 end
 
 
+"helper function for pd/qd variables"
+function JuMP.lower_bound(x::Float64)
+    return x
+end
+
+
+"helper function for pd/qd variables"
+function JuMP.upper_bound(x::Float64)
+    return x
+end
+
+
 "KCL for load shed problem with transformers (AbstractWForms)"
 function PowerModelsDistribution.constraint_mc_power_balance_shed(pm::PMD.LPUBFDiagModel, nw::Int, i::Int, terminals::Vector{Int}, grounded::Vector{Bool}, bus_arcs::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_arcs_sw::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_arcs_trans::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_gens::Vector{Tuple{Int,Vector{Int}}}, bus_storage::Vector{Tuple{Int,Vector{Int}}}, bus_loads::Vector{Tuple{Int,Vector{Int}}}, bus_shunts::Vector{Tuple{Int,Vector{Int}}})
     w        = PMD.var(pm, nw, :w, i)
