@@ -269,23 +269,23 @@ end
 function PowerModelsDistribution.constraint_mc_gen_power_on_off(pm::PMD.LPUBFDiagModel, nw::Int, i::Int, connections::Vector{<:Int}, pmin::Vector{<:Real}, pmax::Vector{<:Real}, qmin::Vector{<:Real}, qmax::Vector{<:Real})
     pg = PMD.var(pm, nw, :pg, i)
     qg = PMD.var(pm, nw, :qg, i)
-    z = PMD.var(pm, nw, :z_block, PMD.ref(pm, nw, :gen_block_map, i))
+    z_block = PMD.var(pm, nw, :z_block, PMD.ref(pm, nw, :gen_block_map, i))
 
     for (idx, c) in enumerate(connections)
         if isfinite(pmax[idx])
-            PMD.JuMP.@constraint(pm.model, pg[c] .<= pmax[idx].*z)
+            PMD.JuMP.@constraint(pm.model, pg[c] <= pmax[idx]*z_block)
         end
 
         if isfinite(pmin[idx])
-            PMD.JuMP.@constraint(pm.model, pg[c] .>= pmin[idx].*z)
+            PMD.JuMP.@constraint(pm.model, pg[c] >= pmin[idx]*z_block)
         end
 
         if isfinite(qmax[idx])
-            PMD.JuMP.@constraint(pm.model, qg[c] .<= qmax[idx].*z)
+            PMD.JuMP.@constraint(pm.model, qg[c] <= qmax[idx]*z_block)
         end
 
         if isfinite(qmin[idx])
-            PMD.JuMP.@constraint(pm.model, qg[c] .>= qmin[idx].*z)
+            PMD.JuMP.@constraint(pm.model, qg[c] >= qmin[idx]*z_block)
         end
     end
 end
@@ -293,14 +293,14 @@ end
 
 "on/off constraint for storage"
 function PowerModelsDistribution.constraint_mc_storage_on_off(pm::PMD.LPUBFDiagModel, nw::Int, i::Int, connections::Vector{Int}, pmin::Vector{<:Real}, pmax::Vector{<:Real}, qmin::Vector{<:Real}, qmax::Vector{<:Real}, charge_ub, discharge_ub)
-    z = PMD.var(pm, nw, :z_block, PMD.ref(pm, nw, :storage_block_map, i))
+    z_block = PMD.var(pm, nw, :z_block, PMD.ref(pm, nw, :storage_block_map, i))
+
     ps = [PMD.var(pm, nw, :ps, i)[c] for c in connections]
     qs = [PMD.var(pm, nw, :qs, i)[c] for c in connections]
 
-    PMD.JuMP.@constraint(pm.model, ps .<= z.*pmax)
-    PMD.JuMP.@constraint(pm.model, ps .>= z.*pmin)
+    PMD.JuMP.@constraint(pm.model, ps .<= z_block.*pmax)
+    PMD.JuMP.@constraint(pm.model, ps .>= z_block.*pmin)
 
-    PMD.JuMP.@constraint(pm.model, qs .<= z.*qmax)
-    PMD.JuMP.@constraint(pm.model, qs .>= z.*qmin)
+    PMD.JuMP.@constraint(pm.model, qs .<= z_block.*qmax)
+    PMD.JuMP.@constraint(pm.model, qs .>= z_block.*qmin)
 end
-
