@@ -35,6 +35,22 @@
     }
   ],
   "properties": {
+    "settings": {
+      "type": "object",
+      "properties": {
+        "sbase_default": {
+          "type": "number"
+        },
+        "vbase_defaults": {
+          "type": "object",
+          "patternProperties": {
+            "^.+$": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
     "generator": {
       "type": "object",
       "description": "generation objects, excluding storage, which has different properties, indexed by name",
@@ -197,14 +213,20 @@
               "type": "array",
               "description": "real power lower bounds in kW",
               "items": {
-                "type": "number"
+                "type": [
+                  "number",
+                  "null"
+                ]
               }
             },
             "pg_ub": {
               "type": "array",
               "description": "real power upper bounds in kW",
               "items": {
-                "type": "number"
+                "type": [
+                  "number",
+                  "null"
+                ]
               }
             },
             "pg": {
@@ -218,14 +240,20 @@
               "type": "array",
               "description": "Reactive power lower bounds in kVar",
               "items": {
-                "type": "number"
+                "type": [
+                  "number",
+                  "null"
+                ]
               }
             },
             "qg_ub": {
               "type": "array",
               "description": "Reactive power upper bounds in kVar",
               "items": {
-                "type": "number"
+                "type": [
+                  "number",
+                  "null"
+                ]
               }
             },
             "qg": {
@@ -284,6 +312,15 @@
                 "DISABLED"
               ],
               "description": "the status of the asset, _i.e._ enabled (`1`) or disabled (`0`)"
+            },
+            "sm_ub": {
+              "type": "array",
+              "items": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
             }
           }
         }
@@ -312,7 +349,10 @@
               "type": "array",
               "description": "the voltage magnitude upper bounds in volts",
               "items": {
-                "type": "number"
+                "type": [
+                  "number",
+                  "null"
+                ]
               }
             },
             "vm": {
@@ -396,6 +436,28 @@
         }
       }
     },
+    "shunt": {
+      "type": "object",
+      "patternProperties": {
+        "^.+$": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": [
+                "string",
+                "integer"
+              ],
+              "enum": [
+                "ENABLED",
+                "DISABLED",
+                0,
+                1
+              ]
+            }
+          }
+        }
+      }
+    },
     "line": {
       "type": "object",
       "description": "line objects indexed by name",
@@ -422,14 +484,19 @@
               "type": "array",
               "description": "upper bounds on line currents in Amps",
               "items": {
-                "type": "number"
+                "type": [
+                  "number",
+                  "null"
+                ]
               }
             },
-            "cm_ub_b": {
+            "sm_ub": {
               "type": "array",
-              "description": "emergency upper bounds on line currents in Amps",
               "items": {
-                "type": "number"
+                "type": [
+                  "number",
+                  "null"
+                ]
               }
             },
             "status": {
@@ -497,15 +564,48 @@
               "type": "array",
               "description": "current magnitude upper bound (normamps)",
               "items": {
-                "type": "number"
+                "type": [
+                  "number",
+                  "null"
+                ]
               }
             },
-            "cm_ub_b": {
+            "sm_ub": {
               "type": "array",
-              "description": "current magnitude upper bound (emergamps)",
               "items": {
-                "type": "number"
+                "type": [
+                  "number",
+                  "null"
+                ]
               }
+            }
+          }
+        }
+      }
+    },
+    "transformer": {
+      "type": "object",
+      "patternProperties": {
+        "^.+$": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": [
+                "string",
+                "integer"
+              ]
+            },
+            "sm_ub": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "cm_ub": {
+              "type": [
+                "number",
+                "null"
+              ]
             }
           }
         }
