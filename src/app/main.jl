@@ -46,9 +46,9 @@ function entrypoint(args::Dict{String,<:Any})::Dict{String,Any}
 
     parse_network!(args)
 
-    parse_events!(args)
-
     parse_settings!(args)
+
+    parse_events!(args)
 
     build_solver_instances!(args)
 

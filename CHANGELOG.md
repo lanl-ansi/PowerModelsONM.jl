@@ -2,6 +2,7 @@
 
 ## staged
 
+- Fixed order of parsing in `entrypoint` (events should go *after* settings)
 - Add support for `null` values in settings schema, and new objects / fields
 - Updated power variables to be `bounded=false` in the switching problem, and use ampacity constraints only instead
 - Updated `sbase_default` to `1e3` to avoid convergence issues
