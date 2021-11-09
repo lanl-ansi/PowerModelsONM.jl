@@ -9,13 +9,13 @@ function variable_mc_block_indicator(pm::PMD.AbstractUnbalancedPowerModel; nw::I
             [i in PMD.ids(pm, nw, :blocks)], base_name="$(nw)_z_block",
             lower_bound = 0,
             upper_bound = 1,
-            start = 0
+            start = 1
         )
     else
         z_block = PMD.var(pm, nw)[:z_block] = PMD.JuMP.@variable(pm.model,
             [i in PMD.ids(pm, nw, :blocks)], base_name="$(nw)_z_block",
             binary = true,
-            start = 0
+            start = 1
         )
     end
 

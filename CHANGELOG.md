@@ -2,6 +2,7 @@
 
 ## staged
 
+- Updated `z_block` variable start
 - Added `variable_mc_load_power_on_off` to ensure pd/qd variables include zeros in bounds
 - Added support for OLTC and CAPC in switching problem
 - Added `constraint_mc_transformer_power_yy_on_off` due to infeasibility from OLTC with controls
