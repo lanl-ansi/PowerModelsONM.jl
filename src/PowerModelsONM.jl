@@ -1,5 +1,6 @@
 module PowerModelsONM
     using Base: Bool
+    import LinearAlgebra
 
     import PowerModelsDistribution
     const PMD = PowerModelsDistribution
