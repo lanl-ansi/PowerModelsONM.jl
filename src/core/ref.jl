@@ -3,14 +3,20 @@ function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any}
     ref[:blocks] = Dict{Int,Set}(i => block for (i,block) in enumerate(PMD.identify_load_blocks(data)))
     ref[:bus_block_map] = Dict{Int,Int}(bus => b for (b,block) in ref[:blocks] for bus in block)
     ref[:block_loads] = Dict{Int,Set}(i => Set{Int}() for (i,_) in ref[:blocks])
-    ref[:block_weights] = Dict{Int,Real}(i => 0.0 for (i,_) in ref[:blocks])
+    ref[:block_weights] = Dict{Int,Real}(i => 1.0 for (i,_) in ref[:blocks])
     ref[:block_shunts] = Dict{Int,Set{Int}}(i => Set{Int}() for (i,_) in ref[:blocks])
     ref[:block_gens] = Dict{Int,Set{Int}}(i => Set{Int}() for (i,_) in ref[:blocks])
     ref[:block_storages] = Dict{Int,Set{Int}}(i => Set{Int}() for (i,_) in ref[:blocks])
 
+    for (b,bus) in ref[:bus]
+        if !isempty(get(bus, "microgrid_id", ""))
+            ref[:block_weights][ref[:bus_block_map][b]] = 10.0
+        end
+    end
+
     for (l,load) in ref[:load]
         push!(ref[:block_loads][ref[:bus_block_map][load["load_bus"]]], l)
-        ref[:block_weights][ref[:bus_block_map][load["load_bus"]]] += sum(abs.(load["pd"])) + sum(abs.(load["qd"])) + get(load, "priority", 0)
+        ref[:block_weights][ref[:bus_block_map][load["load_bus"]]] += 1e-2 * get(load, "priority", 1)
     end
     ref[:load_block_map] = Dict{Int,Int}(load => b for (b,block_loads) in ref[:block_loads] for load in block_loads)
 

@@ -2,6 +2,7 @@
 
 ## staged
 
+- Added support for load `priority`, bus `microgrid_id` to switching problem
 - Added `mn_opf_oltc_capc` problem for dispatch step
 - Added `variable_mc_storage_indicator` due to overlap of `z_storage` with `z_block`
 - Added LinearAlgebra (stdlib) dependency

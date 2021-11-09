@@ -28,7 +28,11 @@ function optimize_switches(network::Dict{String,<:Any}, solver; formulation::Typ
             solver;
             solution_processors=[PMD.sol_data_model!],
             ref_extensions=[ref_add_load_blocks!, ref_add_max_switch_actions!],
-            eng2math_passthrough=Dict{String,Vector{String}}("root"=>String["max_switch_actions"])
+            eng2math_passthrough=Dict{String,Vector{String}}(
+                "root"=>String["max_switch_actions"],
+                "load"=>String["priority"],
+                "bus"=>String["microgrid_id"]
+            )
         )
 
         opt_results = filter(x->x.first!="solution", _results)
@@ -67,7 +71,11 @@ function optimize_switches(subnetwork::Dict{String,<:Any}, prob::Function, solve
         solver;
         solution_processors=[PMD.sol_data_model!],
         ref_extensions=[ref_add_load_blocks!, ref_add_max_switch_actions!],
-        eng2math_passthrough=Dict{String,Vector{String}}("root"=>String["max_switch_actions"])
+        eng2math_passthrough=Dict{String,Vector{String}}(
+            "root"=>String["max_switch_actions"],
+            "load"=>String["priority"],
+            "bus"=>String["microgrid_id"]
+        )
     )
 end
 
