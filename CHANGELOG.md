@@ -2,6 +2,7 @@
 
 ## staged
 
+- Added `constraint_mc_transformer_power_yy_on_off` due to infeasibility from OLTC with controls
 - Updated constraint functions to use consistent variable naming scheme
 - Added `constraint_mc_switch_state_on_off` and `constraint_mc_switch_power_on_off` for `NFAUPowerModel`
 - Updated `apply_settings` to use `set_time_elapsed!` from PowerModelsDistribution

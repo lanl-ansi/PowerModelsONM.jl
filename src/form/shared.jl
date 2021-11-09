@@ -304,3 +304,69 @@ function PowerModelsDistribution.constraint_mc_storage_on_off(pm::PMD.LPUBFDiagM
     PMD.JuMP.@constraint(pm.model, qs .<= z_block.*qmax)
     PMD.JuMP.@constraint(pm.model, qs .>= z_block.*qmin)
 end
+
+"""
+Links to and from power and voltages in a wye-wye transformer, assumes tm_fixed is true
+
+```math
+w_fr_i=(pol_i*tm_scale*tm_i)^2w_to_i
+```
+"""
+function constraint_mc_transformer_power_yy_on_off(pm::PMD.LPUBFDiagModel, nw::Int, trans_id::Int, f_bus::Int, t_bus::Int, f_idx::Tuple{Int,Int,Int}, t_idx::Tuple{Int,Int,Int}, f_connections::Vector{Int}, t_connections::Vector{Int}, pol::Int, tm_set::Vector{<:Real}, tm_fixed::Vector{Bool}, tm_scale::Real)
+    z_block = PMD.var(pm, nw, :z_block, PMD.ref(pm, nw, :bus_block_map, f_bus))
+
+    tm = [tm_fixed[idx] ? tm_set[idx] : PMD.var(pm, nw, :tap, trans_id)[idx] for (idx,(fc,tc)) in enumerate(zip(f_connections,t_connections))]
+    transformer = PMD.ref(pm, nw, :transformer, trans_id)
+
+    p_fr = [PMD.var(pm, nw, :pt, f_idx)[p] for p in f_connections]
+    p_to = [PMD.var(pm, nw, :pt, t_idx)[p] for p in t_connections]
+    q_fr = [PMD.var(pm, nw, :qt, f_idx)[p] for p in f_connections]
+    q_to = [PMD.var(pm, nw, :qt, t_idx)[p] for p in t_connections]
+
+    w_fr = PMD.var(pm, nw, :w)[f_bus]
+    w_to = PMD.var(pm, nw, :w)[t_bus]
+
+    tmsqr = [tm_fixed[i] ? tm[i]^2 : PMD.JuMP.@variable(pm.model, base_name="$(nw)_tmsqr_$(trans_id)_$(f_connections[i])", start=PMD.JuMP.start_value(tm[i])^2, lower_bound=PMD.JuMP.has_lower_bound(tm[i]) ? PMD.JuMP.lower_bound(tm[i])^2 : 0.0, upper_bound=PMD.JuMP.has_upper_bound(tm[i]) ? PMD.JuMP.upper_bound(tm[i])^2 : 2.0^2) for i in 1:length(tm)]
+
+    for (idx, (fc, tc)) in enumerate(zip(f_connections, t_connections))
+        if tm_fixed[idx]
+            PMD.JuMP.@constraint(pm.model, w_fr[fc] == (pol*tm_scale*tm[idx])^2*w_to[tc])
+        else
+            PMD.PolyhedralRelaxations.construct_univariate_relaxation!(pm.model, x->x^2, tm[idx], tmsqr[idx], [PMD.JuMP.has_lower_bound(tm[idx]) ? PMD.JuMP.lower_bound(tm[idx]) : 0.0, PMD.JuMP.has_upper_bound(tm[idx]) ? PMD.JuMP.upper_bound(tm[idx]) : 2.0], false)
+
+            tmsqr_w_to = PMD.JuMP.@variable(pm.model, base_name="$(nw)_tmsqr_w_to_$(trans_id)_$(t_bus)_$(tc)")
+            PMD.PolyhedralRelaxations.construct_bilinear_relaxation!(pm.model, tmsqr[idx], w_to[tc], tmsqr_w_to, [PMD.JuMP.lower_bound(tmsqr[idx]), PMD.JuMP.upper_bound(tmsqr[idx])], [PMD.JuMP.has_lower_bound(w_to[tc]) ? PMD.JuMP.lower_bound(w_to[tc]) : 0.0, PMD.JuMP.has_upper_bound(w_to[tc]) ? PMD.JuMP.upper_bound(w_to[tc]) : 2.0^2])
+
+            PMD.JuMP.@constraint(pm.model, w_fr[fc] == (pol*tm_scale)^2*tmsqr_w_to)
+
+            # with regcontrol
+            if haskey(transformer,"controls")
+                v_ref = transformer["controls"]["vreg"][idx]
+                δ = transformer["controls"]["band"][idx]
+                r = transformer["controls"]["r"][idx]
+                x = transformer["controls"]["x"][idx]
+
+                # linearized voltage squared: w_drop = (2⋅r⋅p+2⋅x⋅q)
+                w_drop = PMD.JuMP.@expression(pm.model, 2*r*p_to[idx] + 2*x*q_to[idx])
+
+                # (v_ref-δ)^2 ≤ w_fr-w_drop ≤ (v_ref+δ)^2
+                # w_fr/1.1^2 ≤ w_to ≤ w_fr/0.9^2
+                w_drop_z_block = PMD.JuMP.@variable(pm.model, base_name="$(nw)_w_drop_z_block_$(trans_id)_$(idx)")
+                w_drop_lb = 0.0
+                w_drop_ub = PMD.JuMP.has_upper_bound(p_to[idx]) && PMD.JuMP.has_upper_bound(q_to[idx]) ? 2*r*PMD.JuMP.upper_bound(p_to[idx]) + 2*x*PMD.JuMP.upper_bound(q_to[idx]) : 1.0
+                PMD.JuMP.@constraint(pm.model, w_drop_z_block >= w_drop_lb * z_block)
+                PMD.JuMP.@constraint(pm.model, w_drop_z_block >= w_drop_ub * z_block + w_drop - w_drop_ub)
+                PMD.JuMP.@constraint(pm.model, w_drop_z_block <= w_drop_ub * z_block)
+                PMD.JuMP.@constraint(pm.model, w_drop_z_block <= w_drop + w_drop_lb * z_block - w_drop_lb)
+
+                PMD.JuMP.@constraint(pm.model, w_fr[fc] ≥ z_block * (v_ref - δ)^2 + w_drop_z_block)
+                PMD.JuMP.@constraint(pm.model, w_fr[fc] ≤ z_block * (v_ref + δ)^2 + w_drop_z_block)
+                PMD.JuMP.@constraint(pm.model, w_fr[fc]/1.1^2 ≤ w_to[tc])
+                PMD.JuMP.@constraint(pm.model, w_fr[fc]/0.9^2 ≥ w_to[tc])
+            end
+        end
+    end
+
+    PMD.JuMP.@constraint(pm.model, p_fr + p_to .== 0)
+    PMD.JuMP.@constraint(pm.model, q_fr + q_to .== 0)
+end
