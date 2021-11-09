@@ -14,7 +14,7 @@ function run_fault_studies!(args::Dict{String,<:Any}; validate::Bool=true, solve
         args["faults"] = PowerModelsProtection.build_mc_fault_study(args["base_network"])
     end
 
-    args["fault_studies_results"] = run_fault_studies(args["network"], args["solvers"][solver]; faults=args["faults"], optimal_dispatch_result=get(args, "optimal_dispatch_result", Dict{String,Any}()))
+    args["fault_studies_results"] = run_fault_studies(args["network"], args["solvers"][solver]; faults=args["faults"], switching_solutions=get(args, "optimal_switching_results", missing))
 end
 
 
@@ -31,15 +31,15 @@ Uses [`run_fault_study`](@ref run_fault_study) to solve the actual fault study.
 `solver` will determine which instantiated solver is used, `"nlp_solver"` or `"juniper_solver"`
 
 """
-function run_fault_studies(network::Dict{String,<:Any}, solver; faults::Dict{String,<:Any}=Dict{String,Any}(), optimal_dispatch_result::Dict{String,<:Any}=Dict{String,Any}())::Dict{String,Any}
-    mn_data = _prepare_fault_study_multinetwork_data(network; optimal_dispatch_solution=get(optimal_dispatch_result, "solution", Dict{String,Any}()))
+function run_fault_studies(network::T, solver; faults::T=Dict{String,Any}(), switching_solutions::Union{Missing,T}=missing)::T where T <: Dict{String,<:Any}
+    mn_data = _prepare_fault_study_multinetwork_data(network, switching_solutions)
 
     if isempty(faults)
         faults = PowerModelsProtection.build_mc_fault_study(first(network["nw"]).second)
     end
 
     fault_studies_results = Dict{String,Any}()
-    ns = sort([parse(Int, i) for i in keys(mn_data["nw"])])
+    ns = sort([parse(Int, i) for i in keys(get(mn_data, "nw", Dict()))])
     @showprogress length(ns) "Running fault studies... " for n in ns
         fault_studies_results["$n"] = run_fault_study(mn_data["nw"]["$n"], faults, solver)
     end
@@ -63,14 +63,13 @@ end
 
 
 "helper function that helps to prepare all of the subnetworks for use in `PowerModelsProtection.solve_mc_fault_study`"
-function _prepare_fault_study_multinetwork_data(network::Dict; optimal_dispatch_solution::Dict{String,<:Any}=Dict{String,Any}())
-    mn_data = deepcopy(network)
+function _prepare_fault_study_multinetwork_data(network::T, switching_solutions::Union{Missing,T}=missing) where T <: Dict{String,<:Any}
+    data = _prepare_dispatch_data(network, switching_solutions)
 
-    for (n,nw) in mn_data["nw"]
-        nw["data_model"] = mn_data["data_model"]
-        nw["method"] = "PMD"
-        convert_storage!(nw, get(get(optimal_dispatch_solution, "nw", Dict{String,Any}()), n, Dict{String,Any}()))
+    for (n,nw) in get(data, "nw", Dict{String,Any}())
+        data["nw"]["$n"]["data_model"] = data["data_model"]
+        data["nw"]["$n"]["method"] = "PMD"
     end
 
-    return mn_data
+    return data
 end
