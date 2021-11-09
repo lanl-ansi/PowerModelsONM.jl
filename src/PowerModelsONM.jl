@@ -73,6 +73,7 @@ module PowerModelsONM
     include("prob/common.jl")
     include("prob/dispatch.jl")
     include("prob/fs.jl")
+    include("prob/mn_opf_oltc_capc.jl")
     include("prob/osw_mld.jl")
     include("prob/stability.jl")
     include("prob/switch.jl")

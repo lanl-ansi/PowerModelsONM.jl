@@ -34,7 +34,7 @@ function optimize_dispatch(network::Dict{String,<:Any}, formulation::Type, solve
     data = _prepare_dispatch_data(network, switching_solutions)
 
     @info "running optimal dispatch with $(formulation)"
-    PMD.solve_mn_mc_opf(data, formulation, solver; solution_processors=[PMD.sol_data_model!])
+    solve_mn_mc_opf_oltc_capc(data, formulation, solver; solution_processors=[PMD.sol_data_model!])
 end
 
 

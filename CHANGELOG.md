@@ -2,6 +2,7 @@
 
 ## staged
 
+- Added `mn_opf_oltc_capc` problem for dispatch step
 - Added `variable_mc_storage_indicator` due to overlap of `z_storage` with `z_block`
 - Added LinearAlgebra (stdlib) dependency
 - Fixed order of parsing in `entrypoint` (events should go *after* settings)
