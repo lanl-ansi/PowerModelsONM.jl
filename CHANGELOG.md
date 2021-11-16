@@ -2,6 +2,7 @@
 
 ## staged
 
+- Added "Total load (%)" statistic to output schema
 - Updated Fault currents schema to match faults input schema
 - Added `"fault studies metadata"` to ONM output schema
 - Added support for "settings" (e.g., `sbase_default`) in settings schema / parsing

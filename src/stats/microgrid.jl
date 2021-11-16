@@ -29,6 +29,7 @@ function get_timestep_load_served(solution::Dict{String,<:Any}, network::Dict{St
         "Feeder load (%)" => Real[],
         "Microgrid load (%)" => Real[],
         "Bonus load via microgrid (%)" => Real[],
+        "Total load (%)" => Real[],
     )
 
     for n in sort([parse(Int, i) for i in keys(get(solution, "nw", Dict()))])
@@ -45,7 +46,8 @@ function get_timestep_load_served(solution::Dict{String,<:Any}, network::Dict{St
         push!(load_served["Feeder load (%)"], feeder_served_load / original_load * 100)  # CHECK
         push!(load_served["Microgrid load (%)"], microgrid_served_load)  # CHECK
         push!(load_served["Bonus load via microgrid (%)"], _bonus_load > 0 ? _bonus_load : 0.0)  # CHECK
-    end
+        push!(load_served["Total load (%)"], (feeder_served_load / original_load + microgrid_served_load + (_bonus_load > 0 ? _bonus_load : 0.0))*100.0)
+        end
     return load_served
 end
 

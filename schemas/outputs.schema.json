@@ -271,6 +271,14 @@
             "format": "float"
           }
         },
+        "Total load (%)": {
+          "type": "array",
+          "description": "The percent of total load served by any resource",
+          "items": {
+            "type": "number",
+            "format": "float"
+          }
+        },
         "Microgrid load (%)": {
           "type": "array",
           "description": "The percent of load served by the microgrids",
