@@ -51,7 +51,8 @@ function build_solver_instances(; nlp_solver=missing, nlp_solver_tol::Real=1e-4,
             Ipopt.Optimizer,
             "tol"=>nlp_solver_tol,
             "print_level"=>verbose ? 3 : debug ? 5 : 0,
-            "mumps_mem_percent"=>200
+            "mumps_mem_percent"=>200,
+            "mu_strategy" => "adaptive",
         )
     end
 
@@ -59,18 +60,29 @@ function build_solver_instances(; nlp_solver=missing, nlp_solver_tol::Real=1e-4,
         if gurobi
             mip_solver = optimizer_with_attributes(
                 () -> Gurobi.Optimizer(GRB_ENV),
+                # output settings
                 "OutputFlag"=>verbose || debug ? 1 : 0,
-                "NonConvex"=>2,
-                "MIPGap"=>mip_gap,
                 "GURO_PAR_DUMP"=>debug ? 1 : 0,
+                # tolerance settings
+                "MIPGap"=>mip_gap,
                 "FeasibilityTol"=>mip_solver_tol,
-                "Presolve"=>0,
-                "NodefileStart"=>0.5,
-                "NodeMethod"=>2,
-                "Method"=>2,
-                "ImproveStartNodes"=>10,
-                "Heuristics"=>0.25,
-                "Cuts"=>3,
+                # # barrier settings
+                # "BarHomogeneous"=>1,
+                # MIP settings
+                # "ConcurrentMIP"=>2,
+                # "Heuristics"=>0.1,
+                # "ImproveStartNodes"=>1,
+                "MIPFocus"=>2,
+                # "NodefileStart"=>0.5,
+                # "NodeMethod"=>2,
+                # presolve settings
+                # "Presolve"=>0,
+                "DualReductions"=>0,
+                # MIP Cut settings
+                # "Cuts"=>3,
+                # other settings
+                # "Method"=>3,
+                # "NumericFocus"=>3,
             )
         else
             mip_solver = optimizer_with_attributes(
@@ -112,6 +124,7 @@ function build_solver_instances(; nlp_solver=missing, nlp_solver_tol::Real=1e-4,
     return Dict{String,Any}(
         "nlp_solver" => nlp_solver,
         "mip_solver" => mip_solver,
+        "lp_solver" => mip_solver,
         "minlp_solver" => minlp_solver,
         "misocp_solver" => misocp_solver
     )

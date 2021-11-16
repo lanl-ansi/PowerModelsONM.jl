@@ -7,6 +7,7 @@
 - Refactored constraint functions into different files
 - Added "Total load (%)" statistic to output schema
 - Updated Fault currents schema to match faults input schema
+- Tuned default solver instance settings for new problem definitions
 - Added helper function `build_settings_file` to aid in building a settings file specific to a network
 - Added helper function `build_events_file` to aid in building a (very) simple events file specific to a network
 - Added helper function `count_faults`
