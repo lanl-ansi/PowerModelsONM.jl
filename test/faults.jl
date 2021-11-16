@@ -1,25 +1,19 @@
 @testset "test fault study algorithms" begin
     args = Dict{String,Any}(
         "network" => "../test/data/IEEE13Nodeckt_mod.dss",
+        "settings" => "../test/data/settings.json",
         "faults" => "../test/data/faults.json",
-        "settings" => "../test/data/settings_no_strg.json",
+        "skip" => ["stability", "dispatch", "switching"],
     )
+    entrypoint(args)
 
-    parse_network!(args)
-    parse_settings!(args)
-    build_solver_instances!(args)
+    @test all(isapprox.(args["fault_studies_results"]["1"]["701"]["3p"]["1"]["solution"]["fault"]["1"]["cf"], [12969.63,14070.90,12530.36]; atol=1e-1))
+    @test all(isapprox.(args["fault_studies_results"]["1"]["701"]["ll"]["1"]["solution"]["fault"]["1"]["cf"], [12447.47, 12447.47]; atol=1e-1))
+    @test all(isapprox.(args["fault_studies_results"]["1"]["701"]["lg"]["1"]["solution"]["fault"]["1"]["cf"], [8902.91]; atol=1e-1))
 
-    run_fault_studies!(args)
+    @test all(isapprox.(args["output_data"]["Fault currents"][1]["701"]["3p"]["1"]["switch"]["701702"]["|I| (A)"], [6344.89, 7759.84, 6907.49]; atol=1e-1))
+    @test all(isapprox.(args["output_data"]["Fault currents"][1]["701"]["ll"]["1"]["switch"]["701702"]["|I| (A)"], [7160.21, 6482.45, 1428.34]; atol=1e-1))
+    @test all(isapprox.(args["output_data"]["Fault currents"][1]["701"]["lg"]["1"]["switch"]["701702"]["|I| (A)"], [4126.85, 1684.03, 1291.03]; atol=1e-1))
 
-    @test all(isapprox.(args["fault_studies_results"]["1"]["701"]["3p"]["1"]["solution"]["fault"]["1"]["cf"], [6745.18, 6559.8, 5598.44]; atol=1e-1))
-    @test all(isapprox.(args["fault_studies_results"]["1"]["701"]["ll"]["1"]["solution"]["fault"]["1"]["cf"], [5907.09, 5907.09]; atol=1e-1))
-    @test all(isapprox.(args["fault_studies_results"]["1"]["701"]["lg"]["1"]["solution"]["fault"]["1"]["cf"], [3549.36]; atol=1e-1))
-
-    @test all(isapprox.(args["fault_studies_results"]["1"]["701"]["3p"]["1"]["solution"]["switch"]["701702"]["cf_fr"], [32.3834, 32.3834, 32.3834]; atol=1e-1))
-    @test all(isapprox.(args["fault_studies_results"]["1"]["701"]["ll"]["1"]["solution"]["switch"]["701702"]["cf_fr"], [6.49818, 6.49833, 6.49826]; atol=1e-1))
-    @test all(isapprox.(args["fault_studies_results"]["1"]["701"]["lg"]["1"]["solution"]["switch"]["701702"]["cf_fr"], [3.89415, 3.89414, 3.89417]; atol=1e-1))
-
-    analyze_results!(args)
-
-    @test all(isapprox.(args["output_data"]["Fault currents"][1]["701_3p_1"]["switch"]["701702"]["|I| (A)"], [32.3834, 32.3834, 32.3834]; atol=1e-1))
+    @test all(isapprox.(args["output_data"]["Fault currents"][1]["701"]["lg"]["1"]["switch"]["701702"]["|V| (V)"], [0.0890292, 2.56719, 2.50076]; atol=1e-1))
 end

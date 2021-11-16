@@ -15,7 +15,7 @@
 
     @testset "test events parsing" begin
         raw_events = parse_events("../test/data/events.json")
-        @test length(raw_events) == 7
+        @test length(raw_events) == 8
 
         events = parse_events(raw_events, network)
         @test isa(events, Dict) && length(events) == 2
@@ -39,7 +39,7 @@
         _network = apply_settings(network, settings)
         @test all(all(l["clpu_factor"] == 2.0 for l in values(nw["load"])) for nw in values(_network["nw"]))
         @test all(nw["max_switch_actions"] == 1 for nw in values(_network["nw"]))
-        @test all(nw["time_elapsed"] == 0.1667 for nw in values(_network["nw"]))
+        @test all(nw["time_elapsed"] == 0.5 for nw in values(_network["nw"]))
     end
 
     @testset "test runtime args to settings conversion" begin

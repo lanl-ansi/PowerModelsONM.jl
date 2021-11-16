@@ -8,7 +8,8 @@
 
     @test !all(values(identify_cold_loads(math["nw"]["1"])))
 
-    @test PowerModelsONM._get_formulation(PMD.ACPUPowerModel) == PMD.ACPUPowerModel
+    @test PowerModelsONM._get_dispatch_formulation(PMD.ACPUPowerModel) == PMD.ACPUPowerModel
+    @test PowerModelsONM._get_switch_formulation(LPUBFSwitchPowerModel) == LPUBFSwitchPowerModel
 
     blocks = PMD.identify_blocks(math["nw"]["1"])
 

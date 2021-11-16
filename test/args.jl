@@ -1,7 +1,7 @@
 @testset "depreciated arguments" begin
     raw_args = Dict{String,Any}(
         "network-file" => "../test/data/IEEE13Nodeckt_mod.dss",
-        "output-file" => "../test/data/tmp-out.json",
+        "output-file" => "../test/data/test_output.json",
         "problem" => "opf",
         "formulation" => "acr",
         "protection-settings" => "../test/data/protection_settings.xlsx",
@@ -32,7 +32,7 @@
 
     append!(Base.ARGS, String[
         "-n", "../test/data/IEEE13Nodeckt_mod.dss",
-        "-o", "../test/data/test-out.json",
+        "-o", "../test/data/test_output.json",
         "-f", "../test/data/faults.json",
         "-i", "../test/data/inverters.json",
         "-s", "../test/data/settings.json",
@@ -62,7 +62,7 @@
 
     @test args == Dict{String,Any}(
         "network" => "../test/data/IEEE13Nodeckt_mod.dss",
-        "output" => "../test/data/test-out.json",
+        "output" => "../test/data/test_output.json",
         "faults" => "../test/data/faults.json",
         "inverters" => "../test/data/inverters.json",
         "settings" => "../test/data/settings.json",
