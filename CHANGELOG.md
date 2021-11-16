@@ -9,6 +9,8 @@
 - Updated Fault currents schema to match faults input schema
 - Added runtime argument `fix-small-numbers` which will prune lengths, impendances, and admittances that are especially small to improve solver performance
 - Refactored to add new Switch formulation types and structs, to kept ONM better separated from PowerModelsDistribution
+- Adjusted objective function and ref to zero out empty load blocks weights
+- Added objective function to maximize storage input (charging)
 - Refactored to explicitly import InfrastructureModels and PolyhedralRelaxation
 - Refactored to explicitly import/export some PowerModelsDistribution functions
 - Added `"mip_solver_tol"` to settings schema

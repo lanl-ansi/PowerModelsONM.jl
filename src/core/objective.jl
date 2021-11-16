@@ -41,16 +41,27 @@ function objective_mc_min_load_setpoint_delta_switch(pm::AbstractSwitchModels)
         end
     end
 
-    # weight for discouraging switch state changes should be an order of magnitude
-    # smaller than the smallest block weight (to ensure all blocks get restored)
-    Wdsw = Dict(n => minimum(filter(x->x==0,collect(values(PMD.ref(pm, n, :block_weights))))) for n in PMD.nw_ids(pm))
-
-    PMD.JuMP.@objective(pm.model, Min,
+    JuMP.@objective(pm.model, Min,
         sum(
-            sum( 1e-2 * sum(gen["cost"][1] * PMD.var(pm, n, :pg, i)[c] + gen["cost"][2] for c in gen["connections"]) for (i,gen) in nw_ref[:gen]) +
-            sum( 1e3  * PMD.ref(pm, n, :block_weights, i)*(1-PMD.var(pm, n, :z_block, i)) for (i,block) in nw_ref[:blocks]) +
-            sum( 1e-1  * PMD.ref(pm, n, :switch_scores, l)*(1-PMD.var(pm, n, :switch_state, l)) for l in PMD.ids(pm, n, :switch_dispatchable) ) +
-            sum( 1e-4 * Wdsw[n] * sum(PMD.var(pm, n, :delta_sw_state, l)) for l in PMD.ids(pm, n, :switch_dispatchable))
-        for (n, nw_ref) in PMD.nws(pm))
+            sum( ref(pm, n, :block_weights, i) * (1-var(pm, n, :z_block, i)) for (i,block) in nw_ref[:blocks]) +
+            sum( 1e-3 * ref(pm, n, :switch_scores, l)*(1-var(pm, n, :switch_state, l)) for l in ids(pm, n, :switch_dispatchable) ) +
+            sum( 1e-2 * sum(var(pm, n, :delta_sw_state, l)) for l in ids(pm, n, :switch_dispatchable))
+        for (n, nw_ref) in nws(pm))
+    )
+end
+
+
+"""
+    objective_mc_min_storage_utilization(pm::AbstractUnbalancedPowerModel)
+
+Minimizes the amount of storage that gets utilized in favor of using all available generation first
+"""
+function objective_mc_min_storage_utilization(pm::AbstractUnbalancedPowerModel)
+    # TODO: change to use cost functions for storage
+
+    JuMP.@objective(pm.model, Min,
+        sum(
+            sum( sum(-var(pm, n, :ps, i)[c] for c in strg["connections"]) for (i,strg) in nw_ref[:storage])
+        for (n, nw_ref) in nws(pm))
     )
 end

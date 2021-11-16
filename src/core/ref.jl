@@ -35,6 +35,12 @@ function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any}
     end
     ref[:storage_block_map] = Dict{Int,Int}(strg => b for (b,block_storages) in ref[:block_storages] for strg in block_storages)
 
+    for (i,_) in ref[:blocks]
+        if isempty(ref[:block_loads][i]) && isempty(ref[:block_shunts][i]) && isempty(ref[:block_gens][i]) && isempty(ref[:block_storages][i])
+            ref[:block_weights][i] = 0.0
+        end
+    end
+
     ref[:block_graph] = LightGraphs.SimpleGraph(length(ref[:blocks]))
     ref[:block_graph_edge_map] = Dict{LightGraphs.Edge,Int}()
     ref[:block_switches] = Dict{Int,Set{Int}}(b => Set{Int}() for (b,_) in ref[:blocks])
