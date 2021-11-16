@@ -72,3 +72,46 @@ end
 
 "Special case where the faults string was not parsed"
 get_timestep_fault_currents(fault_studies_results::Dict{String,<:Any}, faults::String, network::Dict{String,<:Any})::Vector{Dict{String,Any}} = get_timestep_fault_currents(fault_studies_results, Dict{String,Any}(), network)
+
+
+
+"""
+    get_timestep_fault_study_metadata!(args::Dict{String,<:Any})::Vector{Dict{String,Any}}
+
+Retrieves the switching optimization results metadata from the optimal switching solution via [`get_timestep_fault_study_metadata`](@ref get_timestep_fault_study_metadata)
+and applies it in-place to args, for use with [`entrypoint`](@ref entrypoint)
+"""
+function get_timestep_fault_study_metadata!(args::Dict{String,<:Any})::Vector{Dict{String,Any}}
+    args["output_data"]["Fault studies metadata"] = get_timestep_fault_study_metadata(get(args, "fault_studies_results", Dict{String,Any}()))
+end
+
+
+"""
+    get_timestep_fault_study_metadata(fault_studies_results::Dict{String,Any}; opt_switch_algorithm::String="iterative")::Vector{Dict{String,Any}}
+
+Gets the metadata from the optimal switching results for each timestep, returning a list of Dicts (if opt_switch_algorithm="iterative), or a list with a single
+Dict (if opt_switch_algorithm="global").
+"""
+function get_timestep_fault_study_metadata(fault_studies_results::Dict{String,Any})::Vector{Dict{String,Any}}
+    results_metadata = Dict{String,Any}[]
+
+    for n in sort([parse(Int, i) for i in keys(fault_studies_results)])
+        _metadata = Dict{String,Any}()
+        if !ismissing(fault_studies_results["$n"])
+            for (bus_id, fault_types) in fault_studies_results["$n"]
+                _metadata[bus_id] = Dict{String,Any}()
+                for (fault_type, sub_faults) in fault_types
+                    _metadata[bus_id][fault_type] = Dict{String,Any}()
+                    for (fault_id, fault_result) in sub_faults
+                        _metadata[bus_id][fault_type][fault_id] = _sanitize_results_metadata!(filter(x->x.first!="solution", fault_result))
+                    end
+                end
+            end
+            push!(results_metadata, _metadata)
+        else
+            push!(results_metadata, Dict{String,Any}())
+        end
+    end
+
+    return results_metadata
+end

@@ -419,6 +419,27 @@
     },
     "Optimal dispatch metadata": {
       "$ref": "./optimization_results_metadata.json"
+    },
+    "Fault studies metadata": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "patternProperties": {
+          "^.+$": {
+            "type": "object",
+            "patternProperties": {
+              "^[3p|3pg|llg|lg|ll]$": {
+                "type": "object",
+                "patternProperties": {
+                  "^\\d+$": {
+                    "$ref": "./optimization_results_metadata.json"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "required": [

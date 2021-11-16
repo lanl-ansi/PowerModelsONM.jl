@@ -3,6 +3,7 @@
 ## staged
 
 - Updated Fault currents schema to match faults input schema
+- Added `"fault studies metadata"` to ONM output schema
 - Added support for "settings" (e.g., `sbase_default`) in settings schema / parsing
 - Updated `z_block` variable start
 - Added `variable_mc_load_power_on_off` to ensure pd/qd variables include zeros in bounds
