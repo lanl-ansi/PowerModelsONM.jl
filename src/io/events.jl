@@ -277,3 +277,40 @@ function _find_next_nw_id_from_fault_duration(network::Dict{String,<:Any}, nw_id
         return mn_lookup_reverse[ts]
     end
 end
+
+
+"""
+    build_events_file(case_file::String, events_file::String; custom_events::Vector{Dict{String,Any}}=Dict{String,Any}[], default_switch_state::PMD.SwitchState=PMD.CLOSED, default_switch_dispatchable::PMD.Dispatchable=PMD.YES)
+
+A helper function to assist in making (very) simple events files with some default settings for switches
+"""
+function build_events_file(case_file::String, events_file::String; custom_events::Vector{Dict{String,Any}}=Dict{String,Any}[], default_switch_state::PMD.SwitchState=PMD.CLOSED, default_switch_dispatchable::PMD.Dispatchable=PMD.YES)
+    events = Dict{String,Any}[]
+
+    eng = PMD.parse_file(case_file)
+
+    for (s, switch) in get(eng, "switch", Dict())
+        if switch["status"] == PMD.ENABLED
+            push!(
+                events,
+                Dict{String,Any}(
+                    "timestep" => 1,
+                    "event_type" => "switch",
+                    "affected_asset" => switch["source_id"],
+                    "event_data" => Dict{String,Any}(
+                        "type" => "breaker",
+                        "state" => lowercase(string(default_switch_state)),
+                        "dispatchable" => Bool(Int(default_switch_dispatchable)),
+                        "status" => 1,
+                    )
+                )
+            )
+        end
+    end
+
+    append!(events, custom_events)
+
+    open(events_file, "w") do io
+        JSON.print(io, events)
+    end
+end
