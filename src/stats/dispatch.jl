@@ -76,7 +76,7 @@ end
 Returns the dispatch information for generation assets (generator, storage, solar, voltage_source) and bus voltage magnitudes in SI units for each timestep
 from the optimal dispatch `solution`
 """
-function get_timestep_dispatch(solution::Dict{String,<:Any}, data::Dict{String,<:Any})::Vector{Dict{String,Any}}
+function get_timestep_dispatch(solution::Dict{String,<:Any}, network::Dict{String,<:Any})::Vector{Dict{String,Any}}
     dispatch = Dict{String,Any}[]
 
     for n in sort([parse(Int, i) for i in keys(get(solution, "nw", Dict()))])
@@ -85,10 +85,10 @@ function get_timestep_dispatch(solution::Dict{String,<:Any}, data::Dict{String,<
         )
 
         for (gen_type, (p, q)) in [("storage", ("ps", "qs")), ("generator", ("pg", "qg")), ("solar", ("pg", "qg")), ("voltage_source", ("pg", "qg"))]
-            if !isempty(get(data["nw"]["$n"], gen_type, Dict()))
+            if !isempty(get(network["nw"]["$n"], gen_type, Dict()))
                 _gen_type_sol = get(solution["nw"]["$n"], gen_type, Dict())
                 _dispatch[gen_type] = Dict{String,Any}()
-                for (id, _gen) in data["nw"]["$n"][gen_type]
+                for (id, _gen) in network["nw"]["$n"][gen_type]
                     conns = _gen["connections"]
                     gen = get(_gen_type_sol, id, Dict())
                     _dispatch[gen_type][id] = Dict{String,Any}(
@@ -100,7 +100,7 @@ function get_timestep_dispatch(solution::Dict{String,<:Any}, data::Dict{String,<
             end
         end
 
-        for (id, _bus) in get(data["nw"]["$n"], "bus", Dict())
+        for (id, _bus) in get(network["nw"]["$n"], "bus", Dict())
             bus = get(get(solution["nw"]["$n"], "bus", Dict()), id, Dict())
             terms = _bus["terminals"]
             _dispatch["bus"][id] = Dict{String,Any}(
@@ -109,22 +109,23 @@ function get_timestep_dispatch(solution::Dict{String,<:Any}, data::Dict{String,<
             )
         end
 
-        if !isempty(get(data["nw"]["$n"], "switch", Dict()))
+        if !isempty(get(network["nw"]["$n"], "switch", Dict()))
             _dispatch["switch"] = Dict{String,Any}()
         end
-        for (id, _switch) in get(data["nw"]["$n"], "switch", Dict())
+
+        for (id, _switch) in get(network["nw"]["$n"], "switch", Dict())
             connections = _switch["f_connections"]
 
             switch = get(get(solution["nw"]["$n"], "switch", Dict()), id, Dict())
 
             f_bus_id = _switch["f_bus"]
-            terminals = data["nw"]["$n"]["bus"][f_bus_id]["terminals"]
+            terminals = network["nw"]["$n"]["bus"][f_bus_id]["terminals"]
 
             bus = get(get(solution["nw"]["$n"], "bus", Dict()), f_bus_id, Dict())
 
             _dispatch["switch"][id] = Dict{String,Any}(
-                "real power flow (kW)" => get(switch, "psw_fr", zeros(length(connections))),
-                "reactive power flow (kVar)" => get(switch, "qsw_fr", zeros(length(connections))),
+                "real power flow (kW)" => get(switch, "pf", zeros(length(connections))),
+                "reactive power flow (kVar)" => get(switch, "qf", zeros(length(connections))),
                 "voltage (V)" => haskey(bus, "vr") && haskey(bus, "vi") ? sqrt.(bus["vr"].^2 + bus["vi"].^2)[[findfirst(isequal(c), terminals) for c in connections]] : haskey(bus, "w") ? sqrt.(bus["w"])[[findfirst(isequal(c), terminals) for c in connections]] : haskey(bus, "vm") ? bus["vm"][[findfirst(isequal(c), terminals) for c in connections]] : zeros(length(terminals)),
                 "connections" => connections,
             )
