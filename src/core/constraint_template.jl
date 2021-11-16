@@ -45,3 +45,17 @@ function constraint_mc_transformer_power_on_off(pm::AbstractSwitchModels, i::Int
         error("Zig-zag not yet supported.")
     end
 end
+
+
+"""
+    constraint_storage_complementarity_mi_on_off(pm::AbstractUnbalancedPowerModel, i::Int; nw::Int=nw_id_default)
+
+Template function for mixed-integer storage complementarity constraints
+"""
+function constraint_storage_complementarity_mi_on_off(pm::AbstractSwitchModels, i::Int; nw::Int=nw_id_default)
+    storage = ref(pm, nw, :storage, i)
+    charge_ub = storage["charge_rating"]
+    discharge_ub = storage["discharge_rating"]
+
+    constraint_storage_complementarity_mi_on_off(pm, nw, i, charge_ub, discharge_ub)
+end

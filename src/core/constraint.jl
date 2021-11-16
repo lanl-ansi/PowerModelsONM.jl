@@ -88,10 +88,17 @@ function constraint_block_isolation(pm::AbstractSwitchModels, nw::Int; relax::Bo
         end
     end
 
-    for b in PMD.ids(pm, nw, :blocks)
-        z_block = PMD.var(pm, nw, :z_block, b)
-        n_gen = length(PMD.ref(pm, nw, :block_gens)) + length(PMD.ref(pm, nw, :block_storages))
+    # quick determination of blocks to shed:
+    # if no generation resources (gen, storage, or negative loads (e.g., rooftop pv models))
+    # and no switches connected to the block are closed, then the island must be shed,
+    # otherwise, to shed or not will be determined by feasibility
+    for b in ids(pm, nw, :blocks)
+        z_block = var(pm, nw, :z_block, b)
 
-        PMD.JuMP.@constraint(pm.model, z_block <= n_gen + sum(PMD.var(pm, nw, :switch_state, s) for s in PMD.ids(pm, nw, :block_switches) if s in PMD.ids(pm, nw, :switch_dispatchable)))
+        n_gen = length(ref(pm, nw, :block_gens))
+        n_strg = length(ref(pm, nw, :block_storages))
+        n_neg_loads = length([_b for (_b,ls) in ref(pm, nw, :block_loads) if any(any(ref(pm, nw, :load, l, "pd") .< 0) for l in ls)])
+
+        JuMP.@constraint(pm.model, z_block <= n_gen + n_strg + n_neg_loads + sum(var(pm, nw, :switch_state, s) for s in ids(pm, nw, :block_switches) if s in ids(pm, nw, :switch_dispatchable)))
     end
 end

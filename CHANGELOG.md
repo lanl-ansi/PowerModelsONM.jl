@@ -2,6 +2,9 @@
 
 ## staged
 
+- Linearized quadratic and on_off mixed integer constraints
+- Added new on_off constraints for storage and transformers
+- Refactored constraint functions into different files
 - Added "Total load (%)" statistic to output schema
 - Updated Fault currents schema to match faults input schema
 - Added runtime argument `fix-small-numbers` which will prune lengths, impendances, and admittances that are especially small to improve solver performance

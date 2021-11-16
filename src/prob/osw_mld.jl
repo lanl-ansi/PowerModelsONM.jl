@@ -55,9 +55,9 @@ function build_mn_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
         end
 
         for i in ids(pm, n, :storage)
-            PMD.constraint_storage_complementarity_mi(pm, i; nw=n)
+            constraint_storage_complementarity_mi_on_off(pm, i; nw=n)
             PMD.constraint_mc_storage_on_off(pm, i; nw=n)
-            PMD.constraint_mc_storage_losses(pm, i; nw=n)
+            constraint_mc_storage_losses_on_off(pm, i; nw=n)
             PMD.constraint_mc_storage_thermal_limit(pm, i; nw=n)
         end
 
@@ -166,16 +166,15 @@ function build_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
 
     for i in ids(pm, :storage)
         PMD.constraint_storage_state(pm, i)
-        PMD.constraint_storage_complementarity_mi(pm, i)
+        constraint_storage_complementarity_mi_on_off(pm, i)
         PMD.constraint_mc_storage_on_off(pm, i)
-        PMD.constraint_mc_storage_losses(pm, i)
+        constraint_mc_storage_losses_on_off(pm, i)
         PMD.constraint_mc_storage_thermal_limit(pm, i)
     end
 
-    for i in PMD.ids(pm, :branch)
+    for i in ids(pm, :branch)
         PMD.constraint_mc_power_losses(pm, i)
         PMD.constraint_mc_model_voltage_magnitude_difference(pm, i)
-
         PMD.constraint_mc_voltage_angle_difference(pm, i)
 
         PMD.constraint_mc_thermal_limit_from(pm, i)
