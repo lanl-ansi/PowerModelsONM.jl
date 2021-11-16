@@ -2,11 +2,17 @@ module PowerModelsONM
     using Base: Bool
     import LinearAlgebra
 
+    import InfrastructureModels
+    const _IM = InfrastructureModels
+
     import PowerModelsDistribution
+    import PowerModelsDistribution: ref, var, con, ids, nw_ids, nw_id_default, nws, AbstractUnbalancedPowerModel
     const PMD = PowerModelsDistribution
 
     import JuMP
     import JuMP: optimizer_with_attributes
+
+    import PolyhedralRelaxations
 
     import Requires: @require
 
@@ -47,7 +53,9 @@ module PowerModelsONM
         end
     end
 
-    include("core/common.jl")
+    include("core/base.jl")
+    include("core/type.jl")
+
     include("core/constraint_template.jl")
     include("core/constraint.jl")
     include("core/data.jl")
@@ -60,6 +68,8 @@ module PowerModelsONM
     include("data_model/checks.jl")
     include("data_model/transformations.jl")
 
+    include("form/apo.jl")
+    include("form/bf_mx_lin.jl")
     include("form/shared.jl")
 
     include("io/events.jl")
@@ -72,7 +82,7 @@ module PowerModelsONM
 
     include("prob/common.jl")
     include("prob/dispatch.jl")
-    include("prob/fs.jl")
+    include("prob/faults.jl")
     include("prob/mn_opf_oltc_capc.jl")
     include("prob/osw_mld.jl")
     include("prob/stability.jl")
