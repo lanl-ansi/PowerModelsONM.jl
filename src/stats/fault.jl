@@ -31,31 +31,36 @@ function get_timestep_fault_currents(fault_studies_results::Dict{String,<:Any}, 
 
     for n in sort([parse(Int, i) for i in keys(fault_studies_results)])
         _fault_currents = Dict{String,Any}()
-        for (bus_id, fault_types) in fault_studies_results["$n"]
+        for (bus_id, fault_types) in faults
+            _fault_currents[bus_id] = Dict{String,Any}()
             for (fault_type, sub_faults) in fault_types
+                _fault_currents[bus_id][fault_type] = Dict{String,Any}()
                 for (fault_id, fault_result) in sub_faults
                     fault = faults[bus_id][fault_type][fault_id]
-                    if !isempty(get(fault_result, "solution", Dict()))
-                        _fault_currents["$(bus_id)_$(fault_type)_$(fault_id)"] = Dict{String,Any}(
-                            "fault" => Dict{String,Any}(
-                                "bus" => fault["bus"],
-                                "type" => fault["fault_type"],
-                                "conductance (S)" => fault["g"],
-                                "susceptance (S)" => fault["b"],
-                                "connections" => fault["connections"],
-                            ),
-                            "switch" => Dict{String,Any}(
-                                id => Dict{String,Any}(
-                                    "|I| (A)" => haskey(switch, "crsw_fr") && haskey(switch, "cisw_fr") ? sqrt.(switch["crsw_fr"].^2 + switch["cisw_fr"].^2) : missing,
-                                    "|I0| (A)" => haskey(switch, "cf0r_fr") && haskey(switch, "cf0i_fr") ? sqrt(switch["cf0r_fr"]^2+switch["cf0i_fr"]^2) : missing,
-                                    "|I1| (A)" => haskey(switch, "cf1r_fr") && haskey(switch, "cf1i_fr") ? sqrt(switch["cf1r_fr"]^2+switch["cf1i_fr"]^2) : missing,
-                                    "|I2| (A)" => haskey(switch, "cf2r_fr") && haskey(switch, "cf2i_fr") ? sqrt(switch["cf2r_fr"]^2+switch["cf2i_fr"]^2) : missing,
-                                    # TODO add real and imaginary sequence currents
-                                    "|V| (V)" => all(haskey(fault_result["solution"]["bus"][network["nw"]["$n"]["switch"][id]["f_bus"]], k) for k in ["vr", "vi"]) ? sqrt.(fault_result["solution"]["bus"][network["nw"]["$n"]["switch"][id]["f_bus"]]["vr"].^2+fault_result["solution"]["bus"][network["nw"]["$n"]["switch"][id]["f_bus"]]["vi"].^2) : missing
-                                ) for (id, switch) in get(fault_result["solution"], "switch", Dict())
-                            ),
-                        )
-                    end
+                    fault_sol = get(get(get(get(get(fault_studies_results, "$n", Dict()), bus_id, Dict()), fault_type, Dict()), fault_id, Dict()), "solution", Dict())
+
+                    _fault_currents[bus_id][fault_type][fault_id] =  Dict{String,Any}(
+                        "fault" => Dict{String,Any}(
+                            "bus" => fault["bus"],
+                            "type" => fault["fault_type"],
+                            "conductance (S)" => fault["g"],
+                            "susceptance (S)" => fault["b"],
+                            "connections" => fault["connections"],
+                        ),
+                        "switch" => Dict{String,Any}(
+                            id => Dict{String,Any}(
+                                "|I| (A)" => get(get(get(fault_sol, "switch", Dict()), id, Dict()), "cf_fr", fill(0.0, length(switch["f_connections"]))),
+                                "|I0| (A)" => sqrt(get(get(get(fault_sol, "switch", Dict()), id, Dict()), "cf0r_fr", 0.0)^2 + get(get(get(fault_sol, "switch", Dict()), id, Dict()), "cf0i_fr", 0.0)^2),
+                                "|I1| (A)" => sqrt(get(get(get(fault_sol, "switch", Dict()), id, Dict()), "cf1r_fr", 0.0)^2 + get(get(get(fault_sol, "switch", Dict()), id, Dict()), "cf1i_fr", 0.0)^2),
+                                "|I2| (A)" => sqrt(get(get(get(fault_sol, "switch", Dict()), id, Dict()), "cf2r_fr", 0.0)^2 + get(get(get(fault_sol, "switch", Dict()), id, Dict()), "cf2i_fr", 0.0)^2),
+                                # TODO add real and imaginary sequence currents
+                                "|V| (V)" => sqrt.(
+                                       get(get(get(fault_sol, "bus", Dict()), switch["f_bus"], Dict()), "vr", fill(0.0, length(network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"])))[findall(network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"].==switch["f_connections"])].^2
+                                    .+ get(get(get(fault_sol, "bus", Dict()), switch["f_bus"], Dict()), "vi", fill(0.0, length(network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"])))[findall(network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"].==switch["f_connections"])].^2
+                                )
+                            ) for (id, switch) in get(network["nw"]["$n"], "switch", Dict())
+                        ),
+                    )
                 end
             end
         end
