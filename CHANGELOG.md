@@ -2,6 +2,7 @@
 
 ## staged
 
+- Fixed `get_timestep_storage_soc` to alway return a non-NaN value if storage exists in the system
 - Updated stability problem data model preparation
 - Linearized quadratic and on_off mixed integer constraints
 - Added new on_off constraints for storage and transformers
