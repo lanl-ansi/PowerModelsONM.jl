@@ -5,6 +5,7 @@
 - Added "Total load (%)" statistic to output schema
 - Updated Fault currents schema to match faults input schema
 - Added runtime argument `fix-small-numbers` which will prune lengths, impendances, and admittances that are especially small to improve solver performance
+- Added addition fields for storage in settings schema
 - Added `"fault studies metadata"` to ONM output schema
 - Added support for "settings" (e.g., `sbase_default`) in settings schema / parsing
 - Updated `z_block` variable start
