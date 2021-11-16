@@ -133,6 +133,10 @@
       "description": "Which solver (from the solver instances built-in to ONM) to use for the optimal dispatch problem. WARNING: solver capabilities should match the optimal dispatch formulation",
       "default": "nlp_solver"
     },
+    "fix-small-numbers": {
+      "type": "boolean",
+      "description": "Will prune small impedances, admittances, and lengths, for better problem solving stability"
+    },
     "network-file": {
       "type": "string",
       "deprecated": true,
