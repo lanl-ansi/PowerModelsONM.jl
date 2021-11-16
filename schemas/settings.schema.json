@@ -53,11 +53,11 @@
     },
     "generator": {
       "type": "object",
-      "description": "generation objects, excluding storage, which has different properties, indexed by name",
+      "description": "generator objects indexed by name",
       "patternProperties": {
         "^.+$": {
           "type": "object",
-          "description": "generation object",
+          "description": "generator object",
           "properties": {
             "pg_lb": {
               "type": "array",
@@ -128,11 +128,11 @@
     },
     "solar": {
       "type": "object",
-      "description": "generation objects, excluding storage, which has different properties, indexed by name",
+      "description": "pv solar objects, indexed by name",
       "patternProperties": {
         "^.+$": {
           "type": "object",
-          "description": "generation object",
+          "description": "pv solar object",
           "properties": {
             "pg_lb": {
               "type": "array",
@@ -203,11 +203,11 @@
     },
     "voltage_source": {
       "type": "object",
-      "description": "generation objects, excluding storage, which has different properties, indexed by name",
+      "description": "voltage source objects, indexed by name",
       "patternProperties": {
         "^.+$": {
           "type": "object",
-          "description": "generation object",
+          "description": "voltage source object",
           "properties": {
             "pg_lb": {
               "type": "array",
