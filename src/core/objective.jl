@@ -1,5 +1,5 @@
 @doc raw"""
-    objective_mc_min_load_setpoint_delta_switch(pm::PMD.AbstractUnbalancedPowerModel)
+    objective_mc_min_load_setpoint_delta_switch(pm::AbstractUnbalancedPowerModel)
 
 minimum load delta objective (continuous load shed) with storage
 
@@ -15,28 +15,28 @@ minimum load delta objective (continuous load shed) with storage
 \end{align}
 ```
 """
-function objective_mc_min_load_setpoint_delta_switch(pm::PMD.AbstractUnbalancedPowerModel)
-    nw_ids = sort(collect(PMD.nw_ids(pm)))
+function objective_mc_min_load_setpoint_delta_switch(pm::AbstractSwitchModels)
+    nw_id_list = sort(collect(nw_ids(pm)))
 
-    for (i, n) in enumerate(nw_ids)
-        nw_ref = PMD.ref(pm, n)
+    for (i, n) in enumerate(nw_id_list)
+        nw_ref = ref(pm, n)
 
-        PMD.var(pm, n)[:delta_sw_state] = PMD.JuMP.@variable(
+        var(pm, n)[:delta_sw_state] = JuMP.@variable(
             pm.model,
-            [i in PMD.ids(pm, n, :switch_dispatchable)],
+            [i in ids(pm, n, :switch_dispatchable)],
             base_name="$(n)_$(i)_delta_sw_state",
             start = 0
         )
 
         for (s,switch) in nw_ref[:switch_dispatchable]
-            z_switch = PMD.var(pm, n, :switch_state, s)
+            z_switch = var(pm, n, :switch_state, s)
             if i == 1
-                PMD.JuMP.@constraint(pm.model, PMD.var(pm, n, :delta_sw_state, s) >=  (PMD.JuMP.start_value(z_switch) - z_switch))
-                PMD.JuMP.@constraint(pm.model, PMD.var(pm, n, :delta_sw_state, s) >= -(PMD.JuMP.start_value(z_switch) - z_switch))
+                JuMP.@constraint(pm.model, var(pm, n, :delta_sw_state, s) >=  (JuMP.start_value(z_switch) - z_switch))
+                JuMP.@constraint(pm.model, var(pm, n, :delta_sw_state, s) >= -(JuMP.start_value(z_switch) - z_switch))
             else  # multinetwork
-                z_switch_prev = PMD.var(pm, nw_ids[i-1], :switch_state, s)
-                PMD.JuMP.@constraint(pm.model, PMD.var(pm, n, :delta_sw_state, s) >=  (z_switch_prev - z_switch))
-                PMD.JuMP.@constraint(pm.model, PMD.var(pm, n, :delta_sw_state, s) >= -(z_switch_prev - z_switch))
+                z_switch_prev = var(pm, nw_id_list[i-1], :switch_state, s)
+                JuMP.@constraint(pm.model, var(pm, n, :delta_sw_state, s) >=  (z_switch_prev - z_switch))
+                JuMP.@constraint(pm.model, var(pm, n, :delta_sw_state, s) >= -(z_switch_prev - z_switch))
             end
         end
     end

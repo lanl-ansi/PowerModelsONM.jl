@@ -1,5 +1,5 @@
 @doc raw"""
-    constraint_switch_state_max_actions(pm::PMD.AbstractUnbalancedPowerModel, nw::Int)
+    constraint_switch_state_max_actions(pm::AbstractUnbalancedPowerModel, nw::Int)
 
 max actions per timestep switch constraint
 
@@ -7,24 +7,24 @@ max actions per timestep switch constraint
 \sum_{\substack{i\in S}}{\Delta^{sw}_i} \leq z^{swu}
 ```
 """
-function constraint_switch_state_max_actions(pm::PMD.AbstractUnbalancedPowerModel, nw::Int)
-    max_switch_actions = PMD.ref(pm, nw, :max_switch_actions)
+function constraint_switch_state_max_actions(pm::AbstractSwitchModels, nw::Int)
+    max_switch_actions = ref(pm, nw, :max_switch_actions)
 
-    delta_switch_states = Dict(l => PMD.JuMP.@variable(pm.model, base_name="$(nw)_delta_sw_state_$(l)", start=0) for l in PMD.ids(pm, nw, :switch_dispatchable))
+    delta_switch_states = Dict(l => JuMP.@variable(pm.model, base_name="$(nw)_delta_sw_state_$(l)", start=0) for l in ids(pm, nw, :switch_dispatchable))
     for (l, dsw) in delta_switch_states
-        state = PMD.var(pm, nw, :switch_state, l)
-        PMD.JuMP.@constraint(pm.model, dsw >=  state * (1 - PMD.JuMP.start_value(state)))
-        PMD.JuMP.@constraint(pm.model, dsw >= -state * (1 - PMD.JuMP.start_value(state)))
+        state = var(pm, nw, :switch_state, l)
+        JuMP.@constraint(pm.model, dsw >=  state * (1 - JuMP.start_value(state)))
+        JuMP.@constraint(pm.model, dsw >= -state * (1 - JuMP.start_value(state)))
     end
 
     if max_switch_actions < Inf
-        PMD.JuMP.@constraint(pm.model, sum(dsw for (l, dsw) in delta_switch_states) <= max_switch_actions)
+        JuMP.@constraint(pm.model, sum(dsw for (l, dsw) in delta_switch_states) <= max_switch_actions)
     end
 end
 
 
 @doc raw"""
-    constraint_switch_state_max_actions(pm::PMD.AbstractUnbalancedPowerModel, nw_1::Int, nw_2::Int)
+    constraint_switch_state_max_actions(pm::AbstractUnbalancedPowerModel, nw_1::Int, nw_2::Int)
 
 max actions per timestep switch constraint for multinetwork formulations
 
@@ -32,26 +32,26 @@ max actions per timestep switch constraint for multinetwork formulations
 \sum_{\substack{i\in S}}{\Delta^{sw}_i} \leq z^{swu}
 ```
 """
-function constraint_switch_state_max_actions(pm::PMD.AbstractUnbalancedPowerModel, nw_1::Int, nw_2::Int)
-    max_switch_actions = PMD.ref(pm, nw_2, :max_switch_actions)
+function constraint_switch_state_max_actions(pm::AbstractSwitchModels, nw_1::Int, nw_2::Int)
+    max_switch_actions = ref(pm, nw_2, :max_switch_actions)
 
-    delta_switch_states = Dict(l => PMD.JuMP.@variable(pm.model, base_name="$(nw_2)_delta_sw_state_$(l)", start=0) for l in PMD.ids(pm, nw_2, :switch_dispatchable))
+    delta_switch_states = Dict(l => JuMP.@variable(pm.model, base_name="$(nw_2)_delta_sw_state_$(l)", start=0) for l in ids(pm, nw_2, :switch_dispatchable))
     for (l, dsw) in delta_switch_states
-        nw_1_state = PMD.var(pm, nw_1, :switch_state, l)
-        nw_2_state = PMD.var(pm, nw_2, :switch_state, l)
+        nw_1_state = var(pm, nw_1, :switch_state, l)
+        nw_2_state = var(pm, nw_2, :switch_state, l)
 
-        nw1_nw2_state = PMD.JuMP.@variable(pm.model, base_name="$(nw_1)_$(nw_2)_sw_state_$(l)")
-        PMD.JuMP.@constraint(pm.model, nw1_nw2_state >= 0)
-        PMD.JuMP.@constraint(pm.model, nw1_nw2_state >= nw_2_state + nw_1_state - 1)
-        PMD.JuMP.@constraint(pm.model, nw1_nw2_state <= nw_2_state)
-        PMD.JuMP.@constraint(pm.model, nw1_nw2_state <= nw_1_state)
+        nw1_nw2_state = JuMP.@variable(pm.model, base_name="$(nw_1)_$(nw_2)_sw_state_$(l)")
+        JuMP.@constraint(pm.model, nw1_nw2_state >= 0)
+        JuMP.@constraint(pm.model, nw1_nw2_state >= nw_2_state + nw_1_state - 1)
+        JuMP.@constraint(pm.model, nw1_nw2_state <= nw_2_state)
+        JuMP.@constraint(pm.model, nw1_nw2_state <= nw_1_state)
 
-        PMD.JuMP.@constraint(pm.model, dsw >=  nw_2_state - nw1_nw2_state)
-        PMD.JuMP.@constraint(pm.model, dsw >= -nw_2_state + nw1_nw2_state)
+        JuMP.@constraint(pm.model, dsw >=  nw_2_state - nw1_nw2_state)
+        JuMP.@constraint(pm.model, dsw >= -nw_2_state + nw1_nw2_state)
     end
 
     if max_switch_actions < Inf
-        PMD.JuMP.@constraint(pm.model, sum(dsw for (l, dsw) in delta_switch_states) <= max_switch_actions)
+        JuMP.@constraint(pm.model, sum(dsw for (l, dsw) in delta_switch_states) <= max_switch_actions)
     end
 end
 
@@ -73,17 +73,18 @@ where $$z^{bl}_{fr}_{i}$$ and $$z^{bl}_{to}_{i}$$ are the indicator variables fo
 either side of switch $$i$$.
 ```
 """
-function constraint_block_isolation(pm::PMD.AbstractUnbalancedPowerModel, nw::Int; relax::Bool=false)
-    for (s, switch) in PMD.ref(pm, nw, :switch_dispatchable)
-        z_block_fr = PMD.var(pm, nw, :z_block, PMD.ref(pm, nw, :bus_block_map, switch["f_bus"]))
-        z_block_to = PMD.var(pm, nw, :z_block, PMD.ref(pm, nw, :bus_block_map, switch["t_bus"]))
+function constraint_block_isolation(pm::AbstractSwitchModels, nw::Int; relax::Bool=false)
+    # if switch is closed, both blocks need to be the same status (on or off)
+    for (s, switch) in ref(pm, nw, :switch_dispatchable)
+        z_block_fr = var(pm, nw, :z_block, ref(pm, nw, :bus_block_map, switch["f_bus"]))
+        z_block_to = var(pm, nw, :z_block, ref(pm, nw, :bus_block_map, switch["t_bus"]))
 
-        z_switch = PMD.var(pm, nw, :switch_state, s)
+        z_switch = var(pm, nw, :switch_state, s)
         if relax
-            PMD.JuMP.@constraint(pm.model,  (z_block_fr - z_block_to) <=  (1-z_switch))
-            PMD.JuMP.@constraint(pm.model,  (z_block_fr - z_block_to) >= -(1-z_switch))
+            JuMP.@constraint(pm.model,  (z_block_fr - z_block_to) <=  (1-z_switch))
+            JuMP.@constraint(pm.model,  (z_block_fr - z_block_to) >= -(1-z_switch))
         else # "indicator" constraint
-            PMD.JuMP.@constraint(pm.model, z_switch => {z_block_fr == z_block_to})
+            JuMP.@constraint(pm.model, z_switch => {z_block_fr == z_block_to})
         end
     end
 

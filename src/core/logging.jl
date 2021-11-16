@@ -44,7 +44,7 @@ function set_log_level!(level::Symbol)
         push!(mods, PowerModelsONM)
 
         # TODO remove need for Memento
-        PMD._IM.silence()
+        _IM.silence()
     elseif level == :Info
         loglevel = Logging.Info
     elseif level == :Debug
@@ -53,7 +53,7 @@ function set_log_level!(level::Symbol)
         loglevel = Logging.Error
 
         # TODO remove need for Memento
-        PMD._IM.silence()
+        _IM.silence()
     end
 
     Logging.global_logger(_make_filtered_logger(mods, loglevel))

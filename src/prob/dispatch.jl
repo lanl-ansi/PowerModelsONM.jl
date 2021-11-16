@@ -11,7 +11,7 @@ If `update_network_data` (default: false) the results of the optimization will b
 `solver` (default: `"nlp_solver"`) specifies which solver to use for the OPF problem from `args["solvers"]`
 """
 function optimize_dispatch!(args::Dict{String,<:Any}; update_network_data::Bool=false, solver::String=get(args, "opt-disp-solver", "nlp_solver"))::Dict{String,Any}
-    args["opt-disp-formulation"] = _get_formulation(get(args, "opt-disp-formulation", "lindistflow"))
+    args["opt-disp-formulation"] = _get_dispatch_formulation(get(args, "opt-disp-formulation", "lindistflow"))
 
     if update_network_data
         args["network"] = apply_switch_solutions!(args["network"], get(args, "optimal_switching_results", Dict{String,Any}()))
@@ -19,7 +19,7 @@ function optimize_dispatch!(args::Dict{String,<:Any}; update_network_data::Bool=
 
     args["optimal_dispatch_result"] = optimize_dispatch(args["network"], args["opt-disp-formulation"], args["solvers"][solver]; switching_solutions=get(args, "optimal_switching_results", missing))
 
-    update_network_data && PMD._IM.update_data!(args["network"], get(args["optimal_dispatch_result"], "solution", Dict{String, Any}()))
+    update_network_data && _IM.update_data!(args["network"], get(args["optimal_dispatch_result"], "solution", Dict{String, Any}()))
 
     return args["optimal_dispatch_result"]
 end
@@ -39,7 +39,7 @@ end
 
 
 "prepares data for running a optimal dispatch problem, copying in solutions from the switching results, if present"
-function _prepare_dispatch_data(network::T, switching_solutions::Union{Missing,T}=missing)::T where T <: Dict{String,<:Any}
+function _prepare_dispatch_data(network::Dict{String,<:Any}, switching_solutions::Union{Missing,Dict{String,<:Any}}=missing)::Dict{String,Any}
     data = deepcopy(network)
 
     if !ismissing(switching_solutions)

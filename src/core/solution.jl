@@ -45,15 +45,15 @@ end
 
 
 """
-    build_result(aim::PMD.AbstractUnbalancedPowerModel, solve_time; solution_processors=[])
+    build_result(aim::AbstractUnbalancedPowerModel, solve_time; solution_processors=[])
 
 Version of `InfrastructureModels.build_result` that includes `"mip_gap"` in the results dictionary, if it exists
 """
-function PMD._IM.build_result(aim::PMD.AbstractUnbalancedPowerModel, solve_time; solution_processors=[])
+function _IM.build_result(aim::AbstractSwitchModels, solve_time; solution_processors=[])
     # try-catch is needed until solvers reliably support ResultCount()
     result_count = 1
     try
-        result_count = PMD.JuMP.result_count(aim.model)
+        result_count = JuMP.result_count(aim.model)
     catch
         @warn "the given optimizer does not provide the ResultCount() attribute, assuming the solver returned a solution which may be incorrect."
     end
@@ -61,26 +61,28 @@ function PMD._IM.build_result(aim::PMD.AbstractUnbalancedPowerModel, solve_time;
     solution = Dict{String,Any}()
 
     if result_count > 0
-        solution = PMD._IM.build_solution(aim, post_processors=solution_processors)
+        solution = _IM.build_solution(aim, post_processors=solution_processors)
     else
        @warn "model has no results, solution cannot be built"
     end
 
     result = Dict{String,Any}(
-        "optimizer" => PMD.JuMP.solver_name(aim.model),
-        "termination_status" => PMD.JuMP.termination_status(aim.model),
-        "primal_status" => PMD.JuMP.primal_status(aim.model),
-        "dual_status" => PMD.JuMP.dual_status(aim.model),
-        "objective" => PMD._IM._guard_objective_value(aim.model),
-        "objective_lb" => PMD._IM._guard_objective_bound(aim.model),
+        "optimizer" => JuMP.solver_name(aim.model),
+        "termination_status" => JuMP.termination_status(aim.model),
+        "primal_status" => JuMP.primal_status(aim.model),
+        "dual_status" => JuMP.dual_status(aim.model),
+        "objective" => _IM._guard_objective_value(aim.model),
+        "objective_lb" => _IM._guard_objective_bound(aim.model),
         "solve_time" => solve_time,
         "solution" => solution,
     )
 
+    mip_gap = NaN
     try
-        result["mip_gap"] = PMD.JuMP.relative_gap(aim.model)
+        mip_gap = JuMP.relative_gap(aim.model)
     catch
     end
+    result["mip_gap"] = mip_gap
 
     return result
 end

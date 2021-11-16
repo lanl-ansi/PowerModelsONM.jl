@@ -8,13 +8,13 @@ for that function. See PowerModelsDistribution [documentation](https://lanl-ansi
 for more details.
 """
 function solve_mn_mc_osw_mld_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)::Dict{String,Any}
-    return PMD.solve_mc_model(data, model_type, solver, _build_mn_mc_osw_mld_mi; multinetwork=true, kwargs...)
+    return PMD.solve_mc_model(data, model_type, solver, build_mn_mc_osw_mld_mi; multinetwork=true, kwargs...)
 end
 
 
 "Multinetwork load shedding problem for Branch Flow model"
-function _build_mn_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
-    for n in PMD.nw_ids(pm)
+function build_mn_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
+    for n in nw_ids(pm)
         variable_mc_block_indicator(pm; nw=n, relax=false)
 
         PMD.variable_mc_bus_voltage_on_off(pm; nw=n)
@@ -30,38 +30,38 @@ function _build_mn_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
 
         PMD.variable_mc_generator_power_on_off(pm; nw=n)
         PMD.variable_mc_storage_power_mi_on_off(pm; nw=n, relax=false)
-        variable_mc_load_power_on_off(pm; nw=n)
+        PMD.variable_mc_load_power(pm; nw=n)
 
         PMD.variable_mc_capcontrol(pm; nw=n, relax=false)
 
         PMD.constraint_mc_model_current(pm; nw=n)
 
-        for i in PMD.ids(pm, n, :ref_buses)
+        for i in ids(pm, n, :ref_buses)
             PMD.constraint_mc_theta_ref(pm, i; nw=n)
         end
 
         PMD.constraint_mc_bus_voltage_on_off(pm; nw=n)
 
-        for i in PMD.ids(pm, n, :gen)
+        for i in ids(pm, n, :gen)
             PMD.constraint_mc_gen_power_on_off(pm, i; nw=n)
         end
 
-        for i in PMD.ids(pm, n, :load)
+        for i in ids(pm, n, :load)
             PMD.constraint_mc_load_power(pm, i; nw=n)
         end
 
-        for i in PMD.ids(pm, n, :bus)
+        for i in ids(pm, n, :bus)
             PMD.constraint_mc_power_balance_shed(pm, i; nw=n)
         end
 
-        for i in PMD.ids(pm, n, :storage)
+        for i in ids(pm, n, :storage)
             PMD.constraint_storage_complementarity_mi(pm, i; nw=n)
             PMD.constraint_mc_storage_on_off(pm, i; nw=n)
             PMD.constraint_mc_storage_losses(pm, i; nw=n)
             PMD.constraint_mc_storage_thermal_limit(pm, i; nw=n)
         end
 
-        for i in PMD.ids(pm, n, :branch)
+        for i in ids(pm, n, :branch)
             PMD.constraint_mc_power_losses(pm, i; nw=n)
             PMD.constraint_mc_model_voltage_magnitude_difference(pm, i; nw=n)
             PMD.constraint_mc_voltage_angle_difference(pm, i; nw=n)
@@ -74,23 +74,23 @@ function _build_mn_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
         end
 
         constraint_block_isolation(pm; nw=n, relax=true)
-        for i in PMD.ids(pm, n, :switch)
+        for i in ids(pm, n, :switch)
             PMD.constraint_mc_switch_state_on_off(pm, i; nw=n, relax=true)
 
             PMD.constraint_mc_switch_thermal_limit(pm, i; nw=n)
             PMD.constraint_mc_switch_ampacity(pm, i; nw=n)
         end
 
-        for i in PMD.ids(pm, n, :transformer)
+        for i in ids(pm, n, :transformer)
             constraint_mc_transformer_power_on_off(pm, i; nw=n, fix_taps=false)
         end
     end
 
-    network_ids = sort(collect(PMD.nw_ids(pm)))
+    network_ids = sort(collect(nw_ids(pm)))
 
     n_1 = network_ids[1]
 
-    for i in PMD.ids(pm, :storage; nw=n_1)
+    for i in ids(pm, :storage; nw=n_1)
         PMD.constraint_storage_state(pm, i; nw=n_1)
     end
 
@@ -99,7 +99,7 @@ function _build_mn_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
     for n_2 in network_ids[2:end]
         constraint_switch_state_max_actions(pm, n_1, n_2)
 
-        for i in PMD.ids(pm, :storage; nw=n_2)
+        for i in ids(pm, :storage; nw=n_2)
             PMD.constraint_storage_state(pm, i, n_1, n_2)
         end
 
@@ -120,12 +120,12 @@ for that function. See PowerModelsDistribution [documentation](https://lanl-ansi
 for more details.
 """
 function solve_mc_osw_mld_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)::Dict{String,Any}
-    return PMD.solve_mc_model(data, model_type, solver, _build_mc_osw_mld_mi; multinetwork=false, kwargs...)
+    return PMD.solve_mc_model(data, model_type, solver, build_mc_osw_mld_mi; multinetwork=false, kwargs...)
 end
 
 
 "Multinetwork load shedding problem for Branch Flow model"
-function _build_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
+function build_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
     variable_mc_block_indicator(pm; relax=false)
 
     PMD.variable_mc_bus_voltage_on_off(pm)
@@ -140,31 +140,31 @@ function _build_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
 
     PMD.variable_mc_generator_power_on_off(pm)
     PMD.variable_mc_storage_power_mi_on_off(pm; relax=false)
-    variable_mc_load_power_on_off(pm)
+    PMD.variable_mc_load_power(pm)
 
     PMD.variable_mc_capcontrol(pm, relax=false)
 
     PMD.constraint_mc_model_current(pm)
 
-    for i in PMD.ids(pm, :ref_buses)
+    for i in ids(pm, :ref_buses)
         PMD.constraint_mc_theta_ref(pm, i)
     end
 
     PMD.constraint_mc_bus_voltage_on_off(pm)
 
-    for i in PMD.ids(pm, :gen)
+    for i in ids(pm, :gen)
         PMD.constraint_mc_gen_power_on_off(pm, i)
     end
 
-    for i in PMD.ids(pm, :load)
+    for i in ids(pm, :load)
         PMD.constraint_mc_load_power(pm, i)
     end
 
-    for i in PMD.ids(pm, :bus)
+    for i in ids(pm, :bus)
         PMD.constraint_mc_power_balance_shed(pm, i)
     end
 
-    for i in PMD.ids(pm, :storage)
+    for i in ids(pm, :storage)
         PMD.constraint_storage_state(pm, i)
         PMD.constraint_storage_complementarity_mi(pm, i)
         PMD.constraint_mc_storage_on_off(pm, i)
@@ -187,14 +187,14 @@ function _build_mc_osw_mld_mi(pm::PMD.AbstractUBFModels)
 
     constraint_switch_state_max_actions(pm)
     constraint_block_isolation(pm; relax=true)
-    for i in PMD.ids(pm, :switch)
+    for i in ids(pm, :switch)
         PMD.constraint_mc_switch_state_on_off(pm, i; relax=true)
 
         PMD.constraint_mc_switch_thermal_limit(pm, i)
         PMD.constraint_mc_switch_ampacity(pm, i)
     end
 
-    for i in PMD.ids(pm, :transformer)
+    for i in ids(pm, :transformer)
         constraint_mc_transformer_power_on_off(pm, i; fix_taps=false)
     end
 

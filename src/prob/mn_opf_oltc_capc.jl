@@ -13,8 +13,8 @@ end
 
 constructor for bus injection opf
 """
-function build_mn_mc_opf_oltc_capc(pm::PMD.AbstractUnbalancedPowerModel)
-    for n in PMD.nw_ids(pm)
+function build_mn_mc_opf_oltc_capc(pm::AbstractUnbalancedPowerModel)
+    for n in nw_ids(pm)
         PMD.variable_mc_bus_voltage(pm; nw=n)
 
         PMD.variable_mc_branch_power(pm; nw=n)
@@ -31,31 +31,31 @@ function build_mn_mc_opf_oltc_capc(pm::PMD.AbstractUnbalancedPowerModel)
 
         PMD.constraint_mc_model_voltage(pm; nw=n)
 
-        for i in PMD.ids(pm, n, :ref_buses)
+        for i in ids(pm, n, :ref_buses)
             PMD.constraint_mc_theta_ref(pm, i; nw=n)
         end
 
         # generators should be constrained before KCL, or Pd/Qd undefined
-        for i in PMD.ids(pm, n, :gen)
+        for i in ids(pm, n, :gen)
             PMD.constraint_mc_generator_power(pm, i; nw=n)
         end
 
         # loads should be constrained before KCL, or Pd/Qd undefined
-        for i in PMD.ids(pm, n, :load)
+        for i in ids(pm, n, :load)
             PMD.constraint_mc_load_power(pm, i; nw=n)
         end
 
-        for i in PMD.ids(pm, n, :bus)
+        for i in ids(pm, n, :bus)
             PMD.constraint_mc_power_balance_capc(pm, i; nw=n)
         end
 
-        for i in PMD.ids(pm, n, :storage)
+        for i in ids(pm, n, :storage)
             PMD.constraint_storage_complementarity_mi(pm, i; nw=n)
             PMD.constraint_mc_storage_losses(pm, i; nw=n)
             PMD.constraint_mc_storage_thermal_limit(pm, i; nw=n)
         end
 
-        for i in PMD.ids(pm, n, :branch)
+        for i in ids(pm, n, :branch)
             PMD.constraint_mc_ohms_yt_from(pm, i; nw=n)
             PMD.constraint_mc_ohms_yt_to(pm, i; nw=n)
             PMD.constraint_mc_voltage_angle_difference(pm, i; nw=n)
@@ -67,28 +67,28 @@ function build_mn_mc_opf_oltc_capc(pm::PMD.AbstractUnbalancedPowerModel)
             PMD.constraint_mc_ampacity_to(pm, i; nw=n)
         end
 
-        for i in PMD.ids(pm, n, :switch)
+        for i in ids(pm, n, :switch)
             PMD.constraint_mc_switch_state(pm, i; nw=n)
             PMD.constraint_mc_switch_thermal_limit(pm, i; nw=n)
             PMD.constraint_mc_switch_ampacity(pm, i; nw=n)
         end
 
-        for i in PMD.ids(pm, n, :transformer)
+        for i in ids(pm, n, :transformer)
             PMD.constraint_mc_transformer_power(pm, i; nw=n, fix_taps=false)
         end
 
     end
 
-    network_ids = sort(collect(PMD.nw_ids(pm)))
+    network_ids = sort(collect(nw_ids(pm)))
 
     n_1 = network_ids[1]
 
-    for i in PMD.ids(pm, :storage; nw=n_1)
+    for i in ids(pm, :storage; nw=n_1)
         PMD.constraint_storage_state(pm, i; nw=n_1)
     end
 
     for n_2 in network_ids[2:end]
-        for i in PMD.ids(pm, :storage; nw=n_2)
+        for i in ids(pm, :storage; nw=n_2)
             PMD.constraint_storage_state(pm, i, n_1, n_2)
         end
 
@@ -105,7 +105,7 @@ end
 constructor for branch flow opf
 """
 function build_mn_mc_opf_oltc_capc(pm::PMD.AbstractUBFModels)
-    for n in PMD.nw_ids(pm)
+    for n in nw_ids(pm)
         PMD.variable_mc_bus_voltage(pm; nw=n)
 
         PMD.variable_mc_branch_current(pm; nw=n)
@@ -123,31 +123,31 @@ function build_mn_mc_opf_oltc_capc(pm::PMD.AbstractUBFModels)
 
         PMD.constraint_mc_model_current(pm; nw=n)
 
-        for i in PMD.ids(pm, n, :ref_buses)
+        for i in ids(pm, n, :ref_buses)
             PMD.constraint_mc_theta_ref(pm, i; nw=n)
         end
 
         # gens should be constrained before KCL, or Pd/Qd undefined
-        for i in PMD.ids(pm, n, :gen)
+        for i in ids(pm, n, :gen)
             PMD.constraint_mc_generator_power(pm, i; nw=n)
         end
 
         # loads should be constrained before KCL, or Pd/Qd undefined
-        for i in PMD.ids(pm, n, :load)
+        for i in ids(pm, n, :load)
             PMD.constraint_mc_load_power(pm, i; nw=n)
         end
 
-        for i in PMD.ids(pm, n, :bus)
+        for i in ids(pm, n, :bus)
             PMD.constraint_mc_power_balance_capc(pm, i; nw=n)
         end
 
-        for i in PMD.ids(pm, n, :storage)
+        for i in ids(pm, n, :storage)
             PMD.constraint_storage_complementarity_mi(pm, i; nw=n)
             PMD.constraint_mc_storage_losses(pm, i; nw=n)
             PMD.constraint_mc_storage_thermal_limit(pm, i; nw=n)
         end
 
-        for i in PMD.ids(pm, n, :branch)
+        for i in ids(pm, n, :branch)
             PMD.constraint_mc_power_losses(pm, i; nw=n)
             PMD.constraint_mc_model_voltage_magnitude_difference(pm, i; nw=n)
             PMD.constraint_mc_voltage_angle_difference(pm, i; nw=n)
@@ -159,27 +159,27 @@ function build_mn_mc_opf_oltc_capc(pm::PMD.AbstractUBFModels)
             PMD.constraint_mc_ampacity_to(pm, i; nw=n)
         end
 
-        for i in PMD.ids(pm, n, :switch)
+        for i in ids(pm, n, :switch)
             PMD.constraint_mc_switch_state(pm, i; nw=n)
             PMD.constraint_mc_switch_thermal_limit(pm, i; nw=n)
             PMD.constraint_mc_switch_ampacity(pm, i; nw=n)
         end
 
-        for i in PMD.ids(pm, n, :transformer)
+        for i in ids(pm, n, :transformer)
             PMD.constraint_mc_transformer_power(pm, i; nw=n, fix_taps=false)
         end
     end
 
-    network_ids = sort(collect(PMD.nw_ids(pm)))
+    network_ids = sort(collect(nw_ids(pm)))
 
     n_1 = network_ids[1]
 
-    for i in PMD.ids(pm, :storage; nw=n_1)
+    for i in ids(pm, :storage; nw=n_1)
         PMD.constraint_storage_state(pm, i; nw=n_1)
     end
 
     for n_2 in network_ids[2:end]
-        for i in PMD.ids(pm, :storage; nw=n_2)
+        for i in ids(pm, :storage; nw=n_2)
             PMD.constraint_storage_state(pm, i, n_1, n_2)
         end
 

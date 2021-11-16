@@ -47,19 +47,19 @@ Linear switch power on/off constraint for LPUBFDiagModel. If `relax`, an [indica
 \end{align}
 ```
 """
-function PowerModelsDistribution.constraint_mc_switch_power_on_off(pm::PMD.LPUBFDiagModel, nw::Int, f_idx::Tuple{Int,Int,Int}; relax::Bool=false)
+function PowerModelsDistribution.constraint_mc_switch_power_on_off(pm::AbstractSwitchModels, nw::Int, f_idx::Tuple{Int,Int,Int}; relax::Bool=false)
     i, f_bus, t_bus = f_idx
 
-    psw = PMD.var(pm, nw, :psw, f_idx)
-    qsw = PMD.var(pm, nw, :qsw, f_idx)
+    psw = var(pm, nw, :psw, f_idx)
+    qsw = var(pm, nw, :qsw, f_idx)
 
-    z = PMD.var(pm, nw, :switch_state, i)
+    z = var(pm, nw, :switch_state, i)
 
-    connections = PMD.ref(pm, nw, :switch, i)["f_connections"]
+    connections = ref(pm, nw, :switch, i)["f_connections"]
 
-    switch = PMD.ref(pm, nw, :switch, i)
+    switch = ref(pm, nw, :switch, i)
 
-    rating = min.(fill(1.0, length(connections)), PMD._calc_branch_power_max_frto(switch, PMD.ref(pm, nw, :bus, f_bus), PMD.ref(pm, nw, :bus, t_bus))...)
+    rating = min.(fill(1.0, length(connections)), PMD._calc_branch_power_max_frto(switch, ref(pm, nw, :bus, f_bus), ref(pm, nw, :bus, t_bus))...)
 
     for (idx, c) in enumerate(connections)
         if relax

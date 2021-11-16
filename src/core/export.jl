@@ -10,3 +10,6 @@ for sym in names(@__MODULE__, all=true)
     end
     @eval export $sym
 end
+
+# explicitly export some PMD exports
+export nw_id_default, ref, var, ids, nws, nw_ids, con, optimizer_with_attributes, AbstractUnbalancedPowerModel
