@@ -102,7 +102,7 @@ function apply_settings(network::Dict{String,<:Any}, settings::Dict{String,<:Any
         elseif s == "settings"
             for n in sort([parse(Int, i) for i in keys(mn_data["nw"])])
                 for (k,v) in setting
-                    if isa(Dict, v)
+                    if isa(v, Dict)
                         merge!(mn_data["nw"]["$n"]["settings"][k], v)
                     else
                         mn_data["nw"]["$n"]["settings"][k] = v
@@ -163,5 +163,171 @@ function _apply_to_network!(network::Dict{String,<:Any}, type::String, data::Dic
                 end
             end
         end
+    end
+end
+
+
+"""
+    build_settings_file(
+        network_file::String,
+        settings_file::String="settings.json";
+        max_switch_actions::Union{Missing,Int,Vector{Int}},
+        vm_lb_pu::Union{Missing,Float64}=missing,
+        vm_ub_pu::Union{Missing,Float64}=missing,
+        vad_deg::Union{Missing,Float64}=missing,
+        line_limit_mult::Float64=1.0,
+        sbase_default::Union{Missing,Float64}=missing,
+        time_elapsed::Union{Missing,Float64,Vector{Float64}}=missing,
+        autogen_microgrid_ids::Bool=true,
+        custom_settings::Dict{String,<:Any}=Dict{String,Any}(),
+    )
+
+Helper function to build a settings.json file for use with ONM.
+"""
+function build_settings_file(
+    network_file::String,
+    settings_file::String="settings.json";
+    max_switch_actions::Union{Missing,Int,Vector{Int}},
+    vm_lb_pu::Union{Missing,Float64}=missing,
+    vm_ub_pu::Union{Missing,Float64}=missing,
+    vad_deg::Union{Missing,Float64}=missing,
+    line_limit_mult::Float64=1.0,
+    sbase_default::Union{Missing,Float64}=missing,
+    time_elapsed::Union{Missing,Float64,Vector{Float64}}=missing,
+    autogen_microgrid_ids::Bool=true,
+    custom_settings::Dict{String,<:Any}=Dict{String,Any}(),
+    mip_solver_gap::Float64=0.05,
+    nlp_solver_tol::Float64=1e-4,
+    mip_solver_tol::Float64=1e-4,
+    clpu_factor::Union{Missing,Float64}=missing,
+    )
+
+    eng = PMD.parse_file(network_file; transformations=[PMD.apply_kron_reduction!])
+    n_steps = length(first(eng["time_series"]).second["values"])
+
+    settings = Dict{String,Any}(
+        "settings" => Dict{String,Any}("sbase_default"=>ismissing(sbase_default) ? eng["settings"]["sbase_default"] : sbase_default),
+        "bus" => Dict{String,Any}(),
+        "line" => Dict{String,Any}(),
+        "switch" => Dict{String,Any}(),
+        "transformer" => Dict{String,Any}(),
+        "storage" => Dict{String,Any}(),
+        "generator" => Dict{String,Any}(),
+        "solar" => Dict{String,Any}(),
+        "load" => Dict{String,Any}(),
+        "shunt" => Dict{String,Any}(),
+        "mip_solver_gap" => mip_solver_gap,
+        "nlp_solver_tol" => nlp_solver_tol,
+        "mip_solver_tol" => mip_solver_tol,
+    )
+
+    merge!(settings, custom_settings)
+
+    if !ismissing(time_elapsed)
+        if !isa(time_elapsed, Vector)
+            time_elapsed = fill(time_elapsed, n_steps)
+        end
+        settings["time_elapsed"] = time_elapsed
+    end
+
+    if !ismissing(max_switch_actions)
+        if !isa(max_switch_actions, Vector)
+            max_switch_actions = fill(max_switch_actions, n_steps)
+        end
+        settings["max_switch_actions"] = max_switch_actions
+    end
+
+    # Generate bus microgrid_ids
+    if autogen_microgrid_ids
+        # merge in switch default settings
+        for (id, switch) in settings["switch"]
+            merge!(eng["switch"][id], switch)
+        end
+
+        # identify load blocks
+        blocks = PMD.identify_load_blocks(eng)
+
+        # build list of blocks with enabled generation
+        gen_blocks = [
+            bl for bl in blocks if (
+                any(g["bus"] in bl && g["status"] == PMD.ENABLED for (_,g) in get(eng, "storage", Dict())) ||
+                any(g["bus"] in bl && g["status"] == PMD.ENABLED for (_,g) in get(eng, "solar", Dict())) ||
+                any(g["bus"] in bl && g["status"] == PMD.ENABLED for (_,g) in get(eng, "generator", Dict()))
+            )
+        ]
+
+        # assign microgrid ids
+        for (i,b) in enumerate(gen_blocks)
+            for bus in b
+                eng["bus"][bus]["microgrid_id"] = "$i"
+            end
+        end
+    end
+
+    # Generate settings for buses
+    PMD.apply_voltage_bounds!(eng; vm_lb=vm_lb_pu, vm_ub=vm_ub_pu)
+    for (b, bus) in eng["bus"]
+        settings["bus"][b] = merge(
+            get(settings["bus"], b, Dict{String,Any}()),
+            Dict{String,Any}(
+                "vm_lb" => get(bus, "vm_lb", fill(0.0, length(bus["terminals"]))), # Voltage magnitude lower bound
+                "vm_ub" => get(bus, "vm_ub", fill(Inf, length(bus["terminals"]))), # Voltage magnitude upper bound
+            )
+        )
+        if haskey(bus, "microgrid_id")
+            settings["bus"][b] = merge(get(settings["bus"], b, Dict{String,Any}()), Dict{String,Any}("microgrid_id" => bus["microgrid_id"]))
+        end
+    end
+
+    # Generate settings for loads
+    if !ismissing(clpu_factor)
+        for (l,_) in eng["load"]
+            settings["load"][l] = merge(
+                get(settings["load"], l, Dict{String,Any}()),
+                Dict{String,Any}(
+                    "clpu_factor" => clpu_factor
+                )
+            )
+        end
+    end
+
+    # Generate settings for lines
+    PMD.adjust_line_limits!(eng, line_limit_mult)
+    !ismissing(vad_deg) && PMD.apply_voltage_angle_difference_bounds!(eng, vad_deg)
+    for (l, line) in eng["line"]
+        settings["line"][l] = merge(
+            get(settings["line"], l, Dict{String,Any}()),
+            Dict{String,Any}(
+                "vad_lb" => line["vad_lb"], # voltage angle difference lower bound
+                "vad_ub" => line["vad_ub"], # voltage angle different upper bound
+                "cm_ub" => get(line, "cm_ub", fill(Inf, length(line["f_connections"]))),
+            )
+        )
+    end
+
+    # Generate settings for switches
+    for (s, switch) in eng["switch"]
+        settings["switch"][s] = merge(
+            get(settings["switch"], s, Dict{String,Any}()),
+            Dict{String,Any}(
+                "cm_ub" => get(switch, "cm_ub", fill(Inf, length(switch["f_connections"])))
+            )
+        )
+    end
+
+    # Generate settings for transformers
+    PMD.adjust_transformer_limits!(eng, line_limit_mult)
+    for (t, transformer) in eng["transformer"]
+        settings["transformer"][t] = merge(
+            get(settings["transformer"], t, Dict{String,Any}()),
+            Dict{String,Any}(
+                "sm_ub" => get(transformer, "sm_ub", Inf)
+            )
+        )
+    end
+
+    # Save the settings.json file
+    open(settings_file, "w") do io
+        JSON.print(io, settings)
     end
 end

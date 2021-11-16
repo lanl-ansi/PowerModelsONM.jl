@@ -7,6 +7,7 @@
 - Refactored constraint functions into different files
 - Added "Total load (%)" statistic to output schema
 - Updated Fault currents schema to match faults input schema
+- Added helper function `build_settings_file` to aid in building a settings file specific to a network
 - Added helper function `build_events_file` to aid in building a (very) simple events file specific to a network
 - Added runtime argument `fix-small-numbers` which will prune lengths, impendances, and admittances that are especially small to improve solver performance
 - Refactored to add new Switch formulation types and structs, to kept ONM better separated from PowerModelsDistribution
