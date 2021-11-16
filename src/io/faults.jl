@@ -78,3 +78,23 @@ function _fix_fault_data_types!(faults::Dict{String,<:Any})
     end
     return faults
 end
+
+
+"""
+    count_faults(faults::Dict{String,<:Any})::Int
+
+Helper function to count the total number of faults
+"""
+function count_faults(faults::Dict{String,<:Any})::Int
+    count = 0
+    for (bus_id, fault_types) in faults
+        for (fault_type, faults) in fault_types
+            for (fault_id, fault) in faults
+                if fault["status"] == PMD.ENABLED
+                    count += 1
+                end
+            end
+        end
+    end
+    return count
+end
