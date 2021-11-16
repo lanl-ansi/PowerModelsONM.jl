@@ -26,7 +26,7 @@ function run_stability_analysis!(args::Dict{String,<:Any}; validate::Bool=true, 
         )
     end
 
-    args["stability_results"] = run_stability_analysis(args["network"], args["inverters"], args["solvers"][solver]; formulation=formulation)
+    args["stability_results"] = run_stability_analysis(args["network"], args["inverters"], args["solvers"][solver]; formulation=formulation, switching_solutions=get(args, "optimal_switching_results", missing))
 end
 
 
@@ -43,8 +43,8 @@ polar coordinates.
 
 `solver` for stability analysis (NLP OPF)
 """
-function run_stability_analysis(network, inverters::Dict{String,<:Any}, solver; formulation::Type=PMD.ACRUPowerModel)::Dict{String,Bool}
-    mn_data = _prepare_stability_multinetwork_data(network, inverters)
+function run_stability_analysis(network, inverters::Dict{String,<:Any}, solver; formulation::Type=PMD.ACRUPowerModel, switching_solutions::Union{Missing,Dict{String,<:Any}}=missing)::Dict{String,Bool}
+    mn_data = _prepare_stability_multinetwork_data(network, inverters, switching_solutions)
 
     is_stable = Dict{String,Bool}()
     ns = sort([parse(Int, i) for i in keys(mn_data["nw"])])
@@ -61,7 +61,7 @@ end
 
 Runs stability analysis on a single subnetwork (not a multinetwork) using a nonlinear `solver`.
 """
-function run_stability_analysis(subnetwork::Dict{String,<:Any}, omega0::Real, rN::Int, solver; formulation::Type=PMD.ACRUPowerModel)::Bool
+function run_stability_analysis(subnetwork::Dict{String,<:Any}, omega0::Real, rN::Int, solver; formulation::Type=PMD.ACPUPowerModel)::Bool
     math_model = PowerModelsStability.transform_data_model(subnetwork)
     opf_solution = PowerModelsStability.solve_mc_opf(math_model, formulation, solver; solution_processors=[PMD.sol_data_model!])
 
@@ -79,8 +79,8 @@ end
 
 
 "helper function to prepare the multinetwork data for stability analysis (adds inverters, data_model)"
-function _prepare_stability_multinetwork_data(network::Dict{String,<:Any}, inverters::Dict{String,<:Any})::Dict{String,Any}
-    mn_data = deepcopy(network)
+function _prepare_stability_multinetwork_data(network::Dict{String,<:Any}, inverters::Dict{String,<:Any}, switching_solutions::Union{Missing,Dict{String,<:Any}}=missing, dispatch_solution::Union{Missing,Dict{String,<:Any}}=missing)::Dict{String,Any}
+    mn_data = _prepare_dispatch_data(network, switching_solutions)
 
     for (n, nw) in mn_data["nw"]
         nw["data_model"] = mn_data["data_model"]

@@ -2,6 +2,7 @@
 
 ## staged
 
+- Updated stability problem data model preparation
 - Linearized quadratic and on_off mixed integer constraints
 - Added new on_off constraints for storage and transformers
 - Refactored constraint functions into different files
