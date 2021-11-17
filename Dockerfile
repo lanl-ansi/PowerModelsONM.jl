@@ -15,7 +15,7 @@ ADD test /test
 ADD LICENSE.md LICENSE
 
 # Instantiate Julia Env
-RUN julia -O3 --color=yes --compiled-modules=yes --sysimage-native-code=yes --project=/ -e 'using Pkg; Pkg.instantiate(); Pkg.build();'
+RUN julia -O3 --color=yes --compiled-modules=yes --sysimage-native-code=yes --project=/ -e 'using Pkg; Pkg.Registry.update(); Pkg.update(); Pkg.instantiate(); Pkg.build();'
 
 # PackageCompiler
 RUN julia -q --project=/ -e 'using PackageCompiler; create_sysimage([:PowerModelsONM]; replace_default=true, cpu_target="generic");'

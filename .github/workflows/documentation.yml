@@ -21,7 +21,7 @@ jobs:
       - name: Install @adobe/jsonschema2md
         run: npm install -g @adobe/jsonschema2md
       - name: Install Dependencies
-        run: julia --project=docs -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
+        run: julia --project=docs -e 'using Pkg; Pkg.Registry.update(); Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
       - name: Build and Deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
