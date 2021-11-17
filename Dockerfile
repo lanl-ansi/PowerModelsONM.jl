@@ -17,9 +17,10 @@ ADD LICENSE.md LICENSE
 # Update Julia General registry
 RUN git clone https://github.com/julia-actions/julia-buildpkg.git
 RUN julia --color=yes julia-buildpkg/add_general_registry.jl
+RUN rm -rf julia-buildpkg
 
 # Instantiate Julia Env
-RUN julia -O3 --color=yes --compiled-modules=yes --sysimage-native-code=yes --project=/ -e 'using Pkg; Pkg.Registry.update(); Pkg.update(); Pkg.instantiate(); Pkg.build();'
+RUN julia -O3 --color=yes --compiled-modules=yes --sysimage-native-code=yes --project=/ -e 'using Pkg; Pkg.instantiate(); Pkg.build();'
 
 # PackageCompiler
 RUN julia -q --project=/ -e 'using PackageCompiler; create_sysimage([:PowerModelsONM]; replace_default=true, cpu_target="generic");'
