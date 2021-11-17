@@ -1,7 +1,7 @@
 FROM julia:latest
 
 RUN apt-get update && \
-    apt-get -y --no-install-recommends install build-essential gcc fontconfig-config
+    apt-get -y --no-install-recommends install build-essential gcc fontconfig-config git
 
 # Julia env
 ADD Project.toml /
