@@ -14,6 +14,10 @@ ADD test /test
 # License
 ADD LICENSE.md LICENSE
 
+# Update Julia General registry
+RUN git clone https://github.com/julia-actions/julia-buildpkg.git
+RUN julia --color=yes julia-buildpkg/add_general_registry.jl
+
 # Instantiate Julia Env
 RUN julia -O3 --color=yes --compiled-modules=yes --sysimage-native-code=yes --project=/ -e 'using Pkg; Pkg.Registry.update(); Pkg.update(); Pkg.instantiate(); Pkg.build();'
 
