@@ -2,7 +2,7 @@
 
 ## staged
 
-- none
+- Fixed bug in `get_timestep_voltage_statistics` where per-unit conversion was failing for voltages
 
 ## v2.0.0
 

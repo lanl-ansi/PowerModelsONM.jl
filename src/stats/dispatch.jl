@@ -45,8 +45,9 @@ function get_timestep_voltage_statistics(solution::Dict{String,<:Any}, network::
         "Mean voltage (p.u.)" => Real[],
         "Max voltage (p.u.)" => Real[],
     )
-    per_unit = get(solution, "per_unit", true)
     for n in sort([parse(Int,i) for i in keys(get(solution, "nw", Dict()))])
+        per_unit = get(solution["nw"]["$n"], "per_unit", true)
+
         nw = network["nw"]["$n"]
         nw["data_model"] = network["data_model"]
         min_v, mean_v, max_v = get_voltage_min_mean_max(solution["nw"]["$n"], nw; make_per_unit=make_per_unit && !per_unit)
