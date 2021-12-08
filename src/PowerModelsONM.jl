@@ -6,6 +6,8 @@ module PowerModelsONM
     import LinearAlgebra
     import Statistics
 
+    import Distributed
+
     # InfrastructureModels ecosystem
     import InfrastructureModels
     const _IM = InfrastructureModels
