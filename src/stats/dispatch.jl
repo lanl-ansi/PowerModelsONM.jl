@@ -27,7 +27,7 @@ function get_voltage_min_mean_max(solution::Dict{String,<:Any}, data::Dict{Strin
         voltages = [get(bus, "vm", zeros(length(data["bus"][id]["terminals"]))) for (id,bus) in get(solution, "bus", Dict())]
     end
 
-    return isempty(voltages) ? (NaN, NaN, NaN) : (minimum(minimum.(voltages)), mean(mean.(voltages)), maximum(maximum.(voltages)))
+    return isempty(voltages) ? (NaN, NaN, NaN) : (minimum(minimum.(voltages)), Statistics.mean(Statistics.mean.(voltages)), maximum(maximum.(voltages)))
 end
 
 

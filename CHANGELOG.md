@@ -2,6 +2,7 @@
 
 ## staged
 
+- Updated minimum Julia version to 1.6 (LTS)
 - Refactored imports to be better organized and explained
 - Fixed bug in `build_settings_file` where voltage source buses where being assigned voltage bounds `0 < |V| < Inf`
 - Added Hwloc.jl as dependency and `System metadata`, which includes information about the platform, cpu type, number of physical and logical cores, available threads, processors, and Julia version to output schema

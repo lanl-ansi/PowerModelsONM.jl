@@ -89,7 +89,6 @@ function run_fault_studies(network::Dict{String,<:Any}, solver; faults::Dict{Str
 end
 
 
-
 """
     run_fault_study(subnetwork::Dict{String,<:Any}, faults::Dict{String,<:Any}, solver)::Dict{String,Any}
 
