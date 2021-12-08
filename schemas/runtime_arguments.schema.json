@@ -241,6 +241,15 @@
       "type": "boolean",
       "description": "Toggle to enable pretty-printed output json",
       "default": false
+    },
+    "nprocs": {
+      "type": "integer",
+      "description": "Number of processors to utilize for parallel computations (Fault studies and Stability Analysis)",
+      "minimum": 1,
+      "default": 1
     }
-  }
+  },
+  "required": [
+    "network"
+  ]
 }

@@ -63,14 +63,13 @@ function run_fault_studies(network::Dict{String,<:Any}, solver; faults::Dict{Str
 
     fault_studies_results = Dict{String,Any}()
     ns = sort([parse(Int, i) for i in keys(get(mn_data, "nw", Dict()))])
-    _results = Vector{Any}(missing, length(ns))
-    @showprogress length(ns) "Running fault studies... " for i = 1:length(ns)
-        _faults = filter(x->!(x.first in shedded_buses["$(ns[i])"]), faults)
-        if (i > 1 && switch_states["$(ns[i])"] == switch_states["$(ns[i-1])"]) || isempty(_faults)
+    _results = @showprogress pmap(ns) do n
+        _faults = filter(x->!(x.first in shedded_buses["$(n)"]), faults)
+        if (n > 1 && switch_states["$(n)"] == switch_states["$(n-1)"]) || isempty(_faults)
             # skip identical configurations or all faults missing
-            continue
+            missing
         else
-            _results[i] = run_fault_study(mn_data["nw"]["$(ns[i])"], _faults, solver)
+            run_fault_study(mn_data["nw"]["$(n)"], _faults, solver)
         end
     end
 

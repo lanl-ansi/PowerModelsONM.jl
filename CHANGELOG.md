@@ -2,6 +2,7 @@
 
 ## staged
 
+- Added Distributed computing options for fault studies and stability analysis to significantly speed up these processes
 - Updated minimum Julia version to 1.6 (LTS)
 - Refactored imports to be better organized and explained
 - Fixed bug in `build_settings_file` where voltage source buses where being assigned voltage bounds `0 < |V| < Inf`

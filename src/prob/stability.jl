@@ -46,13 +46,12 @@ polar coordinates.
 function run_stability_analysis(network, inverters::Dict{String,<:Any}, solver; formulation::Type=PMD.ACRUPowerModel, switching_solutions::Union{Missing,Dict{String,<:Any}}=missing)::Dict{String,Bool}
     mn_data = _prepare_stability_multinetwork_data(network, inverters, switching_solutions)
 
-    is_stable = Dict{String,Bool}()
     ns = sort([parse(Int, i) for i in keys(mn_data["nw"])])
-    @showprogress length(ns) "Running stability analysis... " for n in ns
-        is_stable["$n"] = run_stability_analysis(mn_data["nw"]["$n"], inverters["omega0"], inverters["rN"], solver; formulation=formulation)
+    is_stable = @showprogress pmap(ns) do n
+        run_stability_analysis(mn_data["nw"]["$n"], inverters["omega0"], inverters["rN"], solver; formulation=formulation)
     end
 
-    return is_stable
+    return Dict{String,Bool}([(string(i),s) for (i,s) in enumerate(is_stable)])
 end
 
 

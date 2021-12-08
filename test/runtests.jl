@@ -1,4 +1,8 @@
-using PowerModelsONM
+using Distributed
+
+Distributed.addprocs(3)
+
+@everywhere using PowerModelsONM
 
 import JSON
 import PowerModelsDistribution

@@ -6,7 +6,9 @@ module PowerModelsONM
     import LinearAlgebra
     import Statistics
 
+    # Parallel Computing
     import Distributed
+    using Distributed: pmap
 
     # InfrastructureModels ecosystem
     import InfrastructureModels
@@ -95,6 +97,7 @@ module PowerModelsONM
     include("prob/stability.jl")
     include("prob/switch.jl")
 
+    include("stats/analysis.jl")
     include("stats/actions.jl")
     include("stats/dispatch.jl")
     include("stats/fault.jl")
