@@ -29,6 +29,10 @@ module PowerModelsONM
     import Logging
     import LoggingExtras
 
+    # Hardware statistics
+    import Hwloc
+
+    # Network Graphs
     import LightGraphs
 
     import ProgressMeter: @showprogress, Progress, next!

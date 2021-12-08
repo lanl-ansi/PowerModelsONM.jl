@@ -36,6 +36,16 @@ function initialize_output(args::Dict{String,<:Any})::Dict{String,Any}
         "Optimal switching metadata" => Dict{String,Any}[],
         "Optimal dispatch metadata" => Dict{String,Any}(),
         "Fault studies metadata" => Dict{String,Any}[],
+        "System metadata" => Dict{String,Any}(
+            "platform" => string(Sys.MACHINE),
+            "cpu_info" => string(first(Sys.cpu_info()).model),
+            "physical_cores" => Hwloc.num_physical_cores(),
+            "logical_processors" => Hwloc.num_virtual_cores(),
+            "system_memory" => round(Int, Sys.total_memory() / 2^20 / 1024),
+            "julia_max_threads" => Threads.nthreads(),
+            "julia_max_procs" => Distributed.nprocs(),
+            "julia_version" => string(Base.VERSION),
+        ),
     )
 end
 
