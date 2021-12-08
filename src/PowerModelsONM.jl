@@ -1,7 +1,12 @@
 module PowerModelsONM
     using Base: Bool
-    import LinearAlgebra
 
+    # STDLIB
+    import Dates
+    import LinearAlgebra
+    import Statistics
+
+    # InfrastructureModels ecosystem
     import InfrastructureModels
     const _IM = InfrastructureModels
 
@@ -9,12 +14,14 @@ module PowerModelsONM
     import PowerModelsDistribution: ref, var, con, ids, nw_ids, nw_id_default, nws, AbstractUnbalancedPowerModel
     const PMD = PowerModelsDistribution
 
+    import PowerModelsProtection
+    import PowerModelsStability
+
+    # Optimization Modeling
     import JuMP
     import JuMP: optimizer_with_attributes
 
     import PolyhedralRelaxations
-
-    import Requires: @require
 
     import Ipopt
     import Cbc
@@ -26,8 +33,10 @@ module PowerModelsONM
     import JSON
     import JSONSchema
 
+    # Logging Tools
     import Logging
     import LoggingExtras
+    import ProgressMeter: @showprogress
 
     # Hardware statistics
     import Hwloc
@@ -35,16 +44,8 @@ module PowerModelsONM
     # Network Graphs
     import LightGraphs
 
-    import ProgressMeter: @showprogress, Progress, next!
-
-    import Dates
-
-    import LinearAlgebra: eigvals
-    import Statistics: mean
-
-    # Additional PowerModels{x} Services
-    import PowerModelsProtection
-    import PowerModelsStability
+    # Import Tools
+    import Requires: @require
 
     function __init__()
         global _LOGGER = Logging.ConsoleLogger(; meta_formatter=PowerModelsDistribution._pmd_metafmt)
