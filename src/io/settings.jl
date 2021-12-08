@@ -265,17 +265,19 @@ function build_settings_file(
     end
 
     # Generate settings for buses
-    PMD.apply_voltage_bounds!(eng; vm_lb=vm_lb_pu, vm_ub=vm_ub_pu)
+    PMD.apply_voltage_bounds!(eng; vm_lb=vm_lb_pu, vm_ub=vm_ub_pu, exclude=String[vs["bus"] for (_,vs) in get(eng, "voltage_source", Dict())])
     for (b, bus) in eng["bus"]
-        settings["bus"][b] = merge(
-            get(settings["bus"], b, Dict{String,Any}()),
-            Dict{String,Any}(
-                "vm_lb" => get(bus, "vm_lb", fill(0.0, length(bus["terminals"]))), # Voltage magnitude lower bound
-                "vm_ub" => get(bus, "vm_ub", fill(Inf, length(bus["terminals"]))), # Voltage magnitude upper bound
+        if !(b in String[vs["bus"] for (_,vs) in get(eng, "voltage_source", Dict())])
+            settings["bus"][b] = merge(
+                get(settings["bus"], b, Dict{String,Any}()),
+                Dict{String,Any}(
+                    "vm_lb" => get(bus, "vm_lb", fill(0.0, length(bus["terminals"]))), # Voltage magnitude lower bound
+                    "vm_ub" => get(bus, "vm_ub", fill(Inf, length(bus["terminals"]))), # Voltage magnitude upper bound
+                )
             )
-        )
-        if haskey(bus, "microgrid_id")
-            settings["bus"][b] = merge(get(settings["bus"], b, Dict{String,Any}()), Dict{String,Any}("microgrid_id" => bus["microgrid_id"]))
+            if haskey(bus, "microgrid_id")
+                settings["bus"][b] = merge(get(settings["bus"], b, Dict{String,Any}()), Dict{String,Any}("microgrid_id" => bus["microgrid_id"]))
+            end
         end
     end
 

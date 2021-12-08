@@ -2,6 +2,7 @@
 
 ## staged
 
+- Fixed bug in `build_settings_file` where voltage source buses where being assigned voltage bounds `0 < |V| < Inf`
 - Added Hwloc.jl as dependency and `System metadata`, which includes information about the platform, cpu type, number of physical and logical cores, available threads, processors, and Julia version to output schema
 - Added `Microgrid customers (%)`, `Bonus customers via microgrid (%)`, `Feeder customers (%)`, and `Total customers (%)` to `Load served` output schema
 - Fixed bug in `get_timestep_voltage_statistics` where per-unit conversion was failing for voltages
