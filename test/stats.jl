@@ -60,7 +60,7 @@
         @test all(isapprox.(args["output_data"]["Storage SOC (%)"], [70.83, 58.33, 45.833, 43.75, 60.41]; atol=1e-1))
 
         @test all(isapprox.(args["output_data"]["Load served"]["Bonus load via microgrid (%)"], [0.0, 0.0, 0.0, 0.0, 5.57]; atol=1e-1))
-        @test all(isapprox.(args["output_data"]["Load served"]["Feeder load (%)"], [85.62, 101.00, 101.00, 101.00, 95.25]; atol=1e-1))
+        @test all(isapprox.(args["output_data"]["Load served"]["Feeder load (%)"], [94.19, 100.94, 100.94, 100.94, 108.48]; atol=1e-1))
         @test all(isapprox.(args["output_data"]["Load served"]["Microgrid load (%)"], [100.0, 100.0, 100.0, 100.0, 100.0]; atol=1e-1))
 
         @test all(isapprox.(args["output_data"]["Generator profiles"]["Diesel DG (kW)"], 0.0))

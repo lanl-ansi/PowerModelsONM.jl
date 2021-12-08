@@ -30,6 +30,10 @@ function get_timestep_load_served(dispatch_solution::Dict{String,<:Any}, network
         "Microgrid load (%)" => Real[],
         "Bonus load via microgrid (%)" => Real[],
         "Total load (%)" => Real[],
+        "Feeder customers (%)" => Real[],
+        "Microgrid customers (%)" => Real[],
+        "Bonus customers via microgrid (%)" => Real[],
+        "Total customers (%)" => Real[],
     )
 
     mn_eng = _prepare_dispatch_data(network, switching_solution)
@@ -83,7 +87,17 @@ function get_timestep_load_served(dispatch_solution::Dict{String,<:Any}, network
             mg_served_load = 0.0
             mg_bonus_load = 0.0
             feeder_served_load = 0.0
+
+            mg_served_customers = 0.0
+            mg_bonus_customers = 0.0
+            feeder_served_customers = 0.0
+            total_served_customers = 0.0
             total_served_load = 0.0
+
+            total_load = sum(sum(Float64[pd for pd in load["pd_nom"] if pd > 0]) for (_,load) in get(network["nw"]["$n"], "load", Dict()))
+            microgrid_load = sum(Float64[sum(Float64[pd for pd in load["pd_nom"] if pd > 0]) for (_,load) in get(network["nw"]["$n"], "load", Dict()) if !isempty(get(network["nw"]["$n"]["bus"][load["bus"]], "microgrid_id", ""))])
+            bonus_load = total_load - microgrid_load
+
             for block in blocks
                 if "voltage_source" in keys(block_gens[block]) && !isempty(get(dispatch_solution["nw"]["$n"], "voltage_source", Dict()))
                     if block_has_mg[block]
@@ -129,13 +143,17 @@ function get_timestep_load_served(dispatch_solution::Dict{String,<:Any}, network
                             nom_pd = load["pd_nom"]
                             act_pd = get(get(get(dispatch_solution["nw"]["$n"], "load", Dict()), lid, Dict()), "pd", fill(0.0, length(load["connections"])))
 
-                            feeder_served_load += sum(act_pd ./ nom_pd) / length(nom_pd) / n_loads * (1-der_vs_ratio)
+                            feeder_served_customers += sum(act_pd ./ nom_pd) / length(nom_pd) / n_loads * (1-der_vs_ratio)
+                            feeder_served_load += sum(Float64[pd for pd in act_pd if pd > 0]) / bonus_load * (1-der_vs_ratio)
                             if any(lid in mid2loads[mid] for mid in block_mg_ids[block])
-                                mg_served_load += sum(act_pd ./ nom_pd) / length(nom_pd) / n_microgrid_loads
+                                mg_served_customers += sum(act_pd ./ nom_pd) / length(nom_pd) / n_microgrid_loads
+                                mg_served_load += sum(Float64[pd for pd in act_pd if pd > 0]) / microgrid_load
                             else
-                                mg_bonus_load += sum(act_pd ./ nom_pd) / length(nom_pd) / n_bonus_loads * der_vs_ratio
+                                mg_bonus_customers += sum(act_pd ./ nom_pd) / length(nom_pd) / n_bonus_loads * der_vs_ratio
+                                mg_bonus_load += sum(Float64[pd for pd in act_pd if pd > 0]) / bonus_load * der_vs_ratio
                             end
-                            total_served_load += sum(act_pd ./ nom_pd) / length(nom_pd) / n_loads
+                            total_served_customers += sum(act_pd ./ nom_pd) / length(nom_pd) / n_loads
+                            total_served_load += sum(Float64[pd for pd in act_pd if pd > 0]) / total_load
                         end
                     else
                         for lid in block_loads[block]
@@ -151,8 +169,10 @@ function get_timestep_load_served(dispatch_solution::Dict{String,<:Any}, network
                             nom_pd = load["pd_nom"]
                             act_pd = get(get(get(dispatch_solution["nw"]["$n"], "load", Dict()), lid, Dict()), "pd", fill(0.0, length(load["connections"])))
 
-                            feeder_served_load += sum(act_pd ./ nom_pd) / length(nom_pd) / (n_loads-n_microgrid_loads)
-                            total_served_load += sum(act_pd ./ nom_pd) / length(nom_pd) / n_loads
+                            feeder_served_customers += sum(act_pd ./ nom_pd) / length(nom_pd) / (n_loads-n_microgrid_loads)
+                            feeder_served_load += sum(Float64[pd for pd in act_pd if pd > 0]) / bonus_load
+                            total_served_customers += sum(act_pd ./ nom_pd) / length(nom_pd) / n_loads
+                            total_served_load += sum(Float64[pd for pd in act_pd if pd > 0]) / total_load
                         end
                     end
                 elseif block_has_mg[block]
@@ -170,23 +190,33 @@ function get_timestep_load_served(dispatch_solution::Dict{String,<:Any}, network
                         act_pd = get(get(get(dispatch_solution["nw"]["$n"], "load", Dict()), lid, Dict()), "pd", fill(0.0, length(load["connections"])))
 
                         if any(lid in mid2loads[mid] for mid in block_mg_ids[block])
-                            mg_served_load += sum(act_pd ./ nom_pd) / length(nom_pd) / n_microgrid_loads
+                            mg_served_customers += sum(act_pd ./ nom_pd) / length(nom_pd) / n_microgrid_loads
+                            mg_served_load += sum(Float64[pd for pd in act_pd if pd > 0]) / microgrid_load
                         else
-                            mg_bonus_load += sum(act_pd ./ nom_pd) / length(nom_pd) / n_bonus_loads
+                            mg_bonus_customers += sum(act_pd ./ nom_pd) / length(nom_pd) / n_bonus_loads
+                            mg_bonus_load += sum(Float64[pd for pd in act_pd if pd > 0]) / bonus_load
                         end
-                        total_served_load += sum(act_pd ./ nom_pd) / length(nom_pd) / n_loads
+                        total_served_customers += sum(act_pd ./ nom_pd) / length(nom_pd) / n_loads
+                        total_served_load += sum(Float64[pd for pd in act_pd if pd > 0]) / total_load
                     end
                 end
             end
+            push!(load_served["Feeder customers (%)"], feeder_served_customers*100.0)
             push!(load_served["Feeder load (%)"], feeder_served_load*100.0)
+
+            push!(load_served["Microgrid customers (%)"], mg_served_customers*100.0)
             push!(load_served["Microgrid load (%)"], mg_served_load*100.0)
+
+            push!(load_served["Bonus customers via microgrid (%)"], mg_bonus_customers*100.0)
             push!(load_served["Bonus load via microgrid (%)"], mg_bonus_load*100.0)
+
+            push!(load_served["Total customers (%)"], total_served_customers*100.0)
             push!(load_served["Total load (%)"], total_served_load*100.0)
         else
             # No Microgrid information present
             original_load = sum([sum(load["pd_nom"]) for (_,load) in mn_eng["nw"]["$n"]["load"]])
 
-            feeder_served_load = !isempty(get(dispatch_solution["nw"]["$n"], "voltage_source", Dict())) ? sum(Float64[sum(vs["pg"]) for (_,vs) in get(dispatch_solution["nw"]["$n"], "voltage_source", Dict())]) : 0.0
+            feeder_served_customers = !isempty(get(dispatch_solution["nw"]["$n"], "voltage_source", Dict())) ? sum(Float64[sum(vs["pg"]) for (_,vs) in get(dispatch_solution["nw"]["$n"], "voltage_source", Dict())]) : 0.0
             der_non_storage_served_load = !isempty(get(dispatch_solution["nw"]["$n"], "generator", Dict())) || !isempty(get(dispatch_solution["nw"]["$n"], "solar", Dict())) ? sum([sum(g["pg"]) for type in ["solar", "generator"] for (_,g) in get(dispatch_solution["nw"]["$n"], type, Dict())]) : 0.0
             der_storage_served_load = !isempty(get(dispatch_solution["nw"]["$n"], "storage", Dict())) ? sum([-sum(s["ps"]) for (_,s) in get(dispatch_solution["nw"]["$n"], "storage", Dict())]) : 0.0
 
@@ -194,10 +224,10 @@ function get_timestep_load_served(dispatch_solution::Dict{String,<:Any}, network
             microgrid_served_load = (der_non_storage_served_load + der_storage_served_load) / original_load * 100
             _bonus_load = (microgrid_served_load - 100)
 
-            push!(load_served["Feeder load (%)"], feeder_served_load / original_load * 100)  # CHECK
+            push!(load_served["Feeder load (%)"], feeder_served_customers / original_load * 100)  # CHECK
             push!(load_served["Microgrid load (%)"], microgrid_served_load)  # CHECK
             push!(load_served["Bonus load via microgrid (%)"], _bonus_load > 0 ? _bonus_load : 0.0)  # CHECK
-            push!(load_served["Total load (%)"], (feeder_served_load / original_load + microgrid_served_load + (_bonus_load > 0 ? _bonus_load : 0.0))*100.0)
+            push!(load_served["Total load (%)"], (feeder_served_customers / original_load + microgrid_served_load + (_bonus_load > 0 ? _bonus_load : 0.0))*100.0)
         end
     end
 

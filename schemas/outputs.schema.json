@@ -271,9 +271,25 @@
             "format": "float"
           }
         },
+        "Feeder customers (%)": {
+          "type": "array",
+          "description": "The percent of customers served by the feeder (grid)",
+          "items": {
+            "type": "number",
+            "format": "float"
+          }
+        },
         "Total load (%)": {
           "type": "array",
           "description": "The percent of total load served by any resource",
+          "items": {
+            "type": "number",
+            "format": "float"
+          }
+        },
+        "Total customers (%)": {
+          "type": "array",
+          "description": "The percent of total customers served by any resource",
           "items": {
             "type": "number",
             "format": "float"
@@ -287,9 +303,25 @@
             "format": "float"
           }
         },
+        "Microgrid customers (%)": {
+          "type": "array",
+          "description": "The percent of customers served by the microgrids",
+          "items": {
+            "type": "number",
+            "format": "float"
+          }
+        },
         "Bonus load via microgrid (%)": {
           "type": "array",
           "description": "The percent of additional load that microgrids are supporting outside of their predefined microgrid zones",
+          "items": {
+            "type": "number",
+            "format": "float"
+          }
+        },
+        "Bonus customers via microgrid (%)": {
+          "type": "array",
+          "description": "The percent of additional customers that microgrids are supporting outside of their predefined microgrid zones",
           "items": {
             "type": "number",
             "format": "float"

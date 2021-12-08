@@ -2,6 +2,7 @@
 
 ## staged
 
+- Added `Microgrid customers (%)`, `Bonus customers via microgrid (%)`, `Feeder customers (%)`, and `Total customers (%)` to `Load served` output schema
 - Fixed bug in `get_timestep_voltage_statistics` where per-unit conversion was failing for voltages
 
 ## v2.0.0
