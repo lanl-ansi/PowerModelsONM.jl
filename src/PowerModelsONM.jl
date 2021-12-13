@@ -97,6 +97,7 @@ module PowerModelsONM
     include("prob/stability.jl")
     include("prob/switch.jl")
 
+    include("stats/analysis.jl")
     include("stats/actions.jl")
     include("stats/dispatch.jl")
     include("stats/fault.jl")
