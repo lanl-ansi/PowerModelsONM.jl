@@ -2,6 +2,7 @@
 
 ## staged
 
+- Updated to use Graphs instead of LightGraphs (LightGraphs was archived)
 - Fixed bug in Distributed usage, where running on multiple workers but not intending to run distributed algorithm
 - Added Distributed computing options for fault studies and stability analysis to significantly speed up these processes
 - Updated minimum Julia version to 1.6 (LTS)

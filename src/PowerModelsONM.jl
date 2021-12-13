@@ -46,7 +46,7 @@ module PowerModelsONM
     import Hwloc
 
     # Network Graphs
-    import LightGraphs
+    import Graphs
 
     # Import Tools
     import Requires: @require

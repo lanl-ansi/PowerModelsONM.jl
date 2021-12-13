@@ -41,16 +41,16 @@ function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any}
         end
     end
 
-    ref[:block_graph] = LightGraphs.SimpleGraph(length(ref[:blocks]))
-    ref[:block_graph_edge_map] = Dict{LightGraphs.Edge,Int}()
+    ref[:block_graph] = Graphs.SimpleGraph(length(ref[:blocks]))
+    ref[:block_graph_edge_map] = Dict{Graphs.Edge,Int}()
     ref[:block_switches] = Dict{Int,Set{Int}}(b => Set{Int}() for (b,_) in ref[:blocks])
 
     for (s,switch) in ref[:switch]
         f_block = ref[:bus_block_map][switch["f_bus"]]
         t_block = ref[:bus_block_map][switch["t_bus"]]
-        LightGraphs.add_edge!(ref[:block_graph], f_block, t_block)
-        ref[:block_graph_edge_map][LightGraphs.Edge(f_block, t_block)] = s
-        ref[:block_graph_edge_map][LightGraphs.Edge(t_block, f_block)] = s
+        Graphs.add_edge!(ref[:block_graph], f_block, t_block)
+        ref[:block_graph_edge_map][Graphs.Edge(f_block, t_block)] = s
+        ref[:block_graph_edge_map][Graphs.Edge(t_block, f_block)] = s
 
         if switch["dispatchable"] == 1 && switch["status"] == 1
             push!(ref[:block_switches][f_block], s)
@@ -63,14 +63,14 @@ function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any}
         for (id,obj) in ref[Symbol(type)]
             if obj[PMD.pmd_math_component_status[type]] != PMD.pmd_math_component_status_inactive[type]
                 start_block = ref[:bus_block_map][obj["$(type)_bus"]]
-                paths = LightGraphs.enumerate_paths(LightGraphs.dijkstra_shortest_paths(ref[:block_graph], start_block))
+                paths = Graphs.enumerate_paths(Graphs.dijkstra_shortest_paths(ref[:block_graph], start_block))
 
                 for path in paths
                     cumulative_weight = 0.0
                     for (i,b) in enumerate(reverse(path[2:end]))
                         cumulative_weight += ref[:block_weights][b]
                         b_prev = path[end-i]
-                        ref[:switch_scores][ref[:block_graph_edge_map][LightGraphs.Edge(b_prev,b)]] += cumulative_weight
+                        ref[:switch_scores][ref[:block_graph_edge_map][Graphs.Edge(b_prev,b)]] += cumulative_weight
                     end
                 end
             end
