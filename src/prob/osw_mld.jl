@@ -106,7 +106,7 @@ function build_mn_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
         n_1 = n_2
     end
 
-    objective_mc_min_load_setpoint_delta_switch(pm)
+    objective_mc_min_load_setpoint_delta_switch_global(pm)
 end
 
 
@@ -197,5 +197,5 @@ function build_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
         constraint_mc_transformer_power_on_off(pm, i; fix_taps=false)
     end
 
-    objective_mc_min_load_setpoint_delta_switch(pm)
+    objective_mc_min_load_setpoint_delta_switch_iterative(pm)
 end

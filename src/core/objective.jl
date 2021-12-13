@@ -1,21 +1,18 @@
 @doc raw"""
-    objective_mc_min_load_setpoint_delta_switch(pm::AbstractUnbalancedPowerModel)
+    objective_mc_min_load_setpoint_delta_switch_iterative(pm::AbstractUnbalancedPowerModel)
 
-minimum load delta objective (continuous load shed) with storage
+    minimum load delta objective with switch scores for iterative algorithm
 
 ```math
 \begin{align}
 \mbox{minimize: } & \nonumber \\
 & \sum_{\substack{i\in N,c\in C}}{10 \left (1-z^v_i \right )} + \nonumber \\
 & \sum_{\substack{i\in L,c\in C}}{10 \omega_{i,c}\left |\Re{\left (S^d_i\right )}\right |\left ( 1-z^d_i \right ) } + \nonumber \\
-& \sum_{\substack{i\in H,c\in C}}{\left | \Re{\left (S^s_i \right )}\right | \left (1-z^s_i \right ) } + \nonumber \\
-& \sum_{\substack{i\in G,c\in C}}{\Delta^g_i } + \nonumber \\
-& \sum_{\substack{i\in B,c\in C}}{\Delta^b_i}  + \nonumber \\
 & \sum_{\substack{i\in S}}{\Delta^{sw}_i}
 \end{align}
 ```
 """
-function objective_mc_min_load_setpoint_delta_switch(pm::AbstractSwitchModels)
+function objective_mc_min_load_setpoint_delta_switch_iterative(pm::AbstractSwitchModels)
     nw_id_list = sort(collect(nw_ids(pm)))
 
     for (i, n) in enumerate(nw_id_list)
@@ -45,6 +42,54 @@ function objective_mc_min_load_setpoint_delta_switch(pm::AbstractSwitchModels)
         sum(
             sum( ref(pm, n, :block_weights, i) * (1-var(pm, n, :z_block, i)) for (i,block) in nw_ref[:blocks]) +
             sum( 1e-3 * ref(pm, n, :switch_scores, l)*(1-var(pm, n, :switch_state, l)) for l in ids(pm, n, :switch_dispatchable) ) +
+            sum( 1e-2 * sum(var(pm, n, :delta_sw_state, l)) for l in ids(pm, n, :switch_dispatchable))
+        for (n, nw_ref) in nws(pm))
+    )
+end
+
+
+@doc raw"""
+    objective_mc_min_load_setpoint_delta_switch_global(pm::AbstractUnbalancedPowerModel)
+
+minimum load delta objective without switch scores for global algorithm
+
+```math
+\begin{align}
+\mbox{minimize: } & \nonumber \\
+& \sum_{\substack{i\in N,c\in C}}{10 \left (1-z^v_i \right )} + \nonumber \\
+& \sum_{\substack{i\in S}}{\Delta^{sw}_i}
+\end{align}
+```
+"""
+function objective_mc_min_load_setpoint_delta_switch_global(pm::AbstractSwitchModels)
+    nw_id_list = sort(collect(nw_ids(pm)))
+
+    for (i, n) in enumerate(nw_id_list)
+        nw_ref = ref(pm, n)
+
+        var(pm, n)[:delta_sw_state] = JuMP.@variable(
+            pm.model,
+            [i in ids(pm, n, :switch_dispatchable)],
+            base_name="$(n)_$(i)_delta_sw_state",
+            start = 0
+        )
+
+        for (s,switch) in nw_ref[:switch_dispatchable]
+            z_switch = var(pm, n, :switch_state, s)
+            if i == 1
+                JuMP.@constraint(pm.model, var(pm, n, :delta_sw_state, s) >=  (JuMP.start_value(z_switch) - z_switch))
+                JuMP.@constraint(pm.model, var(pm, n, :delta_sw_state, s) >= -(JuMP.start_value(z_switch) - z_switch))
+            else  # multinetwork
+                z_switch_prev = var(pm, nw_id_list[i-1], :switch_state, s)
+                JuMP.@constraint(pm.model, var(pm, n, :delta_sw_state, s) >=  (z_switch_prev - z_switch))
+                JuMP.@constraint(pm.model, var(pm, n, :delta_sw_state, s) >= -(z_switch_prev - z_switch))
+            end
+        end
+    end
+
+    JuMP.@objective(pm.model, Min,
+        sum(
+            sum( ref(pm, n, :block_weights, i) * (1-var(pm, n, :z_block, i)) for (i,block) in nw_ref[:blocks]) +
             sum( 1e-2 * sum(var(pm, n, :delta_sw_state, l)) for l in ids(pm, n, :switch_dispatchable))
         for (n, nw_ref) in nws(pm))
     )
