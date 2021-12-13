@@ -14,7 +14,7 @@ function run_fault_studies!(args::Dict{String,<:Any}; validate::Bool=true, solve
         args["faults"] = PowerModelsProtection.build_mc_fault_study(args["base_network"])
     end
 
-    args["fault_studies_results"] = run_fault_studies(args["network"], args["solvers"][solver]; faults=args["faults"], switching_solutions=get(args, "optimal_switching_results", missing), dispatch_solution=get(args, "optimal_dispatch_result", missing))
+    args["fault_studies_results"] = run_fault_studies(args["network"], args["solvers"][solver]; faults=args["faults"], switching_solutions=get(args, "optimal_switching_results", missing), dispatch_solution=get(args, "optimal_dispatch_result", missing), distributed=get(args, "nprcos", 1) > 1)
 end
 
 
@@ -31,7 +31,7 @@ Uses [`run_fault_study`](@ref run_fault_study) to solve the actual fault study.
 `solver` will determine which instantiated solver is used, `"nlp_solver"` or `"juniper_solver"`
 
 """
-function run_fault_studies(network::Dict{String,<:Any}, solver; faults::Dict{String,<:Any}=Dict{String,Any}(), switching_solutions::Union{Missing,Dict{String,<:Any}}=missing, dispatch_solution::Union{Missing,Dict{String,<:Any}}=missing)
+function run_fault_studies(network::Dict{String,<:Any}, solver; faults::Dict{String,<:Any}=Dict{String,Any}(), switching_solutions::Union{Missing,Dict{String,<:Any}}=missing, dispatch_solution::Union{Missing,Dict{String,<:Any}}=missing, distributed::Bool=false)
     mn_data = _prepare_fault_study_multinetwork_data(network, switching_solutions, dispatch_solution)
 
     switch_states = Dict{String,Dict{String,PMD.SwitchState}}(n => Dict{String,PMD.SwitchState}(s => sw["state"] for (s,sw) in get(nw, "switch", Dict())) for (n,nw) in get(mn_data, "nw", Dict()))
@@ -63,13 +63,26 @@ function run_fault_studies(network::Dict{String,<:Any}, solver; faults::Dict{Str
 
     fault_studies_results = Dict{String,Any}()
     ns = sort([parse(Int, i) for i in keys(get(mn_data, "nw", Dict()))])
-    _results = @showprogress pmap(ns) do n
-        _faults = filter(x->!(x.first in shedded_buses["$(n)"]), faults)
-        if (n > 1 && switch_states["$(n)"] == switch_states["$(n-1)"]) || isempty(_faults)
-            # skip identical configurations or all faults missing
-            missing
-        else
-            run_fault_study(mn_data["nw"]["$(n)"], _faults, solver)
+    if !distributed
+        _results = []
+        for n in ns
+            _faults = filter(x->!(x.first in shedded_buses["$(n)"]), faults)
+            if (n > 1 && switch_states["$(n)"] == switch_states["$(n-1)"]) || isempty(_faults)
+                # skip identical configurations or all faults missing
+                push!(_results, missing)
+            else
+                push!(_results, run_fault_study(mn_data["nw"]["$(n)"], _faults, solver))
+            end
+        end
+    else
+        _results = @showprogress pmap(ns; distributed=distributed) do n
+            _faults = filter(x->!(x.first in shedded_buses["$(n)"]), faults)
+            if (n > 1 && switch_states["$(n)"] == switch_states["$(n-1)"]) || isempty(_faults)
+                # skip identical configurations or all faults missing
+                missing
+            else
+                run_fault_study(mn_data["nw"]["$(n)"], _faults, solver)
+            end
         end
     end
 

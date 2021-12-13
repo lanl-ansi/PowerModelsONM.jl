@@ -26,7 +26,7 @@ function run_stability_analysis!(args::Dict{String,<:Any}; validate::Bool=true, 
         )
     end
 
-    args["stability_results"] = run_stability_analysis(args["network"], args["inverters"], args["solvers"][solver]; formulation=formulation, switching_solutions=get(args, "optimal_switching_results", missing))
+    args["stability_results"] = run_stability_analysis(args["network"], args["inverters"], args["solvers"][solver]; formulation=formulation, switching_solutions=get(args, "optimal_switching_results", missing), distributed=get(args, "nprcos", 1) > 1)
 end
 
 
@@ -43,12 +43,19 @@ polar coordinates.
 
 `solver` for stability analysis (NLP OPF)
 """
-function run_stability_analysis(network, inverters::Dict{String,<:Any}, solver; formulation::Type=PMD.ACRUPowerModel, switching_solutions::Union{Missing,Dict{String,<:Any}}=missing)::Dict{String,Bool}
+function run_stability_analysis(network, inverters::Dict{String,<:Any}, solver; formulation::Type=PMD.ACRUPowerModel, switching_solutions::Union{Missing,Dict{String,<:Any}}=missing, distributed::Bool=false)::Dict{String,Bool}
     mn_data = _prepare_stability_multinetwork_data(network, inverters, switching_solutions)
 
     ns = sort([parse(Int, i) for i in keys(mn_data["nw"])])
-    is_stable = @showprogress pmap(ns) do n
-        run_stability_analysis(mn_data["nw"]["$n"], inverters["omega0"], inverters["rN"], solver; formulation=formulation)
+    if !distributed
+        is_stable = []
+        for n in ns
+            push!(is_stable, run_stability_analysis(mn_data["nw"]["$n"], inverters["omega0"], inverters["rN"], solver; formulation=formulation))
+        end
+    else
+        is_stable = @showprogress pmap(ns; distributed=distributed) do n
+            run_stability_analysis(mn_data["nw"]["$n"], inverters["omega0"], inverters["rN"], solver; formulation=formulation)
+        end
     end
 
     return Dict{String,Bool}([(string(i),s) for (i,s) in enumerate(is_stable)])
