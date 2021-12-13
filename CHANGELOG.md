@@ -2,6 +2,7 @@
 
 ## staged
 
+- Updated "global" algorithm to be the default
 - Add `microgrid_network_timeline` for analyzing when microgrids network
 - Separate global and iterative switching algorithm objective functions
 - Updated to use Graphs instead of LightGraphs (LightGraphs was archived)

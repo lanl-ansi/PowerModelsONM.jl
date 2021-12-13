@@ -87,7 +87,7 @@
         # flags are always stored, even if not set
         "use-gurobi" => false,
         "opt-switch-formulation" => "lindistflow",
-        "opt-switch-algorithm" => "iterative",
+        "opt-switch-algorithm" => "global",
         "opt-switch-solver" => "misocp_solver",
         "opt-disp-algorithm" => "opf",
     )

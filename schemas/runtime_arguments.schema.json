@@ -89,7 +89,7 @@
         "iterative",
         "global"
       ],
-      "default": "iterative"
+      "default": "global"
     },
     "opt-switch-solver": {
       "type": "string",

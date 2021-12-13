@@ -7,7 +7,7 @@ using [`optimize_switches`]
 Uses LPUBFDiagPowerModel (LinDist3Flow), and therefore requires `args["solvers"]["misocp_solver"]` to be specified
 """
 function optimize_switches!(args::Dict{String,<:Any})::Dict{String,Any}
-    args["optimal_switching_results"] = optimize_switches(args["network"], args["solvers"][get(args, "opt-switch-solver", "misocp_solver")]; formulation=_get_switch_formulation(get(args, "opt-switch-formulation", "lindistflow")), algorithm=get(args, "opt-switch-algorithm", "iterative"))
+    args["optimal_switching_results"] = optimize_switches(args["network"], args["solvers"][get(args, "opt-switch-solver", "misocp_solver")]; formulation=_get_switch_formulation(get(args, "opt-switch-formulation", "lindistflow")), algorithm=get(args, "opt-switch-algorithm", "global"))
 end
 
 
@@ -18,7 +18,7 @@ Iterates over all subnetworks in a multinetwork data structure `network`, in ord
 the optimal switching / MLD problem sequentially, updating the next timestep with the new switch
 configurations and storage energies from the solved timestep.
 """
-function optimize_switches(network::Dict{String,<:Any}, solver; formulation::Type=LPUBFSwitchPowerModel, algorithm::String="iterative")::Dict{String,Any}
+function optimize_switches(network::Dict{String,<:Any}, solver; formulation::Type=LPUBFSwitchPowerModel, algorithm::String="global")::Dict{String,Any}
     results = Dict{String,Any}()
 
     @info "running $(algorithm) optimal switching algorithm with $(formulation)"

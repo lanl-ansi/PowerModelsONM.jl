@@ -100,8 +100,8 @@ function parse_commandline(; validate::Bool=true)::Dict{String,Any}
             default = "nlp_solver"
             arg_type = String
         "--opt-switch-algorithm"
-            help = "option to switch between the 'global' multinetwork problem formulation and the 'iterative' version (default)"
-            default = "iterative"
+            help = "option to switch between the 'global' (default) multinetwork problem formulation and the 'iterative' version"
+            default = "global"
             arg_type = String
         "--opt-switch-solver"
             help = "option to choose which solver from the build_solver_instances function to use for the optimal switching algorithm"
