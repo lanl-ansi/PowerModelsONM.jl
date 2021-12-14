@@ -42,7 +42,9 @@ function objective_mc_min_load_setpoint_delta_switch_iterative(pm::AbstractSwitc
         sum(
             sum( ref(pm, n, :block_weights, i) * (1-var(pm, n, :z_block, i)) for (i,block) in nw_ref[:blocks]) +
             sum( 1e-3 * ref(pm, n, :switch_scores, l)*(1-var(pm, n, :switch_state, l)) for l in ids(pm, n, :switch_dispatchable) ) +
-            sum( 1e-2 * sum(var(pm, n, :delta_sw_state, l)) for l in ids(pm, n, :switch_dispatchable))
+            sum( 1e-2 * sum(var(pm, n, :delta_sw_state, l)) for l in ids(pm, n, :switch_dispatchable)) +
+            sum( strg["energy_rating"] - var(pm, n, :se, i) for (i,strg) in nw_ref[:storage]) +
+            sum( sum(get(gen,  "cost", [  1.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [  1.0, 0.0])[1] for c in gen["connections"]) for (i,gen) in nw_ref[:gen])
         for (n, nw_ref) in nws(pm))
     )
 end
@@ -90,9 +92,8 @@ function objective_mc_min_load_setpoint_delta_switch_global(pm::AbstractSwitchMo
     JuMP.@objective(pm.model, Min,
         sum(
             sum( ref(pm, n, :block_weights, i) * (1-var(pm, n, :z_block, i)) for (i,block) in nw_ref[:blocks]) +
-            sum( 1e-2 * sum(var(pm, n, :delta_sw_state, l)) for l in ids(pm, n, :switch_dispatchable)) +
-            sum( sum(get(strg, "cost", [-1.0, 0.0])[2] * var(pm, n, :ps, i)[c] + get(strg, "cost", [-1.0, 0.0])[1] for c in strg["connections"]) for (i,strg) in nw_ref[:storage]) +
-            sum( sum(get(gen,  "cost", [ 0.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [ 0.0, 0.0])[1] for c in gen["connections"]) for (i,gen) in nw_ref[:gen])
+            sum( strg["energy_rating"] - var(pm, n, :se, i) for (i,strg) in nw_ref[:storage]) +
+            sum( sum(get(gen,  "cost", [1.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [1.0, 0.0])[1] for c in  gen["connections"]) for (i,gen) in nw_ref[:gen])
         for (n, nw_ref) in nws(pm))
     )
 end
