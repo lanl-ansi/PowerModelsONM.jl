@@ -2,6 +2,7 @@
 
 ## staged
 
+- Updated "global" objective to include generator cost
 - Updated "global" algorithm to be the default
 - Add `microgrid_network_timeline` for analyzing when microgrids network
 - Separate global and iterative switching algorithm objective functions
