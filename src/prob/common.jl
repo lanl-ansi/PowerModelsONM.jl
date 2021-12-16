@@ -88,7 +88,7 @@ function build_solver_instances(; nlp_solver=missing, nlp_solver_tol::Real=1e-4,
             mip_solver = optimizer_with_attributes(
                 Cbc.Optimizer,
                 "logLevel" => verbose || debug ? 1 : 0,
-                "presolve"=>"off",
+                # "presolve"=>"off",
             )
         end
     end
