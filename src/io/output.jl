@@ -46,6 +46,11 @@ function initialize_output(args::Dict{String,<:Any})::Dict{String,Any}
             "julia_max_procs" => Distributed.nprocs(),
             "julia_version" => string(Base.VERSION),
         ),
+        "Protection settings" => Dict{String,Any}(
+            "network_model" => Dict{String,Vector{Dict{String,Any}}}(),
+            "bus_types" => Vector{Dict{String,String}}(),
+            "settings" => Vector{Vector{Dict{String,Any}}}(), # TODO
+        ),
     )
 end
 
@@ -119,6 +124,9 @@ function analyze_results!(args::Dict{String,<:Any})::Dict{String,Any}
 
     get_timestep_fault_currents!(args)
     get_timestep_fault_study_metadata!(args)
+
+    get_protection_network_model!(args)
+    get_timestep_bus_types!(args)
 
     return args["output_data"]
 end

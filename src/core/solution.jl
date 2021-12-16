@@ -86,3 +86,27 @@ function _IM.build_result(aim::AbstractSwitchModels, solve_time; solution_proces
 
     return result
 end
+
+
+"""
+"""
+function solution_reference_buses!(pm::AbstractUnbalancedPowerModel, sol::Dict{String,Any})
+    PMD.apply_pmd!(_solution_reference_buses!, pm.data, sol; apply_to_subnetworks=true)
+end
+
+
+"""
+"""
+function _solution_reference_buses!(data::Dict{String,<:Any}, sol::Dict{String,<:Any})
+    if !haskey(sol, "bus") && !isempty(get(data, "bus", Dict()))
+        sol["bus"] = Dict{String,Any}()
+    end
+    for (i,bus) in get(data, "bus", Dict())
+        if bus[PMD.pmd_math_component_status["bus"]] != PMD.pmd_math_component_status_inactive["bus"]
+            if !haskey(sol["bus"], i)
+                sol["bus"][i] = Dict{String,Any}()
+            end
+            sol["bus"][i]["bus_type"] = bus["bus_type"]
+        end
+    end
+end
