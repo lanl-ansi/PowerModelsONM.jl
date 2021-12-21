@@ -73,6 +73,7 @@ function build_mn_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
             PMD.constraint_mc_ampacity_to(pm, i; nw=n)
         end
 
+        constraint_radial_topology(pm; nw=n, relax=false)
         constraint_block_isolation(pm; nw=n, relax=true)
         for i in ids(pm, n, :switch)
             PMD.constraint_mc_switch_state_on_off(pm, i; nw=n, relax=true)
@@ -133,7 +134,8 @@ function build_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
     PMD.variable_mc_branch_current(pm)
     PMD.variable_mc_branch_power(pm)
     PMD.variable_mc_switch_power(pm)
-    PMD.variable_mc_switch_state(pm; relax=false)
+    variable_mc_switch_state(pm; relax=false)
+    variable_mc_switch_fixed(pm)
     PMD.variable_mc_transformer_power(pm)
 
     PMD.variable_mc_oltc_transformer_tap(pm)
@@ -184,6 +186,7 @@ function build_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
         PMD.constraint_mc_ampacity_to(pm, i)
     end
 
+    constraint_radial_topology(pm; relax=false)
     constraint_switch_state_max_actions(pm)
     constraint_block_isolation(pm; relax=true)
     for i in ids(pm, :switch)

@@ -59,3 +59,13 @@ function constraint_storage_complementarity_mi_on_off(pm::AbstractSwitchModels, 
 
     constraint_storage_complementarity_mi_on_off(pm, nw, i, charge_ub, discharge_ub)
 end
+
+
+"""
+    constraint_radial_topology(pm::AbstractSwitchModels; nw::Int=nw_id_default, relax::Bool=false)
+
+Constrains the network to have radial topology
+"""
+function constraint_radial_topology(pm::AbstractSwitchModels; nw::Int=nw_id_default, relax::Bool=false)
+    constraint_radial_topology(pm, nw; relax=relax)
+end

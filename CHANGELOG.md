@@ -2,6 +2,7 @@
 
 ## staged
 
+- Added constraint for radial topology
 - Updated "global" objective to include generator cost
 - Updated "global" algorithm to be the default
 - Add `microgrid_network_timeline` for analyzing when microgrids network

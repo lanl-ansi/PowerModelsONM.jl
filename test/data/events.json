@@ -1,5 +1,16 @@
 [
   {
+    "affected_asset": "line.671692",
+    "event_type": "switch",
+    "timestep": 1,
+    "event_data": {
+      "dispatchable": false,
+      "state": "open",
+      "type": "breaker",
+      "status": 1
+    }
+  },
+  {
     "affected_asset": "line.671700",
     "event_type": "switch",
     "timestep": 1,
@@ -41,6 +52,18 @@
     }
   },
   {
+    "affected_asset": "line.801675",
+    "event_type": "switch",
+    "timestep": 1,
+    "event_data": {
+      "dispatchable": false,
+      "state": "closed",
+      "type": "breaker",
+      "status": 1
+    }
+  },
+
+  {
     "affected_asset": "line.671700",
     "event_type": "switch",
     "timestep": 2,
@@ -58,6 +81,14 @@
   },
   {
     "affected_asset": "line.703800",
+    "event_type": "switch",
+    "timestep": 2,
+    "event_data": {
+      "dispatchable": true
+    }
+  },
+  {
+    "affected_asset": "line.671692",
     "event_type": "switch",
     "timestep": 2,
     "event_data": {

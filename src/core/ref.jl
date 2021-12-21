@@ -7,16 +7,20 @@ function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any}
     ref[:block_shunts] = Dict{Int,Set{Int}}(i => Set{Int}() for (i,_) in ref[:blocks])
     ref[:block_gens] = Dict{Int,Set{Int}}(i => Set{Int}() for (i,_) in ref[:blocks])
     ref[:block_storages] = Dict{Int,Set{Int}}(i => Set{Int}() for (i,_) in ref[:blocks])
+    ref[:microgrid_blocks] = Dict{Int,String}()
+    ref[:substation_blocks] = Vector{Int}()
 
     for (b,bus) in ref[:bus]
         if !isempty(get(bus, "microgrid_id", ""))
             ref[:block_weights][ref[:bus_block_map][b]] = 10.0
+            ref[:microgrid_blocks][ref[:bus_block_map][b]] = bus["microgrid_id"]
         end
     end
 
     for (l,load) in ref[:load]
         push!(ref[:block_loads][ref[:bus_block_map][load["load_bus"]]], l)
         ref[:block_weights][ref[:bus_block_map][load["load_bus"]]] += 1e-2 * get(load, "priority", 1)
+        # ref[:block_weights][ref[:bus_block_map][load["load_bus"]]] += (sum(abs.(load["pd"]))+sum(abs.(load["qd"]))) * get(load, "priority", 1) * (!isempty(get(data["bus"]["$(load["load_bus"])"], "microgrid_id", "")) ? 1 : 0.0)
     end
     ref[:load_block_map] = Dict{Int,Int}(load => b for (b,block_loads) in ref[:block_loads] for load in block_loads)
 
@@ -27,6 +31,7 @@ function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any}
 
     for (g,gen) in ref[:gen]
         push!(ref[:block_gens][ref[:bus_block_map][gen["gen_bus"]]], g)
+        startswith(gen["source_id"], "voltage_source") && push!(ref[:substation_blocks], ref[:bus_block_map][gen["gen_bus"]])
     end
     ref[:gen_block_map] = Dict{Int,Int}(gen => b for (b,block_gens) in ref[:block_gens] for gen in block_gens)
 
@@ -57,6 +62,14 @@ function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any}
             push!(ref[:block_switches][t_block], s)
         end
     end
+
+    #
+    switches = get(data, "switch", Dict{String,Any}())
+    ref[:block_pairs] = filter(((x,y),)->x!=y, Set{Tuple{Int,Int}}(
+        Set([(ref[:bus_block_map][sw["f_bus"]],ref[:bus_block_map][sw["t_bus"]]) for (_,sw) in switches])
+    ))
+
+    ref[:neighbors] = Dict{Int,Vector{Int}}(i => Graphs.neighbors(ref[:block_graph], i) for i in Graphs.vertices(ref[:block_graph]))
 
     ref[:switch_scores] = Dict{Int,Real}(s => 0.0 for (s,_) in ref[:switch])
     for type in ["storage", "gen"]

@@ -16,11 +16,13 @@
 
         actions = get_timestep_device_actions!(args)
         @test all(sl in ["700", "701"] for sl in actions[1]["Shedded loads"])
-        @test actions[1]["Switch configurations"] == Dict{String,Any}("671700" => "open", "701702" => "open", "671692" => "closed", "703800"=>"open", "800801"=>"open")
-        @test actions[2]["Switch configurations"] == Dict{String,Any}("671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "open")
-        @test actions[3]["Switch configurations"] == Dict{String,Any}("671692" => "closed", "671700" => "closed", "703800" => "closed", "800801" => "open", "701702" => "open")
-        @test actions[4]["Switch configurations"] == Dict{String,Any}("671692" => "closed", "671700" => "closed", "703800" => "closed", "800801" => "closed", "701702" => "open")
-        @test actions[5]["Switch configurations"] == Dict{String,Any}("671692" => "closed", "671700" => "closed", "703800" => "closed", "800801" => "closed", "701702" => "closed")
+        @test isempty(actions[2]["Shedded loads"])
+        @test actions[1]["Switch configurations"] == Dict{String,Any}("801675" => "closed", "671692" => "open", "671700" => "open", "703800" => "open", "800801" => "open", "701702" => "open")
+        @test actions[2]["Switch configurations"] == Dict{String,Any}("801675" => "closed", "671692" => "open", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "open")
+        @test actions[3]["Switch configurations"] == Dict{String,Any}("801675" => "closed", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "open")
+        @test actions[4]["Switch configurations"] == Dict{String,Any}("801675" => "closed", "671692" => "closed", "671700" => "closed", "703800" => "closed", "800801" => "open", "701702" => "open")
+        @test actions[5]["Switch configurations"] == Dict{String,Any}("801675" => "closed", "671692" => "closed", "671700" => "closed", "703800" => "closed", "800801" => "open", "701702" => "closed")
+        @test actions[6]["Switch configurations"] == Dict{String,Any}("801675" => "closed", "671692" => "closed", "671700" => "closed", "703800" => "closed", "800801" => "open", "701702" => "closed")
     end
 
     @testset "test global optimal switching" begin
@@ -36,10 +38,12 @@
 
         actions = get_timestep_device_actions!(args)
         @test all(sl in ["700", "701"] for sl in actions[1]["Shedded loads"])
-        @test actions[1]["Switch configurations"] == Dict{String,Any}("671700" => "open", "701702" => "open", "671692" => "closed", "703800"=>"open", "800801"=>"open")
-        @test actions[2]["Switch configurations"] == Dict{String,Any}("671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "open")
-        @test actions[3]["Switch configurations"] == Dict{String,Any}("671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "closed", "701702" => "open")
-        @test actions[4]["Switch configurations"] == Dict{String,Any}("671692" => "closed", "671700" => "closed", "703800" => "closed", "800801" => "closed", "701702" => "open")
-        @test actions[5]["Switch configurations"] == Dict{String,Any}("671692" => "closed", "671700" => "closed", "703800" => "closed", "800801" => "closed", "701702" => "closed")
+        @test all(sl in ["700", "701"] for sl in actions[2]["Shedded loads"])
+        @test actions[1]["Switch configurations"] == Dict{String,Any}("801675" => "closed", "671692" => "open", "671700" => "open", "703800" => "open", "800801" => "open", "701702" => "open")
+        @test actions[2]["Switch configurations"] == Dict{String,Any}("801675" => "closed", "671692" => "closed", "671700" => "open", "703800" => "open", "800801" => "open", "701702" => "open")
+        @test actions[3]["Switch configurations"] == Dict{String,Any}("801675" => "closed", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "open")
+        @test actions[4]["Switch configurations"] == Dict{String,Any}("801675" => "closed", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "open")
+        @test actions[5]["Switch configurations"] == Dict{String,Any}("801675" => "closed", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "open")
+        @test actions[6]["Switch configurations"] == Dict{String,Any}("801675" => "closed", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "open")
     end
 end

@@ -15,7 +15,7 @@
 
     @testset "test events parsing" begin
         raw_events = parse_events("../test/data/events.json")
-        @test length(raw_events) == 8
+        @test length(raw_events) == 11
 
         events = parse_events(raw_events, network)
         @test isa(events, Dict) && length(events) == 2
