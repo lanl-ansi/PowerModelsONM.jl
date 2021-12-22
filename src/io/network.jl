@@ -29,6 +29,11 @@ function parse_network(network_file::String; fix_small_numbers::Bool=false)::Tup
         PMD.adjust_small_line_lengths!(eng; min_length_val=10.0)
     end
 
+    for (id,obj) in get(eng, "solar", Dict())
+        eng["solar"][id]["cost_pg_model"] = 2
+        eng["solar"][id]["cost_pg_parameters"] = [0.0, 0.0]
+    end
+
     mn_eng = PMD.make_multinetwork(eng)
 
     return eng, mn_eng

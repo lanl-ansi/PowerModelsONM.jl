@@ -6,7 +6,7 @@
         @test !PMD.ismultinetwork(base_network)
         @test PMD.iseng(network) && PMD.iseng(base_network)
 
-        @test length(network["nw"]) == 5
+        @test length(network["nw"]) == 7
 
         @test network["nw"]["1"]["switch"]["671700"]["state"] == PMD.CLOSED
         @test network["nw"]["1"]["switch"]["671700"]["dispatchable"] == PMD.YES
@@ -15,7 +15,7 @@
 
     @testset "test events parsing" begin
         raw_events = parse_events("../test/data/events.json")
-        @test length(raw_events) == 11
+        @test length(raw_events) == 12
 
         events = parse_events(raw_events, network)
         @test isa(events, Dict) && length(events) == 2
@@ -39,7 +39,7 @@
         _network = apply_settings(network, settings)
         @test all(all(l["clpu_factor"] == 2.0 for l in values(nw["load"])) for nw in values(_network["nw"]))
         @test all(nw["max_switch_actions"] == 1 for nw in values(_network["nw"]))
-        @test all(nw["time_elapsed"] == 0.5 for nw in values(_network["nw"]))
+        @test all(nw["time_elapsed"] == 1.0 for nw in values(_network["nw"]))
     end
 
     @testset "test runtime args to settings conversion" begin

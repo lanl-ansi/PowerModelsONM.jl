@@ -58,7 +58,7 @@
       "vad_lb": [-5.0, -5.0, -5.0]
     }
   },
-  "time_elapsed": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
+  "time_elapsed": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
   "bus": {
     "671": {
       "vm_ub": [2.641954831811728, 2.641954831811728, 2.641954831811728],
@@ -143,7 +143,7 @@
       "vm_lb": [2.161599407845959, 2.161599407845959]
     }
   },
-  "max_switch_actions": [1, 1, 1, 1, 1, 1],
+  "max_switch_actions": [1, 1, 1, 1, 1, 1, 1],
   "mip_solver_gap": 0.0001,
   "nlp_solver_tol": 0.00000001,
   "mip_solver_tol": 0.00000001,
@@ -169,7 +169,7 @@
     "701702": { "cm_ub": [null, null, null] },
     "800675": {
       "cm_ub": [null, null, null],
-      "state": "CLOSED",
+      "state": "OPEN",
       "dispatchable": "YES",
       "status": "ENABLED"
     }
