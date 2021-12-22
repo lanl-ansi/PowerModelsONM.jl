@@ -60,6 +60,10 @@ module PowerModelsONM
         @require Gurobi="2e9cd046-0924-5485-92f1-d5272153d98b" begin
             global GRB_ENV = Gurobi.Env()
         end
+
+        @require KNITRO="67920dd8-b58e-52a8-8622-53c4cffbe346" begin
+            global KN_LMC = KNITRO.LMcontext()
+        end
     end
 
     include("core/base.jl")

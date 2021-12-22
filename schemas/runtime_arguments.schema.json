@@ -72,6 +72,11 @@
       "default": false,
       "description": "A flag to signal to use the Gurobi solver"
     },
+    "knitro": {
+      "type": "boolean",
+      "default": false,
+      "description": "A flag to signal to use the KNITRO solver"
+    },
     "opt-switch-formulation": {
       "type": "string",
       "enum": [

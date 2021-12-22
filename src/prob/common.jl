@@ -24,7 +24,8 @@ function build_solver_instances!(args::Dict{String,<:Any})::Dict{String,Any}
         mip_gap=isa(get(args, "settings", ""), String) ? 0.05 : get(get(args, "settings", Dict()), "mip_solver_gap", 0.05),
         verbose=get(args, "verbose", false),
         debug=get(args, "debug", false),
-        gurobi=get(args, "gurobi", false)
+        gurobi=get(args, "gurobi", false),
+        knitro=get(args, "knitro", false),
     )
 end
 
@@ -45,12 +46,12 @@ Returns solver instances as a Dict ready for use with JuMP Models, for NLP (`"nl
 - `debug` (default: `false`): Sets the verbosity of the solvers even higher (if available)
 - `gurobi` (default: `false`): Use Gurobi for MIP / MISOC solvers
 """
-function build_solver_instances(; nlp_solver=missing, nlp_solver_tol::Real=1e-4, mip_solver=missing, mip_solver_tol::Real=1e-4, mip_gap::Real=0.05, minlp_solver=missing, misocp_solver=missing, gurobi::Bool=false, verbose::Bool=false, debug::Bool=false)::Dict{String,Any}
+function build_solver_instances(; nlp_solver=missing, nlp_solver_tol::Real=1e-4, mip_solver=missing, mip_solver_tol::Real=1e-4, mip_gap::Real=0.05, minlp_solver=missing, misocp_solver=missing, gurobi::Bool=false, verbose::Bool=false, debug::Bool=false, knitro::Bool=false)::Dict{String,Any}
     if ismissing(nlp_solver)
         nlp_solver = optimizer_with_attributes(
             Ipopt.Optimizer,
             "tol"=>nlp_solver_tol,
-            "print_level"=>verbose ? 3 : debug ? 5 : 0,
+            "print_level"=>debug ? 5 : verbose ? 3  : 0,
             "mumps_mem_percent"=>200,
             "mu_strategy" => "adaptive",
         )
@@ -94,15 +95,29 @@ function build_solver_instances(; nlp_solver=missing, nlp_solver_tol::Real=1e-4,
     end
 
     if ismissing(minlp_solver)
-        minlp_solver = optimizer_with_attributes(
-            Alpine.Optimizer,
-            JuMP.MOI.Silent() => verbose || debug,
-            "nlp_solver" => nlp_solver,
-            "mip_solver" => mip_solver,
-            "presolve_bt" => false,
-            "presolve_bt_max_iter" => 5,
-            "disc_ratio" => 12
-        )
+        if knitro
+            minlp_solver = optimizer_with_attributes(
+                () -> KNITRO.Optimizer(;license_manager=KN_LMC),
+                "outlev" => debug ? 3 : verbose ? 1 : 0,
+                "mip_outlevel" => debug ? 2 : verbose ? 1 : 0,
+                "opttol" => mip_gap,
+                "feastol" => nlp_solver_tol,
+                "ms_enable" => 1,
+                "ms_deterministic" => 0,
+                "par_numthreads" => 8,
+            )
+        else
+            minlp_solver = optimizer_with_attributes(
+                Alpine.Optimizer,
+                # JuMP.MOI.Silent() => verbose || debug,
+                "nlp_solver" => nlp_solver,
+                "mip_solver" => mip_solver,
+                "minlp_solver" => optimizer_with_attributes(Juniper.Optimizer, "nl_solver"=>nlp_solver),
+                "presolve_bt" => false,
+                # "presolve_bt_max_iter" => 5,
+                # "disc_ratio" => 12
+            )
+        end
     end
 
     if ismissing(misocp_solver)
