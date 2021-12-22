@@ -89,27 +89,27 @@ end
 
 Enforces that storage inputs/outputs are (approximately) balanced across each phase, by some `balance_factor`
 """
-function constraint_mc_storage_power_unbalance_mi(pm::AbstractSwitchModels, nw::Int, i::Int, connections::Vector{Int}, balance_factor::Float64)
-    # ps = var(pm, nw, :ps, i)
-    # qs = var(pm, nw, :qs, i)
+function constraint_mc_storage_power_unbalance_mi(pm::AbstractUnbalancedPowerModel, nw::Int, i::Int, connections::Vector{Int}, balance_factor::Float64)
+    ps = var(pm, nw, :ps, i)
+    qs = var(pm, nw, :qs, i)
 
-    # sc_on = var(pm, nw, :sc_on, i)  # ==1 charging (p,q > 0)
-    # sd_on = var(pm, nw, :sd_on, i)  # ==1 discharging (p,q < 0)
+    sc_on = var(pm, nw, :sc_on, i)  # ==1 charging (p,q > 0)
+    sd_on = var(pm, nw, :sd_on, i)  # ==1 discharging (p,q < 0)
 
-    # sd_on_ps = JuMP.@variable(pm.model, [c in connections], base_name="$(nw)_sd_on_ps_$(i)", lower_bound=0.0)
-    # sc_on_ps = JuMP.@variable(pm.model, [c in connections], base_name="$(nw)_sc_on_ps_$(i)", lower_bound=0.0)
-    # sd_on_qs = JuMP.@variable(pm.model, [c in connections], base_name="$(nw)_sd_on_qs_$(i)", lower_bound=0.0)
-    # sc_on_qs = JuMP.@variable(pm.model, [c in connections], base_name="$(nw)_sc_on_qs_$(i)", lower_bound=0.0)
-    # for c in connections
-    #     PMD.PolyhedralRelaxations.construct_bilinear_relaxation!(pm.model, sd_on, ps[c], sd_on_ps[c], [0,1], [JuMP.lower_bound(ps[c]), JuMP.upper_bound(ps[c])])
-    #     PMD.PolyhedralRelaxations.construct_bilinear_relaxation!(pm.model, sc_on, ps[c], sc_on_ps[c], [0,1], [JuMP.lower_bound(ps[c]), JuMP.upper_bound(ps[c])])
-    #     PMD.PolyhedralRelaxations.construct_bilinear_relaxation!(pm.model, sd_on, qs[c], sd_on_qs[c], [0,1], [JuMP.lower_bound(qs[c]), JuMP.upper_bound(qs[c])])
-    #     PMD.PolyhedralRelaxations.construct_bilinear_relaxation!(pm.model, sc_on, qs[c], sc_on_qs[c], [0,1], [JuMP.lower_bound(qs[c]), JuMP.upper_bound(qs[c])])
-    # end
+    sd_on_ps = JuMP.@variable(pm.model, [c in connections], base_name="$(nw)_sd_on_ps_$(i)", lower_bound=0.0)
+    sc_on_ps = JuMP.@variable(pm.model, [c in connections], base_name="$(nw)_sc_on_ps_$(i)", lower_bound=0.0)
+    sd_on_qs = JuMP.@variable(pm.model, [c in connections], base_name="$(nw)_sd_on_qs_$(i)", lower_bound=0.0)
+    sc_on_qs = JuMP.@variable(pm.model, [c in connections], base_name="$(nw)_sc_on_qs_$(i)", lower_bound=0.0)
+    for c in connections
+        PolyhedralRelaxations.construct_bilinear_relaxation!(pm.model, sd_on, ps[c], sd_on_ps[c], [0,1], [JuMP.lower_bound(ps[c]), JuMP.upper_bound(ps[c])])
+        PolyhedralRelaxations.construct_bilinear_relaxation!(pm.model, sc_on, ps[c], sc_on_ps[c], [0,1], [JuMP.lower_bound(ps[c]), JuMP.upper_bound(ps[c])])
+        PolyhedralRelaxations.construct_bilinear_relaxation!(pm.model, sd_on, qs[c], sd_on_qs[c], [0,1], [JuMP.lower_bound(qs[c]), JuMP.upper_bound(qs[c])])
+        PolyhedralRelaxations.construct_bilinear_relaxation!(pm.model, sc_on, qs[c], sc_on_qs[c], [0,1], [JuMP.lower_bound(qs[c]), JuMP.upper_bound(qs[c])])
+    end
 
     # abs_avg_ps = JuMP.@variable(pm.model, base_name="$(nw)_abs_avg_ps_$(i)", lower_bound=0.0)
     # JuMP.@constraint(pm.model, abs_avg_ps == (sum(sc_on_ps[c] for c in connections)-sum(sd_on_ps[c] for c in connections)) / length(connections))
-    # # JuMP.@constraint(pm.model, abs_avg_ps == (-1*sd_on + 1*sc_on)*sum(sd_on_ps[d] for d in connections) / length(connections))
+    # # JuMP.@constraint(pm.model, abs_avg_ps == (-1*sd_on + 1*sc_on)*sum(ps[d] for d in connections) / length(connections))
 
     # abs_avg_qs = JuMP.@variable(pm.model, base_name="$(nw)_abs_avg_qs_$(i)", lower_bound=0.0)
     # JuMP.@constraint(pm.model, abs_avg_qs == (sum(sc_on_qs[c] for c in connections)-sum(sd_on_qs[c] for c in connections)) / length(connections))
@@ -125,19 +125,34 @@ function constraint_mc_storage_power_unbalance_mi(pm::AbstractSwitchModels, nw::
     # PMD.PolyhedralRelaxations.construct_bilinear_relaxation!(pm.model, sd_on, abs_avg_qs, sd_on_abs_avg_qs, [0,1], [0, sum(JuMP.upper_bound(qs[c]) for c in connections)])
     # PMD.PolyhedralRelaxations.construct_bilinear_relaxation!(pm.model, sc_on, abs_avg_qs, sc_on_abs_avg_qs, [0,1], [0, sum(JuMP.upper_bound(qs[c]) for c in connections)])
 
-    # for c in connections
-    #     JuMP.@constraint(pm.model, ps[c] >= abs_avg_ps - balance_factor*(sc_on_abs_avg_ps-sd_on_abs_avg_ps))
-    #     JuMP.@constraint(pm.model, ps[c] <= abs_avg_ps + balance_factor*(sc_on_abs_avg_ps-sd_on_abs_avg_ps))
+    for (idx,c) in enumerate(connections)
+        # JuMP.@constraint(pm.model, ps[c] >= abs_avg_ps - balance_factor*(sc_on_abs_avg_ps-sd_on_abs_avg_ps))
+        # JuMP.@constraint(pm.model, ps[c] <= abs_avg_ps + balance_factor*(sc_on_abs_avg_ps-sd_on_abs_avg_ps))
 
-    #     JuMP.@constraint(pm.model, qs[c] >= abs_avg_qs - balance_factor*(sc_on_abs_avg_qs-sd_on_abs_avg_qs))
-    #     JuMP.@constraint(pm.model, qs[c] <= abs_avg_qs + balance_factor*(sc_on_abs_avg_qs-sd_on_abs_avg_qs))
+        # JuMP.@constraint(pm.model, qs[c] >= abs_avg_qs - balance_factor*(sc_on_abs_avg_qs-sd_on_abs_avg_qs))
+        # JuMP.@constraint(pm.model, qs[c] <= abs_avg_qs + balance_factor*(sc_on_abs_avg_qs-sd_on_abs_avg_qs))
+        if idx < length(connections)
+            for d in connections[idx+1:end]
+                JuMP.@constraint(pm.model, ps[c] >= ps[d] - balance_factor*(-1*sd_on_ps[d] + 1*sc_on_ps[d]))
+                JuMP.@constraint(pm.model, ps[c] <= ps[d] + balance_factor*(-1*sd_on_ps[d] + 1*sc_on_ps[d]))
 
-    #     # JuMP.@constraint(pm.model, ps[c] >= (1-(balance_factor*(-1*sd_on + 1*sc_on)))*abs_avg_ps)
-    #     # JuMP.@constraint(pm.model, ps[c] <= (1+(balance_factor*(-1*sd_on + 1*sc_on)))*abs_avg_ps)
+                JuMP.@constraint(pm.model, qs[c] >= qs[d] - balance_factor*(-1*sd_on_qs[d] + 1*sc_on_qs[d]))
+                JuMP.@constraint(pm.model, qs[c] <= qs[d] + balance_factor*(-1*sd_on_qs[d] + 1*sc_on_qs[d]))
 
-    #     # JuMP.@constraint(pm.model, qs[c] >= (1-(balance_factor*(-1*sd_on + 1*sc_on)))*abs_avg_qs)
-    #     # JuMP.@constraint(pm.model, qs[c] <= (1+(balance_factor*(-1*sd_on + 1*sc_on)))*abs_avg_qs)
-    # end
+                # JuMP.@constraint(pm.model, ps[c] >= ps[d] - balance_factor*(-1*sd_on + 1*sc_on)*ps[d])
+                # JuMP.@constraint(pm.model, ps[c] <= ps[d] + balance_factor*(-1*sd_on + 1*sc_on)*ps[d])
+
+                # JuMP.@constraint(pm.model, qs[c] >= qs[d] - balance_factor*(-1*sd_on + 1*sc_on)*qs[d])
+                # JuMP.@constraint(pm.model, qs[c] <= qs[d] + balance_factor*(-1*sd_on + 1*sc_on)*qs[d])
+            end
+        end
+
+        # JuMP.@constraint(pm.model, ps[c] >= (1-(balance_factor*(-1*sd_on + 1*sc_on)))*abs_avg_ps)
+        # JuMP.@constraint(pm.model, ps[c] <= (1+(balance_factor*(-1*sd_on + 1*sc_on)))*abs_avg_ps)
+
+        # JuMP.@constraint(pm.model, qs[c] >= (1-(balance_factor*(-1*sd_on + 1*sc_on)))*abs_avg_qs)
+        # JuMP.@constraint(pm.model, qs[c] <= (1+(balance_factor*(-1*sd_on + 1*sc_on)))*abs_avg_qs)
+    end
 end
 
 
@@ -145,6 +160,25 @@ end
     constraint_storage_complementarity_mi_on_off(pm::LPUBFSwitchModel, n::Int, i::Int, charge_ub::Float64, discharge_ub::Float64)
 
 sc_on + sd_on == z_block
+"""
+function constraint_storage_complementarity_mi_on_off(pm::LPUBFSwitchModel, n::Int, i::Int, charge_ub::Float64, discharge_ub::Float64)
+    sc = var(pm, n, :sc, i)
+    sd = var(pm, n, :sd, i)
+    sc_on = var(pm, n, :sc_on, i)
+    sd_on = var(pm, n, :sd_on, i)
+
+    z_block = var(pm, n, :z_block, ref(pm, n, :storage_block_map, i))
+
+    JuMP.@constraint(pm.model, sc_on + sd_on == z_block)
+    JuMP.@constraint(pm.model, sc_on*charge_ub >= sc)
+    JuMP.@constraint(pm.model, sd_on*discharge_ub >= sd)
+end
+
+
+"""
+    constraint_storage_complementarity_mi_on_off(pm::AbstractSwitchModels, n::Int, i::Int, charge_ub::Float64, discharge_ub::Float64)
+
+sc_on * sd_on == z_block
 """
 function constraint_storage_complementarity_mi_on_off(pm::AbstractSwitchModels, n::Int, i::Int, charge_ub::Float64, discharge_ub::Float64)
     sc = var(pm, n, :sc, i)
@@ -154,7 +188,7 @@ function constraint_storage_complementarity_mi_on_off(pm::AbstractSwitchModels, 
 
     z_block = var(pm, n, :z_block, ref(pm, n, :storage_block_map, i))
 
-    JuMP.@constraint(pm.model, sc_on + sd_on == z_block)
+    JuMP.@constraint(pm.model, sc_on*sd_on == z_block)
     JuMP.@constraint(pm.model, sc_on*charge_ub >= sc)
     JuMP.@constraint(pm.model, sd_on*discharge_ub >= sd)
 end

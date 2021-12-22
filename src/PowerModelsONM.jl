@@ -81,6 +81,8 @@ module PowerModelsONM
     include("data_model/checks.jl")
     include("data_model/transformations.jl")
 
+    include("form/acp.jl")
+    include("form/acr.jl")
     include("form/apo.jl")
     include("form/bf_mx_lin.jl")
     include("form/shared.jl")

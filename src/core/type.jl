@@ -6,6 +6,8 @@ abstract type SOCUBFSwitchModel <: PMD.SOCNLPUBFModel end
 
 abstract type AbstractUnbalancedACPSwitchModel <: PMD.AbstractUnbalancedACPModel end
 
+abstract type AbstractUnbalancedACRSwitchModel <: PMD.AbstractUnbalancedACRModel end
+
 mutable struct NFAUSwitchPowerModel <: AbstractUnbalancedActivePowerSwitchModel PMD.@pmd_fields end
 
 mutable struct LPUBFSwitchPowerModel <: LPUBFSwitchModel PMD.@pmd_fields end
@@ -14,7 +16,9 @@ mutable struct SOCUBFSwitchPowerModel <: SOCUBFSwitchModel PMD.@pmd_fields end
 
 mutable struct ACPUSwitchPowerModel <: AbstractUnbalancedACPSwitchModel PMD.@pmd_fields end
 
-AbstractSwitchModels = Union{AbstractUnbalancedActivePowerSwitchModel, LPUBFSwitchModel, SOCUBFSwitchModel, AbstractUnbalancedACPSwitchModel}
+mutable struct ACRUSwitchPowerModel <: AbstractUnbalancedACRSwitchModel PMD.@pmd_fields end
+
+AbstractSwitchModels = Union{AbstractUnbalancedActivePowerSwitchModel, LPUBFSwitchModel, SOCUBFSwitchModel, AbstractUnbalancedACPSwitchModel, AbstractUnbalancedACRSwitchModel}
 
 AbstractUBFSwitchModels = Union{LPUBFSwitchModel, SOCUBFSwitchModel}
 
@@ -36,6 +40,7 @@ _get_dispatch_formulation(form::Type) = form
 "string to PowerModelsONM type conversion for opt-switch-formulation"
 const _switch_formulations = Dict{String,Any}(
     "acp" => ACPUSwitchPowerModel,
+    "acr" => ACRUSwitchPowerModel,
     "lindistflow" => LPUBFSwitchPowerModel,
     "nfa" => NFAUSwitchPowerModel,
     "soc" => SOCUBFSwitchPowerModel,

@@ -72,5 +72,5 @@ end
 
 
 "do nothing, already have z_block"
-function PowerModelsDistribution.variable_mc_storage_indicator(pm::PMD.LPUBFDiagModel; nw::Int=nw_id_default, relax::Bool=false, report::Bool=true)
+function PowerModelsDistribution.variable_mc_storage_indicator(pm::AbstractSwitchModels; nw::Int=nw_id_default, relax::Bool=false, report::Bool=true)
 end
