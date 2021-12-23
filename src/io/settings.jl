@@ -99,6 +99,10 @@ function apply_settings(network::Dict{String,<:Any}, settings::Dict{String,<:Any
             for n in sort([parse(Int, i) for i in keys(mn_data["nw"])])
                 mn_data["nw"]["$n"][s] = setting[n]
             end
+        elseif s == "disable_networking"
+            for (_,nw) in mn_data["nw"]
+                nw[s] = setting
+            end
         elseif s == "settings"
             for n in sort([parse(Int, i) for i in keys(mn_data["nw"])])
                 for (k,v) in setting
