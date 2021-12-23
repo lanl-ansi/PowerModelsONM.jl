@@ -192,13 +192,13 @@ function constraint_mc_transformer_power_yy_on_off(pm::AbstractUnbalancedACRSwit
                 # cr = JuMP.@NLexpression(pm.model, ( p_to[idx]*vr_to[tc] + q_to[idx]*vi_to[tc])/(vr_to[tc]^2+vi_to[tc]^2))
                 # ci = JuMP.@NLexpression(pm.model, (-q_to[idx]*vr_to[tc] + p_to[idx]*vi_to[tc])/(vr_to[tc]^2+vi_to[tc]^2))
                 # # v_drop = (cr+jci)⋅(r+jx)
-                # vr_drop = JuMP.@NLexpression(pm.model, r*cr-x*ci)
-                # vi_drop = JuMP.@NLexpression(pm.model, r*ci+x*cr)
+                # vr_drop = JuMP.@NLexpression(pm.model, (r*cr-x*ci)*z_block)
+                # vi_drop = JuMP.@NLexpression(pm.model, (r*ci+x*cr)*z_block)
 
                 # # (v_ref-δ)^2 ≤ (vr_fr-vr_drop)^2 + (vi_fr-vi_drop)^2 ≤ (v_ref+δ)^2
                 # # (vr_fr^2 + vi_fr^2)/1.1^2 ≤ (vr_to^2 + vi_to^2) ≤ (vr_fr^2 + vi_fr^2)/0.9^2
-                # JuMP.@NLconstraint(pm.model, (vr_fr[fc]-vr_drop)^2 + (vi_fr[fc]-vi_drop)^2 ≥ (v_ref - δ)^2)
-                # JuMP.@NLconstraint(pm.model, (vr_fr[fc]-vr_drop)^2 + (vi_fr[fc]-vi_drop)^2 ≤ (v_ref + δ)^2)
+                # JuMP.@NLconstraint(pm.model, (vr_fr[fc]-vr_drop)^2 + (vi_fr[fc]-vi_drop)^2 ≥ (v_ref - δ)^2*z_block)
+                # JuMP.@NLconstraint(pm.model, (vr_fr[fc]-vr_drop)^2 + (vi_fr[fc]-vi_drop)^2 ≤ (v_ref + δ)^2*z_block)
                 # JuMP.@constraint(pm.model, (vr_fr[fc]^2 + vi_fr[fc]^2)/1.1^2 ≤ vr_to[tc]^2 + vi_to[tc]^2)
                 # JuMP.@constraint(pm.model, (vr_fr[fc]^2 + vi_fr[fc]^2)/0.9^2 ≥ vr_to[tc]^2 + vi_to[tc]^2)
             end
@@ -206,7 +206,8 @@ function constraint_mc_transformer_power_yy_on_off(pm::AbstractUnbalancedACRSwit
     end
 
     JuMP.@constraint(pm.model, p_fr + p_to .== 0)
-    JuMP.@constraint(pm.model, q_fr + q_to .== 0)end
+    JuMP.@constraint(pm.model, q_fr + q_to .== 0)
+end
 
 
 """
