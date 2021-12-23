@@ -19,19 +19,21 @@ function PowerModelsDistribution.constraint_mc_switch_state_on_off(pm::AbstractU
     f_bus = ref(pm, nw, :bus, f_bus)
     t_bus = ref(pm, nw, :bus, t_bus)
 
+    f_vmin = f_bus["vmin"][[findfirst(isequal(c), f_bus["terminals"]) for c in f_connections]]
+    t_vmin = t_bus["vmin"][[findfirst(isequal(c), t_bus["terminals"]) for c in t_connections]]
+
     f_vmax = f_bus["vmax"][[findfirst(isequal(c), f_bus["terminals"]) for c in f_connections]]
     t_vmax = t_bus["vmax"][[findfirst(isequal(c), t_bus["terminals"]) for c in t_connections]]
 
-    vmax = min.(fill(2.0, length(f_bus["vmax"])), f_vmax, t_vmax)
+    vmin = max.(fill(0.0, length(f_vmax)), f_vmin, t_vmin)
+    vmax = min.(fill(2.0, length(f_vmax)), f_vmax, t_vmax)
 
     z = var(pm, nw, :switch_state, i)
 
     for (idx, (fc, tc)) in enumerate(zip(f_connections, t_connections))
         if relax
-            JuMP.@NLconstraint(pm.model, vr_fr[fc] - vr_fr[fc] <=  vmax[idx]^2 * (1-z))
-            JuMP.@NLconstraint(pm.model, vi_fr[fc] - vi_fr[fc] <=  vmax[idx]^2 * (1-z))
-            JuMP.@NLconstraint(pm.model, vr_to[tc] - vr_to[tc] >= -vmax[idx]^2 * (1-z))
-            JuMP.@NLconstraint(pm.model, vi_to[tc] - vi_to[tc] >= -vmax[idx]^2 * (1-z))
+            JuMP.@NLconstraint(pm.model, (vr_fr[fc]^2 + vi_fr[fc]^2) - (vr_to[tc]^2 + vi_to[tc]^2) <=  (vmax[idx]^2-vmin[idx]^2) * (1-z))
+            JuMP.@NLconstraint(pm.model, (vr_fr[fc]^2 + vi_fr[fc]^2) - (vr_to[tc]^2 + vi_to[tc]^2) >= -(vmax[idx]^2-vmin[idx]^2) * (1-z))
         else
             JuMP.@constraint(pm.model, z => {vr_fr[fc] == vr_to[tc]})
             JuMP.@constraint(pm.model, z => {vi_fr[fc] == vi_to[tc]})
