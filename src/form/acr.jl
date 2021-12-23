@@ -233,14 +233,14 @@ function constraint_mc_storage_losses_on_off(pm::AbstractUnbalancedACRSwitchMode
     x = storage["x"]
 
     JuMP.@NLconstraint(pm.model,
-        sum(ps[c] for c in storage["connections"]) + (sd - sc) * z_block
+        (sum(ps[c] for c in storage["connections"]) + (sd - sc)) * z_block
         ==
-        (p_loss + r * sum((ps[c]^2 + qs[c]^2) for (idx,c) in enumerate(storage["connections"]))) * z_block
+        (p_loss + r * sum((ps[c]^2 + qs[c]^2)/(vr[c]^2 + vi[c]^2) for (idx,c) in enumerate(storage["connections"]))) * z_block
     )
 
     JuMP.@NLconstraint(pm.model,
         sum(qs[c] for c in storage["connections"])
         ==
-        (qsc + q_loss + x * sum((ps[c]^2 + qs[c]^2) for (idx,c) in enumerate(storage["connections"]))) * z_block
+        (qsc + q_loss + x * sum((ps[c]^2 + qs[c]^2)/(vr[c]^2 + vi[c]^2) for (idx,c) in enumerate(storage["connections"]))) * z_block
     )
 end
