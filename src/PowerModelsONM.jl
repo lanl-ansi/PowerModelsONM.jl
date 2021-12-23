@@ -30,7 +30,6 @@ module PowerModelsONM
     import Ipopt
     import Cbc
     import Juniper
-    import Alpine
 
     import ArgParse
 
