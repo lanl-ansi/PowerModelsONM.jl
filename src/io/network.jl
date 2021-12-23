@@ -29,6 +29,7 @@ function parse_network(network_file::String; fix_small_numbers::Bool=false)::Tup
         PMD.adjust_small_line_lengths!(eng; min_length_val=10.0)
     end
 
+    # TODO: add more elegant cost model adjustments
     for (id,obj) in get(eng, "solar", Dict())
         eng["solar"][id]["cost_pg_model"] = 2
         eng["solar"][id]["cost_pg_parameters"] = [0.0, 0.0]
