@@ -645,6 +645,12 @@
         "type": "number"
       }
     },
+    "disable_networking": {
+      "type": [
+        "boolean"
+      ],
+      "description": "Disables microgrid networking"
+    },
     "time_elapsed": {
       "type": [
         "array",

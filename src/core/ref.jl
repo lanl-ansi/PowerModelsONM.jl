@@ -20,7 +20,6 @@ function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any}
     for (l,load) in ref[:load]
         push!(ref[:block_loads][ref[:bus_block_map][load["load_bus"]]], l)
         ref[:block_weights][ref[:bus_block_map][load["load_bus"]]] += 1e-2 * get(load, "priority", 1)
-        # ref[:block_weights][ref[:bus_block_map][load["load_bus"]]] += (sum(abs.(load["pd"]))+sum(abs.(load["qd"]))) * get(load, "priority", 1) * (!isempty(get(data["bus"]["$(load["load_bus"])"], "microgrid_id", "")) ? 1 : 0.0)
     end
     ref[:load_block_map] = Dict{Int,Int}(load => b for (b,block_loads) in ref[:block_loads] for load in block_loads)
 
@@ -63,11 +62,15 @@ function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any}
         end
     end
 
-    #
+    # For radiality constraints, need **all** switches, even disabled ones
     switches = get(data, "switch", Dict{String,Any}())
     ref[:block_pairs] = filter(((x,y),)->x!=y, Set{Tuple{Int,Int}}(
         Set([(ref[:bus_block_map][sw["f_bus"]],ref[:bus_block_map][sw["t_bus"]]) for (_,sw) in switches])
     ))
+
+    if data["disable_networking"]
+        ref[:substation_blocks] = union(Set(ref[:substation_blocks]), Set(ref[:microgrid_blocks]))
+    end
 
     ref[:neighbors] = Dict{Int,Vector{Int}}(i => Graphs.neighbors(ref[:block_graph], i) for i in Graphs.vertices(ref[:block_graph]))
 

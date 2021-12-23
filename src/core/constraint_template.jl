@@ -69,3 +69,22 @@ Constrains the network to have radial topology
 function constraint_radial_topology(pm::AbstractSwitchModels; nw::Int=nw_id_default, relax::Bool=false)
     constraint_radial_topology(pm, nw; relax=relax)
 end
+
+
+"""
+    constraint_mc_branch_flow(pm::AbstractUnbalancedPowerModel, i::Int; nw::Int=nw_id_default)
+
+Template function for ohms constraint for branches on the from-side
+"""
+function constraint_mc_branch_flow(pm::AbstractUnbalancedPowerModel, i::Int; nw::Int=nw_id_default)
+    branch = ref(pm, nw, :branch, i)
+    f_bus = branch["f_bus"]
+    t_bus = branch["t_bus"]
+    f_idx = (i, f_bus, t_bus)
+    t_idx = (i, t_bus, f_bus)
+
+    if !haskey(con(pm, nw), :branch_flow)
+        con(pm, nw)[:branch_flow] = Dict{Int,Vector{Vector{<:JuMP.ConstraintRef}}}()
+    end
+    PMD.constraint_mc_branch_flow(pm, nw, f_idx, t_idx, branch["f_connections"], branch["t_connections"])
+end
