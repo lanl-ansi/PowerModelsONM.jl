@@ -1,12 +1,12 @@
 {
   "title": "output.storage_soc.schema",
   "type": "array",
-      "description": "List of lists of switches whose state changed between timesteps",
-      "items": {
-        "type": "array",
-        "description": "List of switches whose state changed from the previous timestep",
-        "items": {
-          "type": "string"
-        }
-      }
+  "description": "List of lists of switches whose state changed between timesteps",
+  "items": {
+    "type": [
+      "number",
+      "null"
+    ],
+    "description": "List of switches whose state changed from the previous timestep"
+  }
 }
