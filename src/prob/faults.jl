@@ -14,7 +14,7 @@ function run_fault_studies!(args::Dict{String,<:Any}; validate::Bool=true, solve
         args["faults"] = PowerModelsProtection.build_mc_fault_study(args["base_network"])
     end
 
-    args["fault_studies_results"] = run_fault_studies(args["network"], args["solvers"][solver]; faults=args["faults"], switching_solutions=get(args, "optimal_switching_results", missing), dispatch_solution=get(args, "optimal_dispatch_result", missing), distributed=get(args, "nprcos", 1) > 1)
+    args["fault_studies_results"] = run_fault_studies(args["network"], args["solvers"][solver]; faults=args["faults"], switching_solutions=get(args, "optimal_switching_results", missing), dispatch_solution=get(args, "optimal_dispatch_result", missing), distributed=get(args, "nprocs", 1) > 1)
 end
 
 
