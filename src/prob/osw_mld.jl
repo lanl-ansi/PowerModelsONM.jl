@@ -73,8 +73,8 @@ function build_mn_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
             PMD.constraint_mc_ampacity_to(pm, i; nw=n)
         end
 
-        constraint_radial_topology(pm; nw=n, relax=false)
-        constraint_block_isolation(pm; nw=n, relax=true)
+        !get(ref(pm, n), :disable_radial_constraint, false) && constraint_radial_topology(pm; nw=n, relax=false)
+        !get(ref(pm, n), :disable_isolation_constraint, false) && constraint_block_isolation(pm; nw=n, relax=true)
         for i in ids(pm, n, :switch)
             PMD.constraint_mc_switch_state_on_off(pm, i; nw=n, relax=true)
 
@@ -171,8 +171,8 @@ function build_mn_mc_osw_mld_mi(pm::AbstractSwitchModels)
             PMD.constraint_mc_ampacity_to(pm, i; nw=n)
         end
 
-        constraint_radial_topology(pm; nw=n, relax=false)
-        constraint_block_isolation(pm; nw=n, relax=true)
+        !get(ref(pm, n), :disable_radial_constraint, false) && constraint_radial_topology(pm; nw=n, relax=false)
+        !get(ref(pm, n), :disable_isolation_constraint, false) && constraint_block_isolation(pm; nw=n, relax=true)
         for i in ids(pm, n, :switch)
             PMD.constraint_mc_switch_state_on_off(pm, i; nw=n, relax=true)
 
@@ -284,9 +284,9 @@ function build_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
         PMD.constraint_mc_ampacity_to(pm, i)
     end
 
-    constraint_radial_topology(pm; relax=false)
     constraint_switch_state_max_actions(pm)
-    constraint_block_isolation(pm; relax=true)
+    !get(ref(pm), :disable_radial_constraint, false) && constraint_radial_topology(pm; relax=false)
+    !get(ref(pm), :disable_isolation_constraint, false) && constraint_block_isolation(pm; relax=true)
     for i in ids(pm, :switch)
         PMD.constraint_mc_switch_state_on_off(pm, i; relax=true)
 
@@ -363,9 +363,9 @@ function build_mc_osw_mld_mi(pm::AbstractSwitchModels)
             PMD.constraint_mc_ampacity_to(pm, i)
         end
 
-        constraint_radial_topology(pm; relax=false)
-        constraint_block_isolation(pm; relax=true)
         constraint_switch_state_max_actions(pm)
+        !get(ref(pm), :disable_radial_constraint, false) && constraint_radial_topology(pm; relax=false)
+        !get(ref(pm), :disable_isolation_constraint, false) && constraint_block_isolation(pm; relax=true)
         for i in ids(pm, n, :switch)
             PMD.constraint_mc_switch_state_on_off(pm, i; relax=true)
 
