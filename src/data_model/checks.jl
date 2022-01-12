@@ -56,3 +56,9 @@ validate_settings(data::Dict)::Bool = _validate_against_schema(data, "input.sett
 Validates output data against models/outputs schema
 """
 validate_output(data::Dict)::Bool = _validate_against_schema(data, "output")
+
+
+evaluate_output(data::Dict) = JSONSchema.validate(data, load_schema(joinpath(dirname(pathof(PowerModelsONM)), "..", "schemas", "output.schema.json")))
+evaluate_events(data::Dict) = JSONSchema.validate(data, load_schema(joinpath(dirname(pathof(PowerModelsONM)), "..", "schemas", "input.events.schema.json")))
+evaluate_settings(data::Dict) = JSONSchema.validate(data, load_schema(joinpath(dirname(pathof(PowerModelsONM)), "..", "schemas", "input.settings.schema.json")))
+evaluate_runtime_arguments(data::Dict) = JSONSchema.validate(data, load_schema(joinpath(dirname(pathof(PowerModelsONM)), "..", "schemas", "input.runtime_arguments.schema.json")))
