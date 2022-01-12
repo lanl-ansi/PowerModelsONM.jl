@@ -71,7 +71,7 @@ function run_stability_analysis(subnetwork::Dict{String,<:Any}, omega0::Real, rN
     math_model = PowerModelsStability.transform_data_model(subnetwork)
     opf_solution = PowerModelsStability.solve_mc_opf(math_model, formulation, solver; solution_processors=[PMD.sol_data_model!])
 
-    Atot = PowerModelsStability.obtainGlobal_multi(math_model, opf_solution, omega0, rN)
+    Atot = PowerModelsStability.PMS.get_global_stability_matrix(math_model, opf_solution, omega0, rN)
     eigValList = LinearAlgebra.eigvals(Atot)
     statusTemp = true
     for eig in eigValList
