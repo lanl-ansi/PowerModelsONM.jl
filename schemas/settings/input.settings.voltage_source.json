@@ -1,0 +1,65 @@
+{
+  "title": "input.settings.voltage_source",
+  "type": "object",
+  "description": "voltage source objects, indexed by name",
+  "patternProperties": {
+    "^.+$": {
+      "type": "object",
+      "description": "voltage source object",
+      "properties": {
+        "pg_lb": {
+          "type": "array",
+          "description": "real power lower bounds in kW",
+          "items": {
+            "type": ["number", "null"]
+          }
+        },
+        "pg_ub": {
+          "type": "array",
+          "description": "real power upper bounds in kW",
+          "items": {
+            "type": ["number", "null"]
+          }
+        },
+        "pg": {
+          "type": "array",
+          "description": "real power setpoint in kW",
+          "items": {
+            "type": "number"
+          }
+        },
+        "qg_lb": {
+          "type": "array",
+          "description": "Reactive power lower bounds in kVar",
+          "items": {
+            "type": ["number", "null"]
+          }
+        },
+        "qg_ub": {
+          "type": "array",
+          "description": "Reactive power upper bounds in kVar",
+          "items": {
+            "type": ["number", "null"]
+          }
+        },
+        "qg": {
+          "type": "array",
+          "description": "Reactive power setpoint in kVar",
+          "items": {
+            "type": "number"
+          }
+        },
+        "control_mode": {
+          "type": "string",
+          "description": "The control mode, _i.e._ `FREQUENCYDROOP` (grid-following) or `ISOCHRONOUS` (grid-forming)",
+          "enum": ["FREQUENCYDROOP", "ISOCHRONOUS"]
+        },
+        "status": {
+          "type": ["integer", "string"],
+          "enum": [0, 1, "ENABLED", "DISABLED"],
+          "description": "The status of the generation object, _i.e._ enabled (`1`) or disabled (`0`)"
+        }
+      }
+    }
+  }
+}

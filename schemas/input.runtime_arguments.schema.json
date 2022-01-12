@@ -252,6 +252,26 @@
       "description": "Number of processors to utilize for parallel computations (Fault studies and Stability Analysis)",
       "minimum": 1,
       "default": 1
+    },
+    "disable-switch-penalty": {
+      "type": "boolean",
+      "description": "Toggle to disable applying a penalty to changing switch status in the objective function",
+      "default": true
+    },
+    "apply-switch-scores": {
+      "type": "boolean",
+      "description": "Toggle to enable adding a weight to switches in the objective function, to promote closing",
+      "default": false
+    },
+    "disable-radial-constraint": {
+      "type": "boolean",
+      "description": "Toggle to disable the radial constraint (allow mesh-networking)",
+      "default": true
+    },
+    "disable-isolation-constraint": {
+      "type": "boolean",
+      "description": "Toggle to disable the block isolation constraint (allow power to pass through 'shedded' blocks)",
+      "default": true
     }
   },
   "required": [

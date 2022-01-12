@@ -1,0 +1,12 @@
+{
+  "title": "output.timesteps.schema",
+      "type": "array",
+      "description": "The actual timesteps, either in datetime strings, or as numbers",
+      "items": {
+        "type": [
+          "string",
+          "number"
+        ],
+        "format": "date-time"
+      }
+}

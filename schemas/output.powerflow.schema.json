@@ -250,6 +250,13 @@
                   "type": "number"
                 }
               },
+              "current (A)": {
+                "type": "array",
+                "description": "The current flow through the switch coming from the from-side, in Amps",
+                "items": {
+                  "type": "number"
+                }
+              },
               "connections": {
                 "type": "array",
                 "description": "The connections (terminals) that the switch is connected to on the from-side, in order",

@@ -1,0 +1,42 @@
+{
+  "title": "output.generator_profiles.schema",
+  "type": "object",
+      "additionalProperties": false,
+      "description": "Statistics about the sources of generation, including solar PV, energy storage, traditional diesel, and from the grid (feeder)",
+      "required": [
+        "Grid mix (kW)",
+        "Solar DG (kW)",
+        "Energy storage (kW)",
+        "Diesel DG (kW)"
+      ],
+      "properties": {
+        "Grid mix (kW)": {
+          "type": "array",
+          "description": "The amount of power provided from the grid (feeder) in kW",
+          "items": {
+            "type": "number"
+          }
+        },
+        "Solar DG (kW)": {
+          "type": "array",
+          "description": "The amount of power provided by solar PV sources kW",
+          "items": {
+            "type": "number"
+          }
+        },
+        "Energy storage (kW)": {
+          "type": "array",
+          "description": "The amount of power provided by energy storage sources in kW",
+          "items": {
+            "type": "number"
+          }
+        },
+        "Diesel DG (kW)": {
+          "type": "array",
+          "description": "The amount of power provided by tranditional diesel generation in kW",
+          "items": {
+            "type": "number"
+          }
+        }
+      }
+}

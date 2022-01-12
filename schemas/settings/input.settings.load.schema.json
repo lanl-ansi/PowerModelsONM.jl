@@ -1,0 +1,35 @@
+{
+  "title": "input.settings.load.schema",
+  "type": "object",
+  "description": "load objects indexed by name",
+  "patternProperties": {
+    "^.+$": {
+      "type": "object",
+      "description": "load object",
+      "properties": {
+        "clpu_factor": {
+          "type": "number",
+          "description": "cold load pickup factor"
+        },
+        "clpu_duration": {
+          "type": "number",
+          "description": "cold load pickup duration in ms"
+        },
+        "dispatchable": {
+          "type": ["integer", "string"],
+          "enum": [0, 1, "YES", "NO"],
+          "description": "Indicator for whether the load is individually dispatchable (_i.e._, can the load be shed autonomously, as opposed to only be sheddable via block isolation)"
+        },
+        "status": {
+          "type": ["integer", "string"],
+          "enum": [0, 1, "ENABLED", "DISABLED"],
+          "description": "the status of the asset, _i.e._ enabled (`1`) or disabled (`0`)"
+        },
+        "priority": {
+          "type": "number",
+          "description": "The priority of the load, _i.e._ a numerical value to indicate how important it is that the load not be shed"
+        }
+      }
+    }
+  }
+}

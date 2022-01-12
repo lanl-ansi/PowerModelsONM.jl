@@ -1,0 +1,41 @@
+{
+  "title": "input.settings.switch.schema",
+  "type": "object",
+  "description": "switch objects indexed by ",
+  "patternProperties": {
+    "^.+$": {
+      "type": "object",
+      "description": "switch object",
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": ["open", "closed", "OPEN", "CLOSED"],
+          "description": "The default state of the switch, _i.e._, `open` or `closed`"
+        },
+        "dispatchable": {
+          "type": ["integer", "string"],
+          "enum": [0, 1, "YES", "NO"],
+          "description": "is the switch autonomously operable by the ONM algorithm, _i.e._, yes (`1`) or no (`2`)"
+        },
+        "status": {
+          "type": ["integer", "string"],
+          "enum": [0, 1, "ENABLED", "DISABLED"],
+          "description": "the status of the asset, _i.e._ enabled (`1`) or disabled (`0`)"
+        },
+        "cm_ub": {
+          "type": "array",
+          "description": "current magnitude upper bound (normamps)",
+          "items": {
+            "type": ["number", "null"]
+          }
+        },
+        "sm_ub": {
+          "type": "array",
+          "items": {
+            "type": ["number", "null"]
+          }
+        }
+      }
+    }
+  }
+}

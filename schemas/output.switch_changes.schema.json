@@ -1,0 +1,11 @@
+{
+  "title": "output.switch_changes.schema",
+  "type": "array",
+  "description": "List of lists of switches whose state changed between timesteps",
+  "items": {
+    "type": "array",
+    "items": {
+      "type": "string"
+    }
+  }
+}

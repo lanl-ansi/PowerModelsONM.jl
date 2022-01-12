@@ -1,0 +1,17 @@
+{
+  "title": "input.settings.settings.schema",
+  "type": "object",
+  "properties": {
+    "sbase_default": {
+      "type": "number"
+    },
+    "vbase_defaults": {
+      "type": "object",
+      "patternProperties": {
+        "^.+$": {
+          "type": "number"
+        }
+      }
+    }
+  }
+}

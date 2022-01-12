@@ -1,0 +1,45 @@
+{
+  "title": "input.settings.line.schema",
+  "type": "object",
+  "description": "line objects indexed by name",
+  "patternProperties": {
+    "^.+$": {
+      "type": "object",
+      "description": "line object",
+      "properties": {
+        "vad_lb": {
+          "type": "array",
+          "description": "voltage angle different lower bound in degrees",
+          "items": {
+            "type": "number"
+          }
+        },
+        "vad_ub": {
+          "type": "array",
+          "description": "voltage angle difference upper bound in degrees",
+          "items": {
+            "type": "number"
+          }
+        },
+        "cm_ub": {
+          "type": "array",
+          "description": "upper bounds on line currents in Amps",
+          "items": {
+            "type": ["number", "null"]
+          }
+        },
+        "sm_ub": {
+          "type": "array",
+          "items": {
+            "type": ["number", "null"]
+          }
+        },
+        "status": {
+          "type": ["integer", "string"],
+          "enum": [0, 1, "ENABLED", "DISABLED"],
+          "description": "the status of the asset, _i.e._ enabled (`1`) or disabled (`0`)"
+        }
+      }
+    }
+  }
+}

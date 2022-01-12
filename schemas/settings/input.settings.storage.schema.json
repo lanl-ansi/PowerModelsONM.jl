@@ -1,0 +1,55 @@
+{
+  "title": "input.settings.storage.schema",
+  "type": "object",
+  "description": "energy storage objects indexed by name",
+  "patternProperties": {
+    "^.+$": {
+      "type": "object",
+      "description": "energy storage object",
+      "properties": {
+        "energy_ub": {
+          "type": "number",
+          "description": "upper bound of energy that can be stored in kWhrs"
+        },
+        "charge_ub": {
+          "type": "number",
+          "description": "upper bound of energy that can be inserted into the battery kW"
+        },
+        "discharge_ub": {
+          "type": "number",
+          "description": "upper bound of energy that can be withdrawn from the battery in kW"
+        },
+        "sm_ub": {
+          "type": ["number", "null"],
+          "description": "upper bound on the power in or out of the battery"
+        },
+        "energy": {
+          "type": "number",
+          "description": "currently stored energy in the battery in kWh"
+        },
+        "qs_lb": {
+          "type": "number",
+          "description": "lower bound of reactive power that can be outputted in kvar"
+        },
+        "qs_ub": {
+          "type": "number",
+          "description": "upper bound of reactive power that can be outputted in kvar"
+        },
+        "pex": {
+          "type": "number",
+          "description": "real power losses"
+        },
+        "qex": {
+          "type": "number",
+          "description": "reactive power losses"
+        },
+
+        "status": {
+          "type": ["integer", "string"],
+          "enum": [0, 1, "ENABLED", "DISABLED"],
+          "description": "the status of the asset, _i.e._ enabled (`1`) or disabled (`0`)"
+        }
+      }
+    }
+  }
+}

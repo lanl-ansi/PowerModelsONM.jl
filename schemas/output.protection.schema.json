@@ -1,0 +1,235 @@
+{
+  "title": "protection.schema",
+  "type": "object",
+  "description": "Protection settings outputs",
+  "required": [
+    "network_model"
+  ],
+  "properties": {
+    "network_model": {
+      "type": "object",
+      "description": "Network data model used for computing optimal protection settings",
+      "properties": {
+        "bus": {
+          "type": "array",
+          "description": "list of buses in the network model",
+          "items": {
+            "type": "object",
+            "description": "Bus object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name of the bus"
+              },
+              "phases": {
+                "type": "array",
+                "description": "Terminals on the bus",
+                "items": {
+                  "type": "integer"
+                }
+              },
+              "nphases": {
+                "type": "integer",
+                "description": "Number of phases on the bus"
+              }
+            }
+          }
+        },
+        "line": {
+          "type": "array",
+          "description": "list of lines (including switches) in the network model",
+          "items": {
+            "type": "object",
+            "description": "Line object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "name of the line or switch"
+              },
+              "f_bus": {
+                "type": "string",
+                "description": "bus on the from-side of the line"
+              },
+              "t_bus": {
+                "type": "string",
+                "description": "bus on the to-side of the line"
+              },
+              "f_connections": {
+                "type": "array",
+                "description": "Phase connections on the from-side of the line",
+                "items": {
+                  "type": "integer"
+                }
+              },
+              "t_connections": {
+                "type": "array",
+                "description": "Phase connections on the to-side of the line",
+                "items": {
+                  "type": "integer"
+                }
+              },
+              "nphases": {
+                "type": "integer",
+                "description": "number of phases in the line"
+              },
+              "switch": {
+                "type": "boolean",
+                "description": "Is the line a switch?"
+              }
+            }
+          }
+        },
+        "transformer": {
+          "type": "array",
+          "description": "List of transformers in the network model",
+          "items": {
+            "type": "object",
+            "description": "Transformer object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name of the transformer"
+              },
+              "buses": {
+                "type": "array",
+                "description": "List of buses (each winding) ",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "connections": {
+                "type": "array",
+                "description": "List of phase connections in the in the transformer (each winding)",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                }
+              },
+              "nwindings": {
+                "type": "integer",
+                "description": "number of windings"
+              },
+              "nphases": {
+                "type": "integer",
+                "description": "numb"
+              },
+              "configuration": {
+                "type": "array",
+                "description": "List of configurations for each winding (WYE/DELTA)",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "WYE",
+                    "DELTA"
+                  ]
+                }
+              },
+              "vbase (kV)": {
+                "type": "array",
+                "description": "List of voltage bases for each winding in kV",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "rating (kVA)": {
+                "type": "number",
+                "description": "Thermal rating of the transformer in kVA"
+              }
+            }
+          }
+        },
+        "source": {
+          "type": "array",
+          "description": "List of generation sources, i.e., generators, storage, pvsystems, and vsources in the network model",
+          "items": {
+            "type": "object",
+            "description": "Source object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "name of the source object"
+              },
+              "bus": {
+                "type": "string",
+                "description": "bus to which the source object is connected"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "generator",
+                  "pvsystem",
+                  "storage",
+                  "vsource"
+                ],
+                "description": "type of the source object (generator, storage, vsource, pvsystem)"
+              },
+              "connections": {
+                "type": "array",
+                "description": "Phase connections of the source object",
+                "items": {
+                  "type": "integer"
+                }
+              },
+              "nphases": {
+                "type": "integer",
+                "description": "Number of phases in the source object"
+              }
+            }
+          }
+        },
+        "protection": {
+          "type": "array",
+          "description": "List of protection devices, i.e., relays, fuses, and reclosers, in the network model",
+          "items": {
+            "type": "object",
+            "description": "Protection object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "name of the protection object"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "recloser",
+                  "relay",
+                  "fuse"
+                ],
+                "description": "type of protection (relay, fuse, recloser)"
+              },
+              "location": {
+                "type": "string",
+                "description": "location of the protection object (monitoredobj)"
+              }
+            }
+          }
+        }
+      }
+    },
+    "bus_types": {
+      "type": "array",
+      "description": "Output from Protection optimization algorithm",
+      "items": {
+        "type": "object",
+        "patternProperties": {
+          "^.+$": {
+            "type": "string",
+            "enum": [
+              "pq",
+              "pv",
+              "ref",
+              "isolated"
+            ]
+          }
+        }
+      }
+    },
+    "settings": {
+      "type": "array",
+      "description": "Output from Protection optimization algorithm",
+      "items": {}
+    }
+  }
+}

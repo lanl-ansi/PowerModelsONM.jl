@@ -1,0 +1,34 @@
+{
+  "title": "output.voltages.schema",
+  "type": "object",
+      "additionalProperties": false,
+      "description": "Statistics about the voltage magnitudes at each timestep",
+      "required": [
+        "Min voltage (p.u.)",
+        "Mean voltage (p.u.)",
+        "Max voltage (p.u.)"
+      ],
+      "properties": {
+        "Min voltage (p.u.)": {
+          "type": "array",
+          "description": "The minimum voltage over the whole feeder at each timestep in per-unit representation",
+          "items": {
+            "type": "number"
+          }
+        },
+        "Mean voltage (p.u.)": {
+          "type": "array",
+          "description": "The mean voltage over the whole feeder at each timestep in per-unit representation",
+          "items": {
+            "type": "number"
+          }
+        },
+        "Max voltage (p.u.)": {
+          "type": "array",
+          "description": "The maximum voltage over the whole feeder at each timestep in per-unit representation",
+          "items": {
+            "type": "number"
+          }
+        }
+      }
+}

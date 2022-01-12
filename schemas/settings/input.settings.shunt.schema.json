@@ -1,0 +1,15 @@
+{
+  "title": "input.settings.shunt.schema",
+  "type": "object",
+  "patternProperties": {
+    "^.+$": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": ["string", "integer"],
+          "enum": ["ENABLED", "DISABLED", 0, 1]
+        }
+      }
+    }
+  }
+}

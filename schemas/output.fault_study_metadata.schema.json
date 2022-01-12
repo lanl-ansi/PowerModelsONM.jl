@@ -1,0 +1,26 @@
+{
+  "title": "output.fault_study_metadata.schema",
+  "type": "array",
+      "description": "Outputs from fault studies",
+      "items": {
+        "type": "object",
+        "description": "Fault study per time step",
+        "patternProperties": {
+          "^.+$": {
+            "type": "object",
+            "description": "Fault study at bus",
+            "patternProperties": {
+              "^[3p|3pg|llg|lg|ll]$": {
+                "type": "object",
+                "description": "Fault study with fault type of",
+                "patternProperties": {
+                  "^\\d+$": {
+                    "$ref": "./output.optimization_metadata.json"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+}

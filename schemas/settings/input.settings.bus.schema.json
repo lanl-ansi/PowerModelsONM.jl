@@ -1,0 +1,50 @@
+{
+  "title": "input.settings.bus.schema",
+  "type": "object",
+  "description": "bus objects indexed by name",
+  "patternProperties": {
+    "^.+$": {
+      "type": "object",
+      "description": "bus object",
+      "properties": {
+        "microgrid_id": {
+          "type": "string",
+          "description": "identifier for which microgrid the bus belongs"
+        },
+        "vm_lb": {
+          "type": "array",
+          "description": "the voltage magnitude lower bounds in volts",
+          "items": {
+            "type": "number"
+          }
+        },
+        "vm_ub": {
+          "type": "array",
+          "description": "the voltage magnitude upper bounds in volts",
+          "items": {
+            "type": ["number", "null"]
+          }
+        },
+        "vm": {
+          "type": "array",
+          "description": "the voltage magnitude setpoint of the bus, useful in cases where the bus should act as a reference, _e.g._, because a grid-forming inverter is connected",
+          "items": {
+            "type": "number"
+          }
+        },
+        "va": {
+          "type": "array",
+          "description": "the voltage angle setpoint of the bus, useful in cases where the bus should act as a reference, _e.g._, because a grid-forming inverter is connected",
+          "items": {
+            "type": "number"
+          }
+        },
+        "status": {
+          "type": ["integer", "string"],
+          "enum": [0, 1, "ENABLED", "DISABLED"],
+          "description": "the status of the asset, _i.e._ enabled (`1`) or disabled (`0`)"
+        }
+      }
+    }
+  }
+}

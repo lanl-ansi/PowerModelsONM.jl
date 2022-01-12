@@ -1,0 +1,8 @@
+{
+  "title": "output.small_signal.schema",
+      "type": "array",
+      "description": "Output from small signal stability analysis",
+      "items": {
+        "type": "boolean"
+      }
+}

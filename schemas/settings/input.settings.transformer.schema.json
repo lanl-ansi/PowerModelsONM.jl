@@ -1,0 +1,20 @@
+{
+  "title": "input.settings.transformer.schema",
+  "type": "object",
+  "patternProperties": {
+    "^.+$": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": ["string", "integer"]
+        },
+        "sm_ub": {
+          "type": ["number", "null"]
+        },
+        "cm_ub": {
+          "type": ["number", "null"]
+        }
+      }
+    }
+  }
+}

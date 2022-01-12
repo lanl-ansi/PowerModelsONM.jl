@@ -1,0 +1,48 @@
+{
+  "title": "output.system_metadata.schema",
+  "type": "object",
+  "description": "Metadata about the system that ran the ONM process",
+  "required": [
+    "platform",
+    "physical_cores",
+    "logical_processors",
+    "system_memory",
+    "julia_max_threads",
+    "julia_max_procs",
+    "julia_version"
+  ],
+  "properties": {
+    "platform": {
+      "type": "string",
+      "description": "output of Julia Sys.MACHINE"
+    },
+    "cpu_info": {
+      "type": "string",
+      "description": "Output of Julia first(Sys.cpu_info()).model"
+    },
+    "physical_cores": {
+      "type": "integer",
+      "description": "Output of Julia Hwloc.num\\_physical\\_cores()"
+    },
+    "logical_processors": {
+      "type": "integer",
+      "description": "Output of Julia Hwloc.num\\_virtual\\_cores()"
+    },
+    "system_memory": {
+      "type": "number",
+      "description": "Output of Julia Sys.total_memory() in GB"
+    },
+    "julia_max_threads": {
+      "type": "integer",
+      "description": "Output of Julia Threads.nthreads()"
+    },
+    "julia_max_procs": {
+      "type": "integer",
+      "description": "Number of processors available to Julia"
+    },
+    "julia_version": {
+      "type": "string",
+      "description": "Output of Julia.VERSION"
+    }
+  }
+}
