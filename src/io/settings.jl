@@ -35,13 +35,17 @@ function _convert_depreciated_runtime_args!(runtime_args::Dict{String,<:Any}, se
     haskey(runtime_args, "voltage-angle-difference") && _convert_to_settings!(settings, base_network, "line", "vad_lb", -runtime_args["voltage-angle-difference"])
     haskey(runtime_args, "voltage-angle-difference") && _convert_to_settings!(settings, base_network, "line", "vad_ub",  pop!(runtime_args, "voltage-angle-difference"))
     haskey(runtime_args, "clpu-factor") && _convert_to_settings!(settings, base_network, "load", "clpu_factor", pop!(runtime_args, "clpu-factor"); multiphase=false)
+
+    for k in ["disable-switch-penalty", "apply-switch-scores", "disable-radial-constraint", "disable-isolation-constraint", "max-switch-actions"]
+        if haskey(runtime_args, k)
+            settings[replace(k, "-"=>"_")] = runtime_args[k]
+        end
+    end
+
     if haskey(runtime_args, "timestep-hours")
         settings["time_elapsed"] = fill(pop!(runtime_args, "timestep-hours"), timesteps)
     end
 
-    if haskey(runtime_args, "max-switch-actions")
-        settings["max_switch_actions"] = fill(pop!(runtime_args, "max-switch-actions"), timesteps)
-    end
     if haskey(runtime_args, "solver-tolerance")
         settings["nlp_solver_tol"] = pop!(runtime_args, "solver-tolerance")
     end
@@ -99,7 +103,7 @@ function apply_settings(network::Dict{String,<:Any}, settings::Dict{String,<:Any
             for n in sort([parse(Int, i) for i in keys(mn_data["nw"])])
                 mn_data["nw"]["$n"][s] = setting[n]
             end
-        elseif s == "disable_networking"
+        elseif s ∈ ["disable_networking", "disable_switch_penalty", "apply_switch_scores", "disable_radial_constraint", "disable_isolation_constraint"]
             for (_,nw) in mn_data["nw"]
                 nw[s] = setting
             end
@@ -204,6 +208,7 @@ function build_settings_file(
     nlp_solver_tol::Float64=1e-4,
     mip_solver_tol::Float64=1e-4,
     clpu_factor::Union{Missing,Float64}=missing,
+    disable_switch_penalty::Bool=false,
     )
 
     eng = PMD.parse_file(network_file; transformations=[PMD.apply_kron_reduction!])
@@ -225,8 +230,6 @@ function build_settings_file(
         "mip_solver_tol" => mip_solver_tol,
     )
 
-    merge!(settings, custom_settings)
-
     if !ismissing(time_elapsed)
         if !isa(time_elapsed, Vector)
             time_elapsed = fill(time_elapsed, n_steps)
@@ -240,6 +243,8 @@ function build_settings_file(
         end
         settings["max_switch_actions"] = max_switch_actions
     end
+
+    settings["disable_switch_penalty"] = disable_switch_penalty
 
     # Generate bus microgrid_ids
     if autogen_microgrid_ids
@@ -331,6 +336,8 @@ function build_settings_file(
             )
         )
     end
+
+    _IM.update_data!(settings, custom_settings)
 
     # Save the settings.json file
     open(settings_file, "w") do io
