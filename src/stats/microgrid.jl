@@ -235,11 +235,25 @@ function get_timestep_storage_soc(solution::Dict{String,<:Any}, network::Dict{St
 
     for (i,n) in enumerate(sort(parse.(Int, collect(keys(get(solution, "nw", Dict()))))))
         if !isempty(get(solution["nw"]["$n"], "storage", Dict()))
-            push!(storage_soc, 100.0 * sum(strg["se"] for strg in values(solution["nw"]["$n"]["storage"])) / sum(strg["energy_ub"] for strg in values(network["nw"]["$n"]["storage"])))
+            energy = 0.0
+            energy_ub = 0.0
+            for (s,strg) in network["nw"]["$n"]["storage"]
+                r = get(solution["nw"]["$n"]["storage"], s, strg)
+                energy += get(r, "se", get(r, "energy", 0.0))
+                energy_ub += strg["energy_ub"]
+            end
+            push!(storage_soc, 100.0 * (energy_ub == 0 ? 0.0 : energy / energy_ub))
         elseif i > 1
             push!(storage_soc, storage_soc[i-1])
-        elseif i == 0 && !isempty(get(network["nw"]["$n"], "storage", Dict()))
-            push!(storage_soc, 100.0 * sum(strg["energy"]/strg["energy_ub"] for strg in values(network["nw"]["$n"]["storage"])))
+        elseif i == 1
+            energy = 0.0
+            energy_ub = 0.0
+            for (s,strg) in network["nw"]["$n"]["storage"]
+                energy += get(strg, "energy", 0.0)
+                energy_ub += strg["energy_ub"]
+            end
+
+            push!(storage_soc, 100.0 * (energy_ub == 0 ? 0.0 : energy / energy_ub))
         else
             push!(storage_soc, NaN)
         end
