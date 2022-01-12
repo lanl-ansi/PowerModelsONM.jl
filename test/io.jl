@@ -6,7 +6,7 @@
         @test !PMD.ismultinetwork(base_network)
         @test PMD.iseng(network) && PMD.iseng(base_network)
 
-        @test length(network["nw"]) == 7
+        @test length(network["nw"]) == 8
 
         @test network["nw"]["1"]["switch"]["671700"]["state"] == PMD.CLOSED
         @test network["nw"]["1"]["switch"]["671700"]["dispatchable"] == PMD.YES
