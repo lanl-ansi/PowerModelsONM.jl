@@ -123,6 +123,8 @@ function get_protection_network_model(base_eng::Dict{String,<:Any})
             push!(pnm["transformer"], Dict{String,Any}(
                 "name" => id,
                 "buses" => obj["bus"],
+                "vbase (kV)" => obj["vm_nom"],
+                "rating (kVA)" => haskey(obj, "dss") ? get(obj["dss"], "emerghkva", obj["sm_nom"][1] * 1.5) : obj["sm_nom"][1] * 1.5,
                 "connections" => obj["connections"],
                 "nwindings" => length(obj["bus"]),
                 "nphases" => length(first(obj["connections"])),
@@ -164,22 +166,26 @@ Gets bus types (PQ, PV, ref, isolated) for each timestep from the optimal dispat
 and assigns it to `args["output_data"]["Protection settings"]["bus_types"]`
 """
 function get_timestep_bus_types!(args::Dict{String,<:Any})::Vector{Dict{String,String}}
-    args["output_data"]["Protection settings"]["bus_types"] = get_timestep_bus_types(get(get(args, "optimal_dispatch_result", Dict{String,Any}()), "solution", Dict{String,Any}()))
+    args["output_data"]["Protection settings"]["bus_types"] = get_timestep_bus_types(get(get(args, "optimal_dispatch_result", Dict{String,Any}()), "solution", Dict{String,Any}()), get(args, "network", Dict{String,Any}()))
 end
 
 
 """
-    get_timestep_bus_types(optimal_dispatch_solution::Dict{String,<:Any})::Vector{Dict{String,String}}
+get_timestep_bus_types(optimal_dispatch_solution::Dict{String,<:Any}, network::Dict{String,<:Any})::Vector{Dict{String,String}}
 
 Gets bus types (PQ, PV, ref, isolated) for each timestep from the optimal dispatch solution
 """
-function get_timestep_bus_types(optimal_dispatch_solution::Dict{String,<:Any})::Vector{Dict{String,String}}
+function get_timestep_bus_types(optimal_dispatch_solution::Dict{String,<:Any}, network::Dict{String,<:Any})::Vector{Dict{String,String}}
     timesteps = Dict{String,String}[]
 
     for n in sort(parse.(Int, collect(keys(get(optimal_dispatch_solution, "nw", Dict())))))
+        vsource_buses = [vs["bus"] for (_,vs) in get(network["nw"]["$n"], "voltage_source", Dict()) if vs["status"] == PMD.ENABLED]
         timestep = Dict{String,String}()
         for (id,bus) in get(optimal_dispatch_solution["nw"]["$n"], "bus", Dict())
             timestep[id] = Dict{Int,String}(1=>"pq",2=>"pv",3=>"ref",4=>"isolated")[get(bus, "bus_type", 1)]
+            if id in vsource_buses
+                timestep[id] = "ref"
+            end
         end
         push!(timesteps, timestep)
     end
