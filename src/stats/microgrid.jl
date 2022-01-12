@@ -25,7 +25,7 @@ Currently, because microgrids are not explicitly defined yet (see 'settings' fil
 `"Bonus load via microgrid (%)"` only indicates how much charging is being performed on Storage.
 """
 function get_timestep_load_served(dispatch_solution::Dict{String,<:Any}, network::Dict{String,<:Any}, switching_solution::Union{Missing,Dict{String,<:Any}}=missing)
-    load_served = Dict{String,Vector{Real}}(
+    loads_served = Dict{String,Vector{Real}}(
         "Feeder load (%)" => Real[],
         "Microgrid load (%)" => Real[],
         "Bonus load via microgrid (%)" => Real[],
@@ -39,199 +39,137 @@ function get_timestep_load_served(dispatch_solution::Dict{String,<:Any}, network
     mn_eng = _prepare_dispatch_data(network, switching_solution)
 
     for n in sort([parse(Int, i) for i in keys(get(dispatch_solution, "nw", Dict()))])
-        bus2mid = Dict{String,String}(id => bus["microgrid_id"] for (id,bus) in get(network["nw"]["$n"], "bus", Dict()) if haskey(bus, "microgrid_id"))
-        load2bus = Dict{String,String}(id => load["bus"] for (id,load) in get(network["nw"]["$n"], "load", Dict()))
-        load2mid = Dict{String,String}(lid => bus2mid[bus] for (lid,bus) in load2bus if bus in keys(bus2mid))
-        mid2loads = Dict{String,Set{String}}(mid => Set{String}([]) for mid in values(bus2mid))
-        for (lid,mid) in load2mid
-            push!(mid2loads[mid], lid)
-        end
-        n_loads = length(get(network["nw"]["$n"], "load", Dict()))
-        n_microgrid_loads = length(load2mid)
-        n_bonus_loads = n_loads - n_microgrid_loads
-        if !isempty(load2mid)
-            blocks = PMD.identify_blocks(mn_eng["nw"]["$n"])
-            block_loads = Dict{Set,Set}(block=>Set{String}() for block in blocks)
-            for (id,load) in get(mn_eng["nw"]["$n"], "load", Dict())
-                for block in blocks
-                    if load["bus"] in block
-                        push!(block_loads[block], id)
-                        break
-                    end
-                end
-            end
-            block_mg_ids = Dict{Set,Set{String}}(block => Set{String}([]) for block in blocks)
-            for (bid,mid) in bus2mid
-                for block in blocks
-                    if bid in block
-                        push!(block_mg_ids[block], mid)
-                        break
-                    end
-                end
-            end
-            block_has_mg = Dict{Set,Bool}(block => !isempty(block_mg_ids[block]) for block in blocks)
-            block_gens = Dict{Set,Dict{String,Set{String}}}(block => Dict{String,Set{String}}() for block in blocks)
-            for block in blocks
-                for type in ["voltage_source", "generator", "solar", "storage"]
-                    for (id,obj) in get(mn_eng["nw"]["$n"], type, Dict())
-                        if obj["bus"] in block
-                            if !haskey(block_gens[block], type)
-                                block_gens[block][type] = Set{String}([])
-                            end
-                            push!(block_gens[block][type], id)
-                        end
-                    end
-                end
-            end
-
-            mg_served_load = 0.0
-            mg_bonus_load = 0.0
-            feeder_served_load = 0.0
-
-            mg_served_customers = 0.0
-            mg_bonus_customers = 0.0
-            feeder_served_customers = 0.0
-            total_served_customers = 0.0
-            total_served_load = 0.0
-
-            total_load = sum(sum(Float64[pd for pd in load["pd_nom"] if pd > 0]) for (_,load) in get(network["nw"]["$n"], "load", Dict()))
-            microgrid_load = sum(Float64[sum(Float64[pd for pd in load["pd_nom"] if pd > 0]) for (_,load) in get(network["nw"]["$n"], "load", Dict()) if !isempty(get(network["nw"]["$n"]["bus"][load["bus"]], "microgrid_id", ""))])
-            bonus_load = total_load - microgrid_load
-
-            for block in blocks
-                if "voltage_source" in keys(block_gens[block]) && !isempty(get(dispatch_solution["nw"]["$n"], "voltage_source", Dict()))
-                    if block_has_mg[block]
-                        vs_serves = 0.0
-                        der_serves = 0.0
-                        for (type,ids) in block_gens[block]
-                            if type == "voltage_source"
-                                for id in ids
-                                    vsource = mn_eng["nw"]["$n"][type][id]
-                                    vs_serves += sum(get(get(dispatch_solution["nw"]["$n"][type], id, Dict()), "pg", fill(0.0, length(vsource["connections"]))))
-                                end
-                            elseif type == "generator" || type == "solar"
-                                for id in ids
-                                    der = mn_eng["nw"]["$n"][type][id]
-                                    der_serves += sum(get(get(dispatch_solution["nw"]["$n"][type], id, Dict()), "pg", fill(0.0, length(der["connections"]))))
-                                end
-                            elseif type == "storage"
-                                for id in ids
-                                    der = mn_eng["nw"]["$n"][type][id]
-                                    ps = get(get(dispatch_solution["nw"]["$n"][type], id, Dict()), "ps", fill(0.0, length(der["connections"])))
-                                    ps[ps.>0] .= 0.0
-                                    der_serves += sum(ps)
+        graph = Graphs.SimpleGraph(length(get(network["nw"]["$n"], "bus", Dict())))
+        bus2node = Dict(id => i for (i,(id,bus)) in enumerate(get(network["nw"]["$n"], "bus", Dict())))
+        for edge_type in PMD._eng_edge_elements
+            for (id,obj) in get(network["nw"]["$n"], edge_type, Dict())
+                if mn_eng["nw"]["$n"][edge_type][id]["status"] == PMD.ENABLED
+                    if (edge_type == "switch" && mn_eng["nw"]["$n"][edge_type][id]["state"] == PMD.CLOSED) || edge_type != "switch"
+                        if edge_type == "transformer" && !haskey(obj, "f_bus")
+                            for f_bus in obj["bus"]
+                                for t_bus in obj["bus"]
+                                    if f_bus != t_bus
+                                        Graphs.add_edge!(graph, bus2node[f_bus], bus2node[t_bus])
+                                    end
                                 end
                             end
-                        end
-
-                        if vs_serves >= 0
-                            der_vs_ratio = der_serves / vs_serves
                         else
-                            der_vs_ratio = 1.0
+                            Graphs.add_edge!(graph, bus2node[obj["f_bus"]], bus2node[obj["t_bus"]])
                         end
+                    end
+                end
+            end
+        end
+        substation_nodes = Set{Int}([bus2node[vs["bus"]] for (_,vs) in get(network["nw"]["$n"], "voltage_source", Dict())])
+        der_nodes = Set{Int}([bus2node[obj["bus"]] for gen_type in ["solar", "storage", "generator"] for (_,obj) in get(network["nw"]["$n"], gen_type, Dict())])
 
-                        for lid in block_loads[block]
-                            load = network["nw"]["$(n)"]["load"][lid]
-                            if all(load["pd_nom"] .== 0) && all(load["pd_nom"] .== 0)
-                                n_loads -= 1
-                                if any(lid in mid2loads[mid] for mid in block_mg_ids[block])
-                                    n_microgrid_loads -= 1
-                                end
-                                continue
-                            end
+        node2der = Dict{Int,Vector{Tuple{String,String}}}(node => Tuple{String,String}[] for node in der_nodes)
+        for gen_type in ["solar", "storage", "generator"]
+            for (id,obj) in get(network["nw"]["$n"], gen_type, Dict())
+                push!(node2der[bus2node[obj["bus"]]], (gen_type, id))
+            end
+        end
 
-                            nom_pd = load["pd_nom"]
-                            act_pd = get(get(get(dispatch_solution["nw"]["$n"], "load", Dict()), lid, Dict()), "pd", fill(0.0, length(load["connections"])))
+        node2substation = Dict{Int,Vector{Tuple{String,String}}}(node => Tuple{String,String}[] for node in substation_nodes)
+        for (id,obj) in get(network["nw"]["$n"], "voltage_source", Dict())
+            push!(node2substation[bus2node[obj["bus"]]], ("voltage_source", id))
+        end
 
-                            feeder_served_customers += sum(act_pd ./ nom_pd) / length(nom_pd) / n_loads * (1-der_vs_ratio)
-                            feeder_served_load += sum(Float64[pd for pd in act_pd if pd > 0]) / bonus_load * (1-der_vs_ratio)
-                            if any(lid in mid2loads[mid] for mid in block_mg_ids[block])
-                                mg_served_customers += sum(act_pd ./ nom_pd) / length(nom_pd) / n_microgrid_loads
-                                mg_served_load += sum(Float64[pd for pd in act_pd if pd > 0]) / microgrid_load
-                            else
-                                mg_bonus_customers += sum(act_pd ./ nom_pd) / length(nom_pd) / n_bonus_loads * der_vs_ratio
-                                mg_bonus_load += sum(Float64[pd for pd in act_pd if pd > 0]) / bonus_load * der_vs_ratio
-                            end
-                            total_served_customers += sum(act_pd ./ nom_pd) / length(nom_pd) / n_loads
-                            total_served_load += sum(Float64[pd for pd in act_pd if pd > 0]) / total_load
-                        end
+        microgrids = Set([bus["microgrid_id"] for (id,bus) in get(network["nw"]["$n"], "bus", Dict()) if haskey(bus, "microgrid_id") && !isempty(bus["microgrid_id"])])
+        microgrid_buses = Dict(mg => Set() for mg in microgrids)
+        for (id,bus) in get(network["nw"]["$n"], "bus", Dict())
+            !isempty(get(bus, "microgrid_id", "")) && push!(microgrid_buses[bus["microgrid_id"]], id)
+        end
+        microgrid_loads = Dict(mg => Set() for mg in microgrids)
+        for (id,load) in get(network["nw"]["$n"], "load", Dict())
+            for (mg,mg_buses) in microgrid_buses
+                if load["bus"] ∈ mg_buses
+                    push!(microgrid_loads[mg], id)
+                    break
+                end
+            end
+        end
+        load2mg = Dict(load_id => mg_id for (mg_id, mg_loads) in microgrid_loads for load_id in mg_loads)
+
+        mg_load_served = 0.0
+        mg_cust_served = 0
+        mg_bonus_load_served = 0.0
+        mg_bonus_cust_served = 0
+        feeder_load_served = 0.0
+        feeder_cust_served = 0
+        total_load_served = 0.0
+        total_cust_served = 0
+
+        mg_ncustomers = sum(Int64[length(mg_loads) for (mg,mg_loads) in microgrid_loads])
+        total_mg_load = sum(Float64[sum(abs.(load["pd_nom"])) for (id,load) in get(network["nw"]["$n"], "load", Dict()) if id ∈ keys(load2mg) && load["status"] == PMD.ENABLED])
+
+        mg_bonus_ncustomers = length(get(network["nw"]["$n"], "load", Dict())) - mg_ncustomers
+        total_mg_bonus_load = sum(Float64[sum(abs.(load["pd_nom"])) for (id,load) in get(network["nw"]["$n"], "load", Dict()) if id ∉ keys(load2mg) && load["status"] == PMD.ENABLED])
+
+        feeder_ncustomers = mg_bonus_ncustomers
+        total_feeder_load = total_mg_bonus_load
+
+        ncustomers = length(filter(x->x.second["status"]==PMD.ENABLED,get(network["nw"]["$n"], "load", Dict())))
+        total_load = sum(Float64[sum(abs.(load["pd_nom"])) for (id,load) in get(network["nw"]["$n"], "load", Dict()) if load["status"] == PMD.ENABLED])
+
+        sol_loads = get(dispatch_solution["nw"]["$n"], "load", Dict())
+        for (id, load) in get(network["nw"]["$n"], "load", Dict())
+            if mn_eng["nw"]["$n"]["load"][id]["status"] == PMD.ENABLED
+                if haskey(sol_loads, id) && haskey(sol_loads[id], "pd_bus")
+                    load_served = sum(abs.(sol_loads[id]["pd_bus"]))
+                    cust_served = all(abs.(sol_loads[id]["pd_bus"] ./ load["pd_nom"]) .>= 1.0-1e-4) ? 1 : 0
+
+                    total_load_served += load_served
+                    total_cust_served += cust_served
+                    if id ∈ keys(load2mg)
+                        mg_load_served += load_served
+                        mg_cust_served += cust_served
                     else
-                        for lid in block_loads[block]
-                            load = mn_eng["nw"]["$(n)"]["load"][lid]
-                            if all(load["pd_nom"] .== 0) && all(load["pd_nom"] .== 0)
-                                n_loads -= 1
-                                if any(lid in mid2loads[mid] for mid in block_mg_ids[block])
-                                    n_microgrid_loads -= 1
+                        _total_feeder_gen = 0
+                        _total_mg_gen = 0
+                        for (sub_node, subs) in node2substation
+                            for (gen_type, id) in subs
+                                if Graphs.has_path(graph, bus2node[load["bus"]], sub_node)
+                                    _total_feeder_gen += sum(get(get(get(dispatch_solution["nw"]["$n"], "voltage_source", Dict()), id, Dict()), "pg", 0.0))
                                 end
-                                continue
                             end
-
-                            nom_pd = load["pd_nom"]
-                            act_pd = get(get(get(dispatch_solution["nw"]["$n"], "load", Dict()), lid, Dict()), "pd", fill(0.0, length(load["connections"])))
-
-                            feeder_served_customers += sum(act_pd ./ nom_pd) / length(nom_pd) / (n_loads-n_microgrid_loads)
-                            feeder_served_load += sum(Float64[pd for pd in act_pd if pd > 0]) / bonus_load
-                            total_served_customers += sum(act_pd ./ nom_pd) / length(nom_pd) / n_loads
-                            total_served_load += sum(Float64[pd for pd in act_pd if pd > 0]) / total_load
                         end
-                    end
-                elseif block_has_mg[block]
-                    for lid in block_loads[block]
-                        load = mn_eng["nw"]["$(n)"]["load"][lid]
-                        if all(load["pd_nom"] .== 0) && all(load["pd_nom"] .== 0)
-                            n_loads -= 1
-                            if any(lid in mid2loads[mid] for mid in block_mg_ids[block])
-                                n_microgrid_loads -= 1
+
+                        for (der_node, ders) in node2der
+                            for (gen_type, id) in ders
+                                if Graphs.has_path(graph, bus2node[load["bus"]], der_node)
+                                    _total_mg_gen += sum(get(get(get(dispatch_solution["nw"]["$n"], gen_type, Dict()), id, Dict()), gen_type == "storage" ? "ps" : "pg", 0.0) .* (gen_type == "storage" ? -1 : 1))
+                                end
                             end
-                            continue
                         end
 
-                        nom_pd = load["pd_nom"]
-                        act_pd = get(get(get(dispatch_solution["nw"]["$n"], "load", Dict()), lid, Dict()), "pd", fill(0.0, length(load["connections"])))
+                        _mg_feeder_ratio = _total_feeder_gen <= 0.0 ? 1.0 : _total_mg_gen <= 0.0 ? 0.0 : (_total_feeder_gen + _total_mg_gen) == 0 ? 0.0 : _total_mg_gen / (_total_feeder_gen + _total_mg_gen)
+                        _feeder_mg_ratio = _mg_feeder_ratio == 0.0 ? 1.0 : _total_feeder_gen / (_total_feeder_gen + _total_mg_gen)
 
-                        if any(lid in mid2loads[mid] for mid in block_mg_ids[block])
-                            mg_served_customers += sum(act_pd ./ nom_pd) / length(nom_pd) / n_microgrid_loads
-                            mg_served_load += sum(Float64[pd for pd in act_pd if pd > 0]) / microgrid_load
-                        else
-                            mg_bonus_customers += sum(act_pd ./ nom_pd) / length(nom_pd) / n_bonus_loads
-                            mg_bonus_load += sum(Float64[pd for pd in act_pd if pd > 0]) / bonus_load
-                        end
-                        total_served_customers += sum(act_pd ./ nom_pd) / length(nom_pd) / n_loads
-                        total_served_load += sum(Float64[pd for pd in act_pd if pd > 0]) / total_load
+                        mg_bonus_load_served += load_served * _mg_feeder_ratio
+                        mg_bonus_cust_served += cust_served * _mg_feeder_ratio
+
+                        feeder_load_served += load_served * _feeder_mg_ratio
+                        feeder_cust_served += cust_served * _feeder_mg_ratio
                     end
                 end
             end
-            push!(load_served["Feeder customers (%)"], feeder_served_customers*100.0)
-            push!(load_served["Feeder load (%)"], feeder_served_load*100.0)
-
-            push!(load_served["Microgrid customers (%)"], mg_served_customers*100.0)
-            push!(load_served["Microgrid load (%)"], mg_served_load*100.0)
-
-            push!(load_served["Bonus customers via microgrid (%)"], mg_bonus_customers*100.0)
-            push!(load_served["Bonus load via microgrid (%)"], mg_bonus_load*100.0)
-
-            push!(load_served["Total customers (%)"], total_served_customers*100.0)
-            push!(load_served["Total load (%)"], total_served_load*100.0)
-        else
-            # No Microgrid information present
-            original_load = sum([sum(load["pd_nom"]) for (_,load) in mn_eng["nw"]["$n"]["load"]])
-
-            feeder_served_customers = !isempty(get(dispatch_solution["nw"]["$n"], "voltage_source", Dict())) ? sum(Float64[sum(vs["pg"]) for (_,vs) in get(dispatch_solution["nw"]["$n"], "voltage_source", Dict())]) : 0.0
-            der_non_storage_served_load = !isempty(get(dispatch_solution["nw"]["$n"], "generator", Dict())) || !isempty(get(dispatch_solution["nw"]["$n"], "solar", Dict())) ? sum([sum(g["pg"]) for type in ["solar", "generator"] for (_,g) in get(dispatch_solution["nw"]["$n"], type, Dict())]) : 0.0
-            der_storage_served_load = !isempty(get(dispatch_solution["nw"]["$n"], "storage", Dict())) ? sum([-sum(s["ps"]) for (_,s) in get(dispatch_solution["nw"]["$n"], "storage", Dict())]) : 0.0
-
-            # TODO once microgrids support tagging, redo load served statistics
-            microgrid_served_load = (der_non_storage_served_load + der_storage_served_load) / original_load * 100
-            _bonus_load = (microgrid_served_load - 100)
-
-            push!(load_served["Feeder load (%)"], feeder_served_customers / original_load * 100)  # CHECK
-            push!(load_served["Microgrid load (%)"], microgrid_served_load)  # CHECK
-            push!(load_served["Bonus load via microgrid (%)"], _bonus_load > 0 ? _bonus_load : 0.0)  # CHECK
-            push!(load_served["Total load (%)"], (feeder_served_customers / original_load + microgrid_served_load + (_bonus_load > 0 ? _bonus_load : 0.0))*100.0)
         end
+
+        push!(loads_served["Feeder customers (%)"], feeder_ncustomers > 0 ? feeder_cust_served/feeder_ncustomers*100.0 : 0.0)
+        push!(loads_served["Feeder load (%)"], total_feeder_load > 0 ? feeder_load_served/total_feeder_load*100.0 : 0.0)
+
+        push!(loads_served["Microgrid customers (%)"], mg_ncustomers > 0 ? mg_cust_served/mg_ncustomers*100.0 : 0.0)
+        push!(loads_served["Microgrid load (%)"], total_mg_load > 0 ? mg_load_served/total_mg_load*100.0 : 0.0)
+
+        push!(loads_served["Bonus customers via microgrid (%)"], mg_bonus_ncustomers > 0 ? mg_bonus_cust_served/mg_bonus_ncustomers*100.0 : 0.0)
+        push!(loads_served["Bonus load via microgrid (%)"], total_mg_bonus_load > 0 ? mg_bonus_load_served/total_mg_bonus_load*100.0 : 0.0)
+
+        push!(loads_served["Total customers (%)"], ncustomers > 0 ? total_cust_served/ncustomers*100.0 : 0.0)
+        push!(loads_served["Total load (%)"], total_load > 0 ? total_load_served/total_load*100.0 : 0.0)
     end
 
-    return load_served
+    return loads_served
 end
 
 
