@@ -38,7 +38,7 @@ function _convert_depreciated_runtime_args!(runtime_args::Dict{String,<:Any}, se
 
     for k in ["disable-switch-penalty", "apply-switch-scores", "disable-radial-constraint", "disable-isolation-constraint", "max-switch-actions"]
         if haskey(runtime_args, k)
-            settings[replace(k, "-"=>"_")] = runtime_args[k]
+            settings[replace(k, "-"=>"_")] = pop!(runtime_args, k)
         end
     end
 
@@ -101,7 +101,7 @@ function apply_settings(network::Dict{String,<:Any}, settings::Dict{String,<:Any
             PMD.set_time_elapsed!(mn_data, setting)
         elseif s == "max_switch_actions"
             for n in sort([parse(Int, i) for i in keys(mn_data["nw"])])
-                mn_data["nw"]["$n"][s] = setting[n]
+                mn_data["nw"]["$n"][s] = isa(setting, Vector) ? setting[n] : setting
             end
         elseif s ∈ ["disable_networking", "disable_switch_penalty", "apply_switch_scores", "disable_radial_constraint", "disable_isolation_constraint"]
             for (_,nw) in mn_data["nw"]
