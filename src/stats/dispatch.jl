@@ -127,9 +127,12 @@ function get_timestep_dispatch(solution::Dict{String,<:Any}, network::Dict{Strin
             _dispatch["switch"][id] = Dict{String,Any}(
                 "real power flow (kW)" => get(switch, "pf", zeros(length(connections))),
                 "reactive power flow (kVar)" => get(switch, "qf", zeros(length(connections))),
-                "voltage (V)" => haskey(bus, "vr") && haskey(bus, "vi") ? sqrt.(bus["vr"].^2 + bus["vi"].^2)[[findfirst(isequal(c), terminals) for c in connections]] : haskey(bus, "w") ? sqrt.(bus["w"])[[findfirst(isequal(c), terminals) for c in connections]] : haskey(bus, "vm") ? bus["vm"][[findfirst(isequal(c), terminals) for c in connections]] : zeros(length(terminals)),
+                "voltage (V)" => haskey(bus, "vr") && haskey(bus, "vi") ? sqrt.(bus["vr"].^2 + bus["vi"].^2)[[findfirst(isequal(c), terminals) for c in connections]] : haskey(bus, "w") ? sqrt.(bus["w"])[[findfirst(isequal(c), terminals) for c in connections]] : haskey(bus, "vm") ? bus["vm"][[findfirst(isequal(c), terminals) for c in connections]] : zeros(length(terminals)),  # TODO: wrong units, actually kV
                 "connections" => connections,
             )
+            current = _dispatch["switch"][id]["real power flow (kW)"] ./ _dispatch["switch"][id]["voltage (V)"]
+            current[isnan.(current)] .= 0.0
+            _dispatch["switch"][id]["current (A)"] = current
         end
 
         push!(dispatch, _dispatch)
