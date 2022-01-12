@@ -57,7 +57,7 @@ end
 
 
 @doc raw"""
-    constraint_block_isolation(pm::PMD.LPUBFDiagModel, nw::Int; relax::Bool=false)
+    constraint_block_isolation(pm::AbstractSwitchModels, nw::Int; relax::Bool=false)
 
 constraint to ensure that blocks get properly isolated by open switches by comparing the states of
 two neighboring blocks. If the neighboring block indicators are not either both 0 or both 1, the switch
@@ -131,9 +131,15 @@ function constraint_radial_topology(pm::AbstractSwitchModels, nw::Int; relax::Bo
         var(pm, nw, :lambda)[(j,i)] = relax ? JuMP.@variable(pm.model, base_name="$(nw)_lambda_$((j,i))", lower_bound=0, upper_bound=1) : JuMP.@variable(pm.model, base_name="$(nw)_lambda_$((j,i))", binary=true)
         var(pm, nw, :beta)[(i,j)] = relax ? JuMP.@variable(pm.model, base_name="$(nw)_beta_$((i,j))", lower_bound=0, upper_bound=1) : JuMP.@variable(pm.model, base_name="$(nw)_beta_$((i,j))", binary=true)
     end
-    for (s,sw) in ref(pm, nw, :switch)
+
+    for (s,sw) in get(PMD.ismultinetwork(pm.data) ? pm.data["nw"]["$(nw)"] : pm.data, "switch", Dict())
         (i,j) = (ref(pm, nw, :bus_block_map, sw["f_bus"]), ref(pm, nw, :bus_block_map, sw["t_bus"]))
-        var(pm, nw, :alpha)[(i,j)] = var(pm, nw, :alpha)[(j,i)] = var(pm, nw, :switch_state, s)
+
+        if sw[PMD.pmd_math_component_status["switch"]] != PMD.pmd_math_component_status_inactive["switch"]
+            var(pm, nw, :alpha)[(i,j)] = var(pm, nw, :alpha)[(j,i)] = var(pm, nw, :switch_state, parse(Int,s))
+        else
+            var(pm, nw, :alpha)[(i,j)] = var(pm, nw, :alpha)[(j,i)] = 0
+        end
     end
 
     f = var(pm, nw, :f)
@@ -141,7 +147,9 @@ function constraint_radial_topology(pm::AbstractSwitchModels, nw::Int; relax::Bo
     β = var(pm, nw, :beta)
     α = var(pm, nw, :alpha)
 
+    # Eq. (1) -> Eqs. (3-8)
     for k in filter(kk->kk∉ir,N)
+        # Eq. (3)
         bp_to = filter(((j,i),)->i∈ir&&i!=j,L)
         bp_fr = filter(((i,j),)->i∈ir&&i!=j,L)
         if !(isempty(bp_fr) && isempty(bp_to))
@@ -154,6 +162,7 @@ function constraint_radial_topology(pm::AbstractSwitchModels, nw::Int; relax::Bo
             )
         end
 
+        # Eq. (4)
         bp_to = filter(((j,i),)->i==k&&i!=j,L)
         bp_fr = filter(((i,j),)->i==k&&i!=j,L)
         if !(isempty(bp_fr) && isempty(bp_to))
@@ -166,6 +175,7 @@ function constraint_radial_topology(pm::AbstractSwitchModels, nw::Int; relax::Bo
             )
         end
 
+        # Eq. (5)
         for i in filter(kk->kk∉ir&&kk!=k,N)
             bp_to = filter(((j,ii),)->ii==i&&ii!=j,L)
             bp_fr = filter(((ii,j),)->ii==i&&ii!=j,L)
@@ -180,6 +190,7 @@ function constraint_radial_topology(pm::AbstractSwitchModels, nw::Int; relax::Bo
             end
         end
 
+        # Eq. (6)
         for (i,j) in L
             JuMP.@constraint(pm.model, f[(k,i,j)] >= 0)
             JuMP.@constraint(pm.model, f[(k,i,j)] <= λ[(i,j)])
@@ -188,10 +199,14 @@ function constraint_radial_topology(pm::AbstractSwitchModels, nw::Int; relax::Bo
         end
     end
 
+    # Eq. (7)
     JuMP.@constraint(pm.model, sum((λ[(i,j)] + λ[(j,i)]) for (i,j) in L) == length(N) - 1)
 
     for (i,j) in L
+        # Eq. (8)
         JuMP.@constraint(pm.model, λ[(i,j)] + λ[(j,i)] == β[(i,j)])
+
+        # Eq. (2)
         JuMP.@constraint(pm.model, α[(i,j)] <= β[(i,j)])
     end
 end

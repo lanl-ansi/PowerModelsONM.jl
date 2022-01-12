@@ -1,6 +1,6 @@
 "Ref extension to add load blocks to ref"
 function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
-    ref[:blocks] = Dict{Int,Set}(i => block for (i,block) in enumerate(PMD.identify_load_blocks(data)))
+    ref[:blocks] = Dict{Int,Set}(i => block for (i,block) in enumerate(PMD.calc_connected_components(data; type="load_blocks", check_enabled=false)))
     ref[:bus_block_map] = Dict{Int,Int}(bus => b for (b,block) in ref[:blocks] for bus in block)
     ref[:block_loads] = Dict{Int,Set}(i => Set{Int}() for (i,_) in ref[:blocks])
     ref[:block_weights] = Dict{Int,Real}(i => 1.0 for (i,_) in ref[:blocks])
@@ -68,7 +68,7 @@ function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any}
         Set([(ref[:bus_block_map][sw["f_bus"]],ref[:bus_block_map][sw["t_bus"]]) for (_,sw) in switches])
     ))
 
-    if data["disable_networking"]
+    if get(data, "disable_networking", false)
         ref[:substation_blocks] = union(Set(ref[:substation_blocks]), Set(ref[:microgrid_blocks]))
     end
 
