@@ -1,5 +1,7 @@
 abstract type AbstractUnbalancedActivePowerSwitchModel <: PMD.AbstractUnbalancedActivePowerModel end
 
+abstract type AbstractUnbalancedNFASwitchModel <: PMD.AbstractUnbalancedNFAModel end
+
 abstract type LPUBFSwitchModel <: PMD.LPUBFDiagModel end
 
 abstract type SOCUBFSwitchModel <: PMD.SOCNLPUBFModel end
@@ -8,7 +10,7 @@ abstract type AbstractUnbalancedACPSwitchModel <: PMD.AbstractUnbalancedACPModel
 
 abstract type AbstractUnbalancedACRSwitchModel <: PMD.AbstractUnbalancedACRModel end
 
-mutable struct NFAUSwitchPowerModel <: AbstractUnbalancedActivePowerSwitchModel PMD.@pmd_fields end
+mutable struct NFAUSwitchPowerModel <: AbstractUnbalancedNFASwitchModel PMD.@pmd_fields end
 
 mutable struct LPUBFSwitchPowerModel <: LPUBFSwitchModel PMD.@pmd_fields end
 
@@ -18,9 +20,9 @@ mutable struct ACPUSwitchPowerModel <: AbstractUnbalancedACPSwitchModel PMD.@pmd
 
 mutable struct ACRUSwitchPowerModel <: AbstractUnbalancedACRSwitchModel PMD.@pmd_fields end
 
-AbstractSwitchModels = Union{AbstractUnbalancedActivePowerSwitchModel, LPUBFSwitchModel, SOCUBFSwitchModel, AbstractUnbalancedACPSwitchModel, AbstractUnbalancedACRSwitchModel}
+const AbstractSwitchModels = Union{AbstractUnbalancedActivePowerSwitchModel, LPUBFSwitchModel, SOCUBFSwitchModel, AbstractUnbalancedACPSwitchModel, AbstractUnbalancedACRSwitchModel, AbstractUnbalancedNFASwitchModel}
 
-AbstractUBFSwitchModels = Union{LPUBFSwitchModel, SOCUBFSwitchModel}
+const AbstractUBFSwitchModels = Union{LPUBFSwitchModel, SOCUBFSwitchModel}
 
 "string to PowerModelsDistribution type conversion for opt-disp-formulation"
 const _dispatch_formulations = Dict{String,Any}(
