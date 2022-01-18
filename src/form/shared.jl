@@ -157,11 +157,11 @@ end
 
 
 """
-    constraint_storage_complementarity_mi_on_off(pm::LPUBFSwitchModel, n::Int, i::Int, charge_ub::Float64, discharge_ub::Float64)
+    constraint_storage_complementarity_mi_on_off(pm::AbstractLPSwitchModels, n::Int, i::Int, charge_ub::Float64, discharge_ub::Float64)
 
 sc_on + sd_on == z_block
 """
-function constraint_storage_complementarity_mi_on_off(pm::LPUBFSwitchModel, n::Int, i::Int, charge_ub::Float64, discharge_ub::Float64)
+function constraint_storage_complementarity_mi_on_off(pm::AbstractLPSwitchModels, n::Int, i::Int, charge_ub::Float64, discharge_ub::Float64)
     sc = var(pm, n, :sc, i)
     sd = var(pm, n, :sd, i)
     sc_on = var(pm, n, :sc_on, i)
@@ -176,11 +176,11 @@ end
 
 
 """
-    constraint_storage_complementarity_mi_on_off(pm::AbstractSwitchModels, n::Int, i::Int, charge_ub::Float64, discharge_ub::Float64)
+    constraint_storage_complementarity_mi_on_off(pm::AbstractNLPSwitchModels, n::Int, i::Int, charge_ub::Float64, discharge_ub::Float64)
 
 sc_on * sd_on == z_block
 """
-function constraint_storage_complementarity_mi_on_off(pm::AbstractSwitchModels, n::Int, i::Int, charge_ub::Float64, discharge_ub::Float64)
+function constraint_storage_complementarity_mi_on_off(pm::AbstractNLPSwitchModels, n::Int, i::Int, charge_ub::Float64, discharge_ub::Float64)
     sc = var(pm, n, :sc, i)
     sd = var(pm, n, :sd, i)
     sc_on = var(pm, n, :sc_on, i)

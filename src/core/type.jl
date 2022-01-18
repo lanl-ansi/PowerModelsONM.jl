@@ -51,3 +51,9 @@ const _switch_formulations = Dict{String,Any}(
 "helper function to convert from opt-switch-formulation string to PowerModelsONM Type"
 _get_switch_formulation(form_string::String) = _switch_formulations[form_string]
 _get_switch_formulation(form::Type) = form
+
+const AbstractNFAModels = Union{PMD.AbstractUnbalancedNFAModel, AbstractUnbalancedNFASwitchModel}
+
+const AbstractNLPSwitchModels = Union{AbstractUnbalancedACPSwitchModel, AbstractUnbalancedACRSwitchModel}
+
+const AbstractLPSwitchModels = Union{AbstractUnbalancedNFASwitchModel, LPUBFSwitchModel}

@@ -43,18 +43,13 @@ function PowerModelsDistribution.constraint_mc_switch_power_on_off(pm::AbstractU
 end
 
 
+"do nothing, no voltage or reactive power variables"
+function PowerModelsDistribution.variable_mc_capcontrol(pm::AbstractNFAModels; nw::Int=nw_id_default, relax::Bool=false, report::Bool=true)
+end
+
+
 "do nothing, no voltage variables"
 function PowerModelsDistribution.variable_mc_bus_voltage_on_off(pm::AbstractUnbalancedNFASwitchModel; nw::Int=nw_id_default)
-end
-
-
-"do nothing, no voltage or reactive power variables"
-function PowerModelsDistribution.variable_mc_capcontrol(pm::AbstractUnbalancedNFASwitchModel; nw::Int=nw_id_default, relax::Bool=false)
-end
-
-
-"do nothing, no voltage variables"
-function PowerModelsDistribution.constraint_mc_theta_ref(pm::AbstractUnbalancedNFASwitchModel, n::Int, i::Int, va_ref::Vector{<:Real})
 end
 
 
@@ -163,21 +158,6 @@ function constraint_mc_storage_losses_on_off(pm::AbstractUnbalancedNFASwitchMode
     sd = var(pm, nw, :sd, i)
 
     JuMP.@constraint(pm.model, sum(ps[c] for c in conductors) + (sd - sc) == 0.0)
-end
-
-
-"nothing to do, these models do not have angle difference constraints"
-function PowerModelsDistribution.constraint_mc_voltage_angle_difference(pm::AbstractUnbalancedNFASwitchModel, nw::Int, f_idx::Tuple{Int,Int,Int}, f_connections::Vector{Int}, t_connections::Vector{Int}, angmin::Vector{<:Real}, angmax::Vector{<:Real})
-end
-
-
-"nothing to do, no voltage angle variables"
-function PowerModelsDistribution.constraint_mc_ohms_yt_from(pm::AbstractUnbalancedNFASwitchModel, nw::Int, f_bus::Int, t_bus::Int, f_idx::Tuple{Int,Int,Int}, t_idx::Tuple{Int,Int,Int}, f_connections::Vector{Int}, t_connections::Vector{Int}, G::Matrix{<:Real}, B::Matrix{<:Real}, G_fr::Matrix{<:Real}, B_fr::Matrix{<:Real})
-end
-
-
-"nothing to do, this model is symmetric"
-function PowerModelsDistribution.constraint_mc_ohms_yt_to(pm::AbstractUnbalancedNFASwitchModel, nw::Int, f_bus::Int, t_bus::Int, f_idx::Tuple{Int,Int,Int}, t_idx::Tuple{Int,Int,Int}, f_connections::Vector{Int}, t_connections::Vector{Int}, G::Matrix{<:Real}, B::Matrix{<:Real}, G_fr::Matrix{<:Real}, B_fr::Matrix{<:Real})
 end
 
 
