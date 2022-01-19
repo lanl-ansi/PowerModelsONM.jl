@@ -43,11 +43,6 @@ function PowerModelsDistribution.constraint_mc_switch_power_on_off(pm::AbstractU
 end
 
 
-"do nothing, no voltage or reactive power variables"
-function PowerModelsDistribution.variable_mc_capcontrol(pm::AbstractNFAModels; nw::Int=nw_id_default, relax::Bool=false, report::Bool=true)
-end
-
-
 "do nothing, no voltage variables"
 function PowerModelsDistribution.variable_mc_bus_voltage_on_off(pm::AbstractUnbalancedNFASwitchModel; nw::Int=nw_id_default)
 end
