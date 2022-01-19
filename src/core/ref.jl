@@ -2,6 +2,7 @@
 function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
     ref[:blocks] = Dict{Int,Set}(i => block for (i,block) in enumerate(PMD.calc_connected_components(data; type="load_blocks", check_enabled=false)))
     ref[:bus_block_map] = Dict{Int,Int}(bus => b for (b,block) in ref[:blocks] for bus in block)
+    ref[:block_branches] = Dict{Int,Set}(b => Set{Int}() for (b,_) in ref[:blocks])
     ref[:block_loads] = Dict{Int,Set}(i => Set{Int}() for (i,_) in ref[:blocks])
     ref[:block_weights] = Dict{Int,Real}(i => 1.0 for (i,_) in ref[:blocks])
     ref[:block_shunts] = Dict{Int,Set{Int}}(i => Set{Int}() for (i,_) in ref[:blocks])
@@ -15,6 +16,10 @@ function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any}
             ref[:block_weights][ref[:bus_block_map][b]] = 10.0
             ref[:microgrid_blocks][ref[:bus_block_map][b]] = bus["microgrid_id"]
         end
+    end
+
+    for (br,branch) in ref[:branch]
+        push!(ref[:block_branches][ref[:bus_block_map][branch["f_bus"]]], br)
     end
 
     for (l,load) in ref[:load]
@@ -84,9 +89,13 @@ function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any}
                 for path in paths
                     cumulative_weight = 0.0
                     for (i,b) in enumerate(reverse(path[2:end]))
+                        block_line_losses = 0.0  # to help with degeneracy
+                        for line_id in ref[:block_branches][b]
+                            block_line_losses += LinearAlgebra.norm(ref[:branch][line_id]["br_r"] .+ 1im*ref[:branch][line_id]["br_x"])
+                        end
                         cumulative_weight += ref[:block_weights][b]
                         b_prev = path[end-i]
-                        ref[:switch_scores][ref[:block_graph_edge_map][Graphs.Edge(b_prev,b)]] += cumulative_weight
+                        ref[:switch_scores][ref[:block_graph_edge_map][Graphs.Edge(b_prev,b)]] += cumulative_weight - block_line_losses
                     end
                 end
             end
