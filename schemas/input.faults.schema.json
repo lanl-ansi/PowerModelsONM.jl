@@ -10,9 +10,7 @@
   "$id": "schemas/faults",
   "title": "Faults",
   "type": "object",
-  "x-tags": [
-    "input"
-  ],
+  "x-tags": ["input"],
   "examples": [
     {
       "701": {
@@ -20,44 +18,16 @@
           "1": {
             "name": "1",
             "g": [
-              [
-                200,
-                -100,
-                -100
-              ],
-              [
-                -100,
-                200,
-                -100
-              ],
-              [
-                -100,
-                -100,
-                200
-              ]
+              [200, -100, -100],
+              [-100, 200, -100],
+              [-100, -100, 200]
             ],
             "status": "ENABLED",
-            "connections": [
-              1,
-              2,
-              3
-            ],
+            "connections": [1, 2, 3],
             "b": [
-              [
-                0,
-                0,
-                0
-              ],
-              [
-                0,
-                0,
-                0
-              ],
-              [
-                0,
-                0,
-                0
-              ]
+              [0, 0, 0],
+              [0, 0, 0],
+              [0, 0, 0]
             ],
             "fault_type": "3p",
             "bus": "701"
@@ -116,21 +86,12 @@
                 },
                 "fault_type": {
                   "type": "string",
-                  "enum": [
-                    "3p",
-                    "3pg",
-                    "ll",
-                    "llg",
-                    "lg"
-                  ],
+                  "enum": ["3p", "3pg", "ll", "llg", "lg"],
                   "description": "Type of fault, i.e., 3-phase (3p), 3-phase-grounded (3pg), line-to-line (ll), line-to-line-to-ground (llg), or line-to-ground (lg)"
                 },
                 "status": {
                   "type": "string",
-                  "enum": [
-                    "ENABLED",
-                    "DISABLED"
-                  ],
+                  "enum": ["ENABLED", "DISABLED"],
                   "description": "status of the fault, i.e. is the fault active or not"
                 }
               }

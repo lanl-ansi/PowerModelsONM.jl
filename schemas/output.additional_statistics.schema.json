@@ -10,32 +10,18 @@
   "$id": "schemas/summary_statistics",
   "title": "Additional statistics",
   "type": "object",
-  "x-tags": [
-    "output"
-  ],
+  "x-tags": ["output"],
   "description": "A place for additional statistics and analytics, which can be specified arbitrarily.",
   "examples": [
     {
       "Protection settings": [
         {
-          "primary pickup (A)": [
-            0
-          ],
-          "TDS": [
-            0
-          ],
-          "to": [
-            "string"
-          ],
-          "from": [
-            "string"
-          ],
-          "TOC": [
-            "string"
-          ],
-          "operating time (s)": [
-            0
-          ]
+          "primary pickup (A)": [0],
+          "TDS": [0],
+          "to": ["string"],
+          "from": ["string"],
+          "TOC": ["string"],
+          "operating time (s)": [0]
         }
       ]
     }

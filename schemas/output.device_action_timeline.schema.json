@@ -10,16 +10,12 @@
   "$id": "schemas/device_action_timeline",
   "title": "Device action timeline",
   "type": "array",
-  "x-tags": [
-    "output"
-  ],
+  "x-tags": ["output"],
   "description": "Object for each timestep, in order, containing information about the switch topology and a list of each load that has been shed at that timestep.",
   "examples": [
     [
       {
-        "Shedded loads": [
-          "load.123"
-        ],
+        "Shedded loads": ["load.123"],
         "Switch configurations": {
           "switch.123": "open",
           "switch.456": "closed"
@@ -55,10 +51,7 @@
           "^.+$": {
             "type": "string",
             "title": "switch state",
-            "enum": [
-              "open",
-              "closed"
-            ],
+            "enum": ["open", "closed"],
             "description": "switch_name: state"
           }
         }

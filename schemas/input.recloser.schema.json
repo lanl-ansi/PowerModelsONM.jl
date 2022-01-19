@@ -10,9 +10,7 @@
   "$id": "schemas/recloser",
   "title": "Recloser",
   "type": "object",
-  "x-tags": [
-    "input"
-  ],
+  "x-tags": ["input"],
   "description": "Input schema for recloser objects for PowerModelsProtection\n\nOpenDSS does not support directional reclosers. This adds properties for directional reclosers in addition to properties indicating if the recloser is able to perform switching for reconfiguration and if the recloser will perform protective switching. The properties for directional reclosing are `line_angle1` and `line_angle0`. The field `line_angle1` represents the zero-torque line for measured positive-sequence impedance and is used for providing a directional element on line-line faults, while the field `line_angle0` represents the zero-torque line for measured zero-sequence impedance and is used for providing a directional element on line-ground faults. The field dispatchable indicates if the recloser can be switched automatically during network reconfiguration while the field armed indicates if the recloser will operate during fault currents.",
   "patternProperties": {
     "^.+$": {
@@ -36,12 +34,7 @@
           "description": "Is the recloser armed?"
         }
       },
-      "required": [
-        "line_angle0",
-        "line_angle1",
-        "dispatchable",
-        "armed"
-      ]
+      "required": ["line_angle0", "line_angle1", "dispatchable", "armed"]
     }
   },
   "examples": [

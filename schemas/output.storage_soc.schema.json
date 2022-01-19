@@ -3,10 +3,7 @@
   "type": "array",
   "description": "List of lists of switches whose state changed between timesteps",
   "items": {
-    "type": [
-      "number",
-      "null"
-    ],
+    "type": ["number", "null"],
     "description": "List of switches whose state changed from the previous timestep"
   }
 }

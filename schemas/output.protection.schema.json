@@ -2,9 +2,7 @@
   "title": "protection.schema",
   "type": "object",
   "description": "Protection settings outputs",
-  "required": [
-    "network_model"
-  ],
+  "required": ["network_model"],
   "properties": {
     "network_model": {
       "type": "object",
@@ -120,10 +118,7 @@
                 "description": "List of configurations for each winding (WYE/DELTA)",
                 "items": {
                   "type": "string",
-                  "enum": [
-                    "WYE",
-                    "DELTA"
-                  ]
+                  "enum": ["WYE", "DELTA"]
                 }
               },
               "vbase (kV)": {
@@ -157,12 +152,7 @@
               },
               "type": {
                 "type": "string",
-                "enum": [
-                  "generator",
-                  "pvsystem",
-                  "storage",
-                  "vsource"
-                ],
+                "enum": ["generator", "pvsystem", "storage", "vsource"],
                 "description": "type of the source object (generator, storage, vsource, pvsystem)"
               },
               "connections": {
@@ -192,11 +182,7 @@
               },
               "type": {
                 "type": "string",
-                "enum": [
-                  "recloser",
-                  "relay",
-                  "fuse"
-                ],
+                "enum": ["recloser", "relay", "fuse"],
                 "description": "type of protection (relay, fuse, recloser)"
               },
               "location": {
@@ -216,12 +202,7 @@
         "patternProperties": {
           "^.+$": {
             "type": "string",
-            "enum": [
-              "pq",
-              "pv",
-              "ref",
-              "isolated"
-            ]
+            "enum": ["pq", "pv", "ref", "isolated"]
           }
         }
       }
