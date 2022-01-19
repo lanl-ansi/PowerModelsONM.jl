@@ -39,7 +39,8 @@ function optimize_switches(network::Dict{String,<:Any}, solver; formulation::Typ
                     "disable_isolation_constraint",
                 ],
                 "load"=>String["priority"],
-                "bus"=>String["microgrid_id"]
+                "bus"=>String["microgrid_id"],
+                "storage"=>String["phase_unbalance_factor"],
             )
         )
 
@@ -89,7 +90,8 @@ function optimize_switches(subnetwork::Dict{String,<:Any}, prob::Function, solve
                 "disable_isolation_constraint",
             ],
             "load"=>String["priority"],
-            "bus"=>String["microgrid_id"]
+            "bus"=>String["microgrid_id"],
+            "storage"=>String["phase_unbalance_factor"],
         )
     )
 end

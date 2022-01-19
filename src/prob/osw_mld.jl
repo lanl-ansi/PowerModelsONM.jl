@@ -59,6 +59,7 @@ function build_mn_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
             PMD.constraint_mc_storage_on_off(pm, i; nw=n)
             constraint_mc_storage_losses_on_off(pm, i; nw=n)
             PMD.constraint_mc_storage_thermal_limit(pm, i; nw=n)
+            constraint_mc_storage_phase_unbalance(pm, i; nw=n)
         end
 
         for i in ids(pm, n, :branch)
@@ -157,6 +158,7 @@ function build_mn_mc_osw_mld_mi(pm::AbstractSwitchModels)
             PMD.constraint_mc_storage_on_off(pm, i; nw=n)
             constraint_mc_storage_losses_on_off(pm, i; nw=n)
             PMD.constraint_mc_storage_thermal_limit(pm, i; nw=n)
+            constraint_mc_storage_phase_unbalance(pm, i; nw=n)
         end
 
         for i in ids(pm, n, :branch)
@@ -270,6 +272,7 @@ function build_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
         PMD.constraint_mc_storage_on_off(pm, i)
         constraint_mc_storage_losses_on_off(pm, i)
         PMD.constraint_mc_storage_thermal_limit(pm, i)
+        constraint_mc_storage_phase_unbalance(pm, i)
     end
 
     for i in ids(pm, :branch)
@@ -349,6 +352,7 @@ function build_mc_osw_mld_mi(pm::AbstractSwitchModels)
             PMD.constraint_mc_storage_on_off(pm, i)
             constraint_mc_storage_losses_on_off(pm, i)
             PMD.constraint_mc_storage_thermal_limit(pm, i)
+            constraint_mc_storage_phase_unbalance(pm, i)
         end
 
         for i in ids(pm, n, :branch)

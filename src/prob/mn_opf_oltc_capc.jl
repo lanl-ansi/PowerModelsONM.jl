@@ -53,6 +53,7 @@ function build_mn_mc_opf_oltc_capc(pm::AbstractUnbalancedPowerModel)
             PMD.constraint_storage_complementarity_mi(pm, i; nw=n)
             PMD.constraint_mc_storage_losses(pm, i; nw=n)
             PMD.constraint_mc_storage_thermal_limit(pm, i; nw=n)
+            constraint_mc_storage_phase_unbalance(pm, i; nw=n)
         end
 
         for i in ids(pm, n, :branch)
@@ -145,6 +146,7 @@ function build_mn_mc_opf_oltc_capc(pm::PMD.AbstractUBFModels)
             PMD.constraint_storage_complementarity_mi(pm, i; nw=n)
             PMD.constraint_mc_storage_losses(pm, i; nw=n)
             PMD.constraint_mc_storage_thermal_limit(pm, i; nw=n)
+            constraint_mc_storage_phase_unbalance(pm, i; nw=n)
         end
 
         for i in ids(pm, n, :branch)

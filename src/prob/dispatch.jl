@@ -34,7 +34,15 @@ function optimize_dispatch(network::Dict{String,<:Any}, formulation::Type, solve
     data = _prepare_dispatch_data(network, switching_solutions)
 
     @info "running optimal dispatch with $(formulation)"
-    solve_mn_mc_opf_oltc_capc(data, formulation, solver; solution_processors=[PMD.sol_data_model!, solution_reference_buses!])
+    solve_mn_mc_opf_oltc_capc(
+        data,
+        formulation,
+        solver;
+        solution_processors=[PMD.sol_data_model!, solution_reference_buses!],
+        eng2math_passthrough=Dict{String,Vector{String}}(
+            "storage"=>String["phase_unbalance_factor"]
+        )
+    )
 end
 
 

@@ -20,7 +20,10 @@
           "description": "upper bound of energy that can be withdrawn from the battery in kW"
         },
         "sm_ub": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "description": "upper bound on the power in or out of the battery"
         },
         "energy": {
@@ -43,11 +46,23 @@
           "type": "number",
           "description": "reactive power losses"
         },
-
         "status": {
-          "type": ["integer", "string"],
-          "enum": [0, 1, "ENABLED", "DISABLED"],
+          "type": [
+            "integer",
+            "string"
+          ],
+          "enum": [
+            0,
+            1,
+            "ENABLED",
+            "DISABLED"
+          ],
           "description": "the status of the asset, _i.e._ enabled (`1`) or disabled (`0`)"
+        },
+        "phase_unbalance_factor": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Percent within which power input/output must be on between phases on the storage object. Default is Inf"
         }
       }
     }
