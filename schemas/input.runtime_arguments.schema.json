@@ -14,12 +14,12 @@
   "x-tags": ["input"],
   "examples": [
     {
-      "network": "../test/data/IEEE13Nodeckt_mod.dss",
+      "network": "../test/data/ieee13_feeder.dss",
       "gurobi": false,
-      "settings": "../test/data/settings.json",
-      "faults": "../test/data/faults.json",
-      "inverters": "../test/data/inverters.json",
-      "events": "../test/data/events.json",
+      "settings": "../test/data/ieee13_settings.json",
+      "faults": "../test/data/ieee13_faults.json",
+      "inverters": "../test/data/ieee13_inverters.json",
+      "events": "../test/data/ieee13_events.json",
       "quiet": true,
       "opt-disp-formulation": "acr"
     }

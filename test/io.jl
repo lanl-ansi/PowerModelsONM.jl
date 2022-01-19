@@ -1,5 +1,5 @@
 @testset "test io functions" begin
-    base_network, network  = parse_network("../test/data/IEEE13Nodeckt_mod.dss")
+    base_network, network  = parse_network("../test/data/ieee13_feeder.dss")
 
     @testset "test network parsing" begin
         @test PMD.ismultinetwork(network)
@@ -14,7 +14,7 @@
     end
 
     @testset "test events parsing" begin
-        raw_events = parse_events("../test/data/events.json")
+        raw_events = parse_events("../test/data/ieee13_events.json")
         @test length(raw_events) == 12
 
         events = parse_events(raw_events, network)
@@ -34,7 +34,7 @@
     end
 
     @testset "test settings parsing" begin
-        settings = parse_settings("../test/data/settings.json")
+        settings = parse_settings("../test/data/ieee13_settings.json")
 
         _network = apply_settings(network, settings)
         @test all(all(l["clpu_factor"] == 2.0 for l in values(nw["load"])) for nw in values(_network["nw"]))
@@ -72,11 +72,11 @@
     end
 
     @testset "test inverters parsing" begin
-        inverters = parse_inverters("../test/data/inverters.json")
+        inverters = parse_inverters("../test/data/ieee13_inverters.json")
     end
 
     @testset "test faults parsing" begin
-        faults = parse_faults("../test/data/faults.json")
+        faults = parse_faults("../test/data/ieee13_faults.json")
 
         @test all(fault["status"] == PMD.ENABLED for (bus,fts) in faults for (ft,fids) in fts for (fid,fault) in fids)
         @test all(isa(fault["g"], Matrix) && isa(fault["b"], Matrix) for (bus,fts) in faults for (ft,fids) in fts for (fid,fault) in fids)

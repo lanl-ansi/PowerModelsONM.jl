@@ -1,7 +1,7 @@
 @testset "depreciated arguments" begin
     raw_args = Dict{String,Any}(
-        "network-file" => "../test/data/IEEE13Nodeckt_mod.dss",
-        "output-file" => "../test/data/test_output.json",
+        "network-file" => "../test/data/ieee13_feeder.dss",
+        "output-file" => "../test/data/test_ieee13_output.json",
         "problem" => "opf",
         "formulation" => "acr",
         "protection-settings" => "../test/data/protection_settings.xlsx",
@@ -31,12 +31,12 @@
     @test haskey(args, "raw_args") && args["raw_args"] == raw_args
 
     append!(Base.ARGS, String[
-        "-n", "../test/data/IEEE13Nodeckt_mod.dss",
-        "-o", "../test/data/test_output.json",
-        "-f", "../test/data/faults.json",
-        "-i", "../test/data/inverters.json",
-        "-s", "../test/data/settings.json",
-        "-e", "../test/data/events.json",
+        "-n", "../test/data/ieee13_feeder.dss",
+        "-o", "../test/data/test_ieee13_output.json",
+        "-f", "../test/data/ieee13_faults.json",
+        "-i", "../test/data/ieee13_inverters.json",
+        "-s", "../test/data/ieee13_settings.json",
+        "-e", "../test/data/ieee13_events.json",
         "-q",
         "-v",
         "-d",
@@ -61,12 +61,12 @@
     delete!(args, "raw_args")
 
     @test args == Dict{String,Any}(
-        "network" => "../test/data/IEEE13Nodeckt_mod.dss",
-        "output" => "../test/data/test_output.json",
-        "faults" => "../test/data/faults.json",
-        "inverters" => "../test/data/inverters.json",
-        "settings" => "../test/data/settings.json",
-        "events" => "../test/data/events.json",
+        "network" => "../test/data/ieee13_feeder.dss",
+        "output" => "../test/data/test_ieee13_output.json",
+        "faults" => "../test/data/ieee13_faults.json",
+        "inverters" => "../test/data/ieee13_inverters.json",
+        "settings" => "../test/data/ieee13_settings.json",
+        "events" => "../test/data/ieee13_events.json",
         "quiet" => true,
         "verbose" => true,
         "debug" => true,

@@ -1,8 +1,8 @@
 @testset "test small signal stability analysis" begin
     args = Dict{String,Any}(
-        "network" => "../test/data/IEEE13Nodeckt_mod.dss",
-        "settings" => "../test/data/settings.json",
-        "inverters" => "../test/data/inverters.json",
+        "network" => "../test/data/ieee13_feeder.dss",
+        "settings" => "../test/data/ieee13_settings.json",
+        "inverters" => "../test/data/ieee13_inverters.json",
         "skip" => ["dispatch", "switching", "faults"]
     )
 

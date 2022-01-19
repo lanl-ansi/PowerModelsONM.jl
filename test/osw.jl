@@ -1,8 +1,8 @@
 @testset "test optimal switching" begin
     orig_args = Dict{String,Any}(
-        "network" => "../test/data/IEEE13Nodeckt_mod.dss",
-        "settings" => "../test/data/settings.json",
-        "events" => "../test/data/events.json",
+        "network" => "../test/data/ieee13_feeder.dss",
+        "settings" => "../test/data/ieee13_settings.json",
+        "events" => "../test/data/ieee13_events.json",
         "apply-switch-scores" => true,
         "skip" => ["faults", "stability", "dispatch"],
         "opt-switch-solver" => "mip_solver"

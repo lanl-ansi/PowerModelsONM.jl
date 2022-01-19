@@ -20,7 +20,7 @@ build-binary:
 
 # test docker container
 test-docker:
-	docker run PowerModelsONM:latest --verbose -n "test/data/IEEE13Nodeckt_mod.dss" -e "test/data/events.json" -o "test_output_docker.json"
+	docker run PowerModelsONM:latest --verbose -n "test/data/ieee13_feeder.dss" -e "test/data/ieee13_events.json" -o "test_output_docker.json"
 
 test:
 	julia --project=. -e 'using Pkg; Pkg.test()'

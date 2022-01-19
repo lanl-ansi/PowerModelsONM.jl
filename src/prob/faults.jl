@@ -21,7 +21,7 @@ end
 """
     run_fault_studies(network::Dict{String,<:Any}, solver; faults::Dict{String,<:Any}=Dict{String,Any}())::Dict{String,Any}
 
-Runs fault studies defined in faults.json. If no faults file is provided, it will automatically generate faults
+Runs fault studies defined in ieee13_faults.json. If no faults file is provided, it will automatically generate faults
 using `PowerModelsProtection.build_mc_fault_study`.
 
 It will convert storage to limited generators, since storage is not yet supported in IVRU models in PowerModelsProtection

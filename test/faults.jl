@@ -1,8 +1,8 @@
 @testset "test fault study algorithms" begin
     args = Dict{String,Any}(
-        "network" => "../test/data/IEEE13Nodeckt_mod.dss",
-        "settings" => "../test/data/settings.json",
-        "faults" => "../test/data/faults.json",
+        "network" => "../test/data/ieee13_feeder.dss",
+        "settings" => "../test/data/ieee13_settings.json",
+        "faults" => "../test/data/ieee13_faults.json",
         "skip" => ["stability", "dispatch", "switching"],
     )
     entrypoint(args)

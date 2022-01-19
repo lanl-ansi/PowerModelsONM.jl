@@ -178,7 +178,7 @@ end
 """
     build_settings_file(
         network_file::String,
-        settings_file::String="settings.json";
+        settings_file::String="ieee13_settings.json";
         max_switch_actions::Union{Missing,Int,Vector{Int}},
         vm_lb_pu::Union{Missing,Float64}=missing,
         vm_ub_pu::Union{Missing,Float64}=missing,
@@ -190,11 +190,11 @@ end
         custom_settings::Dict{String,<:Any}=Dict{String,Any}(),
     )
 
-Helper function to build a settings.json file for use with ONM.
+Helper function to build a ieee13_settings.json file for use with ONM.
 """
 function build_settings_file(
     network_file::String,
-    settings_file::String="settings.json";
+    settings_file::String="ieee13_settings.json";
     max_switch_actions::Union{Missing,Int,Vector{Int}},
     vm_lb_pu::Union{Missing,Float64}=missing,
     vm_ub_pu::Union{Missing,Float64}=missing,
@@ -339,7 +339,7 @@ function build_settings_file(
 
     _IM.update_data!(settings, custom_settings)
 
-    # Save the settings.json file
+    # Save the ieee13_settings.json file
     open(settings_file, "w") do io
         JSON.print(io, settings)
     end

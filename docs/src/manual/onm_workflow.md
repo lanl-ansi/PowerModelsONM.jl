@@ -15,7 +15,7 @@ In this document we outline essentials about each of these steps, but for full e
 
 ## Data processing
 
-At a minimum, PowerModelsONM requires a network file, in DSS format, with timeseries data (_e.g._, LoadShapes). Without timeseries data, the ONM switching algorithm can still be utilized, but the Optimal Dispatch algorithm will error. For an example of an appropriate network definition, see our [modified IEEE13 feeder](https://github.com/lanl-ansi/PowerModelsONM.jl/blob/main/test/data/IEEE13Nodeckt_mod.dss).
+At a minimum, PowerModelsONM requires a network file, in DSS format, with timeseries data (_e.g._, LoadShapes). Without timeseries data, the ONM switching algorithm can still be utilized, but the Optimal Dispatch algorithm will error. For an example of an appropriate network definition, see our [modified IEEE13 feeder](https://github.com/lanl-ansi/PowerModelsONM.jl/blob/main/test/data/ieee13_feeder.dss).
 
 There are several other supplementary files that can be included as well, of which the [events data](@ref Events-Schema) is the most important. This file defines the contingency, by either explicitly defining the switching actions, or by applying a fault to a particular asset (_i.e._, a line).
 

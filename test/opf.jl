@@ -1,7 +1,7 @@
 @testset "test optimal dispatch" begin
     args = Dict{String,Any}(
-        "network" => "../test/data/IEEE13Nodeckt_mod.dss",
-        "settings" => "../test/data/settings.json",
+        "network" => "../test/data/ieee13_feeder.dss",
+        "settings" => "../test/data/ieee13_settings.json",
         "skip" => ["faults", "switching", "stability", "dispatch"],
     )
     entrypoint(args)

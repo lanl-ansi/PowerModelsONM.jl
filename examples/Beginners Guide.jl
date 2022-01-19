@@ -22,10 +22,10 @@ md"""
 
 This is an introduction to using PowerModelsONM, a Julia/JuMP library for optimizing the operations of networked microgrids.
 
-To use PowerModelsONM, you will need to install the package via 
+To use PowerModelsONM, you will need to install the package via
 
-- `Pkg.add()` and `PackageSpec` (see below), 
-- download one of the binaries from [PowerModelsONM Releases](https://github.com/lanl-ansi/PowerModelsONM.jl/releases) (experimental), or 
+- `Pkg.add()` and `PackageSpec` (see below),
+- download one of the binaries from [PowerModelsONM Releases](https://github.com/lanl-ansi/PowerModelsONM.jl/releases) (experimental), or
 - build a docker image locally with our included [Dockerfile](https://github.com/lanl-ansi/PowerModelsONM.jl/blob/main/Dockerfile).
 
 In this Pluto notebook, we will install via the built-in Julia Package Manager:
@@ -51,7 +51,7 @@ md"""
 
 PowerModelsONM is designed to have a straightforward workflow for optimizing the operation and recovering of distribution feeders under contingencies.
 
-In particular, the workflow consists of sequential steps of 
+In particular, the workflow consists of sequential steps of
 
 - data processing and preparation, which includes inputs such as
   - the base network (OpenDSS format)
@@ -67,7 +67,7 @@ In particular, the workflow consists of sequential steps of
   - microgrid statistics, such as min, mean, max voltages, storage state of charge, analysis of load served, analysis of generation sources, etc.
   - Powerflow outputs, which contains dispatch setpoints and bus voltage magnitudes
   - Small signal stability results
-  - Fault analysis results 
+  - Fault analysis results
 
 ### Inputs
 
@@ -77,7 +77,7 @@ Using `parse_network` will return a `network`, which is a "multinetwork" represe
 """
 
 # ╔═╡ 4891479c-9eb5-494e-ad1f-9bd52a171c57
-base_network, network = parse_network(joinpath(data_dir, "IEEE13Nodeckt_mod.dss"))
+base_network, network = parse_network(joinpath(data_dir, "ieee13_feeder.dss"))
 
 
 # ╔═╡ e1f1b7cf-d8ad-432d-ac98-95860e1ec65d
@@ -103,7 +103,7 @@ In this example, we load a contingency where in timestep 1 a switching action is
 """
 
 # ╔═╡ e941118d-5b63-4886-bacd-82291f4c01c4
-raw_events = parse_events(joinpath(data_dir, "events.json"))
+raw_events = parse_events(joinpath(data_dir, "ieee13_events.json"))
 
 
 # ╔═╡ 353e797c-6155-4d7b-bb79-440d7b8f8ae2
@@ -138,7 +138,7 @@ In this example, we load some settings that set the maximum allowed switching ac
 """
 
 # ╔═╡ e686d58d-50ea-4789-93e7-5f3c41ee53ad
-settings = parse_settings(joinpath(data_dir, "settings.json"))
+settings = parse_settings(joinpath(data_dir, "ieee13_settings.json"))
 
 
 # ╔═╡ 27fd182f-3cdc-4568-b6f5-cae1b5e2e1a2
@@ -156,7 +156,7 @@ begin
 	)
 	settings_w_dep_args = deepcopy(settings)
 	PowerModelsONM._convert_depreciated_runtime_args!(dep_runtime_args, settings_w_dep_args, base_network, length(network_events["nw"]))
-	
+
 	network_events_settings = apply_settings(network_events, settings_w_dep_args)
 end
 
@@ -199,7 +199,7 @@ First, it should be noted that because loads are most typically not individually
 
 To accomodate this reality, we can extended PowerModelsDistribution by adding the ability to assign load status variables to multiple loads (_i.e._, by block), and adding constraints that isolate blocks of load that are desired to be shed to maintain operability of the rest of the grid.
 
-Second, the optimal switching problem currently uses the LinDist3Flow model (`PowerModelsDistribution.LPUBFDiagModel`), which is a quadratic approximation, due to the presence of mixed integers. 
+Second, the optimal switching problem currently uses the LinDist3Flow model (`PowerModelsDistribution.LPUBFDiagModel`), which is a quadratic approximation, due to the presence of mixed integers.
 
 Finally, the optimial switching problem currently solves sequentially, rather than globally over the entire multinetwork, which means switch configurations and storage energies are manually updated after each timestep is solved.
 
@@ -240,7 +240,7 @@ begin
 			delete!(bus, "vm_ub")
 		end
 	end
-	
+
 	md"""
 Then we can run `optimize_dispatch` on the resulting network, in this case using the ACR Unbalanced model from PowerModelsDistribution and our NLP solver.
 """
@@ -262,7 +262,7 @@ Here we use an example faults file from our unit tests.
 """
 
 # ╔═╡ 3a3da57c-4783-4e79-b19a-a50633419eb1
-faults = parse_faults(joinpath(data_dir, "faults.json"))
+faults = parse_faults(joinpath(data_dir, "ieee13_faults.json"))
 
 
 # ╔═╡ 8ea1a7a5-b515-494b-86b8-584c8243d7f1
@@ -286,7 +286,7 @@ For stability analysis, we need to define some inverter properties, which we hav
 """
 
 # ╔═╡ 8fb0fb4d-3b6c-4e76-907f-7d03d7ac0601
-inverters = parse_inverters(joinpath(data_dir, "inverters.json"))
+inverters = parse_inverters(joinpath(data_dir, "ieee13_inverters.json"))
 
 
 # ╔═╡ 9bbf0909-218b-4ba8-bd49-93d839fd1c35
@@ -412,11 +412,11 @@ Even if you use it from the Julia REPL, it can be very beneficial, because it wi
 
 # ╔═╡ 753c3b4c-861b-4787-b304-b4d3b1b84be0
 args = Dict{String,Any}(
-	"network" => joinpath(data_dir, "IEEE13Nodeckt_mod.dss"),
-	"events" => joinpath(data_dir, "events.json"),
-	"settings" => joinpath(data_dir, "settings.json"),
-	"inverters" => joinpath(data_dir, "inverters.json"),
-	"faults" => joinpath(data_dir, "faults.json"),
+	"network" => joinpath(data_dir, "ieee13_feeder.dss"),
+	"events" => joinpath(data_dir, "ieee13_events.json"),
+	"settings" => joinpath(data_dir, "ieee13_settings.json"),
+	"inverters" => joinpath(data_dir, "ieee13_inverters.json"),
+	"faults" => joinpath(data_dir, "ieee13_faults.json"),
 	"voltage-lower-bound" => 0.8,
 	"voltage-upper-bound" => 1.2,
 	"voltage-angle-difference" => 5,

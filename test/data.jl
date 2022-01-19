@@ -1,6 +1,6 @@
 @testset "data handling checks" begin
-    base_network, network = parse_network("../test/data/IEEE13Nodeckt_mod.dss")
-    events = parse_events("../test/data/events.json", network)
+    base_network, network = parse_network("../test/data/ieee13_feeder.dss")
+    events = parse_events("../test/data/ieee13_events.json", network)
     network = apply_events(network, events)
     network["nw"]["1"]["switch"]["701702"]["state"] = PMD.OPEN
 

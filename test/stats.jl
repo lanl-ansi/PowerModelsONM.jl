@@ -1,12 +1,12 @@
 @testset "test statistical analysis functions" begin
     orig_args = Dict{String,Any}(
-        "network" => "../test/data/IEEE13Nodeckt_mod.dss",
-        "events" => "../test/data/events.json",
-        "settings" => "../test/data/settings.json",
-        "inverters" => "../test/data/inverters.json",
-        "output" => "test_output.json",
+        "network" => "../test/data/ieee13_feeder.dss",
+        "events" => "../test/data/ieee13_events.json",
+        "settings" => "../test/data/ieee13_settings.json",
+        "inverters" => "../test/data/ieee13_inverters.json",
+        "output" => "test_ieee13_output.json",
         "pretty-print" => true,
-        "faults" => "../test/data/faults.json",
+        "faults" => "../test/data/ieee13_faults.json",
         "skip" => ["stability"],  # TODO bug in upstream PowerModelsStability: if an object in inverters is DISABLED, error in calc_connected_components
         "apply-switch-scores" => true,
         "opt-switch-algorithm" => "global",
