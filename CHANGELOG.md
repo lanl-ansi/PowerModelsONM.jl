@@ -2,6 +2,25 @@
 
 ## staged
 
+- none
+
+## v2.1.0
+
+- Refactored formulation types for better compatibility with PowerModelsDistribution constraints/variables
+- Removed unused data functions and variables / constraints
+- Refactored JSON schemas for easier versioning
+- Updated to PowerModelsStability v0.3
+- Updated to PowerModelsProtection v0.5
+- Updated to PowerModelsDistribution v0.14.1
+- Added `Microgrid networks` under analysis to be included in `Device action timeline`
+- Added capability to control certain objective terms via settings schema / CLI runtime arguments: `apply_switch_scores` and `disable_switch_penalty`
+- Added capability to control certain constraints via settings schema / CLI runtime arguments: `disable_radial_constraint` and `disable_block_isolation`
+- Removed solution degeneracy in the switching problem by adjusting switch scores to include line losses from their respectively blocks
+- Updated IEEE13 case to have more features, better microgrid networking
+- Added nonlinear switching problems (ACPU, ACRU) (experimental)
+- Added phase unbalance constraint for storage power input/output (experimental)
+- Added schema for output data for use in protection optimization
+- Fixed bug in stability analysis where there was an error if the inverter object was disabled (now filters out disabled inverters)
 - Added constraint for radial topology
 - Updated "global" objective to include generator cost
 - Updated "global" algorithm to be the default
