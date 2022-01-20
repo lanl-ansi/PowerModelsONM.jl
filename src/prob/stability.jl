@@ -31,7 +31,7 @@ end
 
 
 """
-    run_stability_analysis(network, inverters::Dict{String,<:Any}, solver; formulation::Type=PMD.ACRUPowerModel)::Dict{String,Bool}
+    run_stability_analysis(network, inverters::Dict{String,<:Any}, solver; formulation::Type=PMD.ACRUPowerModel, switching_solutions::Union{Missing,Dict{String,<:Any}}=missing, distributed::Bool=false)::Dict{String,Bool}
 
 Runs small signal stability analysis using PowerModelsStability and determines if each timestep configuration is stable
 
@@ -63,7 +63,7 @@ end
 
 
 """
-    run_stability_analysis(subnetwork::Dict{String,<:Any}, omega0::Real, rN::Int, solver; formulation::Type=PMD.ACRUPowerModel)::Bool
+    run_stability_analysis(subnetwork::Dict{String,<:Any}, omega0::Real, rN::Int, solver; formulation::Type=PMD.ACPUPowerModel)::Bool
 
 Runs stability analysis on a single subnetwork (not a multinetwork) using a nonlinear `solver`.
 """

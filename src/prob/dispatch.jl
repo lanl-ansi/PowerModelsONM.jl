@@ -1,5 +1,5 @@
 """
-    optimize_dispatch!(args::Dict{String,<:Any}; update_network_data::Bool=true, solver::String="nlp_solver")::Dict{String,Any}
+    optimize_dispatch!(args::Dict{String,<:Any}; update_network_data::Bool=false, solver::String=get(args, "opt-disp-solver", "nlp_solver"))::Dict{String,Any}
 
 Solves optimal dispatch problem in-place, for use in [`entrypoint`](@ref entrypoint), using [`optimize_dispatch`](@ref optimize_dispatch).
 If you are using this to optimize after running [`optimize_switches!`](@ref optimize_switches!), this assumes that the correct
@@ -26,7 +26,7 @@ end
 
 
 """
-    optimize_dispatch(network::Dict{String,<:Any}, formulation::Type, solver)::Dict{String,Any}
+    optimize_dispatch(network::Dict{String,<:Any}, formulation::Type, solver; switching_solutions::Union{Missing,Dict{String,<:Any}}=missing)::Dict{String,Any}
 
 Solve a multinetwork optimal power flow (`solve_mn_mc_opf`) using `formulation` and `solver`
 """

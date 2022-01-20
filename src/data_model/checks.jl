@@ -58,7 +58,14 @@ Validates output data against models/outputs schema
 validate_output(data::Dict)::Bool = _validate_against_schema(data, "output")
 
 
+"helper function to give detailed output on JSON Schema validation of output dict"
 evaluate_output(data::Dict) = JSONSchema.validate(data, load_schema(joinpath(dirname(pathof(PowerModelsONM)), "..", "schemas", "output.schema.json")))
+
+"helper function to give detailed output on JSON Schema validation of events dict"
 evaluate_events(data::Dict) = JSONSchema.validate(data, load_schema(joinpath(dirname(pathof(PowerModelsONM)), "..", "schemas", "input.events.schema.json")))
+
+"helper function to give detailed output on JSON Schema validation of settings dict"
 evaluate_settings(data::Dict) = JSONSchema.validate(data, load_schema(joinpath(dirname(pathof(PowerModelsONM)), "..", "schemas", "input.settings.schema.json")))
+
+"helper function to give detailed output on JSON Schema validation of runtime arguments dict"
 evaluate_runtime_arguments(data::Dict) = JSONSchema.validate(data, load_schema(joinpath(dirname(pathof(PowerModelsONM)), "..", "schemas", "input.runtime_arguments.schema.json")))

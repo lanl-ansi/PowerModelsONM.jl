@@ -1,7 +1,7 @@
 @doc raw"""
-    constraint_mc_switch_power_on_off(pm::LPUBFSwitchModel, nw::Int, f_idx::Tuple{Int,Int,Int}; relax::Bool=false)
+    constraint_mc_switch_power_on_off(pm::AbstractSwitchModels, nw::Int, f_idx::Tuple{Int,Int,Int}; relax::Bool=false)
 
-Linear switch power on/off constraint for LPUBFDiagModel. If `relax`, an [indicator constraint](https://jump.dev/JuMP.jl/stable/manual/constraints/#Indicator-constraints) is used.
+Linear switch power on/off constraint. If `relax`, an [indicator constraint](https://jump.dev/JuMP.jl/stable/manual/constraints/#Indicator-constraints) is used.
 
 ```math
 \begin{align}
@@ -38,7 +38,11 @@ function PowerModelsDistribution.constraint_mc_switch_power_on_off(pm::AbstractS
 end
 
 
-"on/off constraint for generators"
+"""
+    constraint_mc_gen_power_on_off(pm::AbstractSwitchModels, nw::Int, i::Int, connections::Vector{<:Int}, pmin::Vector{<:Real}, pmax::Vector{<:Real}, qmin::Vector{<:Real}, qmax::Vector{<:Real})
+
+on/off constraint for generators
+"""
 function PowerModelsDistribution.constraint_mc_gen_power_on_off(pm::AbstractSwitchModels, nw::Int, i::Int, connections::Vector{<:Int}, pmin::Vector{<:Real}, pmax::Vector{<:Real}, qmin::Vector{<:Real}, qmax::Vector{<:Real})
     pg = var(pm, nw, :pg, i)
     qg = var(pm, nw, :qg, i)
@@ -66,7 +70,7 @@ end
 
 
 """
-    constraint_mc_storage_on_off(pm::PMD.LPUBFDiagModel, nw::Int, i::Int, connections::Vector{Int}, pmin::Real, pmax::Real, qmin::Real, qmax::Real, charge_ub::Real, discharge_ub::Real)
+    constraint_mc_storage_on_off(pm::AbstractSwitchModels, nw::Int, i::Int, connections::Vector{Int}, pmin::Real, pmax::Real, qmin::Real, qmax::Real, charge_ub::Real, discharge_ub::Real)
 
 on/off constraint for storage
 """

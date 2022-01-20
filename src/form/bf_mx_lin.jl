@@ -35,7 +35,16 @@ function PowerModelsDistribution.constraint_mc_switch_state_on_off(pm::LPUBFSwit
 end
 
 
-"KCL for load shed problem with transformers (AbstractWForms)"
+"""
+    constraint_mc_power_balance_shed(pm::LPUBFSwitchModel, nw::Int, i::Int,
+        terminals::Vector{Int}, grounded::Vector{Bool}, bus_arcs::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}},
+        bus_arcs_sw::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_arcs_trans::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}},
+        bus_gens::Vector{Tuple{Int,Vector{Int}}}, bus_storage::Vector{Tuple{Int,Vector{Int}}},
+        bus_loads::Vector{Tuple{Int,Vector{Int}}}, bus_shunts::Vector{Tuple{Int,Vector{Int}}}
+    )
+
+KCL for load shed problem with transformers (LinDistFlow Form)
+"""
 function PowerModelsDistribution.constraint_mc_power_balance_shed(pm::LPUBFSwitchModel, nw::Int, i::Int, terminals::Vector{Int}, grounded::Vector{Bool}, bus_arcs::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_arcs_sw::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_arcs_trans::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_gens::Vector{Tuple{Int,Vector{Int}}}, bus_storage::Vector{Tuple{Int,Vector{Int}}}, bus_loads::Vector{Tuple{Int,Vector{Int}}}, bus_shunts::Vector{Tuple{Int,Vector{Int}}})
     w        = var(pm, nw, :w, i)
     p        = get(var(pm, nw),    :p, Dict()); PMD._check_var_keys(p, bus_arcs, "active power", "branch")
@@ -140,7 +149,11 @@ function PowerModelsDistribution.constraint_mc_power_balance_shed(pm::LPUBFSwitc
 end
 
 
-"on/off bus voltage magnitude squared constraint for relaxed formulations"
+"""
+    constraint_mc_bus_voltage_magnitude_sqr_on_off(pm::LPUBFSwitchModel, nw::Int, i::Int, vmin::Vector{<:Real}, vmax::Vector{<:Real})
+
+on/off bus voltage magnitude squared constraint for relaxed formulations
+"""
 function PowerModelsDistribution.constraint_mc_bus_voltage_magnitude_sqr_on_off(pm::LPUBFSwitchModel, nw::Int, i::Int, vmin::Vector{<:Real}, vmax::Vector{<:Real})
     w = var(pm, nw, :w, i)
     z_block = var(pm, nw, :z_block, ref(pm, nw, :bus_block_map, i))
@@ -212,6 +225,7 @@ function constraint_mc_transformer_power_yy_on_off(pm::LPUBFSwitchModel, nw::Int
 
             # with regcontrol
             if haskey(transformer,"controls")
+                # TODO: fix LPUBFDiag version of transformer controls for on_off
                 # v_ref = transformer["controls"]["vreg"][idx]
                 # δ = transformer["controls"]["band"][idx]
                 # r = transformer["controls"]["r"][idx]

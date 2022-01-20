@@ -1,5 +1,9 @@
 """
-    solve_mc_opf_capc(data::Union{Dict{String,<:Any},String}, model_type::Type, solver; kwargs...)
+    solve_mn_mc_opf_oltc_capc(data::Union{Dict{String,<:Any},String}, model_type::Type, solver;
+        solution_processors::Vector{Function}=Function[],
+        eng2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
+        ref_extensions::Vector{Function}=Function[], kwargs...
+    )::Dict{String,Any}
 
 Solve OPF with capacitor control
 """

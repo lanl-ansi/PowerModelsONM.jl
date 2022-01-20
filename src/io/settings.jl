@@ -188,6 +188,11 @@ end
         time_elapsed::Union{Missing,Float64,Vector{Float64}}=missing,
         autogen_microgrid_ids::Bool=true,
         custom_settings::Dict{String,<:Any}=Dict{String,Any}(),
+        mip_solver_gap::Float64=0.05,
+        nlp_solver_tol::Float64=1e-4,
+        mip_solver_tol::Float64=1e-4,
+        clpu_factor::Union{Missing,Float64}=missing,
+        disable_switch_penalty::Bool=false,
     )
 
 Helper function to build a ieee13_settings.json file for use with ONM.

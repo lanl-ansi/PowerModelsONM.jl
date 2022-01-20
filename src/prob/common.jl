@@ -21,7 +21,7 @@ const _solution_processors = Function[PMD.sol_data_model!, PowerModelsONM.soluti
 
 
 """
-    build_solver_instances!(args::Dict{String,<:Any})::Dict{String,Any}
+    build_solver_instances!(args::Dict{String,<:Any})::Dict{String,JuMP.MOI.OptimizerWithAttributes}
 
 Creates the Optimizers in-place (within the args dict data structure), for use inside [`entrypoint`](@ref entrypoint),
 using [`build_solver_instances`](@ref build_solver_instances), assigning them to `args["solvers"]``
@@ -46,7 +46,21 @@ end
 
 
 """
-    build_solver_instances(; nlp_solver=missing, nlp_solver_tol::Real=1e-4, mip_solver=missing, mip_solver_tol::Real=1e-4, minlp_solver=missing, misocp_solver=missing, gurobi::Bool=false, verbose::Bool=false, debug::Bool=false)::Dict{String,Any}
+    build_solver_instances(;
+        nlp_solver::Union{Missing,JuMP.MOI.OptimizerWithAttributes}=missing,
+        mip_solver::Union{Missing,JuMP.MOI.OptimizerWithAttributes}=missing,
+        minlp_solver::Union{Missing,JuMP.MOI.OptimizerWithAttributes}=missing,
+        misocp_solver::Union{Missing,JuMP.MOI.OptimizerWithAttributes}=missing,
+        nlp_solver_options::Union{Missing,Vector{Pair}}=missing,
+        mip_solver_options::Union{Missing,Vector{Pair}}=missing,
+        minlp_solver_options::Union{Missing,Vector{Pair}}=missing,
+        feas_tol::Float64=1e-6,
+        mip_gap_tol::Float64=1e-4,
+        gurobi::Bool=false,
+        knitro::Bool=false,
+        verbose::Bool=false,
+        debug::Bool=false,
+    )::Dict{String,JuMP.MOI.OptimizerWithAttributes}
 
 Returns solver instances as a Dict ready for use with JuMP Models, for NLP (`"nlp_solver"`), MIP (`"mip_solver"`), MINLP (`"minlp_solver"`), and (MI)SOC (`"misocp_solver"`) problems.
 

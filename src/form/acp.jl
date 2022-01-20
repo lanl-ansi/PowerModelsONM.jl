@@ -1,12 +1,13 @@
 @doc raw"""
-    constraint_mc_switch_state_on_off(pm::LPUBFSwitchModel, nw::Int, i::Int, f_bus::Int, t_bus::Int, f_connections::Vector{Int}, t_connections::Vector{Int}; relax::Bool=false)
+    constraint_mc_switch_state_on_off(pm::AbstractUnbalancedACPSwitchModel, nw::Int, i::Int, f_bus::Int, t_bus::Int, f_connections::Vector{Int}, t_connections::Vector{Int}; relax::Bool=false)
 
-Linear switch power on/off constraint for LPUBFDiagModel. If `relax`, an [indicator constraint](https://jump.dev/JuMP.jl/stable/manual/constraints/#Indicator-constraints) is used.
+Linear switch power on/off constraint for ACPU form. If `relax`, an [indicator constraint](https://jump.dev/JuMP.jl/stable/manual/constraints/#Indicator-constraints) is used.
 
 ```math
 \begin{align}
-& w^{fr}_{i,c} - w^{to}_{i,c} \leq \left ( v^u_{i,c} \right )^2 \left ( 1 - z^{sw}_i \right )\ \forall i \in S,\forall c \in C \\
-& w^{fr}_{i,c} - w^{to}_{i,c} \geq -\left ( v^u_{i,c}\right )^2 \left ( 1 - z^{sw}_i \right )\ \forall i \in S,\forall c \in C
+& |V^{fr}_{i,c}| - |V^{to}_{i,c}| \leq \left ( v^u_{i,c} - v^l_{i,c} \right ) \left ( 1 - z^{sw}_i \right )\ \forall i \in S,\forall c \in C \\
+& |V^{fr}_{i,c}| - |V^{to}_{i,c}| \geq -\left ( v^u_{i,c} - v^l_{i,c} \right ) \left ( 1 - z^{sw}_i \right )\ \forall i \in S,\forall c \in C \\
+
 \end{align}
 ```
 """
@@ -48,8 +49,22 @@ function PowerModelsDistribution.constraint_mc_switch_state_on_off(pm::AbstractU
 end
 
 
-"KCL for load shed problem with transformers (AbstractWForms)"
-function PowerModelsDistribution.constraint_mc_power_balance_shed(pm::AbstractUnbalancedACPSwitchModel, nw::Int, i::Int, terminals::Vector{Int}, grounded::Vector{Bool}, bus_arcs::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_arcs_sw::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_arcs_trans::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_gens::Vector{Tuple{Int,Vector{Int}}}, bus_storage::Vector{Tuple{Int,Vector{Int}}}, bus_loads::Vector{Tuple{Int,Vector{Int}}}, bus_shunts::Vector{Tuple{Int,Vector{Int}}})
+"""
+    constraint_mc_power_balance_shed(pm::AbstractUnbalancedACPSwitchModel, nw::Int, i::Int,
+        terminals::Vector{Int}, grounded::Vector{Bool}, bus_arcs::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}},
+        bus_arcs_sw::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_arcs_trans::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}},
+        bus_gens::Vector{Tuple{Int,Vector{Int}}}, bus_storage::Vector{Tuple{Int,Vector{Int}}},
+        bus_loads::Vector{Tuple{Int,Vector{Int}}}, bus_shunts::Vector{Tuple{Int,Vector{Int}}}
+    )
+
+KCL for load shed problem with transformers (ACPU Form)
+"""
+function PowerModelsDistribution.constraint_mc_power_balance_shed(pm::AbstractUnbalancedACPSwitchModel, nw::Int, i::Int,
+    terminals::Vector{Int}, grounded::Vector{Bool}, bus_arcs::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}},
+    bus_arcs_sw::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_arcs_trans::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}},
+    bus_gens::Vector{Tuple{Int,Vector{Int}}}, bus_storage::Vector{Tuple{Int,Vector{Int}}},
+    bus_loads::Vector{Tuple{Int,Vector{Int}}}, bus_shunts::Vector{Tuple{Int,Vector{Int}}})
+
     z_block  = var(pm, nw, :z_block, ref(pm, nw, :bus_block_map, i))
     vm   = var(pm, nw, :vm, i)
     va   = var(pm, nw, :va, i)
@@ -148,7 +163,11 @@ function PowerModelsDistribution.constraint_mc_power_balance_shed(pm::AbstractUn
 end
 
 
-"on/off bus voltage magnitude squared constraint for relaxed formulations"
+"""
+    constraint_mc_bus_voltage_magnitude_on_off(pm::AbstractUnbalancedACPSwitchModel, nw::Int, i::Int, vmin::Vector{<:Real}, vmax::Vector{<:Real})
+
+on/off bus voltage magnitude squared constraint for relaxed formulations
+"""
 function PowerModelsDistribution.constraint_mc_bus_voltage_magnitude_on_off(pm::AbstractUnbalancedACPSwitchModel, nw::Int, i::Int, vmin::Vector{<:Real}, vmax::Vector{<:Real})
     vm = var(pm, nw, :vm, i)
     z_block = var(pm, nw, :z_block, ref(pm, nw, :bus_block_map, i))
@@ -170,7 +189,7 @@ end
 
 """
     constraint_mc_transformer_power_yy_on_off(
-        pm::LPUBFSwitchModel,
+        pm::AbstractUnbalancedACPSwitchModel,
         nw::Int,
         trans_id::Int,
         f_bus::Int,
@@ -248,9 +267,9 @@ end
 
 
 """
-    constraint_mc_storage_losses_on_off(pm::LPUBFSwitchModel, i::Int; nw::Int=nw_id_default)
+    constraint_mc_storage_losses_on_off(pm::AbstractUnbalancedACPSwitchModel, i::Int; nw::Int=nw_id_default)
 
-Neglects the active and reactive loss terms associated with the squared current magnitude.
+Non-linear storage loss constraint
 """
 function constraint_mc_storage_losses_on_off(pm::AbstractUnbalancedACPSwitchModel, i::Int; nw::Int=nw_id_default)
     storage = ref(pm, nw, :storage, i)

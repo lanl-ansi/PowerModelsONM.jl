@@ -46,7 +46,11 @@ function variable_mc_switch_fixed(pm::AbstractSwitchModels; nw::Int=nw_id_defaul
 end
 
 
-"switch state (open/close) variables"
+"""
+    variable_mc_switch_state(pm::AbstractSwitchModels; nw::Int=nw_id_default, report::Bool=true, relax::Bool=false)
+
+switch state (open/close) variables
+"""
 function variable_mc_switch_state(pm::AbstractSwitchModels; nw::Int=nw_id_default, report::Bool=true, relax::Bool=false)
     if relax
         state = var(pm, nw)[:switch_state] = Dict{Int,Any}(l => JuMP.@variable(
@@ -71,6 +75,6 @@ function variable_mc_switch_state(pm::AbstractSwitchModels; nw::Int=nw_id_defaul
 end
 
 
-"do nothing, already have z_block"
+"do nothing, already have z_block; to fix usage of PMD.variable_mc_storage_power_mi_on_off"
 function PowerModelsDistribution.variable_mc_storage_indicator(pm::AbstractSwitchModels; nw::Int=nw_id_default, relax::Bool=false, report::Bool=true)
 end

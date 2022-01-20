@@ -1,5 +1,5 @@
 @doc raw"""
-    constraint_mc_switch_state_on_off(pm::AbstractUnbalancedActivePowerSwitchModel, nw::Int, i::Int, f_bus::Int, t_bus::Int, f_connections::Vector{Int}, t_connections::Vector{Int}; relax::Bool=false)
+    constraint_mc_switch_state_on_off(pm::AbstractUnbalancedNFASwitchModel, nw::Int, i::Int, f_bus::Int, t_bus::Int, f_connections::Vector{Int}, t_connections::Vector{Int}; relax::Bool=false)
 
 No voltage variables, do nothing
 """
@@ -8,7 +8,7 @@ end
 
 
 @doc raw"""
-    constraint_mc_switch_power_on_off(pm::AbstractSwitchModels, nw::Int, f_idx::Tuple{Int,Int,Int}; relax::Bool=false)
+    constraint_mc_switch_power_on_off(pm::AbstractUnbalancedNFASwitchModel, nw::Int, f_idx::Tuple{Int,Int,Int}; relax::Bool=false)
 
 Linear switch power on/off constraint for Active Power Only Models. If `relax`, an [indicator constraint](https://jump.dev/JuMP.jl/stable/manual/constraints/#Indicator-constraints) is used.
 
@@ -72,6 +72,14 @@ end
 
 
 @doc raw"""
+    constraint_mc_power_balance_shed(pm::AbstractUnbalancedNFASwitchModel, nw::Int, i::Int,
+        terminals::Vector{Int}, grounded::Vector{Bool}, bus_arcs::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}},
+        bus_arcs_sw::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_arcs_trans::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}},
+        bus_gens::Vector{Tuple{Int,Vector{Int}}}, bus_storage::Vector{Tuple{Int,Vector{Int}}},
+        bus_loads::Vector{Tuple{Int,Vector{Int}}}, bus_shunts::Vector{Tuple{Int,Vector{Int}}}
+    )
+
+KCL for load shed problem with transformers (ACRU Form)
 """
 function PowerModelsDistribution.constraint_mc_power_balance_shed(pm::AbstractUnbalancedNFASwitchModel, nw::Int, i::Int, terminals::Vector{Int}, grounded::Vector{Bool}, bus_arcs::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_arcs_sw::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_arcs_trans::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_gens::Vector{Tuple{Int,Vector{Int}}}, bus_storage::Vector{Tuple{Int,Vector{Int}}}, bus_loads::Vector{Tuple{Int,Vector{Int}}}, bus_shunts::Vector{Tuple{Int,Vector{Int}}})
     p   = get(var(pm, nw),      :p,  Dict()); PMD._check_var_keys(p,   bus_arcs, "active power", "branch")
@@ -122,9 +130,9 @@ end
 
 
 """
-    constraint_mc_storage_on_off(pm::PMD.NFAUSwitchPowerModel, nw::Int, i::Int, connections::Vector{Int}, pmin::Real, pmax::Real, qmin::Real, qmax::Real, charge_ub::Real, discharge_ub::Real)
+    constraint_mc_storage_on_off(pm::AbstractUnbalancedNFASwitchModel, nw::Int, i::Int, connections::Vector{Int}, pmin::Real, pmax::Real, qmin::Real, qmax::Real, charge_ub::Real, discharge_ub::Real)
 
-on/off constraint for storage
+on/off constraint for storage in NFAU Form.
 """
 function PowerModelsDistribution.constraint_mc_storage_on_off(pm::AbstractUnbalancedNFASwitchModel, nw::Int, i::Int, connections::Vector{Int}, pmin::Real, pmax::Real, qmin::Real, qmax::Real, charge_ub::Real, discharge_ub::Real)
     z_block = var(pm, nw, :z_block, ref(pm, nw, :storage_block_map, i))
@@ -137,9 +145,9 @@ end
 
 
 """
-    constraint_mc_storage_losses_on_off(pm::NFAUSwitchPowerModel, i::Int; nw::Int=nw_id_default)
+    constraint_mc_storage_losses_on_off(pm::AbstractUnbalancedNFASwitchModel, i::Int; nw::Int=nw_id_default)
 
-Neglects the active and reactive loss terms associated with the squared current magnitude.
+Neglects all losses (lossless model), NFAU Form.
 """
 function constraint_mc_storage_losses_on_off(pm::AbstractUnbalancedNFASwitchModel, i::Int; nw::Int=nw_id_default)
     storage = ref(pm, nw, :storage, i)
@@ -157,7 +165,7 @@ end
 
 
 @doc raw"""
-    constraint_mc_transformer_power(pm::NFAUSwitchPowerModel, i::Int; nw::Int=nw_id_default)
+    constraint_mc_transformer_power(pm::AbstractUnbalancedNFASwitchModel, i::Int; nw::Int=nw_id_default)
 
 transformer active power only constraint pf=-pt
 

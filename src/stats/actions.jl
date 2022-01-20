@@ -10,7 +10,7 @@ end
 
 
 """
-    get_timestep_device_actions(network::Dict{String,<:Any}, mld_results::Dict{String,<:Any})::Vector{Dict{String,Any}}
+    get_timestep_device_actions(network::Dict{String,<:Any}, optimal_switching_results::Dict{String,<:Any})::Vector{Dict{String,Any}}
 
 From the multinetwork `network`, determines the switch configuration at each timestep. If the switch does not exist
 in `mld_results`, the state will default back to the state given in the original network. This could happen if the switch
@@ -59,7 +59,7 @@ end
 
 
 """
-    get_timestep_switch_changes(network::Dict{String,<:Any})::Vector{Vector{String}}
+    get_timestep_switch_changes(network::Dict{String,<:Any}, optimal_switching_results::Dict{String,<:Any}=Dict{String,Any}())::Vector{Vector{String}}
 
 Gets a list of switches whose state has changed between timesteps (always expect the first timestep to be an empty list).
 This expects the solutions from the MLD problem to have been merged into `network`

@@ -1,5 +1,9 @@
 """
-    solve_mn_mc_osw_mld_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)::Dict{String,Any}
+    solve_mn_mc_osw_mld_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver;
+        solution_processors::Vector{Function}=Function[],
+        eng2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
+        ref_extensions::Vector{Function}=Function[], kwargs...
+    )::Dict{String,Any}
 
 Solves a __multinetwork__ multiconductor optimal switching (mixed-integer) problem using `model_type` and `solver`
 
@@ -26,7 +30,11 @@ function solve_mn_mc_osw_mld_mi(data::Union{Dict{String,<:Any}, String}, model_t
 end
 
 
-"Multinetwork load shedding problem for Branch Flow model"
+"""
+    build_mn_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
+
+Multinetwork load shedding problem for Branch Flow model
+"""
 function build_mn_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
     for n in nw_ids(pm)
         variable_mc_block_indicator(pm; nw=n, relax=false)
@@ -126,7 +134,11 @@ function build_mn_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
 end
 
 
-"Multinetwork load shedding problem for Bus Injection models"
+"""
+    build_mn_mc_osw_mld_mi(pm::AbstractSwitchModels)
+
+Multinetwork load shedding problem for Bus Injection models
+"""
 function build_mn_mc_osw_mld_mi(pm::AbstractSwitchModels)
     for n in nw_ids(pm)
         variable_mc_block_indicator(pm; nw=n, relax=false)
@@ -226,7 +238,11 @@ end
 
 
 """
-    solve_mc_osw_mld_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)::Dict{String,Any}
+    solve_mc_osw_mld_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver;
+        solution_processors::Vector{Function}=Function[],
+        eng2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
+        ref_extensions::Vector{Function}=Function[], kwargs...
+    )::Dict{String,Any}
 
 Solves a multiconductor optimal switching (mixed-integer) problem using `model_type` and `solver`
 
@@ -251,7 +267,11 @@ function solve_mc_osw_mld_mi(data::Union{Dict{String,<:Any}, String}, model_type
 end
 
 
-"Multinetwork load shedding problem for Branch Flow model"
+"""
+    build_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
+
+Single-network load shedding problem for Branch Flow model
+"""
 function build_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
     variable_mc_block_indicator(pm; relax=false)
 
@@ -331,7 +351,11 @@ function build_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
 end
 
 
-"Single network load shedding problem for Bus Injection model"
+"""
+    build_mc_osw_mld_mi(pm::AbstractSwitchModels)
+
+Single network load shedding problem for Bus Injection model
+"""
 function build_mc_osw_mld_mi(pm::AbstractSwitchModels)
     for n in nw_ids(pm)
         variable_mc_block_indicator(pm; relax=false)

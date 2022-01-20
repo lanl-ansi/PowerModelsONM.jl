@@ -12,7 +12,7 @@ end
 
 
 """
-    optimize_switches(network::Dict{String,<:Any}, solver; gurobi::Bool=false)::Dict{String,Any}
+    optimize_switches(network::Dict{String,<:Any}, solver; formulation::Type=LPUBFSwitchPowerModel, algorithm::String="global")::Dict{String,Any}
 
 Iterates over all subnetworks in a multinetwork data structure `network`, in order, and solves
 the optimal switching / MLD problem sequentially, updating the next timestep with the new switch

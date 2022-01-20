@@ -65,20 +65,18 @@ module PowerModelsONM
         end
     end
 
+    include("core/logging.jl")
+
     include("core/base.jl")
     include("core/types.jl")
-
     include("core/constraint_template.jl")
     include("core/constraint.jl")
-    include("core/data.jl")
-    include("core/logging.jl")
     include("core/objective.jl")
+    include("core/variable.jl")
     include("core/ref.jl")
     include("core/solution.jl")
-    include("core/variable.jl")
 
     include("data_model/checks.jl")
-    include("data_model/transformations.jl")
 
     include("form/acp.jl")
     include("form/acr.jl")
