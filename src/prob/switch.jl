@@ -26,22 +26,7 @@ function optimize_switches(network::Dict{String,<:Any}, solver; formulation::Typ
         _results = solve_mn_mc_osw_mld_mi(
             network,
             formulation,
-            solver;
-            solution_processors=[PMD.sol_data_model!],
-            ref_extensions=[ref_add_load_blocks!, ref_add_max_switch_actions!],
-            eng2math_passthrough=Dict{String,Vector{String}}(
-                "root"=>String[
-                    "max_switch_actions",
-                    "disable_networking",
-                    "disable_switch_penalty",
-                    "apply_switch_scores",
-                    "disable_radial_constraint",
-                    "disable_isolation_constraint",
-                ],
-                "load"=>String["priority"],
-                "bus"=>String["microgrid_id"],
-                "storage"=>String["phase_unbalance_factor"],
-            )
+            solver
         )
 
         opt_results = filter(x->x.first!="solution", _results)
@@ -77,22 +62,7 @@ function optimize_switches(subnetwork::Dict{String,<:Any}, prob::Function, solve
     prob(
         subnetwork,
         formulation,
-        solver;
-        solution_processors=[PMD.sol_data_model!],
-        ref_extensions=[ref_add_load_blocks!, ref_add_max_switch_actions!],
-        eng2math_passthrough=Dict{String,Vector{String}}(
-            "root"=>String[
-                "max_switch_actions",
-                "disable_networking",
-                "disable_switch_penalty",
-                "apply_switch_scores",
-                "disable_radial_constraint",
-                "disable_isolation_constraint",
-            ],
-            "load"=>String["priority"],
-            "bus"=>String["microgrid_id"],
-            "storage"=>String["phase_unbalance_factor"],
-        )
+        solver
     )
 end
 

@@ -7,8 +7,22 @@ Calls back to PowerModelsDistribution.solve_mc_model, and therefore will accept 
 for that function. See PowerModelsDistribution [documentation](https://lanl-ansi.github.io/PowerModelsDistribution.jl/latest)
 for more details.
 """
-function solve_mn_mc_osw_mld_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)::Dict{String,Any}
-    return PMD.solve_mc_model(data, model_type, solver, build_mn_mc_osw_mld_mi; multinetwork=true, kwargs...)
+function solve_mn_mc_osw_mld_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver;
+    solution_processors::Vector{Function}=Function[],
+    eng2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
+    ref_extensions::Vector{Function}=Function[], kwargs...)::Dict{String,Any}
+
+    return PMD.solve_mc_model(
+        data,
+        model_type,
+        solver,
+        build_mn_mc_osw_mld_mi;
+        multinetwork=true,
+        solution_processors=Function[_solution_processors..., solution_processors...],
+        ref_extensions=Function[_ref_extensions..., ref_extensions...],
+        eng2math_passthrough=recursive_merge(_eng2math_passthrough, eng2math_passthrough),
+        kwargs...
+    )
 end
 
 
@@ -220,8 +234,20 @@ Calls back to PowerModelsDistribution.solve_mc_model, and therefore will accept 
 for that function. See PowerModelsDistribution [documentation](https://lanl-ansi.github.io/PowerModelsDistribution.jl/latest)
 for more details.
 """
-function solve_mc_osw_mld_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver; kwargs...)::Dict{String,Any}
-    return PMD.solve_mc_model(data, model_type, solver, build_mc_osw_mld_mi; multinetwork=false, kwargs...)
+function solve_mc_osw_mld_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver;
+    solution_processors::Vector{Function}=Function[],
+    eng2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
+    ref_extensions::Vector{Function}=Function[], kwargs...)::Dict{String,Any}
+    return PMD.solve_mc_model(
+        data,
+        model_type,
+        solver,
+        build_mc_osw_mld_mi;
+        multinetwork=false,
+        solution_processors=Function[_solution_processors..., solution_processors...],
+        ref_extensions=Function[_ref_extensions..., ref_extensions...],
+        eng2math_passthrough=recursive_merge(_eng2math_passthrough, eng2math_passthrough),
+        kwargs...)
 end
 
 

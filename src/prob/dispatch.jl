@@ -19,7 +19,7 @@ function optimize_dispatch!(args::Dict{String,<:Any}; update_network_data::Bool=
 
     args["optimal_dispatch_result"] = optimize_dispatch(args["network"], args["opt-disp-formulation"], args["solvers"][solver]; switching_solutions=get(args, "optimal_switching_results", missing))
 
-    update_network_data && _IM.update_data!(args["network"], get(args["optimal_dispatch_result"], "solution", Dict{String, Any}()))
+    update_network_data && recursive_merge(args["network"], get(args["optimal_dispatch_result"], "solution", Dict{String, Any}()))
 
     return args["optimal_dispatch_result"]
 end
