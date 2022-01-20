@@ -19,10 +19,10 @@ function run_stability_analysis!(args::Dict{String,<:Any}; validate::Bool=true, 
             args["inverters"] = parse_inverters(args["inverters"]; validate=validate)
         end
     else
-        # TODO what to do if no inverters are defined?
         args["inverters"] = Dict{String,Any}(
             "omega0" => 376.9911,
             "rN" => 1000,
+            "inverters" => Dict{String,Any}(),
         )
     end
 
@@ -90,7 +90,14 @@ function _prepare_stability_multinetwork_data(network::Dict{String,<:Any}, inver
 
     for (n, nw) in mn_data["nw"]
         nw["data_model"] = mn_data["data_model"]
-        PowerModelsStability.add_inverters!(nw, inverters)
+
+        _inverters = Dict{String,Any}[]
+        for _inv in get(inverters, "inverters", Dict{String,Any}[])
+            if get(get(get(nw, "bus", Dict{String,Any}()), _inv["busID"], Dict{String,Any}()), "status", PMD.DISABLED) == PMD.ENABLED
+                push!(_inverters, _inv)
+            end
+        end
+        PowerModelsStability.add_inverters!(nw, merge(filter(x->x.first!="inverters", inverters), Dict{String,Any}("inverters" => _inverters)))
     end
 
     return mn_data

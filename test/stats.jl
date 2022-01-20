@@ -7,7 +7,6 @@
         "output" => "test_output.json",
         "pretty-print" => true,
         "faults" => "../test/data/ieee13_faults.json",
-        "skip" => ["stability"],  # TODO bug in upstream PowerModelsStability: if an object in inverters is DISABLED, error in calc_connected_components
         "apply-switch-scores" => true,
         "opt-switch-algorithm" => "global",
         "opt-switch-solver" => "mip_solver",
@@ -68,7 +67,7 @@
     end
 
     @testset "test stability stats" begin
-        @test isempty(args["output_data"]["Small signal stable"])
+        @test all(.!args["output_data"]["Small signal stable"])
     end
 
     @testset "test missing events arg" begin
