@@ -1,3 +1,25 @@
+"default eng2math passthrough"
+const _eng2math_passthrough = Dict{String,Vector{String}}(
+    "root"=>String[
+        "max_switch_actions",
+        "disable_networking",
+        "disable_switch_penalty",
+        "apply_switch_scores",
+        "disable_radial_constraint",
+        "disable_isolation_constraint",
+    ],
+    "load"=>String["priority"],
+    "bus"=>String["microgrid_id"],
+    "storage"=>String["phase_unbalance_factor"],
+)
+
+"default ref_extensions for solve_mc_model"
+const _ref_extensions = Function[ref_add_load_blocks!, ref_add_max_switch_actions!]
+
+"default solution processors"
+const _solution_processors = Function[PMD.sol_data_model!, PowerModelsONM.solution_reference_buses!]
+
+
 """
     build_solver_instances!(args::Dict{String,<:Any})::Dict{String,Any}
 

@@ -119,6 +119,7 @@ function analyze_results!(args::Dict{String,<:Any})::Dict{String,Any}
     get_timestep_device_actions!(args)
     get_timestep_switch_changes!(args)
     get_timestep_switch_optimization_metadata!(args)
+    get_timestep_microgrid_networks!(args)
 
     get_timestep_stability!(args)
 

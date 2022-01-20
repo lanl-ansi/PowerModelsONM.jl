@@ -42,8 +42,6 @@ function set_log_level!(level::Symbol)
     if level == :Error
         loglevel = Logging.Error
         push!(mods, PowerModelsONM)
-
-        # TODO remove need for Memento
         _IM.silence()
     elseif level == :Info
         loglevel = Logging.Info
@@ -51,8 +49,6 @@ function set_log_level!(level::Symbol)
         loglevel = Logging.Debug
     else
         loglevel = Logging.Error
-
-        # TODO remove need for Memento
         _IM.silence()
     end
 

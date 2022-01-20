@@ -66,7 +66,7 @@ module PowerModelsONM
     end
 
     include("core/base.jl")
-    include("core/type.jl")
+    include("core/types.jl")
 
     include("core/constraint_template.jl")
     include("core/constraint.jl")

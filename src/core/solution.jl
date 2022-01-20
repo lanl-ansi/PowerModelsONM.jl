@@ -89,6 +89,9 @@ end
 
 
 """
+    solution_reference_buses!(pm::AbstractUnbalancedPowerModel, sol::Dict{String,Any})
+
+Raises bus_type from math model up to solution for reporting
 """
 function solution_reference_buses!(pm::AbstractUnbalancedPowerModel, sol::Dict{String,Any})
     PMD.apply_pmd!(_solution_reference_buses!, pm.data, sol; apply_to_subnetworks=true)
@@ -96,6 +99,9 @@ end
 
 
 """
+    _solution_reference_buses!(data::Dict{String,<:Any}, sol::Dict{String,<:Any})
+
+Raises bus_type from math model up to solution for reporting
 """
 function _solution_reference_buses!(data::Dict{String,<:Any}, sol::Dict{String,<:Any})
     if !haskey(sol, "bus") && !isempty(get(data, "bus", Dict()))
