@@ -107,11 +107,9 @@ end
 Minimizes the amount of storage that gets utilized in favor of using all available generation first
 """
 function objective_mc_min_storage_utilization(pm::AbstractUnbalancedPowerModel)
-    # TODO: change to use cost functions for storage
-
     JuMP.@objective(pm.model, Min,
         sum(
-            sum( sum(-var(pm, n, :ps, i)[c] for c in strg["connections"]) for (i,strg) in nw_ref[:storage])
+            sum( strg["energy_rating"] - var(pm, n, :se, i) for (i,strg) in nw_ref[:storage])
         for (n, nw_ref) in nws(pm))
     )
 end
