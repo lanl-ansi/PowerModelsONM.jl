@@ -4,11 +4,10 @@ This is a working document that contains an ongoing list of upcoming features an
 
 ## Desired Features
 
-This section contains a
+This section contains a list of desired upcoming features, in no particular order:
 
-- "fault" events
-- microgrid tagging for improved statistics
-- unit tests including storage
-- SOC relaxation for OSW/MLD
-- Improved binary builds
-- Improved docker builds
+- SOC relaxation for MLD
+- User-friendly settings solve fidelity settings
+- MINLP MLD examples
+- Integration of protection optimizer
+- Individually controllable / continuously sheddable loads

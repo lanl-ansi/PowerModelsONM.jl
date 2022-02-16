@@ -1,5 +1,8 @@
 """
-    parse_faults(faults_file::String; validate::Bool=true)::Dict{String,Any}
+    parse_faults(
+        faults_file::String;
+        validate::Bool=true
+    )::Dict{String,Any}
 
 Parses fault JSON input files which have the same structure as the outputs
 from `PowerModelsProtection.build_mc_fault_stuides`
@@ -61,7 +64,11 @@ function parse_faults(faults_file::String; validate::Bool=true)::Dict{String,Any
 end
 
 
-"helper function to help parse data types for multiconductor fault study data structures from JSON"
+"""
+    _fix_fault_data_types!(faults::Dict{String,<:Any})
+
+Helper function to help parse data types for multiconductor fault study data structures from JSON `faults`.
+"""
 function _fix_fault_data_types!(faults::Dict{String,<:Any})
     if isa(faults, Dict)
         for (k,v) in faults
@@ -83,7 +90,7 @@ end
 """
     count_faults(faults::Dict{String,<:Any})::Int
 
-Helper function to count the total number of faults
+Helper function to count the total number of faults.
 """
 function count_faults(faults::Dict{String,<:Any})::Int
     count = 0

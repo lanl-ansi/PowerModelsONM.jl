@@ -1,16 +1,16 @@
 @doc raw"""
-    constraint_mc_switch_state_on_off(pm::AbstractUnbalancedACRSwitchModel, nw::Int, i::Int, f_bus::Int, t_bus::Int, f_connections::Vector{Int}, t_connections::Vector{Int}; relax::Bool=false)
+    constraint_mc_switch_voltage_open_close(pm::PMD.AbstractUnbalancedACRModel, nw::Int, i::Int, f_bus::Int, t_bus::Int, f_connections::Vector{Int}, t_connections::Vector{Int})
 
-Linear switch power on/off constraint for LPUBFDiagModel. If `relax`, an [indicator constraint](https://jump.dev/JuMP.jl/stable/manual/constraints/#Indicator-constraints) is used.
+nonlinear switch power on/off constraint for ac-rect form
 
 ```math
 \begin{align}
-& w^{fr}_{i,c} - w^{to}_{i,c} \leq \left ( v^u_{i,c} \right )^2 \left ( 1 - z^{sw}_i \right )\ \forall i \in S,\forall c \in C \\
-& w^{fr}_{i,c} - w^{to}_{i,c} \geq -\left ( v^u_{i,c}\right )^2 \left ( 1 - z^{sw}_i \right )\ \forall i \in S,\forall c \in C
+& \\
+&
 \end{align}
 ```
 """
-function PowerModelsDistribution.constraint_mc_switch_state_on_off(pm::AbstractUnbalancedACRSwitchModel, nw::Int, i::Int, f_bus::Int, t_bus::Int, f_connections::Vector{Int}, t_connections::Vector{Int}; relax::Bool=false)
+function constraint_mc_switch_voltage_open_close(pm::PMD.AbstractUnbalancedACRModel, nw::Int, i::Int, f_bus::Int, t_bus::Int, f_connections::Vector{Int}, t_connections::Vector{Int})
     vr_fr = var(pm, nw, :vr, f_bus)
     vr_to = var(pm, nw, :vr, t_bus)
     vi_fr = var(pm, nw, :vi, f_bus)
@@ -28,31 +28,30 @@ function PowerModelsDistribution.constraint_mc_switch_state_on_off(pm::AbstractU
     vmin = max.(fill(0.0, length(f_vmax)), f_vmin, t_vmin)
     vmax = min.(fill(2.0, length(f_vmax)), f_vmax, t_vmax)
 
-    z = var(pm, nw, :switch_state, i)
+    state = var(pm, nw, :switch_state, i)
 
     for (idx, (fc, tc)) in enumerate(zip(f_connections, t_connections))
-        if relax
-            JuMP.@NLconstraint(pm.model, (vr_fr[fc]^2 + vi_fr[fc]^2) - (vr_to[tc]^2 + vi_to[tc]^2) <=  (vmax[idx]^2-vmin[idx]^2) * (1-z))
-            JuMP.@NLconstraint(pm.model, (vr_fr[fc]^2 + vi_fr[fc]^2) - (vr_to[tc]^2 + vi_to[tc]^2) >= -(vmax[idx]^2-vmin[idx]^2) * (1-z))
-        else
-            JuMP.@constraint(pm.model, z => {vr_fr[fc] == vr_to[tc]})
-            JuMP.@constraint(pm.model, z => {vi_fr[fc] == vi_to[tc]})
-        end
+        JuMP.@NLconstraint(pm.model, (vr_fr[fc]^2 + vi_fr[fc]^2) - (vr_to[tc]^2 + vi_to[tc]^2) <=  (vmax[idx]^2-vmin[idx]^2) * (1-state))
+        JuMP.@NLconstraint(pm.model, (vr_fr[fc]^2 + vi_fr[fc]^2) - (vr_to[tc]^2 + vi_to[tc]^2) >= -(vmax[idx]^2-vmin[idx]^2) * (1-state))
+
+        # Indicator constraint version, for reference
+        # JuMP.@constraint(pm.model, state => {vr_fr[fc] == vr_to[tc]})
+        # JuMP.@constraint(pm.model, state => {vi_fr[fc] == vi_to[tc]})
     end
 end
 
 
 """
-    constraint_mc_power_balance_shed(pm::AbstractUnbalancedACRSwitchModel, nw::Int, i::Int,
+    constraint_mc_power_balance_shed_block(pm::PMD.AbstractUnbalancedACRModel, nw::Int, i::Int,
         terminals::Vector{Int}, grounded::Vector{Bool}, bus_arcs::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}},
         bus_arcs_sw::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_arcs_trans::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}},
         bus_gens::Vector{Tuple{Int,Vector{Int}}}, bus_storage::Vector{Tuple{Int,Vector{Int}}},
         bus_loads::Vector{Tuple{Int,Vector{Int}}}, bus_shunts::Vector{Tuple{Int,Vector{Int}}}
     )
 
-KCL for load shed problem with transformers (ACRU Form)
+KCL for block load shed problem with transformers (ac-rect form)
 """
-function PowerModelsDistribution.constraint_mc_power_balance_shed(pm::AbstractUnbalancedACRSwitchModel, nw::Int, i::Int, terminals::Vector{Int}, grounded::Vector{Bool}, bus_arcs::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_arcs_sw::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_arcs_trans::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_gens::Vector{Tuple{Int,Vector{Int}}}, bus_storage::Vector{Tuple{Int,Vector{Int}}}, bus_loads::Vector{Tuple{Int,Vector{Int}}}, bus_shunts::Vector{Tuple{Int,Vector{Int}}})
+function constraint_mc_power_balance_shed_block(pm::PMD.AbstractUnbalancedACRModel, nw::Int, i::Int, terminals::Vector{Int}, grounded::Vector{Bool}, bus_arcs::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_arcs_sw::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_arcs_trans::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_gens::Vector{Tuple{Int,Vector{Int}}}, bus_storage::Vector{Tuple{Int,Vector{Int}}}, bus_loads::Vector{Tuple{Int,Vector{Int}}}, bus_shunts::Vector{Tuple{Int,Vector{Int}}})
     z_block  = var(pm, nw, :z_block, ref(pm, nw, :bus_block_map, i))
 
     vr = var(pm, nw, :vr, i)
@@ -119,11 +118,11 @@ end
 
 
 """
-    constraint_mc_bus_voltage_magnitude_on_off(pm::AbstractUnbalancedACRSwitchModel, nw::Int, i::Int, vmin::Vector{<:Real}, vmax::Vector{<:Real})
+    constraint_mc_bus_voltage_magnitude_block_on_off(pm::PMD.AbstractUnbalancedACRModel, nw::Int, i::Int, vmin::Vector{<:Real}, vmax::Vector{<:Real})
 
-on/off bus voltage magnitude squared constraint for relaxed formulations
+on/off block bus voltage magnitude squared constraint for ac-rect form
 """
-function PowerModelsDistribution.constraint_mc_bus_voltage_magnitude_on_off(pm::AbstractUnbalancedACRSwitchModel, nw::Int, i::Int, vmin::Vector{<:Real}, vmax::Vector{<:Real})
+function constraint_mc_bus_voltage_magnitude_block_on_off(pm::PMD.AbstractUnbalancedACRModel, nw::Int, i::Int, vmin::Vector{<:Real}, vmax::Vector{<:Real})
     vr = var(pm, nw, :vr, i)
     vi = var(pm, nw, :vi, i)
 
@@ -133,20 +132,46 @@ function PowerModelsDistribution.constraint_mc_bus_voltage_magnitude_on_off(pm::
     grounded = ref(pm, nw, :bus, i)["grounded"]
 
     for (idx,t) in [(idx,t) for (idx,t) in enumerate(terminals) if !grounded[idx]]
-        if isfinite(vmax[idx])
-            JuMP.@constraint(pm.model, vr[t]^2 + vi[t]^2 <= vmax[idx]^2*z_block)
-        end
-
-        if isfinite(vmin[idx])
-            JuMP.@constraint(pm.model, vr[t]^2 + vi[t]^2 >= vmin[idx]^2*z_block)
-        end
+        isfinite(vmax[idx]) && JuMP.@constraint(pm.model, vr[t]^2 + vi[t]^2 <= vmax[idx]^2*z_block)
+        isfinite(vmin[idx]) && JuMP.@constraint(pm.model, vr[t]^2 + vi[t]^2 >= vmin[idx]^2*z_block)
     end
 end
 
 
 """
-    constraint_mc_transformer_power_yy_on_off(
-        pm::AbstractUnbalancedACRSwitchModel,
+    constraint_mc_bus_voltage_magnitude_traditional_on_off(pm::PMD.AbstractUnbalancedACRModel, nw::Int, i::Int, vmin::Vector{<:Real}, vmax::Vector{<:Real})
+
+on/off block bus voltage magnitude squared constraint for ac-rect form
+"""
+function constraint_mc_bus_voltage_magnitude_traditional_on_off(pm::PMD.AbstractUnbalancedACRModel, nw::Int, i::Int, vmin::Vector{<:Real}, vmax::Vector{<:Real})
+    vr = var(pm, nw, :vr, i)
+    vi = var(pm, nw, :vi, i)
+
+    z_voltage = var(pm, nw, :z_voltage, i)
+
+    terminals = ref(pm, nw, :bus, i)["terminals"]
+    grounded = ref(pm, nw, :bus, i)["grounded"]
+
+    for (idx,t) in [(idx,t) for (idx,t) in enumerate(terminals) if !grounded[idx]]
+        isfinite(vmax[idx]) && JuMP.@constraint(pm.model, vr[t]^2 + vi[t]^2 <= vmax[idx]^2*z_voltage)
+        isfinite(vmin[idx]) && JuMP.@constraint(pm.model, vr[t]^2 + vi[t]^2 >= vmin[idx]^2*z_voltage)
+    end
+end
+
+
+"""
+"""
+constraint_mc_bus_voltage_block_on_off(pm::PMD.AbstractUnbalancedACRModel, nw::Int, i::Int, vmin::Vector{<:Real}, vmax::Vector{<:Real}) = constraint_mc_bus_voltage_magnitude_block_on_off(pm, nw, i, vmin, vmax)
+
+
+"""
+"""
+constraint_mc_bus_voltage_traditional_on_off(pm::PMD.AbstractUnbalancedACRModel, nw::Int, i::Int, vmin::Vector{<:Real}, vmax::Vector{<:Real}) = constraint_mc_bus_voltage_magnitude_traditional_on_off(pm, nw, i, vmin, vmax)
+
+
+"""
+    constraint_mc_transformer_power_yy_block_on_off(
+        pm::PMD.AbstractUnbalancedACRModel,
         nw::Int,
         trans_id::Int,
         f_bus::Int,
@@ -163,7 +188,7 @@ end
 
 Links to and from power and voltages in a wye-wye transformer, assumes tm_fixed is true
 """
-function constraint_mc_transformer_power_yy_on_off(pm::AbstractUnbalancedACRSwitchModel, nw::Int, trans_id::Int, f_bus::Int, t_bus::Int, f_idx::Tuple{Int,Int,Int}, t_idx::Tuple{Int,Int,Int}, f_connections::Vector{Int}, t_connections::Vector{Int}, pol::Int, tm_set::Vector{<:Real}, tm_fixed::Vector{Bool}, tm_scale::Real)
+function constraint_mc_transformer_power_yy_block_on_off(pm::PMD.AbstractUnbalancedACRModel, nw::Int, trans_id::Int, f_bus::Int, t_bus::Int, f_idx::Tuple{Int,Int,Int}, t_idx::Tuple{Int,Int,Int}, f_connections::Vector{Int}, t_connections::Vector{Int}, pol::Int, tm_set::Vector{<:Real}, tm_fixed::Vector{Bool}, tm_scale::Real)
     z_block = var(pm, nw, :z_block, ref(pm, nw, :bus_block_map, f_bus))
 
     transformer = ref(pm, nw, :transformer, trans_id)
@@ -220,36 +245,60 @@ end
 
 
 """
-    constraint_mc_storage_losses_on_off(pm::AbstractUnbalancedACRSwitchModel, i::Int; nw::Int=nw_id_default)
+    constraint_mc_storage_losses_block_on_off(pm::PMD.AbstractUnbalancedACRModel, nw::Int, i::Int, bus::Int, connections::Vector{Int}, r::Real, x::Real, p_loss::Real, q_loss::Real)
 
-Non-linear storage losses constraint for ACRU Form.
+Nonlinear storage losses constraint for ac-rect form.
 """
-function constraint_mc_storage_losses_on_off(pm::AbstractUnbalancedACRSwitchModel, i::Int; nw::Int=nw_id_default)
-    storage = ref(pm, nw, :storage, i)
+function constraint_mc_storage_losses_block_on_off(pm::PMD.AbstractUnbalancedACRModel, nw::Int, i::Int, bus::Int, connections::Vector{Int}, r::Real, x::Real, p_loss::Real, q_loss::Real)
     z_block = var(pm, nw, :z_block, ref(pm, nw, :storage_block_map, i))
 
-    vr  = var(pm, nw,  :vr, storage["storage_bus"])
-    vi  = var(pm, nw,  :vi, storage["storage_bus"])
+    vr  = var(pm, nw,  :vr, bus)
+    vi  = var(pm, nw,  :vi, bus)
     ps  = var(pm, nw,  :ps, i)
     qs  = var(pm, nw,  :qs, i)
     sc  = var(pm, nw,  :sc, i)
     sd  = var(pm, nw,  :sd, i)
     qsc = var(pm, nw, :qsc, i)
 
-    p_loss = storage["p_loss"]
-    q_loss = storage["q_loss"]
-    r = storage["r"]
-    x = storage["x"]
-
     JuMP.@NLconstraint(pm.model,
-        (sum(ps[c] for c in storage["connections"]) + (sd - sc)) * z_block
+        (sum(ps[c] for c in connections) + (sd - sc)) * z_block
         ==
-        (p_loss + r * sum((ps[c]^2 + qs[c]^2)/(vr[c]^2 + vi[c]^2) for (idx,c) in enumerate(storage["connections"]))) * z_block
+        (p_loss + r * sum((ps[c]^2 + qs[c]^2)/(vr[c]^2 + vi[c]^2) for (idx,c) in enumerate(connections))) * z_block
     )
 
     JuMP.@NLconstraint(pm.model,
-        sum(qs[c] for c in storage["connections"])
+        sum(qs[c] for c in connections)
         ==
-        (qsc + q_loss + x * sum((ps[c]^2 + qs[c]^2)/(vr[c]^2 + vi[c]^2) for (idx,c) in enumerate(storage["connections"]))) * z_block
+        (qsc + q_loss + x * sum((ps[c]^2 + qs[c]^2)/(vr[c]^2 + vi[c]^2) for (idx,c) in enumerate(connections))) * z_block
+    )
+end
+
+
+"""
+    constraint_mc_storage_losses_traditional_on_off(pm::PMD.AbstractUnbalancedACRModel, nw::Int, i::Int, bus::Int, connections::Vector{Int}, r::Real, x::Real, p_loss::Real, q_loss::Real)
+
+Nonlinear storage losses constraint for ac-rect form.
+"""
+function constraint_mc_storage_losses_traditional_on_off(pm::PMD.AbstractUnbalancedACRModel, nw::Int, i::Int, bus::Int, connections::Vector{Int}, r::Real, x::Real, p_loss::Real, q_loss::Real)
+    z_storage = var(pm, nw, :z_storage, i)
+
+    vr  = var(pm, nw,  :vr, bus)
+    vi  = var(pm, nw,  :vi, bus)
+    ps  = var(pm, nw,  :ps, i)
+    qs  = var(pm, nw,  :qs, i)
+    sc  = var(pm, nw,  :sc, i)
+    sd  = var(pm, nw,  :sd, i)
+    qsc = var(pm, nw, :qsc, i)
+
+    JuMP.@NLconstraint(pm.model,
+        (sum(ps[c] for c in connections) + (sd - sc)) * z_storage
+        ==
+        (p_loss + r * sum((ps[c]^2 + qs[c]^2)/(vr[c]^2 + vi[c]^2) for (idx,c) in enumerate(connections))) * z_storage
+    )
+
+    JuMP.@NLconstraint(pm.model,
+        sum(qs[c] for c in connections)
+        ==
+        (qsc + q_loss + x * sum((ps[c]^2 + qs[c]^2)/(vr[c]^2 + vi[c]^2) for (idx,c) in enumerate(connections))) * z_storage
     )
 end

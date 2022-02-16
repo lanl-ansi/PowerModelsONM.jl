@@ -1,5 +1,9 @@
 """
-    run_fault_studies!(args::Dict{String,<:Any}; validate::Bool=true, solver::String="nlp_solver")::Dict{String,Any}
+    run_fault_studies!(
+        args::Dict{String,<:Any};
+        validate::Bool=true,
+        solver::String="nlp_solver"
+    )::Dict{String,Any}
 
 Runs fault studies using `args["faults"]`, if defined, and stores the results in-place in
 `args["fault_stuides_results"]`, for use in [`entrypoint`](@ref entrypoint), using
@@ -14,12 +18,26 @@ function run_fault_studies!(args::Dict{String,<:Any}; validate::Bool=true, solve
         args["faults"] = PowerModelsProtection.build_mc_fault_study(args["base_network"])
     end
 
-    args["fault_studies_results"] = run_fault_studies(args["network"], args["solvers"][solver]; faults=args["faults"], switching_solutions=get(args, "optimal_switching_results", missing), dispatch_solution=get(args, "optimal_dispatch_result", missing), distributed=get(args, "nprocs", 1) > 1)
+    args["fault_studies_results"] = run_fault_studies(
+        args["network"],
+        args["solvers"][solver];
+        faults=args["faults"],
+        switching_solutions=get(args, "optimal_switching_results", missing),
+        dispatch_solution=get(args, "optimal_dispatch_result", missing),
+        distributed=get(args, "nprocs", 1) > 1
+    )
 end
 
 
 """
-    run_fault_studies(network::Dict{String,<:Any}, solver; faults::Dict{String,<:Any}=Dict{String,Any}(), switching_solutions::Union{Missing,Dict{String,<:Any}}=missing, dispatch_solution::Union{Missing,Dict{String,<:Any}}=missing, distributed::Bool=false)::Dict{String,Any}
+    run_fault_studies(
+        network::Dict{String,<:Any},
+        solver;
+        faults::Dict{String,<:Any}=Dict{String,Any}(),
+        switching_solutions::Union{Missing,Dict{String,<:Any}}=missing,
+        dispatch_solution::Union{Missing,Dict{String,<:Any}}=missing,
+        distributed::Bool=false
+    )::Dict{String,Any}
 
 Runs fault studies defined in ieee13_faults.json. If no faults file is provided, it will automatically generate faults
 using `PowerModelsProtection.build_mc_fault_study`.
@@ -36,12 +54,12 @@ function run_fault_studies(network::Dict{String,<:Any}, solver; faults::Dict{Str
 
     switch_states = Dict{String,Dict{String,PMD.SwitchState}}(n => Dict{String,PMD.SwitchState}(s => sw["state"] for (s,sw) in get(nw, "switch", Dict())) for (n,nw) in get(mn_data, "nw", Dict()))
 
-    shedded_buses = Dict{String,Vector{String}}(n => String[] for (n,nw) in get(mn_data, "nw", Dict()))
+    shedded_buses = Dict{String,Vector{String}}(n => collect(keys(filter(x->x.second["status"] == PMD.DISABLED, mn_data["nw"][n]["bus"]))) for (n,nw) in get(mn_data, "nw", Dict()))
     if !ismissing(switching_solutions)
         for (n,shed) in shedded_buses
             nw = get(switching_solutions["$n"], "solution", Dict{String,Any}())
             for (i,bus) in get(nw, "bus", Dict())
-                if round(Int, get(bus, "status", 1)) != 1
+                if get(bus, "status", PMD.ENABLED) == PMD.DISABLED
                     push!(shed, i)
                 end
             end
@@ -102,7 +120,11 @@ end
 
 
 """
-    run_fault_study(subnetwork::Dict{String,<:Any}, faults::Dict{String,<:Any}, solver)::Dict{String,Any}
+    run_fault_study(
+        subnetwork::Dict{String,<:Any},
+        faults::Dict{String,<:Any},
+        solver
+    )::Dict{String,Any}
 
 Uses `PowerModelsProtection.solve_mc_fault_study` to solve multiple faults defined in `faults`, applied
 to `subnetwork`, i.e., not a multinetwork, using a nonlinear `solver`.
@@ -114,7 +136,15 @@ function run_fault_study(subnetwork::Dict{String,<:Any}, faults::Dict{String,<:A
 end
 
 
-"helper function that helps to prepare all of the subnetworks for use in `PowerModelsProtection.solve_mc_fault_study`"
+"""
+    _prepare_fault_study_multinetwork_data(
+        network::Dict{String,<:Any},
+        switching_solutions::Union{Missing,Dict{String,<:Any}}=missing,
+        dispatch_solution::Union{Missing,Dict{String,<:Any}}=missing
+    )
+
+Helper function that helps to prepare all of the subnetworks for use in `PowerModelsProtection.solve_mc_fault_study`
+"""
 function _prepare_fault_study_multinetwork_data(network::Dict{String,<:Any}, switching_solutions::Union{Missing,Dict{String,<:Any}}=missing, dispatch_solution::Union{Missing,Dict{String,<:Any}}=missing)
     data = _prepare_dispatch_data(network, switching_solutions)
 

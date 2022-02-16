@@ -7,23 +7,36 @@ using [`optimize_switches`]
 Uses LPUBFDiagPowerModel (LinDist3Flow), and therefore requires `args["solvers"]["misocp_solver"]` to be specified
 """
 function optimize_switches!(args::Dict{String,<:Any})::Dict{String,Any}
-    args["optimal_switching_results"] = optimize_switches(args["network"], args["solvers"][get(args, "opt-switch-solver", "misocp_solver")]; formulation=_get_switch_formulation(get(args, "opt-switch-formulation", "lindistflow")), algorithm=get(args, "opt-switch-algorithm", "global"))
+    args["optimal_switching_results"] = optimize_switches(
+        args["network"],
+        args["solvers"][get(args, "opt-switch-solver", "misocp_solver")];
+        formulation=_get_formulation(get(args, "opt-switch-formulation", "lindistflow")),
+        algorithm=get(args, "opt-switch-algorithm", "global"),
+        problem=get(args, "opt-switch-problem", "block")
+    )
 end
 
 
 """
-    optimize_switches(network::Dict{String,<:Any}, solver; formulation::Type=LPUBFSwitchPowerModel, algorithm::String="global")::Dict{String,Any}
+    optimize_switches(
+        network::Dict{String,<:Any},
+        solver;
+        formulation::Type=PMD.LPUBFDiagPowerModel,
+        algorithm::String="global"
+    )::Dict{String,Any}
 
-Iterates over all subnetworks in a multinetwork data structure `network`, in order, and solves
-the optimal switching / MLD problem sequentially, updating the next timestep with the new switch
-configurations and storage energies from the solved timestep.
+- `algorithm::String`, if `"iterative"`, iterates over all subnetworks in a multinetwork data structure `network`, in order,
+  and solves the optimal switching / MLD problem sequentially, updating the next timestep with the new switch configurations
+  and storage energies from the solved timestep. Otherwise, if `"global"`, will solve all time steps in a single optimization
+  problem (default: `"global"`)
 """
-function optimize_switches(network::Dict{String,<:Any}, solver; formulation::Type=LPUBFSwitchPowerModel, algorithm::String="global")::Dict{String,Any}
+function optimize_switches(network::Dict{String,<:Any}, solver; formulation::Type=PMD.LPUBFDiagPowerModel, algorithm::String="global", problem::String="block")::Dict{String,Any}
     results = Dict{String,Any}()
 
-    @info "running $(algorithm) optimal switching algorithm with $(formulation)"
+    @info "running $(algorithm)-$(problem) optimal switching algorithm with $(formulation)"
     if algorithm == "global"
-        _results = solve_mn_mc_osw_mld_mi(
+        prob = problem=="traditional" ? solve_mn_traditional_mld : solve_mn_block_mld
+        _results = prob(
             network,
             formulation,
             solver
@@ -41,7 +54,7 @@ function optimize_switches(network::Dict{String,<:Any}, solver; formulation::Typ
                 _update_storage_capacity!(mn_data["nw"]["$n"], results["$(n-1)"]["solution"])
             end
 
-            results["$n"] = optimize_switches(mn_data["nw"]["$n"], solve_mc_osw_mld_mi, solver; formulation=formulation)
+            results["$n"] = optimize_switches(mn_data["nw"]["$n"], problem=="traditional" ? solve_traditional_mld : solve_block_mld, solver; formulation=formulation)
         end
     else
         @warn "'algorithm=$(algorithm)' not recognized, skipping switch optimization"
@@ -52,13 +65,17 @@ end
 
 
 """
-    optimize_switches(subnetwork::Dict{String,<:Any}, prob::Function, solver; formulation=LPUBFSwitchPowerModel)::Dict{String,Any}
+    optimize_switches(
+        subnetwork::Dict{String,<:Any},
+        prob::Function, solver;
+        formulation=PMD.LPUBFDiagPowerModel
+    )::Dict{String,Any}
 
 Optimizes switch states for load shedding on a single subnetwork (not a multinetwork), using `prob`
 
 Optionally, a PowerModelsDistribution `formulation` can be set independently, but is LinDist3Flow by default.
 """
-function optimize_switches(subnetwork::Dict{String,<:Any}, prob::Function, solver; formulation=LPUBFSwitchPowerModel)::Dict{String,Any}
+function optimize_switches(subnetwork::Dict{String,<:Any}, prob::Function, solver; formulation=PMD.LPUBFDiagPowerModel)::Dict{String,Any}
     prob(
         subnetwork,
         formulation,
@@ -67,7 +84,11 @@ function optimize_switches(subnetwork::Dict{String,<:Any}, prob::Function, solve
 end
 
 
-"helper function to prepare optimal switching data structure"
+"""
+    _prepare_optimal_switching_data(network::Dict{String,<:Any})::Dict{String,Any}
+
+Helper function to prepare optimal switching data structure.
+"""
 function _prepare_optimal_switching_data(network::Dict{String,<:Any})::Dict{String,Any}
     mn_data = deepcopy(network)
     for (n,nw) in mn_data["nw"]

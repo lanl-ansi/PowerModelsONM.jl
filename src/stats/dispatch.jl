@@ -1,5 +1,7 @@
 """
-    get_timestep_voltage_statistics!(args::Dict{String,<:Any})::Dict{String,Vector{Real}}
+    get_timestep_voltage_statistics!(
+        args::Dict{String,<:Any}
+    )::Dict{String,Vector{Real}}
 
 Gets voltage statistics min, mean, max for each timestep in-place in args, for use in [`entrypoint`][@ref entrypoint],
 using [`get_timestep_voltage_statistics`](@ref get_timestep_voltage_statistics)
@@ -10,14 +12,19 @@ end
 
 
 """
-    get_voltage_min_mean_max(solution::Dict{String,<:Any}, data::Dict{String,<:Any}; make_per_unit::Bool=true)::Tuple{Real,Real,Real}
+    get_voltage_min_mean_max(
+        solution::Dict{String,<:Any},
+        data::Dict{String,<:Any};
+        make_per_unit::Bool=true
+    )::Tuple{Real,Real,Real}
 
 Calculates the minimum, mean, and maximum of the voltages across a network (not a multinetwork)
 
 `data` is used to convert the units to per_unit if `make_per_unit` and the data is not already per_unit.
 
-If `make_per_unit` (default: true), will return voltage statistics in per-unit representation. If `make_per_unit` is false, and there are different
-voltage bases across the network, the statistics will not make sense.
+If `make_per_unit` (default: true), will return voltage statistics in per-unit representation.
+If `make_per_unit` is false, and there are different voltage bases across the network, the statistics will
+not make sense.
 """
 function get_voltage_min_mean_max(solution::Dict{String,<:Any}, data::Dict{String,<:Any}; make_per_unit::Bool=true)::Tuple{Real,Real,Real}
     if make_per_unit
@@ -32,12 +39,18 @@ end
 
 
 """
-    get_timestep_voltage_statistics(solution::Dict{String,<:Any}, network::Dict{String,<:Any}; make_per_unit::Bool=true)::Dict{String,Vector{Real}}
+    get_timestep_voltage_statistics(
+        solution::Dict{String,<:Any},
+        network::Dict{String,<:Any};
+        make_per_unit::Bool=true
+    )::Dict{String,Vector{Real}}
 
-Returns statistics on the Minimum, Mean, and Maximum voltages for each timestep using [`get_voltage_min_mean_max`](@ref get_voltage_min_mean_max)
+Returns statistics on the Minimum, Mean, and Maximum voltages for each timestep using
+[`get_voltage_min_mean_max`](@ref get_voltage_min_mean_max)
 
-If `make_per_unit` (default: true), will return voltage statistics in per-unit representation. If `make_per_unit` is false, and there are different
-voltage bases across the network, the statistics will not make sense.
+If `make_per_unit` (default: true), will return voltage statistics in per-unit representation.
+If `make_per_unit` is false, and there are different voltage bases across the network, the
+statistics will not make sense.
 """
 function get_timestep_voltage_statistics(solution::Dict{String,<:Any}, network::Dict{String,<:Any}; make_per_unit::Bool=true)::Dict{String,Vector{Real}}
     voltages = Dict{String,Vector{Real}}(
@@ -61,7 +74,9 @@ end
 
 
 """
-    get_timestep_dispatch!(args::Dict{String,<:Any})::Vector{Dict{String,Any}}
+    get_timestep_dispatch!(
+        args::Dict{String,<:Any}
+    )::Vector{Dict{String,Any}}
 
 Gets the optimal dispatch results in-place in args, for use in [`entrypoint`](@ref entrypoint), using
 [`get_timestep_dispatch`](@ref get_timestep_dispatch).
@@ -72,10 +87,13 @@ end
 
 
 """
-    get_timestep_dispatch(solution::Dict{String,<:Any}, network::Dict{String,<:Any})::Vector{Dict{String,Any}}
+    get_timestep_dispatch(
+        solution::Dict{String,<:Any},
+        network::Dict{String,<:Any}
+    )::Vector{Dict{String,Any}}
 
-Returns the dispatch information for generation assets (generator, storage, solar, voltage_source) and bus voltage magnitudes in SI units for each timestep
-from the optimal dispatch `solution`
+Returns the dispatch information for generation assets (generator, storage, solar, voltage_source) and
+bus voltage magnitudes in SI units for each timestep from the optimal dispatch `solution`
 """
 function get_timestep_dispatch(solution::Dict{String,<:Any}, network::Dict{String,<:Any})::Vector{Dict{String,Any}}
     dispatch = Dict{String,Any}[]
@@ -143,9 +161,12 @@ end
 
 
 """
-    get_timestep_dispatch_optimization_metadata!(args::Dict{String,<:Any})::Dict{String,Any}
+    get_timestep_dispatch_optimization_metadata!(
+        args::Dict{String,<:Any}
+    )::Dict{String,Any}
 
-Retrieves the switching optimization results metadata from the optimal switching solution via [`get_timestep_dispatch_optimization_metadata`](@ref get_timestep_dispatch_optimization_metadata)
+Retrieves the switching optimization results metadata from the optimal switching solution via
+[`get_timestep_dispatch_optimization_metadata`](@ref get_timestep_dispatch_optimization_metadata)
 and applies it in-place to args, for use with [`entrypoint`](@ref entrypoint)
 """
 function get_timestep_dispatch_optimization_metadata!(args::Dict{String,<:Any})::Dict{String,Any}
@@ -154,10 +175,12 @@ end
 
 
 """
-    get_timestep_dispatch_optimization_metadata(optimal_dispatch_result::Dict{String,Any})::Dict{String,Any}
+    get_timestep_dispatch_optimization_metadata(
+        optimal_dispatch_result::Dict{String,Any}
+    )::Dict{String,Any}
 
-Gets the metadata from the optimal switching results for each timestep, returning a list of Dicts (if opt_switch_algorithm="iterative), or a list with a single
-Dict (if opt_switch_algorithm="global").
+Gets the metadata from the optimal switching results for each timestep, returning a list of Dicts
+(if `opt_switch_algorithm="iterative"`), or a list with a single Dict (if `opt_switch_algorithm="global"`).
 """
 function get_timestep_dispatch_optimization_metadata(optimal_dispatch_result::Dict{String,Any})::Dict{String,Any}
     return _sanitize_results_metadata!(filter(x->x.first!="solution", optimal_dispatch_result))

@@ -1,18 +1,20 @@
 @doc raw"""
-    objective_mc_min_load_setpoint_delta_switch_iterative(pm::AbstractUnbalancedPowerModel)
+    objective_min_shed_load_block_rolling_horizon(pm::AbstractUnbalancedPowerModel)
 
-    minimum load delta objective with switch scores for iterative algorithm
+Minimum block load shed objective for rolling horizon problem. Note that the difference between this and
+[`objective_min_shed_load_block`](@ref objective_min_shed_load_block) is that the sum over the switches
+in line 2 of the objective is non-optional.
 
 ```math
-\begin{align}
-\mbox{minimize: } & \nonumber \\
-& \sum_{\substack{i\in N,c\in C}}{10 \left (1-z^v_i \right )} + \nonumber \\
-& \sum_{\substack{i\in L,c\in C}}{10 \omega_{i,c}\left |\Re{\left (S^d_i\right )}\right |\left ( 1-z^d_i \right ) } + \nonumber \\
-& \sum_{\substack{i\in S}}{\Delta^{sw}_i}
-\end{align}
-```
+\begin{align*}
+\mbox{minimize: } & \\
+& \sum_{\substack{b \in B,t \in T}} W^{bl}_{b,t} \left(1 - z^{bl}_{b,t} \right) \\
+& + \sum_{\substack{s \in S,t \in T}} \left[ W^{sw}_{s,t} \left(1 - \gamma_{s,t} \right )) +  W^{\Delta^{\gamma}}_{s,t}\Delta^{\gamma}_{s,t}\right ]\\
+& + \sum_{\substack{e \in E,t \in T}} \epsilon^{ub}_{e} - \epsilon_{e,t} \\
+& + \sum_{\substack{g \in G,t \in T}} f_1 P_{g,t} + f_0
+\end{align*}```
 """
-function objective_mc_min_load_setpoint_delta_switch_iterative(pm::AbstractSwitchModels)
+function objective_min_shed_load_block_rolling_horizon(pm::AbstractUnbalancedPowerModel)
     nw_id_list = sort(collect(nw_ids(pm)))
 
     for (i, n) in enumerate(nw_id_list)
@@ -44,26 +46,91 @@ function objective_mc_min_load_setpoint_delta_switch_iterative(pm::AbstractSwitc
             sum( 1e-3 * ref(pm, n, :switch_scores, l)*(1-var(pm, n, :switch_state, l)) for l in ids(pm, n, :switch_dispatchable) ) +
             sum( 1e-2 * sum(var(pm, n, :delta_sw_state, l)) for l in ids(pm, n, :switch_dispatchable)) +
             sum( strg["energy_rating"] - var(pm, n, :se, i) for (i,strg) in nw_ref[:storage]) +
-            sum( sum(get(gen,  "cost", [  1.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [  1.0, 0.0])[1] for c in gen["connections"]) for (i,gen) in nw_ref[:gen])
+            sum( sum(get(gen,  "cost", [1.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [1.0, 0.0])[1] for c in gen["connections"]) for (i,gen) in nw_ref[:gen])
         for (n, nw_ref) in nws(pm))
     )
 end
 
 
 @doc raw"""
-    objective_mc_min_load_setpoint_delta_switch_global(pm::AbstractUnbalancedPowerModel)
+    objective_min_shed_load_traditional_rolling_horizon(pm::AbstractUnbalancedPowerModel)
 
-minimum load delta objective without switch scores for global algorithm
+Minimum block load shed objective for rolling horizon problem. Note that the difference between this and
+[`objective_min_shed_load_traditional`](@ref objective_min_shed_load_traditional) is that the sum over the switches
+in line 2 of the objective is non-optional.
 
 ```math
-\begin{align}
-\mbox{minimize: } & \nonumber \\
-& \sum_{\substack{i\in N,c\in C}}{10 \left (1-z^v_i \right )} + \nonumber \\
-& \sum_{\substack{i\in S}}{\Delta^{sw}_i}
-\end{align}
+\begin{align*}
+\mbox{minimize: } & \\
+& \sum_{\substack{l \in L,t \in T}} W^{d}_{l,t} \left(1 - z^{d}_{l,t} \right) \\
+& + \sum_{\substack{s \in S,t \in T}} \left[ W^{sw}_{s,t} \left(1 - \gamma_{s,t} \right )) +  W^{\Delta^{\gamma}}_{s,t}\Delta^{\gamma}_{s,t}\right ]\\
+& + \sum_{\substack{e \in E,t \in T}} \epsilon^{ub}_{e} - \epsilon_{e,t} \\
+& + \sum_{\substack{g \in G,t \in T}} f_1 P_{g,t} + f_0
+\end{align*}
 ```
 """
-function objective_mc_min_load_setpoint_delta_switch_global(pm::AbstractSwitchModels)
+function objective_min_shed_load_traditional_rolling_horizon(pm::AbstractUnbalancedPowerModel)
+    nw_id_list = sort(collect(nw_ids(pm)))
+
+    for (i, n) in enumerate(nw_id_list)
+        nw_ref = ref(pm, n)
+
+        var(pm, n)[:delta_sw_state] = JuMP.@variable(
+            pm.model,
+            [i in ids(pm, n, :switch_dispatchable)],
+            base_name="$(n)_$(i)_delta_sw_state",
+            start = 0
+        )
+
+        for (s,switch) in nw_ref[:switch_dispatchable]
+            z_switch = var(pm, n, :switch_state, s)
+            if i == 1
+                JuMP.@constraint(pm.model, var(pm, n, :delta_sw_state, s) >=  (JuMP.start_value(z_switch) - z_switch))
+                JuMP.@constraint(pm.model, var(pm, n, :delta_sw_state, s) >= -(JuMP.start_value(z_switch) - z_switch))
+            else  # multinetwork
+                z_switch_prev = var(pm, nw_id_list[i-1], :switch_state, s)
+                JuMP.@constraint(pm.model, var(pm, n, :delta_sw_state, s) >=  (z_switch_prev - z_switch))
+                JuMP.@constraint(pm.model, var(pm, n, :delta_sw_state, s) >= -(z_switch_prev - z_switch))
+            end
+        end
+    end
+
+    load_weights = Dict(
+        n => Dict(
+            l => ref(pm, n, :block_weights, b) / length(ref(pm, n, :block_loads, b)) for b in ids(pm, n, :blocks) for l in ref(pm, n, :block_loads, b)
+        ) for n in nw_ids(pm)
+    )
+
+    JuMP.@objective(pm.model, Min,
+        sum(
+            sum( load_weights[n][i] * (1-var(pm, n, :z_demand, i)) for i in ids(pm, n, :load)) +
+            sum( 1e-3 * ref(pm, n, :switch_scores, l)*(1-var(pm, n, :switch_state, l)) for l in ids(pm, n, :switch_dispatchable) ) +
+            sum( 1e-2 * sum(var(pm, n, :delta_sw_state, l)) for l in ids(pm, n, :switch_dispatchable)) +
+            sum( strg["energy_rating"] - var(pm, n, :se, i) for (i,strg) in nw_ref[:storage]) +
+            sum( sum(get(gen,  "cost", [1.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [1.0, 0.0])[1] for c in gen["connections"]) for (i,gen) in nw_ref[:gen])
+        for (n, nw_ref) in nws(pm))
+    )
+end
+
+
+@doc raw"""
+    objective_min_shed_load_block(pm::AbstractUnbalancedPowerModel)
+
+Minimum block load shed objective for rolling horizon problem. Note that the difference between this and
+[`objective_min_shed_load_block_rolling_horizon`](@ref objective_min_shed_load_block_rolling_horizon) is that the
+sum over the switches in line 2 of the objective is optional, as determined by user inputs in the model, i.e.,
+`apply_switch_scores` (default: false), and `disable_switch_penalty` (default: false).
+
+```math
+\begin{align*}
+\mbox{minimize: } & \\
+& \sum_{\substack{b \in B,t \in T}} W^{bl}_{b,t} \left(1 - z^{bl}_{b,t} \right) \\
+& + \sum_{\substack{s \in S,t \in T}} \left[ W^{sw}_{s,t} \left(1 - \gamma_{s,t} \right )) +  W^{\Delta^{\gamma}}_{s,t}\Delta^{\gamma}_{s,t}\right ]\\
+& + \sum_{\substack{e \in E,t \in T}} \epsilon^{ub}_{e} - \epsilon_{e,t} \\
+& + \sum_{\substack{g \in G,t \in T}} f_1 P_{g,t} + f_0
+\end{align*}```
+"""
+function objective_min_shed_load_block(pm::AbstractUnbalancedPowerModel)
     nw_id_list = sort(collect(nw_ids(pm)))
 
     for (i, n) in enumerate(nw_id_list)
@@ -101,10 +168,79 @@ function objective_mc_min_load_setpoint_delta_switch_global(pm::AbstractSwitchMo
 end
 
 
+@doc raw"""
+    objective_min_shed_load_traditional(pm::AbstractUnbalancedPowerModel)
+
+Minimum block load shed objective for rolling horizon problem. Note that the difference between this and
+[`objective_min_shed_load_traditional_rolling_horizon`](@ref objective_min_shed_load_traditional_rolling_horizon) is that the
+sum over the switches in line 2 of the objective is optional, as determined by user inputs in the model, i.e.,
+`apply_switch_scores` (default: false), and `disable_switch_penalty` (default: false).
+
+```math
+\begin{align*}
+\mbox{minimize: } & \\
+& \sum_{\substack{l \in L,t \in T}} W^{d}_{l,t} \left(1 - z^{d}_{l,t} \right) \\
+& + \sum_{\substack{s \in S,t \in T}} \left[ W^{sw}_{s,t} \left(1 - \gamma_{s,t} \right )) +  W^{\Delta^{\gamma}}_{s,t}\Delta^{\gamma}_{s,t}\right ]\\
+& + \sum_{\substack{e \in E,t \in T}} \epsilon^{ub}_{e} - \epsilon_{e,t} \\
+& + \sum_{\substack{g \in G,t \in T}} f_1 P_{g,t} + f_0
+\end{align*}
+```
 """
+function objective_min_shed_load_traditional(pm::AbstractUnbalancedPowerModel)
+    nw_id_list = sort(collect(nw_ids(pm)))
+
+    for (i, n) in enumerate(nw_id_list)
+        nw_ref = ref(pm, n)
+
+        var(pm, n)[:delta_sw_state] = JuMP.@variable(
+            pm.model,
+            [i in ids(pm, n, :switch_dispatchable)],
+            base_name="$(n)_$(i)_delta_sw_state",
+            start = 0
+        )
+
+        for (s,switch) in nw_ref[:switch_dispatchable]
+            z_switch = var(pm, n, :switch_state, s)
+            if i == 1
+                JuMP.@constraint(pm.model, var(pm, n, :delta_sw_state, s) >=  (JuMP.start_value(z_switch) - z_switch))
+                JuMP.@constraint(pm.model, var(pm, n, :delta_sw_state, s) >= -(JuMP.start_value(z_switch) - z_switch))
+            else  # multinetwork
+                z_switch_prev = var(pm, nw_id_list[i-1], :switch_state, s)
+                JuMP.@constraint(pm.model, var(pm, n, :delta_sw_state, s) >=  (z_switch_prev - z_switch))
+                JuMP.@constraint(pm.model, var(pm, n, :delta_sw_state, s) >= -(z_switch_prev - z_switch))
+            end
+        end
+    end
+
+    load_weights = Dict(
+        n => Dict(
+            l => ref(pm, n, :block_weights, b) / length(ref(pm, n, :block_loads, b)) for b in ids(pm, n, :blocks) for l in ref(pm, n, :block_loads, b)
+        ) for n in nw_ids(pm)
+    )
+
+    JuMP.@objective(pm.model, Min,
+        sum(
+            sum( load_weights[n][i] * (1-var(pm, n, :z_demand, i)) for i in ids(pm, n, :load)) +
+            sum( Int(get(ref(pm, n), :disable_switch_penalty, false)) * sum(var(pm, n, :delta_sw_state, l)) for l in ids(pm, n, :switch_dispatchable)) +
+            sum( 1e-1 * Int(get(ref(pm, n), :apply_switch_scores, false)) * ref(pm, n, :switch_scores, l)*(1-var(pm, n, :switch_state, l)) for l in ids(pm, n, :switch_dispatchable) ) +
+            sum( strg["energy_rating"] - var(pm, n, :se, i) for (i,strg) in nw_ref[:storage]) +
+            sum( sum(get(gen,  "cost", [1.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [1.0, 0.0])[1] for c in  gen["connections"]) for (i,gen) in nw_ref[:gen])
+        for (n, nw_ref) in nws(pm))
+    )
+end
+
+
+@doc raw"""
     objective_mc_min_storage_utilization(pm::AbstractUnbalancedPowerModel)
 
 Minimizes the amount of storage that gets utilized in favor of using all available generation first
+
+```math
+\begin{align*}
+\mbox{minimize: } & \\
+& \sum_{\substack{e \in E,t \in T}} \epsilon^{ub}_{e} - \epsilon_{e,t} \\
+\end{align*}
+```
 """
 function objective_mc_min_storage_utilization(pm::AbstractUnbalancedPowerModel)
     JuMP.@objective(pm.model, Min,

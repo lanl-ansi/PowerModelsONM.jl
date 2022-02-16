@@ -1,5 +1,7 @@
 """
-    get_timestep_load_served!(args::Dict{String,<:Any})::Dict{String,Vector{Real}}
+    get_timestep_load_served!(
+        args::Dict{String,<:Any}
+    )::Dict{String,Vector{Real}}
 
 Gets Load served statistics in-place in args, for use in [`entrypoint`](@ref entrypoint),
 using [`get_timestep_load_served`](@ref get_timestep_load_served).
@@ -10,10 +12,13 @@ end
 
 
 """
-    get_timestep_load_served(solution::Dict{String,<:Any}, network::Dict{String,<:Any})::Dict{String,Vector{Real}}
+    get_timestep_load_served(
+        solution::Dict{String,<:Any},
+        network::Dict{String,<:Any}
+    )::Dict{String,Vector{Real}}
 
-Returns Load statistics from an optimal dispatch `solution`, and compares to the base load (non-shedded) in `network`,
-giving statistics for
+Returns Load statistics from an optimal dispatch `solution`, and compares to the
+base load (non-shedded) in `network`, giving statistics for
 
 - `"Feeder load (%)"`: How much load is the feeder supporting,
 - `"Microgrid load (%)"`: How much load is(are) the microgrid(s) supporting,
@@ -174,7 +179,9 @@ end
 
 
 """
-    get_timestep_generator_profiles!(args::Dict{String,<:Any})::Dict{String,Vector{Real}}
+    get_timestep_generator_profiles!(
+        args::Dict{String,<:Any}
+    )::Dict{String,Vector{Real}}
 
 Gets generator profile statistics for each timestep in-place in args, for use in [`entrypoint`](@ref entrypoint),
 using [`get_timestep_generator_profiles`](@ref get_timestep_generator_profiles)
@@ -185,7 +192,9 @@ end
 
 
 """
-    get_timestep_generator_profiles(solution::Dict{String,<:Any})::Dict{String,Vector{Real}}
+    get_timestep_generator_profiles(
+        solution::Dict{String,<:Any}
+    )::Dict{String,Vector{Real}}
 
 Returns statistics about the generator profiles from the optimal dispatch `solution`:
 
@@ -214,10 +223,13 @@ end
 
 
 """
-    get_timestep_storage_soc!(args::Dict{String,<:Any})::Vector{Real}
+    get_timestep_storage_soc!(
+        args::Dict{String,<:Any}
+    )::Vector{Real}
 
-Gets storage energy remaining percentage for each timestep in-place in args, for use in [`entrypoint`](@ref entrypoint),
-using [`get_timestep_storage_soc`](@ref get_timestep_storage_soc)
+Gets storage energy remaining percentage for each timestep in-place in args,
+for use in [`entrypoint`](@ref entrypoint), using
+[`get_timestep_storage_soc`](@ref get_timestep_storage_soc)
 """
 function get_timestep_storage_soc!(args::Dict{String,<:Any})::Vector{Real}
     args["output_data"]["Storage SOC (%)"] = get_timestep_storage_soc(get(get(args, "optimal_dispatch_result", Dict{String,Any}()), "solution", Dict{String,Any}()), args["network"])
@@ -225,7 +237,10 @@ end
 
 
 """
-    get_timestep_storage_soc(solution::Dict{String,<:Any}, network::Dict{String,<:Any})::Vector{Real}
+    get_timestep_storage_soc(
+        solution::Dict{String,<:Any},
+        network::Dict{String,<:Any}
+    )::Vector{Real}
 
 Returns the storage state of charge, i.e., how much energy is remaining in all of the the energy storage DER
 based on the optimal dispatch `solution`. Needs `network` to give percentage.

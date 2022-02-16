@@ -1,5 +1,7 @@
 """
-    get_timestep_fault_currents!(args::Dict{String,<:Any})::Vector{Dict{String,Any}}
+    get_timestep_fault_currents!(
+        args::Dict{String,<:Any}
+    )::Vector{Dict{String,Any}}
 
 Gets fault currents for switches and corresponding fault from study in-place in args, for use in [`entrypoint`](@ref entrypoint),
 using [`get_timestep_fault_currents`](@ref get_timestep_fault_currents).
@@ -10,7 +12,11 @@ end
 
 
 """
-    get_timestep_fault_currents(fault_studies_results::Dict{String,<:Any}, faults::Dict{String,<:Any}, network::Dict{String,<:Any})::Vector{Dict{String,Any}}
+    get_timestep_fault_currents(
+        fault_studies_results::Dict{String,<:Any},
+        faults::Dict{String,<:Any},
+        network::Dict{String,<:Any}
+    )::Vector{Dict{String,Any}}
 
 Gets information about the results of fault studies at each timestep, including:
 
@@ -70,15 +76,26 @@ function get_timestep_fault_currents(fault_studies_results::Dict{String,<:Any}, 
     return fault_currents
 end
 
-"Special case where the faults string was not parsed"
+"""
+    get_timestep_fault_currents(
+        fault_studies_results::Dict{String,<:Any},
+        faults::String,
+        network::Dict{String,<:Any}
+    )::Vector{Dict{String,Any}}
+
+Special case where the faults string was not parsed
+"""
 get_timestep_fault_currents(fault_studies_results::Dict{String,<:Any}, faults::String, network::Dict{String,<:Any})::Vector{Dict{String,Any}} = get_timestep_fault_currents(fault_studies_results, Dict{String,Any}(), network)
 
 
 
 """
-    get_timestep_fault_study_metadata!(args::Dict{String,<:Any})::Vector{Dict{String,Any}}
+    get_timestep_fault_study_metadata!(
+        args::Dict{String,<:Any}
+    )::Vector{Dict{String,Any}}
 
-Retrieves the switching optimization results metadata from the optimal switching solution via [`get_timestep_fault_study_metadata`](@ref get_timestep_fault_study_metadata)
+Retrieves the switching optimization results metadata from the optimal switching solution via
+[`get_timestep_fault_study_metadata`](@ref get_timestep_fault_study_metadata)
 and applies it in-place to args, for use with [`entrypoint`](@ref entrypoint)
 """
 function get_timestep_fault_study_metadata!(args::Dict{String,<:Any})::Vector{Dict{String,Any}}
@@ -87,10 +104,12 @@ end
 
 
 """
-    get_timestep_fault_study_metadata(fault_studies_results::Dict{String,Any})::Vector{Dict{String,Any}}
+    get_timestep_fault_study_metadata(
+        fault_studies_results::Dict{String,Any}
+    )::Vector{Dict{String,Any}}
 
-Gets the metadata from the optimal switching results for each timestep, returning a list of Dicts (if opt_switch_algorithm="iterative), or a list with a single
-Dict (if opt_switch_algorithm="global").
+Gets the metadata from the optimal switching results for each timestep, returning a list of Dicts
+(if `opt_switch_algorithm="iterative"`), or a list with a single Dict (if `opt_switch_algorithm="global"`).
 """
 function get_timestep_fault_study_metadata(fault_studies_results::Dict{String,Any})::Vector{Dict{String,Any}}
     results_metadata = Dict{String,Any}[]

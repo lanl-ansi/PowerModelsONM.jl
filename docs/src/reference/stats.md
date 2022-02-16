@@ -18,6 +18,15 @@ Order = [:function]
 Pages = ["stats/actions.jl"]
 ```
 
+## Analysis
+
+```@autodocs
+Modules = [PowerModelsONM]
+Private = false
+Order = [:function]
+Pages = ["stats/analysis.jl"]
+```
+
 ## Faults
 
 ```@autodocs

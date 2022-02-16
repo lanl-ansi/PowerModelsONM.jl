@@ -16,34 +16,44 @@ JuMP.has_upper_bound(x::Number) = true
 "is_binary helper function for constant values"
 JuMP.is_binary(x::Number) = false
 
-"lower_bound helper function for Affine Expression variables"
+"""
+    JuMP.lower_bound(x::JuMP.AffExpr)
+
+lower_bound helper function for Affine Expression variables
+"""
 function JuMP.lower_bound(x::JuMP.AffExpr)
     lb = []
-    for (k,v) in x.terms
+    for (k, v) in x.terms
         push!(lb, JuMP.lower_bound(k) * v)
     end
-    sum(lb)
+    return sum(lb)
 end
 
-"upper_bound helper function for Affine Expression variables"
+"""
+    JuMP.upper_bound(x::JuMP.AffExpr)
+
+upper_bound helper function for Affine Expression variables
+"""
 function JuMP.upper_bound(x::JuMP.AffExpr)
     ub = []
-    for (k,v) in x.terms
+    for (k, v) in x.terms
         push!(ub, JuMP.upper_bound(k) * v)
     end
-    sum(ub)
+    return sum(ub)
 end
 
 "has_lower_bound helper function for Affine Expression variables"
-JuMP.has_lower_bound(x::JuMP.AffExpr) = all(JuMP.has_lower_bound(k) for (k,_) in x.terms)
+JuMP.has_lower_bound(x::JuMP.AffExpr) = all(JuMP.has_lower_bound(k) for (k, _) in x.terms)
 
 "has_upper_bound helper function for Affine Expression variables"
-JuMP.has_upper_bound(x::JuMP.AffExpr) = all(JuMP.has_upper_bound(k) for (k,_) in x.terms)
+JuMP.has_upper_bound(x::JuMP.AffExpr) = all(JuMP.has_upper_bound(k) for (k, _) in x.terms)
 
 "is_binary helper function for Affine Expression variables"
 JuMP.is_binary(x::JuMP.AffExpr) = false
 
 """
+    _IM.variable_domain(var::JuMP.AffExpr)
+
 Computes the valid domain of a given JuMP variable taking into account bounds
 and the varaible's implicit bounds (e.g., binary).
 """
@@ -67,17 +77,24 @@ function _IM.variable_domain(var::JuMP.AffExpr)
     return (lower_bound=lb, upper_bound=ub)
 end
 
-
 """
-general relaxation of binlinear term (McCormick)
-```
+    _IM.relaxation_product(m::JuMP.Model, x::JuMP.AffExpr, y::JuMP.VariableRef, z::JuMP.VariableRef;
+        default_x_domain::Tuple{Real,Real}=(-Inf, Inf),
+        default_y_domain::Tuple{Real,Real}=(-Inf, Inf)
+    )
+
+general relaxation of binlinear term (McCormick) for Affine Expressions and VariableRefs
+
+```julia
 z >= JuMP.lower_bound(x)*y + JuMP.lower_bound(y)*x - JuMP.lower_bound(x)*JuMP.lower_bound(y)
 z >= JuMP.upper_bound(x)*y + JuMP.upper_bound(y)*x - JuMP.upper_bound(x)*JuMP.upper_bound(y)
 z <= JuMP.lower_bound(x)*y + JuMP.upper_bound(y)*x - JuMP.lower_bound(x)*JuMP.upper_bound(y)
 z <= JuMP.upper_bound(x)*y + JuMP.lower_bound(y)*x - JuMP.upper_bound(x)*JuMP.lower_bound(y)
 ```
 """
-function _IM.relaxation_product(m::JuMP.Model, x::JuMP.AffExpr, y::JuMP.VariableRef, z::JuMP.VariableRef; default_x_domain::Tuple{Real,Real}=(-Inf,Inf), default_y_domain::Tuple{Real,Real}=(-Inf,Inf))
+function _IM.relaxation_product(m::JuMP.Model, x::JuMP.AffExpr, y::JuMP.VariableRef, z::JuMP.VariableRef;
+                                default_x_domain::Tuple{Real,Real}=(-Inf, Inf),
+                                default_y_domain::Tuple{Real,Real}=(-Inf, Inf))
     x_lb, x_ub = _IM.variable_domain(x)
     y_lb, y_ub = _IM.variable_domain(y)
 
@@ -86,32 +103,33 @@ function _IM.relaxation_product(m::JuMP.Model, x::JuMP.AffExpr, y::JuMP.Variable
     y_lb = !isfinite(y_lb) ? default_y_domain[1] : y_lb
     y_ub = !isfinite(y_ub) ? default_y_domain[2] : y_ub
 
-    JuMP.@constraint(m, z >= x_lb*y + y_lb*x - x_lb*y_lb)
-    JuMP.@constraint(m, z >= x_ub*y + y_ub*x - x_ub*y_ub)
-    JuMP.@constraint(m, z <= x_lb*y + y_ub*x - x_lb*y_ub)
-    JuMP.@constraint(m, z <= x_ub*y + y_lb*x - x_ub*y_lb)
+    JuMP.@constraint(m, z >= x_lb * y + y_lb * x - x_lb * y_lb)
+    JuMP.@constraint(m, z >= x_ub * y + y_ub * x - x_ub * y_ub)
+    JuMP.@constraint(m, z <= x_lb * y + y_ub * x - x_lb * y_ub)
+    JuMP.@constraint(m, z <= x_ub * y + y_lb * x - x_ub * y_lb)
 end
 
+@doc raw"""
+    _IM.relaxation_product(m::JuMP.Model, x::Real, y::JuMP.VariableRef, z::JuMP.VariableRef)
 
-"""
-general relaxation of binlinear term (McCormick)
-```
+general relaxation of binlinear term (McCormick) for Constants and VariableRefs
+
+```julia
 z >= JuMP.lower_bound(x)*y + JuMP.lower_bound(y)*x - JuMP.lower_bound(x)*JuMP.lower_bound(y)
 z >= JuMP.upper_bound(x)*y + JuMP.upper_bound(y)*x - JuMP.upper_bound(x)*JuMP.upper_bound(y)
 z <= JuMP.lower_bound(x)*y + JuMP.upper_bound(y)*x - JuMP.lower_bound(x)*JuMP.upper_bound(y)
 z <= JuMP.upper_bound(x)*y + JuMP.lower_bound(y)*x - JuMP.upper_bound(x)*JuMP.lower_bound(y)
 ```
 """
-function _IM.relaxation_product(m::JuMP.Model, x::Float64, y::JuMP.VariableRef, z::JuMP.VariableRef)
+function _IM.relaxation_product(m::JuMP.Model, x::Real, y::JuMP.VariableRef, z::JuMP.VariableRef)
     x_lb, x_ub = _IM.variable_domain(x)
     y_lb, y_ub = _IM.variable_domain(y)
 
-    JuMP.@constraint(m, z >= x_lb*y + y_lb*x - x_lb*y_lb)
-    JuMP.@constraint(m, z >= x_ub*y + y_ub*x - x_ub*y_ub)
-    JuMP.@constraint(m, z <= x_lb*y + y_ub*x - x_lb*y_ub)
-    JuMP.@constraint(m, z <= x_ub*y + y_lb*x - x_ub*y_lb)
+    JuMP.@constraint(m, z >= x_lb * y + y_lb * x - x_lb * y_lb)
+    JuMP.@constraint(m, z >= x_ub * y + y_ub * x - x_ub * y_ub)
+    JuMP.@constraint(m, z <= x_lb * y + y_ub * x - x_lb * y_ub)
+    JuMP.@constraint(m, z <= x_ub * y + y_lb * x - x_ub * y_lb)
 end
-
 
 "recursive dictionary merge, similar to update data"
 recursive_merge(x::AbstractDict...) = merge(recursive_merge, x...)
@@ -128,14 +146,17 @@ recursive_merge_no_vecs(x::AbstractDict...) = merge(recursive_merge_no_vecs, x..
 "recursive other merge, with vectors getting overwritten instead of appended"
 recursive_merge_no_vecs(x...) = x[end]
 
+"""
+    recursive_merge_timesteps(x::T, y::U)::promote_type(T,U) where {T<: AbstractVector,U<: AbstractVector}
 
-"helper function to recursively merge timestep vectors (e.g., of dictionaries)"
-function recursive_merge_timesteps(x::T, y::U)::promote_type(T,U) where {T<: AbstractVector,U<: AbstractVector}
+helper function to recursively merge timestep vectors (e.g., of dictionaries)
+"""
+function recursive_merge_timesteps(x::T, y::U)::promote_type(T, U) where {T<:AbstractVector,U<:AbstractVector}
     if !isempty(x)
         @assert length(x) == length(y) "cannot combine vectors of different lengths"
-        new = promote_type(T,U)()
-        for (_x,_y) in zip(x,y)
-            push!(new, recursive_merge(_x,_y))
+        new = promote_type(T, U)()
+        for (_x, _y) in zip(x, y)
+            push!(new, recursive_merge(_x, _y))
         end
         return new
     else

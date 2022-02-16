@@ -14,6 +14,13 @@ get_timestep_bus_types
 get_timestep_bus_types!
 ```
 
+## Builders
+
+```@docs
+build_events_file
+build_settings_file
+```
+
 ## Applicators
 
 ```@docs
@@ -22,6 +29,10 @@ apply_events!
 apply_settings
 apply_settings!
 initialize_output
+get_protection_network_model
+get_protection_network_model!
+get_timestep_bus_types
+get_timestep_bus_types!
 ```
 
 ## Writers

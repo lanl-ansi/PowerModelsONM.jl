@@ -23,7 +23,7 @@ Another useful file is the network [settings data](@ref Settings-Schema), which 
 
 Finally, there are the two inputs for Stability Analysis and Fault Analysis, performed post optimization. For stability analysis, [inverters data](@ref Inverters-Schema) is required for the analysis to produce meaningful results (see, [PowerModelsStability documentation](https://github.com/lanl-ansi/PowerModelsStability.jl)), but for fault analysis, although you can specify faults ahead of time via [fault data](@ref Faults-Schema), it is not necessary because if no faults are specified, a set of faults for analysis will be automatically generated. It should be noted however that a large number of faults will be generated automatically, which could incur serious time penalties in the completion of the algorithm. For more information, see [PowerModelsProtection documentation](https://github.com/lanl-ansi/PowerModelsProtection.jl).
 
-## Optimal Switching Problem (OSW/MLD)
+## Optimal Switching Problem (MLD)
 
 The optimal switching algorithm in ONM is an extension of the single-network MLD problem contained in PowerModelsDistribution, that takes into consideration certain engineering realities of distribution feeders.
 
@@ -35,7 +35,7 @@ Second, the optimal switching problem currently uses the LinDist3Flow model (`Po
 
 Finally, the optimial switching problem currently solves sequentially, rather than globally over the entire multinetwork, which means switch configurations and storage energies are manually updated after each timestep is solved.
 
-The mathematical formulation can be found [here](@ref osw-mld-math).
+The mathematical formulation can be found [here](@ref mld-math).
 
 ## Optimal Dispatch (OPF)
 
@@ -63,3 +63,5 @@ Finally, if fault analysis is performed, an ordered list of fault analysis resul
 - the fault susceptance / conductance,
 - both the unbalanced and symmetric (sequence) fault currents at each protection device, and
 - the voltage magnitude at each protection device.
+
+Full details of what is included in the output can be found in the schema files.

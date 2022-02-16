@@ -296,7 +296,7 @@ The various results dictionaries can all be used in different ways, and you shou
 
 ### Action Statistics
 
-First up are statistics about the actions taken during the OSW/MLD optimization. For this we have two primary functions, `get_timestep_device_actions`, which will get a full list of the switch configurations and loads shed at each timestep
+First up are statistics about the actions taken during the MLD optimization. For this we have two primary functions, `get_timestep_device_actions`, which will get a full list of the switch configurations and loads shed at each timestep
 """
 
 # ╔═╡ 35f58253-d264-4da2-aa09-d48f306984b1

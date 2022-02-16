@@ -1,5 +1,9 @@
 """
-    parse_settings!(args::Dict{String,<:Any}; apply::Bool=true, validate::Bool=true)::Dict{String,Any}
+    parse_settings!(
+        args::Dict{String,<:Any};
+        apply::Bool=true,
+        validate::Bool=true
+    )::Dict{String,Any}
 
 Parses settings file specifed in runtime arguments in-place
 
@@ -28,7 +32,16 @@ function parse_settings!(args::Dict{String,<:Any}; apply::Bool=true, validate::B
 end
 
 
-"helper function to convert depreciated runtime arguments to their appropriate network settings structure"
+"""
+    _convert_depreciated_runtime_args!(
+        runtime_args::Dict{String,<:Any},
+        settings::Dict{String,<:Any},
+        base_network::Dict{String,<:Any},
+        timesteps::Int
+    )::Tuple{Dict{String,Any},Dict{String,Any}}
+
+Helper function to convert depreciated runtime arguments to their appropriate network settings structure
+"""
 function _convert_depreciated_runtime_args!(runtime_args::Dict{String,<:Any}, settings::Dict{String,<:Any}, base_network::Dict{String,<:Any}, timesteps::Int)::Tuple{Dict{String,Any},Dict{String,Any}}
     haskey(runtime_args, "voltage-lower-bound") && _convert_voltage_bound_to_settings!(settings, base_network, "vm_lb", pop!(runtime_args, "voltage-lower-bound"))
     haskey(runtime_args, "voltage-upper-bound") && _convert_voltage_bound_to_settings!(settings, base_network, "vm_ub", pop!(runtime_args, "voltage-upper-bound"))
@@ -55,7 +68,10 @@ end
 
 
 """
-    parse_settings(settings_file::String; validate::Bool=true)::Dict{String,Any}
+    parse_settings(
+        settings_file::String;
+        validate::Bool=true
+    )::Dict{String,Any}
 
 Parses network settings JSON file.
 
@@ -79,7 +95,7 @@ end
 """
     apply_settings!(args::Dict{String,Any})::Dict{String,Any}
 
-Applies settings to the network
+Applies settings to the network.
 """
 function apply_settings!(args::Dict{String,Any})::Dict{String,Any}
     args["network"] = apply_settings(args["network"], get(args, "settings", Dict()))
@@ -87,7 +103,10 @@ end
 
 
 """
-    apply_settings(network::Dict{String,<:Any}, settings::Dict{String,<:Any})::Dict{String,Any}
+    apply_settings(
+        network::Dict{String,<:Any},
+        settings::Dict{String,<:Any}
+    )::Dict{String,Any}
 
 Applies `settings` to multinetwork `network`
 """
@@ -124,7 +143,17 @@ function apply_settings(network::Dict{String,<:Any}, settings::Dict{String,<:Any
 end
 
 
-"converts depreciated global settings, e.g. voltage-lower-bound, to the proper way to specify settings"
+"""
+    _convert_to_settings!(
+        settings::Dict{String,<:Any},
+        base_network::Dict{String,<:Any},
+        asset_type::String,
+        property::String,
+        value::Any; multiphase::Bool=true
+    )
+
+Helper function to convert depreciated global settings, e.g., voltage-lower-bound, to the proper way to specify settings.
+"""
 function _convert_to_settings!(settings::Dict{String,<:Any}, base_network::Dict{String,<:Any}, asset_type::String, property::String, value::Any; multiphase::Bool=true)
     if haskey(base_network, asset_type)
         if !haskey(settings, asset_type)
@@ -144,7 +173,16 @@ function _convert_to_settings!(settings::Dict{String,<:Any}, base_network::Dict{
 end
 
 
-"helper function to convert"
+"""
+    _convert_voltage_bound_to_settings!(
+        settings::Dict{String,<:Any},
+        base_network::Dict{String,<:Any},
+        bound_name::String,
+        bound_value::Real
+    )
+
+Helper function to convert voltage bounds to the proper settings format.
+"""
 function _convert_voltage_bound_to_settings!(settings::Dict{String,<:Any}, base_network::Dict{String,<:Any}, bound_name::String, bound_value::Real)
     if !haskey(settings, "bus")
         settings["bus"] = Dict{String,Any}()
@@ -161,7 +199,15 @@ function _convert_voltage_bound_to_settings!(settings::Dict{String,<:Any}, base_
 end
 
 
-"helper function that applies settings to the network objects of `type`"
+"""
+    _apply_to_network!(
+        network::Dict{String,<:Any},
+        type::String,
+        data::Dict{String,<:Any}
+    )
+
+Helper function that applies settings to the network objects of `type`.
+"""
 function _apply_to_network!(network::Dict{String,<:Any}, type::String, data::Dict{String,<:Any})
     for (_,nw) in network["nw"]
         if haskey(nw, type)
@@ -180,22 +226,53 @@ end
         network_file::String,
         settings_file::String="ieee13_settings.json";
         max_switch_actions::Union{Missing,Int,Vector{Int}},
-        vm_lb_pu::Union{Missing,Float64}=missing,
-        vm_ub_pu::Union{Missing,Float64}=missing,
-        vad_deg::Union{Missing,Float64}=missing,
-        line_limit_mult::Float64=1.0,
-        sbase_default::Union{Missing,Float64}=missing,
-        time_elapsed::Union{Missing,Float64,Vector{Float64}}=missing,
+        vm_lb_pu::Union{Missing,Real}=missing,
+        vm_ub_pu::Union{Missing,Real}=missing,
+        vad_deg::Union{Missing,Real}=missing,
+        line_limit_mult::Real=1.0,
+        sbase_default::Union{Missing,Real}=missing,
+        time_elapsed::Union{Missing,Real,Vector{<:Real}}=missing,
         autogen_microgrid_ids::Bool=true,
         custom_settings::Dict{String,<:Any}=Dict{String,Any}(),
-        mip_solver_gap::Float64=0.05,
-        nlp_solver_tol::Float64=1e-4,
-        mip_solver_tol::Float64=1e-4,
-        clpu_factor::Union{Missing,Float64}=missing,
+        mip_solver_gap::Real=0.05,
+        nlp_solver_tol::Real=1e-4,
+        mip_solver_tol::Real=1e-4,
+        clpu_factor::Union{Missing,Real}=missing,
         disable_switch_penalty::Bool=false,
     )
 
-Helper function to build a ieee13_settings.json file for use with ONM.
+Helper function to build a settings file (json) for use with ONM. If properties are `missing` they will not be set.
+
+- `network_file::String` is the path to the input network file (dss)
+- `settings_file::String` is the path to the output settings file (json)
+- `max_switch_actions::Union{Int,Vector{Int}}` can be used to specify how many actions per time step,
+  maximum, may be performed. Refers in particular to switch close actions. Can be specified as a single interger,
+  which will be applied to each time step, or as a list, one number per time step. (default: `missing`)
+- `vm_lb_pu::Real` can be used to specify the lower bound voltages on every bus in per-unit. (default: `missing`)
+- `vm_ub_pu::Real` can be used to specify the upper bound voltages on every bus in per-unit. (default: `missing`)
+- `vad_deg::Real` can be used to specify the lower/upper bound (range around 0.0) for every line in degrees
+  (default: `missing`)
+- `line_limit_mult::Real` can be used to apply a multiplicative factor to every line, switch, and transformer
+  power/current rating (default: `1.0`)
+- `sbase_default::Real` can be used to tune the sbase factor used to convert to per-unit, which may help with
+  optimization stability (default: `missing`)
+- `time_elapsed::Union{Real,Vector{Real}}` can be used to adjust the time step duration. Can be specified as a
+  single number, or as a list, one number per time step. (default: `missing`)
+- `autogen_microgrid_ids::Bool` toggles the automatic generation of microgrid 'ids', which are used in the ONM
+  algorithm and statistical analyses (default: `missing`)
+- `custom_settings:Dict{String,Any}` can be used to pass custom settings that will be applied **after** all of the
+  autogenerated settings have been created (therefore, it will overwrite any autogenerated settings that it conflicts
+  with via a recursive merge)
+- `mip_solver_gap::Real` can be used to tune the acceptable gap for the MIP solver (default: `0.05`, i.e., 5%)
+- `nlp_solver_tol::Real` can be used to tune the accceptable tolerance for constraint violations in the NLP solvers
+  (default: `0.0001`)
+- `mip_solver_tol::Real` can be used to tune the acceptable tolerance for constraint violations in the MIP solvers
+  (default: `0.0001`)
+- `clpu_factor::Real` can be used to set a factor for the cold-load pickup estimation (default: missing)
+- `disable_switch_penalty::Bool` is a toggle for disabling the penalty applied to switching actions in the
+  objective function (default: `false`)
+- `apply_switch_scores::Bool` is a toggle to enable switch actions weights applied in the objective function
+  (default: `false`)
 """
 function build_settings_file(
     network_file::String,
@@ -214,6 +291,7 @@ function build_settings_file(
     mip_solver_tol::Float64=1e-4,
     clpu_factor::Union{Missing,Float64}=missing,
     disable_switch_penalty::Bool=false,
+    apply_switch_scores::Bool=true,
     )
 
     eng = PMD.parse_file(network_file; transformations=[PMD.apply_kron_reduction!])
@@ -250,6 +328,7 @@ function build_settings_file(
     end
 
     settings["disable_switch_penalty"] = disable_switch_penalty
+    settings["apply_switch_scores"] = apply_switch_scores
 
     # Generate bus microgrid_ids
     if autogen_microgrid_ids

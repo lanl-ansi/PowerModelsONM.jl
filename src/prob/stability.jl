@@ -1,5 +1,10 @@
 """
-    run_stability_analysis!(args::Dict{String,<:Any}; validate::Bool=true, formulation::Type=PMD.ACRUPowerModel, solver::String="nlp_solver")::Dict{String,Bool}
+    run_stability_analysis!(
+        args::Dict{String,<:Any};
+        validate::Bool=true,
+        formulation::Type=PMD.ACRUPowerModel,
+        solver::String="nlp_solver"
+    )::Dict{String,Bool}
 
 Runs small signal stability analysis using PowerModelsStability and determines if each timestep configuration is stable,
 in-place, storing the results in `args["stability_results"]`, for use in [`entrypoint`](@ref entrypoint), Uses
@@ -31,7 +36,14 @@ end
 
 
 """
-    run_stability_analysis(network, inverters::Dict{String,<:Any}, solver; formulation::Type=PMD.ACRUPowerModel, switching_solutions::Union{Missing,Dict{String,<:Any}}=missing, distributed::Bool=false)::Dict{String,Bool}
+    run_stability_analysis(
+        network::Dict{String,<:Any},
+        inverters::Dict{String,<:Any},
+        solver;
+        formulation::Type=PMD.ACRUPowerModel,
+        switching_solutions::Union{Missing,Dict{String,<:Any}}=missing,
+        distributed::Bool=false
+    )::Dict{String,Bool}
 
 Runs small signal stability analysis using PowerModelsStability and determines if each timestep configuration is stable
 
@@ -43,7 +55,7 @@ polar coordinates.
 
 `solver` for stability analysis (NLP OPF)
 """
-function run_stability_analysis(network, inverters::Dict{String,<:Any}, solver; formulation::Type=PMD.ACRUPowerModel, switching_solutions::Union{Missing,Dict{String,<:Any}}=missing, distributed::Bool=false)::Dict{String,Bool}
+function run_stability_analysis(network::Dict{String,<:Any}, inverters::Dict{String,<:Any}, solver; formulation::Type=PMD.ACRUPowerModel, switching_solutions::Union{Missing,Dict{String,<:Any}}=missing, distributed::Bool=false)::Dict{String,Bool}
     mn_data = _prepare_stability_multinetwork_data(network, inverters, switching_solutions)
 
     ns = sort([parse(Int, i) for i in keys(mn_data["nw"])])
@@ -63,7 +75,13 @@ end
 
 
 """
-    run_stability_analysis(subnetwork::Dict{String,<:Any}, omega0::Real, rN::Int, solver; formulation::Type=PMD.ACPUPowerModel)::Bool
+    run_stability_analysis(
+        subnetwork::Dict{String,<:Any},
+        omega0::Real,
+        rN::Int,
+        solver;
+        formulation::Type=PMD.ACPUPowerModel
+    )::Bool
 
 Runs stability analysis on a single subnetwork (not a multinetwork) using a nonlinear `solver`.
 """
@@ -84,7 +102,16 @@ function run_stability_analysis(subnetwork::Dict{String,<:Any}, omega0::Real, rN
 end
 
 
-"helper function to prepare the multinetwork data for stability analysis (adds inverters, data_model)"
+"""
+    _prepare_stability_multinetwork_data(
+        network::Dict{String,<:Any},
+        inverters::Dict{String,<:Any},
+        switching_solutions::Union{Missing,Dict{String,<:Any}}=missing,
+        dispatch_solution::Union{Missing,Dict{String,<:Any}}=missing
+    )::Dict{String,Any}
+
+Helper function to prepare the multinetwork data for stability analysis (adds inverters, data_model).
+"""
 function _prepare_stability_multinetwork_data(network::Dict{String,<:Any}, inverters::Dict{String,<:Any}, switching_solutions::Union{Missing,Dict{String,<:Any}}=missing, dispatch_solution::Union{Missing,Dict{String,<:Any}}=missing)::Dict{String,Any}
     mn_data = _prepare_dispatch_data(network, switching_solutions)
 

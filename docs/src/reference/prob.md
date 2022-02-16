@@ -4,15 +4,18 @@
 
 ```@docs
 optimize_switches
-solve_mc_osw_mld_mi
-solve_mn_mc_osw_mld_mi
-build_mn_mc_opf_oltc_capc
+solve_block_mld
+solve_mn_block_mld
+solve_traditional_mld
+solve_mn_traditional_mld
+solve_mn_opf
 ```
 
 ## Optimal Dispatch
 
 ```@docs
 optimize_dispatch
+solve_mn_opf
 ```
 
 ## Fault stuides

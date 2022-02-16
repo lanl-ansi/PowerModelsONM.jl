@@ -1,25 +1,22 @@
-"""
-    variable_mc_block_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, relax::Bool=false, report::Bool=true)
+@doc raw"""
+    variable_block_indicator(
+        pm::AbstractUnbalancedPowerModel;
+        nw::Int=nw_id_default,
+        relax::Bool=false,
+        report::Bool=true
+    )
 
-create variables for block status by load block
+Create variables for block status by load block, $$z^{bl}_i\in{0,1}~\forall i \in B$$, binary if `relax=false`.
+Variables will appear in solution if `report=true`.
 """
-function variable_mc_block_indicator(pm::AbstractSwitchModels; nw::Int=nw_id_default, relax::Bool=false, report::Bool=true)
-    if relax
-        z_block = var(pm, nw)[:z_block] = JuMP.@variable(pm.model,
-            [i in ids(pm, nw, :blocks)], base_name="$(nw)_z_block",
-            lower_bound = 0,
-            upper_bound = 1,
-            start = 1
-        )
-    else
-        z_block = var(pm, nw)[:z_block] = JuMP.@variable(pm.model,
-            [i in ids(pm, nw, :blocks)], base_name="$(nw)_z_block",
-            lower_bound = 0,
-            upper_bound = 1,
-            binary = true,
-            start = 1
-        )
-    end
+function variable_block_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, relax::Bool=false, report::Bool=true)
+    z_block = var(pm, nw)[:z_block] = JuMP.@variable(pm.model,
+        [i in ids(pm, nw, :blocks)], base_name="$(nw)_z_block",
+        binary=!relax,
+        lower_bound=0,
+        upper_bound=1,
+        start=1
+    )
 
     report && _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :bus,     :status, ids(pm, nw, :bus),     Dict{Int,Any}(i => var(pm, nw, :z_block, ref(pm, nw, :bus_block_map, i))     for i in ids(pm, nw, :bus)))
     report && _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :load,    :status, ids(pm, nw, :load),    Dict{Int,Any}(i => var(pm, nw, :z_block, ref(pm, nw, :load_block_map, i))    for i in ids(pm, nw, :load)))
@@ -29,12 +26,31 @@ function variable_mc_block_indicator(pm::AbstractSwitchModels; nw::Int=nw_id_def
 end
 
 
-"""
-    variable_mc_switch_fixed(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, report::Bool=false)
+@doc raw"""
+    variable_switch_state(
+        pm::AbstractUnbalancedPowerModel;
+        nw::Int=nw_id_default,
+        report::Bool=true,
+        relax::Bool=false
+    )
 
-Fixed switches set to constant values for multinetwork formulation (we need all switches)
+Create variables for switch state (open/close) variables, $$\gamma_i\in{0,1}~\forall i \in S$$, binary if `relax=false`.
+Variables for non-dispatchable switches will be constants, rather than `VariableRef`. Variables will appear in
+solution if `report=true`.
 """
-function variable_mc_switch_fixed(pm::AbstractSwitchModels; nw::Int=nw_id_default, report::Bool=false)
+function variable_switch_state(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, report::Bool=true, relax::Bool=false)
+    state = var(pm, nw)[:switch_state] = Dict{Int,Any}(
+        l => JuMP.@variable(
+            pm.model,
+            base_name="$(nw)_switch_state_$(l)",
+            binary=!relax,
+            lower_bound=0,
+            upper_bound=1,
+            start=PMD.comp_start_value(ref(pm, nw, :switch, l), "state_start", get(ref(pm, nw, :switch, l), "state", 1))
+        ) for l in ids(pm, nw, :switch_dispatchable)
+    )
+
+    # create variables (constants) for 'fixed' (non-dispatchable) switches
     dispatchable_switches = collect(ids(pm, nw, :switch_dispatchable))
     fixed_switches = [i for i in ids(pm, nw, :switch) if i ∉ dispatchable_switches]
 
@@ -42,39 +58,132 @@ function variable_mc_switch_fixed(pm::AbstractSwitchModels; nw::Int=nw_id_defaul
         var(pm, nw, :switch_state)[i] = ref(pm, nw, :switch, i, "state")
     end
 
-    report && _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :switch, :status, fixed_switches, Dict{Int,Any}(i => var(pm, nw, :switch_state, i) for i in fixed_switches))
-end
-
-
-"""
-    variable_mc_switch_state(pm::AbstractSwitchModels; nw::Int=nw_id_default, report::Bool=true, relax::Bool=false)
-
-switch state (open/close) variables
-"""
-function variable_mc_switch_state(pm::AbstractSwitchModels; nw::Int=nw_id_default, report::Bool=true, relax::Bool=false)
-    if relax
-        state = var(pm, nw)[:switch_state] = Dict{Int,Any}(l => JuMP.@variable(
-            pm.model,
-            base_name="$(nw)_switch_state_$(l)",
-            lower_bound = 0,
-            upper_bound = 1,
-            start = PMD.comp_start_value(ref(pm, nw, :switch, l), "state_start", get(ref(pm, nw, :switch, l), "state", 0))
-        ) for l in ids(pm, nw, :switch_dispatchable))
-    else
-        state = var(pm, nw)[:switch_state] = Dict{Int,Any}(l => JuMP.@variable(
-            pm.model,
-            base_name="$(nw)_switch_state_$(l)",
-            lower_bound = 0,
-            upper_bound = 1,
-            binary = true,
-            start = PMD.comp_start_value(ref(pm, nw, :switch, l), "state_start", get(ref(pm, nw, :switch, l), "state", 0))
-        ) for l in ids(pm, nw, :switch_dispatchable))
-    end
-
     report && _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :switch, :state, ids(pm, nw, :switch_dispatchable), state)
+    report && _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :switch, :state, fixed_switches, Dict{Int,Any}(i => var(pm, nw, :switch_state, i) for i in fixed_switches))
 end
 
 
-"do nothing, already have z_block; to fix usage of PMD.variable_mc_storage_power_mi_on_off"
-function PowerModelsDistribution.variable_mc_storage_indicator(pm::AbstractSwitchModels; nw::Int=nw_id_default, relax::Bool=false, report::Bool=true)
+@doc raw"""
+    variable_mc_storage_power_mi_on_off(
+        pm::AbstractUnbalancedPowerModel;
+        nw::Int=nw_id_default,
+        relax::Bool=false,
+        bounded::Bool=true,
+        report::Bool=true
+    )
+
+Variables for storage, *omitting* the storage indicator $$z^{strg}_i$$ variable:
+
+```math
+\begin{align}
+p^{strg}_i,~\forall i \in S \\
+q^{strg}_i,~\forall i \in S \\
+q^{sc}_{i},~\forall i \in S \\
+\epsilon_i,~\forall i \in S \\
+c^{strg}_i,~\forall i \in S \\
+c^{on}_i \in {0,1},~\forall i \in S \\
+d^{on}_i \in {0,1},~\forall i \in S \\
+\end{align}
+```
+
+$$c^{on}_i$$, $$d^{on}_i$$ will be binary if `relax=false`. Variables will appear in solution if `report=true`.
+"""
+function variable_mc_storage_power_mi_on_off(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, relax::Bool=false, bounded::Bool=true, report::Bool=true)
+    PMD.variable_mc_storage_power_real_on_off(pm; nw=nw, bounded=bounded, report=report)
+    PMD.variable_mc_storage_power_imaginary_on_off(pm; nw=nw, bounded=bounded, report=report)
+    PMD.variable_mc_storage_power_control_imaginary_on_off(pm; nw=nw, bounded=bounded, report=report)
+    PMD.variable_mc_storage_current(pm; nw=nw, bounded=bounded, report=report)
+    PMD.variable_storage_energy(pm; nw=nw, bounded=bounded, report=report)
+    PMD.variable_storage_charge(pm; nw=nw, bounded=bounded, report=report)
+    PMD.variable_storage_discharge(pm; nw=nw, bounded=bounded, report=report)
+    PMD.variable_storage_complementary_indicator(pm; nw=nw, relax=relax, report=report)
+end
+
+
+@doc raw"""
+    variable_bus_voltage_indicator(
+        pm::AbstractUnbalancedPowerModel;
+        nw::Int=nw_id_default,
+        relax::Bool=false,
+        report::Bool=true
+    )
+
+Variables for switching buses on/off $$z^{bus}_i,~\forall i \in N$$, binary if `relax=false`.
+Variables will appear in solution if `report=true`.
+"""
+function variable_bus_voltage_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, relax::Bool=false, report::Bool=true)
+    z_voltage = var(pm, nw)[:z_voltage] = JuMP.@variable(
+        pm.model,
+        [i in ids(pm, nw, :bus)],
+        base_name="$(nw)_z_voltage",
+        binary=!relax,
+        lower_bound=0,
+        upper_bound=1,
+        start=1
+    )
+
+    report && _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :bus, :status, ids(pm, nw, :bus), z_voltage)
+end
+
+
+@doc raw"""
+    variable_generator_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, relax::Bool=false, report::Bool=true)
+
+Variables for switching generators on/off $$z^{gen}_i,~\forall i \in G$$, binary if `relax=false`.
+Variables will appear in solution if `report=true`.
+"""
+function variable_generator_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, relax::Bool=false, report::Bool=true)
+    z_gen = var(pm, nw)[:z_gen] = JuMP.@variable(
+        pm.model,
+        [i in ids(pm, nw, :gen)],
+        base_name="$(nw)_z_gen",
+        binary=!relax,
+        lower_bound=0,
+        upper_bound=1,
+        start=1
+    )
+
+    report && _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :gen, :status, ids(pm, nw, :gen), z_gen)
+end
+
+
+@doc raw"""
+    variable_storage_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, relax::Bool=false, report::Bool=true)
+
+Variables for switching storage on/off $$z^{strg}_i,~\forall i \in E$$, binary if `relax=false`.
+Variables will appear in solution if `report=true`.
+"""
+function variable_storage_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, relax::Bool=false, report::Bool=true)
+    z_storage = var(pm, nw)[:z_storage] = JuMP.@variable(
+        pm.model,
+        [i in ids(pm, nw, :storage)],
+        base_name="$(nw)_z_storage",
+        binary=!relax,
+        lower_bound=0,
+        upper_bound=1,
+        start=1
+    )
+
+    report && _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :storage, :status, ids(pm, nw, :storage), z_storage)
+end
+
+
+@doc raw"""
+    variable_load_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, relax::Bool=false, report::Bool=true)
+
+Variables for switching loads on/off $$z^{d}_i,~\forall i \in L$$, binary if `relax=false`.
+Variables will appear in solution if `report=true`.
+"""
+function variable_load_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, relax::Bool=false, report::Bool=true)
+    z_demand = var(pm, nw)[:z_demand] = JuMP.@variable(
+        pm.model,
+        [i in ids(pm, nw, :load)],
+        base_name="$(nw)_z_demand",
+        binary=!relax,
+        lower_bound=0,
+        upper_bound=1,
+        start=1
+    )
+
+    report && _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :load, :status, ids(pm, nw, :load), z_demand)
 end

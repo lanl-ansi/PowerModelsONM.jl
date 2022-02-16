@@ -1,36 +1,24 @@
 """
-    solve_mn_mc_opf_oltc_capc(data::Union{Dict{String,<:Any},String}, model_type::Type, solver;
-        solution_processors::Vector{Function}=Function[],
-        eng2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
-        ref_extensions::Vector{Function}=Function[], kwargs...
+    solve_mn_opf(
+        data::Dict{String,<:Any},
+        model_type::Type,
+        solver;
+        kwargs...
     )::Dict{String,Any}
 
-Solve OPF with capacitor control
+Solve multinetwork OPF with transformer tap and capacitor control
 """
-function solve_mn_mc_opf_oltc_capc(data::Union{Dict{String,<:Any},String}, model_type::Type, solver;
-    solution_processors::Vector{Function}=Function[],
-    eng2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
-    ref_extensions::Vector{Function}=Function[], kwargs...)::Dict{String,Any}
-    return PMD.solve_mc_model(
-        data,
-        model_type,
-        solver,
-        PowerModelsONM.build_mn_mc_opf_oltc_capc;
-        multinetwork=true,
-        solution_processors=Function[_solution_processors..., solution_processors...],
-        ref_extensions=Function[_ref_extensions..., ref_extensions...],
-        eng2math_passthrough=recursive_merge(_eng2math_passthrough, eng2math_passthrough),
-        kwargs...
-    )
+function solve_mn_opf(data::Dict{String,<:Any}, model_type::Type, solver; kwargs...)::Dict{String,Any}
+    solve_onm_model(data, model_type, solver, build_mn_opf; multinetwork=true, kwargs...)
 end
 
 
 """
-    build_mn_mc_opf_oltc_capc(pm::AbstractUnbalancedPowerModel)
+    build_mn_opf(pm::AbstractUnbalancedPowerModel)
 
 constructor for bus injection opf
 """
-function build_mn_mc_opf_oltc_capc(pm::AbstractUnbalancedPowerModel)
+function build_mn_opf(pm::AbstractUnbalancedPowerModel)
     for n in nw_ids(pm)
         PMD.variable_mc_bus_voltage(pm; nw=n)
 
@@ -118,11 +106,11 @@ end
 
 
 """
-    build_mn_mc_opf_oltc_capc(pm::PMD.AbstractUBFModels)
+    build_mn_opf(pm::PMD.AbstractUBFModels)
 
 constructor for branch flow opf
 """
-function build_mn_mc_opf_oltc_capc(pm::PMD.AbstractUBFModels)
+function build_mn_opf(pm::PMD.AbstractUBFModels)
     for n in nw_ids(pm)
         PMD.variable_mc_bus_voltage(pm; nw=n)
 

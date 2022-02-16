@@ -103,6 +103,10 @@ function parse_commandline(; validate::Bool=true)::Dict{String,Any}
             help = "option to switch between the 'global' (default) multinetwork problem formulation and the 'iterative' version"
             default = "global"
             arg_type = String
+        "--opt-switch-problem"
+            help = "option to switch between the 'block' (default) MLD problem formulation and the 'traditional' version"
+            default = "global"
+            arg_type = String
         "--opt-switch-solver"
             help = "option to choose which solver from the build_solver_instances function to use for the optimal switching algorithm"
             default = "misocp_solver"
@@ -118,58 +122,6 @@ function parse_commandline(; validate::Bool=true)::Dict{String,Any}
         "--pretty-print"
             help = "flag to toggle pretty-printed output json"
             action = :store_true
-    end
-
-    # Depreciated Command Line Arguments
-    ArgParse.@add_arg_table! s begin
-        "--network-file"
-            help = "DEPRECIATED: use 'network'"
-            default = ""
-            arg_type = String
-        "--output-file"
-            help = "DEPRECIATED: use 'output'"
-            default = ""
-            arg_type = String
-        "--problem", "-p"
-            help = "DEPRECIATED: ignored"
-            default = "opf"
-            arg_type = String
-        "--formulation"
-            help = "DEPRECIATED: use 'opt-disp-formulation'"
-            default = ""
-            arg_type = String
-        "--protection-settings"
-            help = "DEPRECIATED: ignored"
-            default = ""
-            arg_type = String
-        "--debug-export-file"
-            help = "DEPRECIATED: use 'debug'"
-            default = ""
-            arg_type = String
-        "--use-gurobi"
-            help = "DEPRECIATED: use 'gurobi'"
-            action = :store_true
-        "--solver-tolerance"
-            help = "DEPRECIATED: use 'settings'"
-            arg_type = Float64
-        "--max-switch-actions"
-            help = "DEPRECIATED: use 'settings'"
-            arg_type = Int
-        "--timestep-hours"
-            help = "DEPRECIATED: use 'settings'"
-            arg_type = Float64
-        "--voltage-lower-bound"
-            help = "DEPRECIATED: use 'settings'"
-            arg_type = Float64
-        "--voltage-upper-bound"
-            help = "DEPRECIATED: use 'settings'"
-            arg_type = Float64
-        "--voltage-angle-difference"
-            help = "DEPRECIATED: use 'settings'"
-            arg_type = Float64
-        "--clpu-factor"
-            help = "DEPRECIATED: use 'settings'"
-            arg_type = Float64
     end
 
     arguments = ArgParse.parse_args(s)

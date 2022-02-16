@@ -58,6 +58,17 @@
           "type": ["integer", "string"],
           "enum": [0, 1, "ENABLED", "DISABLED"],
           "description": "The status of the generation object, _i.e._ enabled (`1`) or disabled (`0`)"
+        },
+        "cost_pg_parameters": {
+          "type": "array",
+          "description": "Cost model polynomial or piecewise parameters",
+          "items": {
+            "type": "number"
+          }
+        },
+        "cost_pg_model": {
+          "type": "integer",
+          "description": "Cost model type, 1 = piecewise-linear, 2 = polynomial"
         }
       }
     }

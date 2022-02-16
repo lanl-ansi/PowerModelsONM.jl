@@ -31,7 +31,7 @@ pages = [
     "Manual" => [
         "Getting Started" => "manual/quickguide.md",
         "The ONM Workflow" => "manual/onm_workflow.md",
-        "Optimal Switch / Load shed Mathematical Model" => "manual/osw_mld_model.md",
+        "Optimal Switch / Load shed Mathematical Model" => "manual/mld_model.md",
         "Optimal Dispatch Mathematical Model" => "manual/opf_model.md",
     ],
     "Tutorials" => [

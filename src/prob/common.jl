@@ -1,5 +1,5 @@
 "default eng2math passthrough"
-const _eng2math_passthrough = Dict{String,Vector{String}}(
+const _eng2math_passthrough_default = Dict{String,Vector{String}}(
     "root"=>String[
         "max_switch_actions",
         "disable_networking",
@@ -13,11 +13,46 @@ const _eng2math_passthrough = Dict{String,Vector{String}}(
     "storage"=>String["phase_unbalance_factor"],
 )
 
-"default ref_extensions for solve_mc_model"
-const _ref_extensions = Function[ref_add_load_blocks!, ref_add_max_switch_actions!]
 
-"default solution processors"
-const _solution_processors = Function[PMD.sol_data_model!, PowerModelsONM.solution_reference_buses!]
+"""
+    solve_onm_model(
+        data::Union{Dict{String,<:Any}, String},
+        model_type::Type,
+        solver::Any,
+        model_builder::Function;
+        solution_processors::Vector{Function}=Function[],
+        eng2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
+        ref_extensions::Vector{Function}=Function[],
+        multinetwork::Bool=false,
+        kwargs...
+    )::Dict{String,Any}
+
+Custom version of `PowerModelsDistribution.solve_mc_model` that automatically includes the solution processors,
+ref extensions and eng2math_passthroughs required for ONM problems.
+"""
+function solve_onm_model(
+    data::Union{Dict{String,<:Any}, String},
+    model_type::Type,
+    solver::Any,
+    model_builder::Function;
+    solution_processors::Vector{Function}=Function[],
+    eng2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
+    ref_extensions::Vector{Function}=Function[],
+    multinetwork::Bool=false,
+    kwargs...)::Dict{String,Any}
+
+    return PMD.solve_mc_model(
+        data,
+        model_type,
+        solver,
+        model_builder;
+        multinetwork=multinetwork,
+        solution_processors=Function[PMD.sol_data_model!, solution_reference_buses!, solution_statuses!, solution_processors...],
+        ref_extensions=Function[ref_add_load_blocks!, ref_add_max_switch_actions!, ref_extensions...],
+        eng2math_passthrough=recursive_merge(_eng2math_passthrough_default, eng2math_passthrough),
+        kwargs...
+    )
+end
 
 
 """

@@ -91,6 +91,10 @@
       "enum": ["misocp_solver", "nlp_solver", "minlp_solver", "mip_solver"],
       "default": "misocp_solver"
     },
+    "opt-switch-problem": {
+      "type": "string",
+      "enum": ["traditional", "block"]
+    },
     "opt-disp-formulation": {
       "type": "string",
       "enum": ["acp", "acr", "lindistflow", "nfa", "fbs", "fot"],

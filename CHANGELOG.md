@@ -4,6 +4,31 @@
 
 - none
 
+## v3.0.0
+
+- Added `cost_pg_parameters` and `cost_pg_model` to settings schemas for generators, voltage sources, and storage and solar devices
+- Added `opt-switch-problem` flag to runtime input to enable section of `block` or `traditional` optimal switching problems
+- Removed `SwitchModel` types to realign software design with InfrastructureModels (**breaking**)
+- Refactored problems to better delineate mld code from PMD (**breaking**)
+- Added `traditional` mld problem
+- Renamed problems, objective functions, and constraint functions to be more simple for users (**breaking**)
+- Added solution processor function `solution_statuses!` to assist in converting solution statuses to `Status` enums
+- Fixed `_prepare_dispatch_data` to account for new `traditional` mld problem type
+- Disabled *indicator* constraints (**breaking**)
+- Fixed bug in `get_timestep_microgrid_networks`
+- Introduced `block` and `traditional` versions of constraints to account for different `z` indicator variables (**breaking**)
+- Renamed `constraint_switch_state_max_actions` to `constraint_switch_close_action_limit` to better reflect the nature of the constraint (**breaking**)
+- Renamed `variable_mc_block_indicator` to `variable_block_indicator`, since it was not a multiconductor variable (**breaking**)
+- Renamed `variable_mc_switch_state` to `variable_switch_state`, since it was not a multiconductor variable (**breaking**)
+- Refactored `variable_mc_switch_fixed` to be called from inside `variable_switch_state` directly (**breaking**)
+- Added `variable_mc_storage_power_mi_on_off`, which will not attempt to make its own `z_storage` indicator variable as in PowerModelsDistribution
+- Added "traditional" indicator variable functions, `variable_bus_voltage_indicator`, `variable_generator_indicator`, `variable_storage_indicator`, and `variable_load_indicator`
+- Fixed bug in `solution_reference_buses!`
+- Added `solve_onm_model`
+- Updated README
+- Updated documentation
+- Updated examples
+
 ## v2.1.2
 
 - Fixed documentation build process

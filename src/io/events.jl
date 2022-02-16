@@ -1,5 +1,9 @@
 """
-    parse_events!(args::Dict{String,<:Any}; validate::Bool=true, apply::Bool=true)::Dict{String,Any}
+    parse_events!(
+        args::Dict{String,<:Any};
+        validate::Bool=true,
+        apply::Bool=true
+    )::Dict{String,Any}
 
 Parses events file in-place using [`parse_events`](@ref parse_events), for use inside of [`entrypoint`](@ref entrypoint).
 
@@ -39,7 +43,10 @@ end
 
 
 """
-    parse_events(events_file::String; validate::Bool=true)::Vector{Dict{String,Any}}
+    parse_events(
+        events_file::String;
+        validate::Bool=true
+    )::Vector{Dict{String,Any}}
 
 Parses an events file into a raw events data structure
 
@@ -58,7 +65,13 @@ function parse_events(events_file::String; validate::Bool=true)::Vector{Dict{Str
 end
 
 
-"helper function to convert JSON data types to native data types (Enums) in events"
+"""
+    _convert_event_data_types!(
+        events::Vector{<:Dict{String,<:Any}}
+    )::Vector{Dict{String,Any}}
+
+Helper function to convert JSON data types to native data types (Enums) in events.
+"""
 function _convert_event_data_types!(events::Vector{<:Dict{String,<:Any}})::Vector{Dict{String,Any}}
     for event in events
         for (k,v) in event["event_data"]
@@ -81,7 +94,10 @@ end
 
 
 """
-    parse_events(raw_events::Vector{<:Dict{String,<:Any}}, mn_data::Dict{String,<:Any})::Dict{String,Any}
+    parse_events(
+        raw_events::Vector{<:Dict{String,<:Any}},
+        mn_data::Dict{String,<:Any}
+    )::Dict{String,Any}
 
 Converts `raw_events`, e.g. loaded from JSON, and therefore in the format Vector{Dict}, to an internal data structure
 that closely matches the multinetwork data structure for easy merging (applying) to the multinetwork data structure.
@@ -156,7 +172,11 @@ end
 
 
 """
-    parse_events(events_file::String, mn_data::Dict{String,<:Any}; validate::Bool=true)::Dict{String,Any}
+    parse_events(
+        events_file::String,
+        mn_data::Dict{String,<:Any};
+        validate::Bool=true
+    )::Dict{String,Any}
 
 Parses raw events from `events_file` and passes it to [`parse_events`](@ref parse_events) to convert to the
 native data type.
@@ -182,7 +202,10 @@ end
 
 
 """
-    apply_events(network::Dict{String,<:Any}, events::Dict{String,<:Any})::Dict{String,Any}
+    apply_events(
+        network::Dict{String,<:Any},
+        events::Dict{String,<:Any}
+    )::Dict{String,Any}
 
 Creates a copy of the multinetwork data structure `network` and applies the events in `events`
 to that data.
@@ -207,7 +230,14 @@ function apply_events(network::Dict{String,<:Any}, events::Dict{String,<:Any})::
 end
 
 
-"helper function to find a switch id in the network model based on the dss `source_id`"
+"""
+    _find_switch_id_from_source_id(
+        network::Dict{String,<:Any},
+        source_id::String
+    )::String
+
+Helper function to find a switch id in the network model based on the dss `source_id`
+"""
 function _find_switch_id_from_source_id(network::Dict{String,<:Any}, source_id::String)::String
     for (id, switch) in get(network, "switch", Dict())
         if switch["source_id"] == lowercase(source_id)
@@ -224,7 +254,14 @@ function _find_switch_ids_by_faulted_asset(network::Dict{String,<:Any}, source_i
 end
 
 
-"helper function to find the multinetwork id of the subnetwork corresponding most closely to a `timestep`"
+"""
+    _find_nw_id_from_timestep(
+        network::Dict{String,<:Any},
+        timestep::Union{Real,String}
+    )::String
+
+Helper function to find the multinetwork id of the subnetwork of `network` corresponding most closely to a `timestep`.
+"""
 function _find_nw_id_from_timestep(network::Dict{String,<:Any}, timestep::Union{Real,String})::String
     @assert PMD.ismultinetwork(network) "network data structure is not multinetwork"
 
@@ -280,9 +317,21 @@ end
 
 
 """
-    build_events_file(case_file::String, events_file::String; custom_events::Vector{Dict{String,Any}}=Dict{String,Any}[], default_switch_state::PMD.SwitchState=PMD.CLOSED, default_switch_dispatchable::PMD.Dispatchable=PMD.YES)
+    build_events_file(
+        case_file::String,
+        events_file::String;
+        custom_events::Vector{Dict{String,Any}}=Dict{String,Any}[],
+        default_switch_state::PMD.SwitchState=PMD.CLOSED,
+        default_switch_dispatchable::PMD.Dispatchable=PMD.YES
+    )
 
-A helper function to assist in making (very) simple events files with some default settings for switches
+A helper function to assist in making (very) simple events files with some default settings for switches.
+
+- `case_file::String` is the input case file (dss)
+- `events_file::String` is the ouput events file (json)
+- `custom_events` is a Vector of *events* that will be applied **after** the automatic generation of events based off of the `default` kwargs
+- `default_switch_state::SwitchState` (default: `CLOSED`) is the toggle for the default state to apply to every switch
+- `default_switch_dispatchable::Dispatchable` (default: `YES`) is the toggle for the default dispatchability (controllability) of every switch
 """
 function build_events_file(case_file::String, events_file::String; custom_events::Vector{Dict{String,Any}}=Dict{String,Any}[], default_switch_state::PMD.SwitchState=PMD.CLOSED, default_switch_dispatchable::PMD.Dispatchable=PMD.YES, default_switch_status::Union{Missing,PMD.Status}=missing)
     events = Dict{String,Any}[]

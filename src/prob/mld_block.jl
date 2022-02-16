@@ -1,8 +1,9 @@
 """
-    solve_mn_mc_osw_mld_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver;
-        solution_processors::Vector{Function}=Function[],
-        eng2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
-        ref_extensions::Vector{Function}=Function[], kwargs...
+    solve_mn_block_mld(
+        data::Dict{String,<:Any},
+        model_type::Type,
+        solver;
+        kwargs...
     )::Dict{String,Any}
 
 Solves a __multinetwork__ multiconductor optimal switching (mixed-integer) problem using `model_type` and `solver`
@@ -11,47 +12,35 @@ Calls back to PowerModelsDistribution.solve_mc_model, and therefore will accept 
 for that function. See PowerModelsDistribution [documentation](https://lanl-ansi.github.io/PowerModelsDistribution.jl/latest)
 for more details.
 """
-function solve_mn_mc_osw_mld_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver;
-    solution_processors::Vector{Function}=Function[],
-    eng2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
-    ref_extensions::Vector{Function}=Function[], kwargs...)::Dict{String,Any}
-
-    return PMD.solve_mc_model(
-        data,
-        model_type,
-        solver,
-        build_mn_mc_osw_mld_mi;
-        multinetwork=true,
-        solution_processors=Function[_solution_processors..., solution_processors...],
-        ref_extensions=Function[_ref_extensions..., ref_extensions...],
-        eng2math_passthrough=recursive_merge(_eng2math_passthrough, eng2math_passthrough),
-        kwargs...
-    )
+function solve_mn_block_mld(data::Dict{String,<:Any}, model_type::Type, solver; kwargs...)::Dict{String,Any}
+    solve_onm_model(data, model_type, solver, build_mn_block_mld; multinetwork=true, kwargs...)
 end
 
 
 """
-    build_mn_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
+    build_mn_block_mld(pm::PMD.AbstractUBFModels)
 
 Multinetwork load shedding problem for Branch Flow model
 """
-function build_mn_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
+function build_mn_block_mld(pm::PMD.AbstractUBFModels)
     for n in nw_ids(pm)
-        variable_mc_block_indicator(pm; nw=n, relax=false)
+        variable_block_indicator(pm; nw=n, relax=false)
 
         PMD.variable_mc_bus_voltage_on_off(pm; nw=n)
 
         PMD.variable_mc_branch_current(pm; nw=n)
         PMD.variable_mc_branch_power(pm; nw=n)
-        PMD.variable_mc_switch_power(pm; nw=n)
-        variable_mc_switch_state(pm; nw=n, relax=false)
-        variable_mc_switch_fixed(pm; nw=n)
-        PMD.variable_mc_transformer_power(pm; nw=n)
 
+        PMD.variable_mc_switch_power(pm; nw=n)
+        variable_switch_state(pm; nw=n, relax=false)
+
+        PMD.variable_mc_transformer_power(pm; nw=n)
         PMD.variable_mc_oltc_transformer_tap(pm; nw=n)
 
         PMD.variable_mc_generator_power_on_off(pm; nw=n)
-        PMD.variable_mc_storage_power_mi_on_off(pm; nw=n, relax=false)
+
+        variable_mc_storage_power_mi_on_off(pm; nw=n, relax=false)
+
         PMD.variable_mc_load_power(pm; nw=n)
 
         PMD.variable_mc_capcontrol(pm; nw=n, relax=false)
@@ -62,10 +51,10 @@ function build_mn_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
             PMD.constraint_mc_theta_ref(pm, i; nw=n)
         end
 
-        PMD.constraint_mc_bus_voltage_on_off(pm; nw=n)
+        constraint_mc_bus_voltage_block_on_off(pm; nw=n)
 
         for i in ids(pm, n, :gen)
-            PMD.constraint_mc_gen_power_on_off(pm, i; nw=n)
+            constraint_mc_generator_power_block_on_off(pm, i; nw=n)
         end
 
         for i in ids(pm, n, :load)
@@ -73,13 +62,13 @@ function build_mn_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
         end
 
         for i in ids(pm, n, :bus)
-            PMD.constraint_mc_power_balance_shed(pm, i; nw=n)
+            constraint_mc_power_balance_shed_block(pm, i; nw=n)
         end
 
         for i in ids(pm, n, :storage)
-            constraint_storage_complementarity_mi_on_off(pm, i; nw=n)
-            PMD.constraint_mc_storage_on_off(pm, i; nw=n)
-            constraint_mc_storage_losses_on_off(pm, i; nw=n)
+            constraint_storage_complementarity_mi_block_on_off(pm, i; nw=n)
+            constraint_mc_storage_block_on_off(pm, i; nw=n)
+            constraint_mc_storage_losses_block_on_off(pm, i; nw=n)
             PMD.constraint_mc_storage_thermal_limit(pm, i; nw=n)
             constraint_mc_storage_phase_unbalance(pm, i; nw=n)
         end
@@ -97,16 +86,16 @@ function build_mn_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
         end
 
         !get(ref(pm, n), :disable_radial_constraint, false) && constraint_radial_topology(pm; nw=n, relax=false)
-        !get(ref(pm, n), :disable_isolation_constraint, false) && constraint_block_isolation(pm; nw=n, relax=true)
+        !get(ref(pm, n), :disable_isolation_constraint, false) && constraint_isolate_block(pm; nw=n)
         for i in ids(pm, n, :switch)
-            PMD.constraint_mc_switch_state_on_off(pm, i; nw=n, relax=true)
+            constraint_mc_switch_state_open_close(pm, i; nw=n)
 
             PMD.constraint_mc_switch_thermal_limit(pm, i; nw=n)
             PMD.constraint_mc_switch_ampacity(pm, i; nw=n)
         end
 
         for i in ids(pm, n, :transformer)
-            constraint_mc_transformer_power_on_off(pm, i; nw=n, fix_taps=false)
+            constraint_mc_transformer_power_block_on_off(pm, i; nw=n, fix_taps=false)
         end
     end
 
@@ -118,10 +107,10 @@ function build_mn_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
         PMD.constraint_storage_state(pm, i; nw=n_1)
     end
 
-    constraint_switch_state_max_actions(pm; nw=n_1)
+    constraint_switch_close_action_limit(pm; nw=n_1)
 
     for n_2 in network_ids[2:end]
-        constraint_switch_state_max_actions(pm, n_1, n_2)
+        constraint_switch_close_action_limit(pm, n_1, n_2)
 
         for i in ids(pm, :storage; nw=n_2)
             PMD.constraint_storage_state(pm, i, n_1, n_2)
@@ -130,31 +119,33 @@ function build_mn_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
         n_1 = n_2
     end
 
-    objective_mc_min_load_setpoint_delta_switch_global(pm)
+    objective_min_shed_load_block(pm)
 end
 
 
 """
-    build_mn_mc_osw_mld_mi(pm::AbstractSwitchModels)
+    build_mn_block_mld(pm::AbstractUnbalancedPowerModel)
 
 Multinetwork load shedding problem for Bus Injection models
 """
-function build_mn_mc_osw_mld_mi(pm::AbstractSwitchModels)
+function build_mn_block_mld(pm::AbstractUnbalancedPowerModel)
     for n in nw_ids(pm)
-        variable_mc_block_indicator(pm; nw=n, relax=false)
+        variable_block_indicator(pm; nw=n, relax=false)
 
         PMD.variable_mc_bus_voltage_on_off(pm; nw=n)
 
         PMD.variable_mc_branch_power(pm; nw=n)
-        PMD.variable_mc_switch_power(pm; nw=n)
-        variable_mc_switch_state(pm; nw=n, relax=false)
-        variable_mc_switch_fixed(pm; nw=n)
-        PMD.variable_mc_transformer_power(pm; nw=n)
 
+        PMD.variable_mc_switch_power(pm; nw=n)
+        variable_switch_state(pm; nw=n, relax=false)
+
+        PMD.variable_mc_transformer_power(pm; nw=n)
         PMD.variable_mc_oltc_transformer_tap(pm; nw=n)
 
         PMD.variable_mc_generator_power_on_off(pm; nw=n)
-        PMD.variable_mc_storage_power_mi_on_off(pm; nw=n, relax=false)
+
+        variable_mc_storage_power_mi_on_off(pm; nw=n, relax=false)
+
         PMD.variable_mc_load_power(pm; nw=n)
 
         PMD.variable_mc_capcontrol(pm; nw=n, relax=false)
@@ -165,10 +156,10 @@ function build_mn_mc_osw_mld_mi(pm::AbstractSwitchModels)
             PMD.constraint_mc_theta_ref(pm, i; nw=n)
         end
 
-        PMD.constraint_mc_bus_voltage_on_off(pm; nw=n)
+        constraint_mc_bus_voltage_block_on_off(pm; nw=n)
 
         for i in ids(pm, n, :gen)
-            PMD.constraint_mc_gen_power_on_off(pm, i; nw=n)
+            constraint_mc_generator_power_block_on_off(pm, i; nw=n)
         end
 
         for i in ids(pm, n, :load)
@@ -176,13 +167,13 @@ function build_mn_mc_osw_mld_mi(pm::AbstractSwitchModels)
         end
 
         for i in ids(pm, n, :bus)
-            PMD.constraint_mc_power_balance_shed(pm, i; nw=n)
+            constraint_mc_power_balance_shed_block(pm, i; nw=n)
         end
 
         for i in ids(pm, n, :storage)
-            constraint_storage_complementarity_mi_on_off(pm, i; nw=n)
-            PMD.constraint_mc_storage_on_off(pm, i; nw=n)
-            constraint_mc_storage_losses_on_off(pm, i; nw=n)
+            constraint_storage_complementarity_mi_block_on_off(pm, i; nw=n)
+            constraint_mc_storage_block_on_off(pm, i; nw=n)
+            constraint_mc_storage_losses_block_on_off(pm, i; nw=n)
             PMD.constraint_mc_storage_thermal_limit(pm, i; nw=n)
             constraint_mc_storage_phase_unbalance(pm, i; nw=n)
         end
@@ -200,16 +191,16 @@ function build_mn_mc_osw_mld_mi(pm::AbstractSwitchModels)
         end
 
         !get(ref(pm, n), :disable_radial_constraint, false) && constraint_radial_topology(pm; nw=n, relax=false)
-        !get(ref(pm, n), :disable_isolation_constraint, false) && constraint_block_isolation(pm; nw=n, relax=true)
+        !get(ref(pm, n), :disable_isolation_constraint, false) && constraint_isolate_block(pm; nw=n)
         for i in ids(pm, n, :switch)
-            PMD.constraint_mc_switch_state_on_off(pm, i; nw=n, relax=true)
+            constraint_mc_switch_state_open_close(pm, i; nw=n)
 
             PMD.constraint_mc_switch_thermal_limit(pm, i; nw=n)
             PMD.constraint_mc_switch_ampacity(pm, i; nw=n)
         end
 
         for i in ids(pm, n, :transformer)
-            constraint_mc_transformer_power_on_off(pm, i; nw=n, fix_taps=false)
+            constraint_mc_transformer_power_block_on_off(pm, i; nw=n, fix_taps=false)
         end
     end
 
@@ -221,10 +212,10 @@ function build_mn_mc_osw_mld_mi(pm::AbstractSwitchModels)
         PMD.constraint_storage_state(pm, i; nw=n_1)
     end
 
-    constraint_switch_state_max_actions(pm; nw=n_1)
+    constraint_switch_close_action_limit(pm; nw=n_1)
 
     for n_2 in network_ids[2:end]
-        constraint_switch_state_max_actions(pm, n_1, n_2)
+        constraint_switch_close_action_limit(pm, n_1, n_2)
 
         for i in ids(pm, :storage; nw=n_2)
             PMD.constraint_storage_state(pm, i, n_1, n_2)
@@ -233,15 +224,16 @@ function build_mn_mc_osw_mld_mi(pm::AbstractSwitchModels)
         n_1 = n_2
     end
 
-    objective_mc_min_load_setpoint_delta_switch_global(pm)
+    objective_min_shed_load_block(pm)
 end
 
 
 """
-    solve_mc_osw_mld_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver;
-        solution_processors::Vector{Function}=Function[],
-        eng2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
-        ref_extensions::Vector{Function}=Function[], kwargs...
+    solve_block_mld(
+        data::Dict{String,<:Any},
+        model_type::Type,
+        solver;
+        kwargs...
     )::Dict{String,Any}
 
 Solves a multiconductor optimal switching (mixed-integer) problem using `model_type` and `solver`
@@ -250,47 +242,37 @@ Calls back to PowerModelsDistribution.solve_mc_model, and therefore will accept 
 for that function. See PowerModelsDistribution [documentation](https://lanl-ansi.github.io/PowerModelsDistribution.jl/latest)
 for more details.
 """
-function solve_mc_osw_mld_mi(data::Union{Dict{String,<:Any}, String}, model_type::Type, solver;
-    solution_processors::Vector{Function}=Function[],
-    eng2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
-    ref_extensions::Vector{Function}=Function[], kwargs...)::Dict{String,Any}
-    return PMD.solve_mc_model(
-        data,
-        model_type,
-        solver,
-        build_mc_osw_mld_mi;
-        multinetwork=false,
-        solution_processors=Function[_solution_processors..., solution_processors...],
-        ref_extensions=Function[_ref_extensions..., ref_extensions...],
-        eng2math_passthrough=recursive_merge(_eng2math_passthrough, eng2math_passthrough),
-        kwargs...)
+function solve_block_mld(data::Dict{String,<:Any}, model_type::Type, solver; kwargs...)::Dict{String,Any}
+    solve_onm_model(data, model_type, solver, build_block_mld; multinetwork=false, kwargs...)
 end
 
 
 """
-    build_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
+    build_block_mld(pm::PMD.AbstractUBFModels)
 
 Single-network load shedding problem for Branch Flow model
 """
-function build_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
-    variable_mc_block_indicator(pm; relax=false)
+function build_block_mld(pm::PMD.AbstractUBFModels)
+    variable_block_indicator(pm; relax=false)
 
     PMD.variable_mc_bus_voltage_on_off(pm)
 
     PMD.variable_mc_branch_current(pm)
     PMD.variable_mc_branch_power(pm)
-    PMD.variable_mc_switch_power(pm)
-    variable_mc_switch_state(pm; relax=false)
-    variable_mc_switch_fixed(pm)
-    PMD.variable_mc_transformer_power(pm)
 
+    PMD.variable_mc_switch_power(pm)
+    variable_switch_state(pm; relax=false)
+
+    PMD.variable_mc_transformer_power(pm)
     PMD.variable_mc_oltc_transformer_tap(pm)
 
     PMD.variable_mc_generator_power_on_off(pm)
-    PMD.variable_mc_storage_power_mi_on_off(pm; relax=false)
+
+    variable_mc_storage_power_mi_on_off(pm; relax=false)
+
     PMD.variable_mc_load_power(pm)
 
-    PMD.variable_mc_capcontrol(pm, relax=false)
+    PMD.variable_mc_capcontrol(pm; relax=false)
 
     PMD.constraint_mc_model_current(pm)
 
@@ -298,10 +280,10 @@ function build_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
         PMD.constraint_mc_theta_ref(pm, i)
     end
 
-    PMD.constraint_mc_bus_voltage_on_off(pm)
+    constraint_mc_bus_voltage_block_on_off(pm)
 
     for i in ids(pm, :gen)
-        PMD.constraint_mc_gen_power_on_off(pm, i)
+        constraint_mc_generator_power_block_on_off(pm, i)
     end
 
     for i in ids(pm, :load)
@@ -309,14 +291,14 @@ function build_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
     end
 
     for i in ids(pm, :bus)
-        PMD.constraint_mc_power_balance_shed(pm, i)
+        constraint_mc_power_balance_shed_block(pm, i)
     end
 
     for i in ids(pm, :storage)
         PMD.constraint_storage_state(pm, i)
-        constraint_storage_complementarity_mi_on_off(pm, i)
-        PMD.constraint_mc_storage_on_off(pm, i)
-        constraint_mc_storage_losses_on_off(pm, i)
+        constraint_storage_complementarity_mi_block_on_off(pm, i)
+        constraint_mc_storage_block_on_off(pm, i)
+        constraint_mc_storage_losses_block_on_off(pm, i)
         PMD.constraint_mc_storage_thermal_limit(pm, i)
         constraint_mc_storage_phase_unbalance(pm, i)
     end
@@ -333,45 +315,47 @@ function build_mc_osw_mld_mi(pm::AbstractUBFSwitchModels)
         PMD.constraint_mc_ampacity_to(pm, i)
     end
 
-    constraint_switch_state_max_actions(pm)
+    constraint_switch_close_action_limit(pm)
     !get(ref(pm), :disable_radial_constraint, false) && constraint_radial_topology(pm; relax=false)
-    !get(ref(pm), :disable_isolation_constraint, false) && constraint_block_isolation(pm; relax=true)
+    !get(ref(pm), :disable_isolation_constraint, false) && constraint_isolate_block(pm)
     for i in ids(pm, :switch)
-        PMD.constraint_mc_switch_state_on_off(pm, i; relax=true)
+        constraint_mc_switch_state_open_close(pm, i)
 
         PMD.constraint_mc_switch_thermal_limit(pm, i)
         PMD.constraint_mc_switch_ampacity(pm, i)
     end
 
     for i in ids(pm, :transformer)
-        constraint_mc_transformer_power_on_off(pm, i; fix_taps=false)
+        constraint_mc_transformer_power_block_on_off(pm, i; fix_taps=false)
     end
 
-    objective_mc_min_load_setpoint_delta_switch_iterative(pm)
+    objective_min_shed_load_block_rolling_horizon(pm)
 end
 
 
 """
-    build_mc_osw_mld_mi(pm::AbstractSwitchModels)
+    build_block_mld(pm::AbstractUnbalancedPowerModel)
 
 Single network load shedding problem for Bus Injection model
 """
-function build_mc_osw_mld_mi(pm::AbstractSwitchModels)
+function build_block_mld(pm::AbstractUnbalancedPowerModel)
     for n in nw_ids(pm)
-        variable_mc_block_indicator(pm; relax=false)
+        variable_block_indicator(pm; relax=false)
 
         PMD.variable_mc_bus_voltage_on_off(pm)
 
         PMD.variable_mc_branch_power(pm)
-        PMD.variable_mc_switch_power(pm)
-        variable_mc_switch_state(pm; relax=false)
-        variable_mc_switch_fixed(pm)
-        PMD.variable_mc_transformer_power(pm)
 
+        PMD.variable_mc_switch_power(pm)
+        variable_switch_state(pm; relax=false)
+
+        PMD.variable_mc_transformer_power(pm)
         PMD.variable_mc_oltc_transformer_tap(pm)
 
         PMD.variable_mc_generator_power_on_off(pm)
-        PMD.variable_mc_storage_power_mi_on_off(pm; relax=false)
+
+        variable_mc_storage_power_mi_on_off(pm; relax=false)
+
         PMD.variable_mc_load_power(pm)
 
         PMD.variable_mc_capcontrol(pm; relax=false)
@@ -382,10 +366,10 @@ function build_mc_osw_mld_mi(pm::AbstractSwitchModels)
             PMD.constraint_mc_theta_ref(pm, i)
         end
 
-        PMD.constraint_mc_bus_voltage_on_off(pm)
+        constraint_mc_bus_voltage_block_on_off(pm)
 
         for i in ids(pm, n, :gen)
-            PMD.constraint_mc_gen_power_on_off(pm, i)
+            constraint_mc_generator_power_block_on_off(pm, i)
         end
 
         for i in ids(pm, n, :load)
@@ -393,14 +377,14 @@ function build_mc_osw_mld_mi(pm::AbstractSwitchModels)
         end
 
         for i in ids(pm, n, :bus)
-            PMD.constraint_mc_power_balance_shed(pm, i)
+            constraint_mc_power_balance_shed_block(pm, i)
         end
 
         for i in ids(pm, n, :storage)
             PMD.constraint_storage_state(pm, i)
-            constraint_storage_complementarity_mi_on_off(pm, i)
-            PMD.constraint_mc_storage_on_off(pm, i)
-            constraint_mc_storage_losses_on_off(pm, i)
+            constraint_storage_complementarity_mi_block_on_off(pm, i)
+            constraint_mc_storage_block_on_off(pm, i)
+            constraint_mc_storage_losses_block_on_off(pm, i)
             PMD.constraint_mc_storage_thermal_limit(pm, i)
             constraint_mc_storage_phase_unbalance(pm, i)
         end
@@ -417,20 +401,20 @@ function build_mc_osw_mld_mi(pm::AbstractSwitchModels)
             PMD.constraint_mc_ampacity_to(pm, i)
         end
 
-        constraint_switch_state_max_actions(pm)
+        constraint_switch_close_action_limit(pm)
         !get(ref(pm), :disable_radial_constraint, false) && constraint_radial_topology(pm; relax=false)
-        !get(ref(pm), :disable_isolation_constraint, false) && constraint_block_isolation(pm; relax=true)
+        !get(ref(pm), :disable_isolation_constraint, false) && constraint_isolate_block(pm)
         for i in ids(pm, n, :switch)
-            PMD.constraint_mc_switch_state_on_off(pm, i; relax=true)
+            constraint_mc_switch_state_open_close(pm, i)
 
             PMD.constraint_mc_switch_thermal_limit(pm, i)
             PMD.constraint_mc_switch_ampacity(pm, i)
         end
 
         for i in ids(pm, n, :transformer)
-            constraint_mc_transformer_power_on_off(pm, i; fix_taps=false)
+            constraint_mc_transformer_power_block_on_off(pm, i; fix_taps=false)
         end
     end
 
-    objective_mc_min_load_setpoint_delta_switch_iterative(pm)
+    objective_min_shed_load_block_rolling_horizon(pm)
 end

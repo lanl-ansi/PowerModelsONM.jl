@@ -45,7 +45,7 @@ function get_timestep_microgrid_networks(network::Dict{String,Any}, switching_re
         nw = mn_data["nw"]["$n"]
         nw["data_model"] = mn_data["data_model"]
 
-        sr = get(switching_results, "$n", Dict{String,Any}())
+        sr = get(get(switching_results, "$n", Dict{String,Any}()), "solution", Dict{String,Any}())
         switch_config = Dict{String,PMD.SwitchState}(s => get(sw, "state", nw["switch"][s]["state"]) for (s,sw) in get(sr, "switch", Dict{String,Any}()))
 
         push!(microgrid_networks, get_microgrid_networks(nw; switch_config=switch_config))

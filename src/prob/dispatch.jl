@@ -1,5 +1,9 @@
 """
-    optimize_dispatch!(args::Dict{String,<:Any}; update_network_data::Bool=false, solver::String=get(args, "opt-disp-solver", "nlp_solver"))::Dict{String,Any}
+    optimize_dispatch!(
+        args::Dict{String,<:Any};
+        update_network_data::Bool=false,
+        solver::String=get(args, "opt-disp-solver", "nlp_solver")
+    )::Dict{String,Any}
 
 Solves optimal dispatch problem in-place, for use in [`entrypoint`](@ref entrypoint), using [`optimize_dispatch`](@ref optimize_dispatch).
 If you are using this to optimize after running [`optimize_switches!`](@ref optimize_switches!), this assumes that the correct
@@ -11,7 +15,7 @@ If `update_network_data` (default: false) the results of the optimization will b
 `solver` (default: `"nlp_solver"`) specifies which solver to use for the OPF problem from `args["solvers"]`
 """
 function optimize_dispatch!(args::Dict{String,<:Any}; update_network_data::Bool=false, solver::String=get(args, "opt-disp-solver", "nlp_solver"))::Dict{String,Any}
-    args["opt-disp-formulation"] = _get_dispatch_formulation(get(args, "opt-disp-formulation", "lindistflow"))
+    args["opt-disp-formulation"] = _get_formulation(get(args, "opt-disp-formulation", "lindistflow"))
 
     if update_network_data
         args["network"] = apply_switch_solutions!(args["network"], get(args, "optimal_switching_results", Dict{String,Any}()))
@@ -26,7 +30,12 @@ end
 
 
 """
-    optimize_dispatch(network::Dict{String,<:Any}, formulation::Type, solver; switching_solutions::Union{Missing,Dict{String,<:Any}}=missing)::Dict{String,Any}
+    optimize_dispatch(
+        network::Dict{String,<:Any},
+        formulation::Type,
+        solver;
+        switching_solutions::Union{Missing,Dict{String,<:Any}}=missing
+    )::Dict{String,Any}
 
 Solve a multinetwork optimal power flow (`solve_mn_mc_opf`) using `formulation` and `solver`
 """
@@ -34,30 +43,29 @@ function optimize_dispatch(network::Dict{String,<:Any}, formulation::Type, solve
     data = _prepare_dispatch_data(network, switching_solutions)
 
     @info "running optimal dispatch with $(formulation)"
-    solve_mn_mc_opf_oltc_capc(
-        data,
-        formulation,
-        solver;
-        solution_processors=[PMD.sol_data_model!, solution_reference_buses!],
-        eng2math_passthrough=Dict{String,Vector{String}}(
-            "storage"=>String["phase_unbalance_factor"]
-        )
-    )
+    solve_mn_opf(data, formulation, solver)
 end
 
 
-"prepares data for running a optimal dispatch problem, copying in solutions from the switching results, if present"
+"""
+    _prepare_dispatch_data(
+        network::Dict{String,<:Any},
+        switching_solutions::Union{Missing,Dict{String,<:Any}}=missing
+    )::Dict{String,Any}
+
+Helper function to prepare data for running a optimal dispatch problem, copying in solutions from the switching results, if present.
+"""
 function _prepare_dispatch_data(network::Dict{String,<:Any}, switching_solutions::Union{Missing,Dict{String,<:Any}}=missing)::Dict{String,Any}
     data = deepcopy(network)
 
     if !ismissing(switching_solutions)
         for (n, results) in switching_solutions
-            shed = String[]
+            shed = collect(keys(filter(x->x.second["status"] == PMD.DISABLED, data["nw"][n]["bus"])))
 
             nw = get(results, "solution", Dict())
 
             for (i,bus) in get(nw, "bus", Dict())
-                if round(Int, get(bus, "status", 1)) != 1
+                if get(bus, "status", PMD.ENABLED) == PMD.DISABLED
                     data["nw"]["$n"]["bus"][i]["status"] = PMD.DISABLED
                     push!(shed, i)
                 end
@@ -65,30 +73,35 @@ function _prepare_dispatch_data(network::Dict{String,<:Any}, switching_solutions
 
             for type in ["load", "shunt", "generator", "solar", "voltage_source", "storage"]
                 for (i,obj) in get(data["nw"]["$n"], type, Dict{String,Any}())
-                    if obj["bus"] in shed
+                    obj_sol = get(get(nw, type, Dict()), i, Dict())
+                    if obj["bus"] in shed || get(obj_sol, "status", obj["status"]) == PMD.DISABLED
                         data["nw"]["$n"][type][i]["status"] = PMD.DISABLED
                     end
                 end
             end
 
             for (i,line) in get(data["nw"]["$n"], "line", Dict())
-                if line["f_bus"] in shed || line["t_bus"] in shed
+                obj_sol = get(get(nw, "line", Dict()), i, Dict())
+                if line["f_bus"] in shed || line["t_bus"] in shed || get(obj_sol, "status", line["status"]) == PMD.DISABLED
                     data["nw"]["$n"]["line"][i]["status"] = PMD.DISABLED
                 end
             end
 
             for (i,switch) in get(data["nw"]["$n"], "switch", Dict())
-                if haskey(nw, "switch") && haskey(nw["switch"], i) && haskey(nw["switch"][i], "state")
+                obj_sol = get(get(nw, "switch", Dict()), i, Dict())
+
+                if haskey(obj_sol, "state")
                     data["nw"]["$n"]["switch"][i]["state"] = nw["switch"][i]["state"]
                 end
 
-                if switch["f_bus"] in shed || switch["t_bus"] in shed
+                if switch["f_bus"] in shed || switch["t_bus"] in shed || get(obj_sol, "status", switch["status"]) == PMD.DISABLED
                     data["nw"]["$n"]["switch"][i]["status"] = PMD.DISABLED
                 end
             end
 
             for (i,transformer) in get(data["nw"]["$n"], "transformer", Dict())
-                if any(bus in shed for bus in transformer["bus"])
+                obj_sol = get(get(nw, "transformer", Dict()), i, Dict())
+                if any(bus in shed for bus in transformer["bus"]) || get(obj_sol, "status", transformer["status"]) == PMD.DISABLED
                     data["nw"]["$n"]["transformer"][i]["status"] = PMD.DISABLED
                 end
             end

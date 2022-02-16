@@ -1,4 +1,8 @@
-"helper function to update switch settings from a solution"
+"""
+    _update_switch_settings!(data::Dict{String,<:Any}, solution::Dict{String,<:Any})
+
+Helper function to update switch settings from a solution, for the rolling horizon algorithm.
+"""
 function _update_switch_settings!(data::Dict{String,<:Any}, solution::Dict{String,<:Any})
     for (id, switch) in get(solution, "switch", Dict{String,Any}())
         if haskey(switch, "state")
@@ -8,7 +12,11 @@ function _update_switch_settings!(data::Dict{String,<:Any}, solution::Dict{Strin
 end
 
 
-"helper function to update storage capacity for the next subnetwork based on a solution"
+"""
+    _update_storage_capacity!(data::Dict{String,<:Any}, solution::Dict{String,<:Any})
+
+Helper function to update storage capacity for the next subnetwork based on a solution, for the rolling horizon algorithm.
+"""
 function _update_storage_capacity!(data::Dict{String,<:Any}, solution::Dict{String,<:Any})
     for (i, strg) in get(solution, "storage", Dict())
         data["storage"][i]["_energy"] = deepcopy(data["storage"][i]["energy"])
@@ -32,7 +40,7 @@ end
 """
     apply_switch_solutions(network::Dict{String,<:Any}, optimal_switching_results::Dict{String,<:Any})::Dict{String,Any}
 
-Creates a copy of the `network` with the solution copied in from `optimal_switching_results`
+Creates a copy of the `network` with the solution copied in from `optimal_switching_results`.
 """
 function apply_switch_solutions(network::Dict{String,<:Any}, optimal_switching_results::Dict{String,<:Any})::Dict{String,Any}
     mn_data = deepcopy(network)
@@ -47,9 +55,9 @@ end
 """
     build_result(aim::AbstractUnbalancedPowerModel, solve_time; solution_processors=[])
 
-Version of `InfrastructureModels.build_result` that includes `"mip_gap"` in the results dictionary, if it exists
+Version of `InfrastructureModels.build_result` that includes `"mip_gap"` in the results dictionary, if it exists.
 """
-function _IM.build_result(aim::AbstractSwitchModels, solve_time; solution_processors=[])
+function _IM.build_result(aim::AbstractUnbalancedPowerModel, solve_time; solution_processors=[])
     # try-catch is needed until solvers reliably support ResultCount()
     result_count = 1
     try
@@ -91,17 +99,23 @@ end
 """
     solution_reference_buses!(pm::AbstractUnbalancedPowerModel, sol::Dict{String,Any})
 
-Raises bus_type from math model up to solution for reporting
+Raises `bus_type` from math model up to solution for reporting, across all time steps.
 """
 function solution_reference_buses!(pm::AbstractUnbalancedPowerModel, sol::Dict{String,Any})
-    PMD.apply_pmd!(_solution_reference_buses!, pm.data, sol; apply_to_subnetworks=true)
+    if !PMD.ismultinetwork(PMD.get_pmd_data(pm.data)) && PMD.ismultinetwork(PMD.get_pmd_data(sol))
+        _sol = PMD.get_pmd_data(sol)["nw"]["0"]
+    else
+        _sol = sol
+    end
+
+    PMD.apply_pmd!(_solution_reference_buses!, pm.data, _sol; apply_to_subnetworks=true)
 end
 
 
 """
     _solution_reference_buses!(data::Dict{String,<:Any}, sol::Dict{String,<:Any})
 
-Raises bus_type from math model up to solution for reporting
+Raises `bus_type` from math model up to solution for reporting, from a single time step.
 """
 function _solution_reference_buses!(data::Dict{String,<:Any}, sol::Dict{String,<:Any})
     if !haskey(sol, "bus") && !isempty(get(data, "bus", Dict()))
@@ -113,6 +127,32 @@ function _solution_reference_buses!(data::Dict{String,<:Any}, sol::Dict{String,<
                 sol["bus"][i] = Dict{String,Any}()
             end
             sol["bus"][i]["bus_type"] = bus["bus_type"]
+        end
+    end
+end
+
+
+"""
+    solution_statuses!(pm::AbstractUnbalancedPowerModel, sol::Dict{String,Any})
+
+Converts all `status` fields in a solution `sol` from Float64 to `Status` enum, for all time steps.
+"""
+function solution_statuses!(pm::AbstractUnbalancedPowerModel, sol::Dict{String,Any})
+    PMD.apply_pmd!(_solution_statuses!, sol; apply_to_subnetworks=true)
+end
+
+
+"""
+    _solution_statuses!(sol::Dict{String,<:Any})
+
+Converts all `status` fields in a solution `sol` from Float64 to `Status` enum, for a single time step.
+"""
+function _solution_statuses!(sol::Dict{String,<:Any})
+    for type in PMD.pmd_math_asset_types
+        for (i,obj) in get(sol, type, Dict{String,Any}())
+            if haskey(obj, "status") && isa(obj["status"], Real)
+                sol[type][i]["status"] = PMD.Status(round(Int, obj["status"]))
+            end
         end
     end
 end

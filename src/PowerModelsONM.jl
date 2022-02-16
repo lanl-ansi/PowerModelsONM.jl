@@ -81,7 +81,7 @@ module PowerModelsONM
     include("form/acp.jl")
     include("form/acr.jl")
     include("form/apo.jl")
-    include("form/bf_mx_lin.jl")
+    include("form/lindistflow.jl")
     include("form/shared.jl")
 
     include("io/events.jl")
@@ -95,8 +95,9 @@ module PowerModelsONM
     include("prob/common.jl")
     include("prob/dispatch.jl")
     include("prob/faults.jl")
-    include("prob/mn_opf_oltc_capc.jl")
-    include("prob/osw_mld.jl")
+    include("prob/opf.jl")
+    include("prob/mld_traditional.jl")
+    include("prob/mld_block.jl")
     include("prob/stability.jl")
     include("prob/switch.jl")
 
