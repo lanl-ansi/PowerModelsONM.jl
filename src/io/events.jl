@@ -136,9 +136,11 @@ function parse_events(raw_events::Vector{<:Dict{String,<:Any}}, mn_data::Dict{St
         if event["event_type"] == "switch"
             switch_id = _find_switch_id_from_source_id(mn_data["nw"][n], event["affected_asset"])
 
-            events[n]["switch"][switch_id] = Dict{String,Any}(
-                k => v for (k,v) in event["event_data"]
-            )
+            if !ismissing(switch_id)
+                events[n]["switch"][switch_id] = Dict{String,Any}(
+                    k => v for (k,v) in event["event_data"]
+                )
+            end
         elseif event["event_type"] == "fault"
             switch_ids = _find_switch_ids_by_faulted_asset(mn_data["nw"][n], event["affected_asset"])
             n_next = _find_next_nw_id_from_fault_duration(mn_data, n, event["event_data"]["duration"])
@@ -234,17 +236,18 @@ end
     _find_switch_id_from_source_id(
         network::Dict{String,<:Any},
         source_id::String
-    )::String
+    )::Union{String,Missing}
 
 Helper function to find a switch id in the network model based on the dss `source_id`
 """
-function _find_switch_id_from_source_id(network::Dict{String,<:Any}, source_id::String)::String
+function _find_switch_id_from_source_id(network::Dict{String,<:Any}, source_id::String)::Union{String,Missing}
     for (id, switch) in get(network, "switch", Dict())
         if switch["source_id"] == lowercase(source_id)
             return id
         end
     end
-    error("switch '$(source_id)' not found in network model, aborting")
+    @warn "switch '$(source_id)' not found in network model, skipping"
+    return missing
 end
 
 
