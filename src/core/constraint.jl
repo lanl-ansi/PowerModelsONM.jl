@@ -163,7 +163,9 @@ function constraint_isolate_block_traditional(pm::AbstractUnbalancedPowerModel, 
     # link buses in block
     for (block, buses) in ref(pm, nw, :blocks)
         for bus in buses
-            JuMP.@constraint(pm.model, var(pm, nw, :z_voltage, bus) .<= [var(pm, nw, :z_voltage, _bus) for _bus in filter(x->x!=bus, buses)])
+            if bus in var(pm, nw, :z_voltage)
+                JuMP.@constraint(pm.model, var(pm, nw, :z_voltage, bus) .<= [var(pm, nw, :z_voltage, _bus) for _bus in filter(x->x!=bus&&_bus in var(pm, nw, :z_voltage), buses)])
+            end
         end
     end
 
@@ -172,7 +174,7 @@ function constraint_isolate_block_traditional(pm::AbstractUnbalancedPowerModel, 
     # and no switches connected to the block are closed, then the island must be shed,
     # otherwise, to shed or not will be determined by feasibility
     for b in ids(pm, nw, :blocks)
-        z_voltages = [var(pm, nw, :z_voltage, bus) for bus in ref(pm, nw, :blocks, b)]
+        z_voltages = [var(pm, nw, :z_voltage, bus) for bus in ref(pm, nw, :blocks, b) if bus in var(pm, nw, :z_voltage)]
 
         n_gen = length(ref(pm, nw, :block_gens, b))
         n_strg = length(ref(pm, nw, :block_storages, b))
