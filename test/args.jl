@@ -88,6 +88,7 @@
         "use-gurobi" => false,
         "opt-switch-formulation" => "lindistflow",
         "opt-switch-algorithm" => "global",
+        "opt-switch-problem" => "block",
         "opt-switch-solver" => "misocp_solver",
         "opt-disp-algorithm" => "opf",
     )
