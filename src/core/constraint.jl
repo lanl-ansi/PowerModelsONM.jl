@@ -220,12 +220,12 @@ function constraint_radial_topology(pm::AbstractUnbalancedPowerModel, nw::Int; r
 
     for (i,j) in L
         for k in filter(k->k∉ir,N)
-            var(pm, nw, :f)[(k, i, j)] = JuMP.@variable(pm.model, base_name="$(nw)_f_$((k,i,j))")
-            var(pm, nw, :f)[(k, j, i)] = JuMP.@variable(pm.model, base_name="$(nw)_f_$((k,j,i))")
+            var(pm, nw, :f)[(k, i, j)] = JuMP.@variable(pm.model, base_name="$(nw)_f_$((k,i,j))", start=0)
+            var(pm, nw, :f)[(k, j, i)] = JuMP.@variable(pm.model, base_name="$(nw)_f_$((k,j,i))", start=0)
         end
-        var(pm, nw, :lambda)[(i,j)] = JuMP.@variable(pm.model, base_name="$(nw)_lambda_$((i,j))", binary=!relax)
-        var(pm, nw, :lambda)[(j,i)] = JuMP.@variable(pm.model, base_name="$(nw)_lambda_$((j,i))", binary=!relax)
-        var(pm, nw, :beta)[(i,j)] = JuMP.@variable(pm.model, base_name="$(nw)_beta_$((i,j))", binary=!relax)
+        var(pm, nw, :lambda)[(i,j)] = JuMP.@variable(pm.model, base_name="$(nw)_lambda_$((i,j))", binary=!relax, lower_bound=0, upper_bound=1, start=0)
+        var(pm, nw, :lambda)[(j,i)] = JuMP.@variable(pm.model, base_name="$(nw)_lambda_$((j,i))", binary=!relax, lower_bound=0, upper_bound=1, start=0)
+        var(pm, nw, :beta)[(i,j)] = JuMP.@variable(pm.model, base_name="$(nw)_beta_$((i,j))", binary=!relax, lower_bound=0, upper_bound=1, start=0)
     end
 
     for (s,sw) in get(PMD.ismultinetwork(pm.data) ? pm.data["nw"]["$(nw)"] : pm.data, "switch", Dict())
