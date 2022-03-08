@@ -120,7 +120,11 @@ function apply_settings(network::Dict{String,<:Any}, settings::Dict{String,<:Any
             PMD.set_time_elapsed!(mn_data, setting)
         elseif s == "max_switch_actions"
             for n in sort([parse(Int, i) for i in keys(mn_data["nw"])])
-                mn_data["nw"]["$n"][s] = isa(setting, Vector) ? setting[n] : setting
+                if n == 0 && isa(setting, Vector) && length(setting) == 1
+                    mn_data["nw"]["$n"][s] = isa(setting, Vector) ? setting[1] : setting
+                else
+                    mn_data["nw"]["$n"][s] = isa(setting, Vector) ? setting[n] : setting
+                end
             end
         elseif s ∈ ["disable_networking", "disable_switch_penalty", "apply_switch_scores", "disable_radial_constraint", "disable_isolation_constraint"]
             for (_,nw) in mn_data["nw"]
@@ -295,7 +299,7 @@ function build_settings_file(
     )
 
     eng = PMD.parse_file(network_file; transformations=[PMD.apply_kron_reduction!])
-    n_steps = length(first(eng["time_series"]).second["values"])
+    n_steps = !haskey(eng, "time_series") ? 1 : length(first(eng["time_series"]).second["values"])
 
     settings = Dict{String,Any}(
         "settings" => Dict{String,Any}("sbase_default"=>ismissing(sbase_default) ? eng["settings"]["sbase_default"] : sbase_default),
