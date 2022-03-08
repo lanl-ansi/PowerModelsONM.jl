@@ -263,7 +263,7 @@ function get_timestep_storage_soc(solution::Dict{String,<:Any}, network::Dict{St
         elseif i == 1
             energy = 0.0
             energy_ub = 0.0
-            for (s,strg) in network["nw"]["$n"]["storage"]
+            for (s,strg) in get(network["nw"]["$n"], "storage", Dict())
                 energy += get(strg, "energy", 0.0)
                 energy_ub += strg["energy_ub"]
             end
