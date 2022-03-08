@@ -105,7 +105,7 @@ function parse_commandline(; validate::Bool=true)::Dict{String,Any}
             arg_type = String
         "--opt-switch-problem"
             help = "option to switch between the 'block' (default) MLD problem formulation and the 'traditional' version"
-            default = "global"
+            default = "block"
             arg_type = String
         "--opt-switch-solver"
             help = "option to choose which solver from the build_solver_instances function to use for the optimal switching algorithm"
