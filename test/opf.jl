@@ -28,7 +28,7 @@
     args["opt-disp-formulation"] = "acr"
     optimize_dispatch!(args)
 
-    @test isapprox(args["optimal_dispatch_result"]["objective"], 3.33; atol=1e-2)
+    @test isapprox(args["optimal_dispatch_result"]["objective"], 3.33; atol=2e-2)
     @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["801"]["vm"] ./ vbase["801"], [1.04, 1.06, 1.04]; atol=1e-2))
     @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["801"]["va"], [-3.34, -121.53, 117.30]; atol=1e0))
     @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["675"]["vm"] ./ vbase["675"], [1.03, 1.08, 1.03]; atol=1e-2))
@@ -37,7 +37,7 @@
     args["opt-disp-formulation"] = "acp"
     optimize_dispatch!(args)
 
-    @test isapprox(args["optimal_dispatch_result"]["objective"], 3.33; atol=1e-2)
+    @test isapprox(args["optimal_dispatch_result"]["objective"], 3.33; atol=2e-2)
     @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["801"]["vm"] ./ vbase["801"], [1.04, 1.06, 1.03]; atol=1e-2))
     @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["801"]["va"], [-3.34, -121.53, 117.30]; atol=1e0))
     @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["675"]["vm"] ./ vbase["675"], [1.03, 1.08, 1.03]; atol=1e-2))
