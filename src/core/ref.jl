@@ -99,7 +99,7 @@ function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any}
                         end
                         cumulative_weight += ref[:block_weights][b]
                         b_prev = path[end-i]
-                        ref[:switch_scores][ref[:block_graph_edge_map][Graphs.Edge(b_prev,b)]] += cumulative_weight - block_line_losses
+                        ref[:switch_scores][ref[:block_graph_edge_map][Graphs.Edge(b_prev,b)]] += cumulative_weight - (cumulative_weight == 0.0 ? 0.0 : block_line_losses / cumulative_weight)
                     end
                 end
             end
