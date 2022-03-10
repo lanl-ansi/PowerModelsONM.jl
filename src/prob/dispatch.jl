@@ -60,12 +60,13 @@ function _prepare_dispatch_data(network::Dict{String,<:Any}, switching_solutions
 
     if !ismissing(switching_solutions)
         for (n, results) in switching_solutions
-            shed = collect(keys(filter(x->x.second["status"] == PMD.DISABLED, data["nw"][n]["bus"])))
-
             nw = get(results, "solution", Dict())
 
-            for (i,bus) in get(nw, "bus", Dict())
-                if get(bus, "status", PMD.ENABLED) == PMD.DISABLED
+            shed = collect(keys(filter(x->x.second["status"] != PMD.ENABLED, data["nw"][n]["bus"])))
+
+            for (i,bus) in get(data["nw"][n], "bus", Dict())
+                obj_sol = get(get(nw, "bus", Dict()), i, Dict())
+                if get(obj_sol, "status", PMD.DISABLED) != PMD.ENABLED
                     data["nw"]["$n"]["bus"][i]["status"] = PMD.DISABLED
                     push!(shed, i)
                 end
@@ -93,6 +94,7 @@ function _prepare_dispatch_data(network::Dict{String,<:Any}, switching_solutions
                 if haskey(obj_sol, "state")
                     data["nw"]["$n"]["switch"][i]["state"] = nw["switch"][i]["state"]
                 end
+                data["nw"]["$n"]["switch"][i]["dispatchable"] = PMD.NO
 
                 if switch["f_bus"] in shed || switch["t_bus"] in shed || get(obj_sol, "status", switch["status"]) == PMD.DISABLED
                     data["nw"]["$n"]["switch"][i]["status"] = PMD.DISABLED
