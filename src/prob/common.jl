@@ -171,6 +171,8 @@ function build_solver_instances(;
                     # tolerance settings
                     "MIPGap" => mip_gap_tol,
                     "FeasibilityTol" => feas_tol,
+                    "Quad" => 1,
+                    "NumericFocus" => 3,
                     # MIP settings
                     "MIPFocus" => 2,
                     # presolve settings
