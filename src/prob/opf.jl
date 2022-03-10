@@ -116,14 +116,17 @@ function build_mn_opf(pm::PMD.AbstractUBFModels)
 
         PMD.variable_mc_branch_current(pm; nw=n)
         PMD.variable_mc_branch_power(pm; nw=n)
-        PMD.variable_mc_switch_power(pm; nw=n)
-        PMD.variable_mc_transformer_power(pm; nw=n)
 
+        PMD.variable_mc_switch_power(pm; nw=n)
+
+        PMD.variable_mc_transformer_power(pm; nw=n)
         PMD.variable_mc_oltc_transformer_tap(pm; nw=n)
 
         PMD.variable_mc_generator_power(pm; nw=n)
-        PMD.variable_mc_load_power(pm; nw=n)
+
         PMD.variable_mc_storage_power_mi(pm; nw=n, relax=true)
+
+        PMD.variable_mc_load_power(pm; nw=n)
 
         PMD.variable_mc_capcontrol(pm; nw=n, relax=true)
 
