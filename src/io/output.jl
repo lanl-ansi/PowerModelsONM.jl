@@ -102,6 +102,8 @@ Adds information and statistics to "output_data", including
 - `"Switch changes"`: [`get_timestep_switch_changes!`](@ref get_timestep_switch_changes!)
 - `"Small signal stability"`: [`get_timestep_stability!`](@ref get_timestep_stability!)
 - `"Fault currents"`: [`get_timestep_fault_currents!`](@ref get_timestep_fault_currents!)
+- `"Optimal dispatch metadata"`: [`get_timestep_dispatch_optimization_metadata!`](@ref get_timestep_dispatch_optimization_metadata!)
+- `"Optimal switching metadata"`: [`get_timestep_switch_optimization_metadata!`](@ref get_timestep_switch_optimization_metadata!)
 """
 function analyze_results!(args::Dict{String,<:Any})::Dict{String,Any}
     if !haskey(args, "output_data")
@@ -118,6 +120,7 @@ function analyze_results!(args::Dict{String,<:Any})::Dict{String,Any}
     get_timestep_storage_soc!(args)
 
     get_timestep_dispatch!(args)
+    get_timestep_inverter_states!(args) # must run after get_timestep_dispatch!
     get_timestep_dispatch_optimization_metadata!(args)
 
     get_timestep_device_actions!(args)
