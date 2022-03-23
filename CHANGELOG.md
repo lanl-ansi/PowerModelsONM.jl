@@ -6,6 +6,7 @@
 
 ## v3.0.0
 
+- Added user option to disable presolvers in the built-in solvers `disable_presolver`
 - Changed `@warn` to `@info` in `_find_switch_id_from_source_id`
 - Updated radial topology constraint in `constraint_radial_topology` to be switch-direction-agnostic (previously required a strongly connected directed graph)
 - Added constraint for reference buses that uses `inverter` state to set theta constraints, `constraint_mc_inverter_theta_ref`

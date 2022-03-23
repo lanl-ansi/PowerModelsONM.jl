@@ -86,10 +86,11 @@ function build_solver_instances!(args::Dict{String,<:Any})::Dict{String,JuMP.MOI
         misocp_solver = get(get(args, "solvers", Dict()), "misocp_solver", missing),
         feas_tol=isa(get(args, "settings", ""), String) ? 1e-4 : get(get(args, "settings", Dict()), "nlp_solver_tol", 1e-4),
         mip_gap_tol=isa(get(args, "settings", ""), String) ? 0.05 : get(get(args, "settings", Dict()), "mip_solver_gap", 0.05),
-        verbose=get(args, "verbose", false),
-        debug=get(args, "debug", false),
+        disable_presolver= get(get(args, "settings", Dict()), "disable_presolver", false),
         gurobi=get(args, "gurobi", false),
         knitro=get(args, "knitro", false),
+        verbose=get(args, "verbose", false),
+        debug=get(args, "debug", false),
     )
 end
 
@@ -122,10 +123,11 @@ Returns solver instances as a Dict ready for use with JuMP Models, for NLP (`"nl
 - `minlp_solver_options` (default: `missing`): If missing, will use some default minlp solver options
 - `feas_tol` (default: `1e-4`): The solver tolerance
 - `mip_gap_tol` (default: 0.05): The desired MIP Gap for the MIP Solver
-- `verbose` (default: `false`): Sets the verbosity of the solvers
-- `debug` (default: `false`): Sets the verbosity of the solvers even higher (if available)
 - `gurobi` (default: `false`): Use Gurobi for MIP / MISOC solvers
 - `knitro` (default: `false`): Use KNITRO for NLP / MINLP solvers
+- `disable_presolver` (default: `false`): Disable the presolver on solvers that support it (Gurobi, KNITRO)
+- `verbose` (default: `false`): Sets the verbosity of the solvers
+- `debug` (default: `false`): Sets the verbosity of the solvers even higher (if available)
 """
 function build_solver_instances(;
     nlp_solver::Union{Missing,JuMP.MOI.OptimizerWithAttributes}=missing,
@@ -137,6 +139,7 @@ function build_solver_instances(;
     minlp_solver_options::Union{Missing,Vector{Pair}}=missing,
     feas_tol::Float64=1e-6,
     mip_gap_tol::Float64=1e-4,
+    disable_presolver::Bool=false,
     gurobi::Bool=false,
     knitro::Bool=false,
     verbose::Bool=false,
@@ -152,7 +155,7 @@ function build_solver_instances(;
                     "opttol" => mip_gap_tol,
                     "feastol" => feas_tol,
                     "algorithm" => 3,
-                    "presolve" => 0,
+                    "presolve" => disable_presolver ? 0 : 1,
                 ]
             end
             nlp_solver = optimizer_with_attributes(
@@ -191,6 +194,7 @@ function build_solver_instances(;
                     "MIPFocus" => 2,
                     # presolve settings
                     "DualReductions" => 0,
+                    "Presolve" => disable_presolver ? 0 : -1,
                 ]
             end
             mip_solver = optimizer_with_attributes(

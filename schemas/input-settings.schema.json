@@ -89,6 +89,11 @@
       "type": ["boolean"],
       "description": "apply weight to switches in objective"
     },
+    "disable_presolver": {
+      "type": ["boolean"],
+      "description": "disables presolvers on included solvers that support it (Gurobi, KNITRO)",
+      "default": false
+    },
     "time_elapsed": {
       "type": ["array", "number"],
       "description": "The time elapsed, in hours for each timestep, or individually after each timestep if an array",
