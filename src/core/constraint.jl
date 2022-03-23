@@ -213,29 +213,41 @@ function constraint_radial_topology(pm::AbstractUnbalancedPowerModel, nw::Int; r
     var(pm, nw)[:beta] = Dict{Tuple{Int,Int},JuMP.VariableRef}()
     var(pm, nw)[:alpha] = Dict{Tuple{Int,Int},Union{JuMP.VariableRef,Int}}()
 
-    N = ids(pm, nw, :blocks)
-    L = ref(pm, nw, :block_pairs)
+    # "real" node and branch sets
+    N₀ = ids(pm, nw, :blocks)
+    L₀ = ref(pm, nw, :block_pairs)
 
-    ir = ref(pm, nw, :substation_blocks)
+    # Add "virtual" iᵣ to N
+    virtual_iᵣ = maximum(N₀)+1
+    N = [N₀..., virtual_iᵣ]
+    iᵣ = [virtual_iᵣ]
 
-    for (i,j) in L
-        for k in filter(k->k∉ir,N)
+    # if disable_networking, add microgrid blocks to set iᵣ
+    ref(pm, nw, :disable_networking) && append!(iᵣ, ids(pm, nw, :microgrid_blocks))
+
+    # create a set L of all branches, including virtual branches between iᵣ and all other nodes in L₀
+    L = [L₀..., [(virtual_iᵣ, n) for n in N₀]...]
+
+    # create a set L′ that inlcudes the branch reverses
+    L′ = union(L, Set([(j,i) for (i,j) in L]))
+
+    # create variables fᵏ and λ over all L, including virtual branches connected to iᵣ
+    for (i,j) in L′
+        for k in filter(kk->kk∉iᵣ,N)
             var(pm, nw, :f)[(k, i, j)] = JuMP.@variable(pm.model, base_name="$(nw)_f_$((k,i,j))", start=0)
-            var(pm, nw, :f)[(k, j, i)] = JuMP.@variable(pm.model, base_name="$(nw)_f_$((k,j,i))", start=0)
         end
         var(pm, nw, :lambda)[(i,j)] = JuMP.@variable(pm.model, base_name="$(nw)_lambda_$((i,j))", binary=!relax, lower_bound=0, upper_bound=1, start=0)
-        var(pm, nw, :lambda)[(j,i)] = JuMP.@variable(pm.model, base_name="$(nw)_lambda_$((j,i))", binary=!relax, lower_bound=0, upper_bound=1, start=0)
-        var(pm, nw, :beta)[(i,j)] = JuMP.@variable(pm.model, base_name="$(nw)_beta_$((i,j))", binary=!relax, lower_bound=0, upper_bound=1, start=0)
+
+        # create variable β over only original set L₀
+        if (i,j) ∈ L₀
+            var(pm, nw, :beta)[(i,j)] = JuMP.@variable(pm.model, base_name="$(nw)_beta_$((i,j))", lower_bound=0, upper_bound=1, start=0)
+        end
     end
 
-    for (s,sw) in get(PMD.ismultinetwork(pm.data) ? pm.data["nw"]["$(nw)"] : pm.data, "switch", Dict())
+    # create an aux varible α that maps to the switch states
+    for (s,sw) in ref(pm, nw, :switch)
         (i,j) = (ref(pm, nw, :bus_block_map, sw["f_bus"]), ref(pm, nw, :bus_block_map, sw["t_bus"]))
-
-        if sw[PMD.pmd_math_component_status["switch"]] != PMD.pmd_math_component_status_inactive["switch"]
-            var(pm, nw, :alpha)[(i,j)] = var(pm, nw, :alpha)[(j,i)] = var(pm, nw, :switch_state, parse(Int,s))
-        else
-            var(pm, nw, :alpha)[(i,j)] = var(pm, nw, :alpha)[(j,i)] = 0
-        end
+        var(pm, nw, :alpha)[(i,j)] = var(pm, nw, :switch_state, s)
     end
 
     f = var(pm, nw, :f)
@@ -244,42 +256,44 @@ function constraint_radial_topology(pm::AbstractUnbalancedPowerModel, nw::Int; r
     α = var(pm, nw, :alpha)
 
     # Eq. (1) -> Eqs. (3-8)
-    for k in filter(kk->kk∉ir,N)
+    for k in filter(kk->kk∉iᵣ,N)
         # Eq. (3)
-        bp_to = filter(((j,i),)->i∈ir&&i!=j,L)
-        bp_fr = filter(((i,j),)->i∈ir&&i!=j,L)
-        if !(isempty(bp_fr) && isempty(bp_to))
-            c = JuMP.@constraint(
-                pm.model,
-                sum(f[(k,j,i)] for (j,i) in bp_to) -
-                sum(f[(k,i,j)] for (i,j) in bp_fr)
-                ==
-                -1.0
-            )
+        for _iᵣ in iᵣ
+            jiᵣ = filter(((j,i),)->i==_iᵣ&&i!=j,L)
+            iᵣj = filter(((i,j),)->i==_iᵣ&&i!=j,L)
+            if !(isempty(jiᵣ) && isempty(iᵣj))
+                c = JuMP.@constraint(
+                    pm.model,
+                    sum(f[(k,j,i)] for (j,i) in jiᵣ) -
+                    sum(f[(k,i,j)] for (i,j) in iᵣj)
+                    ==
+                    -1.0
+                )
+            end
         end
 
         # Eq. (4)
-        bp_to = filter(((j,i),)->i==k&&i!=j,L)
-        bp_fr = filter(((i,j),)->i==k&&i!=j,L)
-        if !(isempty(bp_fr) && isempty(bp_to))
+        jk = filter(((j,i),)->i==k&&i!=j,L′)
+        kj = filter(((i,j),)->i==k&&i!=j,L′)
+        if !(isempty(jk) && isempty(kj))
             c = JuMP.@constraint(
                 pm.model,
-                sum(f[(k,j,k)] for (j,i) in bp_to) -
-                sum(f[(k,k,j)] for (i,j) in bp_fr)
+                sum(f[(k,j,k)] for (j,i) in jk) -
+                sum(f[(k,k,j)] for (i,j) in kj)
                 ==
                 1.0
             )
         end
 
         # Eq. (5)
-        for i in filter(kk->kk∉ir&&kk!=k,N)
-            bp_to = filter(((j,ii),)->ii==i&&ii!=j,L)
-            bp_fr = filter(((ii,j),)->ii==i&&ii!=j,L)
-            if !(isempty(bp_fr) && isempty(bp_to))
+        for i in filter(kk->kk∉iᵣ&&kk!=k,N)
+            ji = filter(((j,ii),)->ii==i&&ii!=j,L′)
+            ij = filter(((ii,j),)->ii==i&&ii!=j,L′)
+            if !(isempty(ji) && isempty(ij))
                 c = JuMP.@constraint(
                     pm.model,
-                    sum(f[(k,j,i)] for (j,ii) in bp_to) -
-                    sum(f[(k,i,j)] for (ii,j) in bp_fr)
+                    sum(f[(k,j,i)] for (j,ii) in ji) -
+                    sum(f[(k,i,j)] for (ii,j) in ij)
                     ==
                     0.0
                 )
@@ -298,7 +312,8 @@ function constraint_radial_topology(pm::AbstractUnbalancedPowerModel, nw::Int; r
     # Eq. (7)
     JuMP.@constraint(pm.model, sum((λ[(i,j)] + λ[(j,i)]) for (i,j) in L) == length(N) - 1)
 
-    for (i,j) in L
+    # Connect λ and β, map β back to α, over only real switches (L₀)
+    for (i,j) in L₀
         # Eq. (8)
         JuMP.@constraint(pm.model, λ[(i,j)] + λ[(j,i)] == β[(i,j)])
 
