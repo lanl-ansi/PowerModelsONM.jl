@@ -6,6 +6,7 @@
 
 ## v3.0.0
 
+- Fixed `constraint_mc_power_balance_shed_block`, wrong call to `PMD.diag`, should have been `LinearAlgebra.diag`
 - Added `cost_pg_parameters` and `cost_pg_model` to settings schemas for generators, voltage sources, and storage and solar devices
 - Added `opt-switch-problem` flag to runtime input to enable section of `block` or `traditional` optimal switching problems
 - Removed `SwitchModel` types to realign software design with InfrastructureModels (**breaking**)
