@@ -40,13 +40,26 @@ function objective_min_shed_load_block_rolling_horizon(pm::AbstractUnbalancedPow
         end
     end
 
+    total_energy_ub = sum(strg["energy_rating"] for (n,nw_ref) in nws(pm) for (i,strg) in nw_ref[:storage])
+    total_pmax = sum(Float64[all(.!isfinite.(gen["pmax"])) ? 0.0 : sum(gen["pmax"][isfinite.(gen["pmax"])]) for (n,nw_ref) in nws(pm) for (i, gen) in nw_ref[:gen]])
+
+    total_energy_ub = total_energy_ub <= 1.0 ? 1.0 : total_energy_ub
+    total_pmax = total_pmax <= 1.0 ? 1.0 : total_pmax
+
+    n_dispatchable_switches = Dict(n => length(ids(pm, n, :switch_dispatchable)) for n in nw_ids(pm))
+    for (n,nswitch) in n_dispatchable_switches
+        if nswitch < 1
+            n_dispatchable_switches[n] = 1
+        end
+    end
+
     JuMP.@objective(pm.model, Min,
         sum(
             sum( ref(pm, n, :block_weights, i) * (1-var(pm, n, :z_block, i)) for (i,block) in nw_ref[:blocks])
-            + sum( 1e-3 * ref(pm, n, :switch_scores, l)*(1-var(pm, n, :switch_state, l)) for l in ids(pm, n, :switch_dispatchable) )
-            + sum( 1e-2 * sum(var(pm, n, :delta_sw_state, l)) for l in ids(pm, n, :switch_dispatchable))
-            + sum( strg["energy_rating"] - var(pm, n, :se, i) for (i,strg) in nw_ref[:storage])
-            + sum( sum(get(gen,  "cost", [1.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [1.0, 0.0])[1] for c in gen["connections"]) for (i,gen) in nw_ref[:gen])
+            + sum( ref(pm, n, :switch_scores, l)*(1-var(pm, n, :switch_state, l)) for l in ids(pm, n, :switch_dispatchable) )
+            + sum( Int(get(ref(pm, n), :disable_switch_penalty, false)) * sum(var(pm, n, :delta_sw_state, l)) for l in ids(pm, n, :switch_dispatchable)) / n_dispatchable_switches[n]
+            + sum( strg["energy_rating"] - var(pm, n, :se, i) for (i,strg) in nw_ref[:storage]) / total_energy_ub
+            + sum( sum(get(gen,  "cost", [0.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [0.0, 0.0])[1] for c in  gen["connections"]) for (i,gen) in nw_ref[:gen]) / total_energy_ub
         for (n, nw_ref) in nws(pm))
     )
 end
@@ -101,13 +114,26 @@ function objective_min_shed_load_traditional_rolling_horizon(pm::AbstractUnbalan
         ) for n in nw_ids(pm)
     )
 
+    total_energy_ub = sum(strg["energy_rating"] for (n,nw_ref) in nws(pm) for (i,strg) in nw_ref[:storage])
+    total_pmax = sum(Float64[all(.!isfinite.(gen["pmax"])) ? 0.0 : sum(gen["pmax"][isfinite.(gen["pmax"])]) for (n,nw_ref) in nws(pm) for (i, gen) in nw_ref[:gen]])
+
+    total_energy_ub = total_energy_ub <= 1.0 ? 1.0 : total_energy_ub
+    total_pmax = total_pmax <= 1.0 ? 1.0 : total_pmax
+
+    n_dispatchable_switches = Dict(n => length(ids(pm, n, :switch_dispatchable)) for n in nw_ids(pm))
+    for (n,nswitch) in n_dispatchable_switches
+        if nswitch < 1
+            n_dispatchable_switches[n] = 1
+        end
+    end
+
     JuMP.@objective(pm.model, Min,
         sum(
             sum( load_weights[n][i] * (1-var(pm, n, :z_demand, i)) for i in ids(pm, n, :load))
-            + sum( 1e-3 * ref(pm, n, :switch_scores, l)*(1-var(pm, n, :switch_state, l)) for l in ids(pm, n, :switch_dispatchable) )
-            + sum( 1e-2 * sum(var(pm, n, :delta_sw_state, l)) for l in ids(pm, n, :switch_dispatchable))
-            + sum( strg["energy_rating"] - var(pm, n, :se, i) for (i,strg) in nw_ref[:storage])
-            + sum( sum(get(gen,  "cost", [1.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [1.0, 0.0])[1] for c in gen["connections"]) for (i,gen) in nw_ref[:gen])
+            + sum( ref(pm, n, :switch_scores, l)*(1-var(pm, n, :switch_state, l)) for l in ids(pm, n, :switch_dispatchable) )
+            + sum( Int(get(ref(pm, n), :disable_switch_penalty, false)) * sum(var(pm, n, :delta_sw_state, l)) for l in ids(pm, n, :switch_dispatchable)) / n_dispatchable_switches[n]
+            + sum( strg["energy_rating"] - var(pm, n, :se, i) for (i,strg) in nw_ref[:storage]) / total_energy_ub
+            + sum( sum(get(gen,  "cost", [0.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [0.0, 0.0])[1] for c in  gen["connections"]) for (i,gen) in nw_ref[:gen]) / total_energy_ub
         for (n, nw_ref) in nws(pm))
     )
 end
@@ -156,13 +182,26 @@ function objective_min_shed_load_block(pm::AbstractUnbalancedPowerModel)
         end
     end
 
+    total_energy_ub = sum(strg["energy_rating"] for (n,nw_ref) in nws(pm) for (i,strg) in nw_ref[:storage])
+    total_pmax = sum(Float64[all(.!isfinite.(gen["pmax"])) ? 0.0 : sum(gen["pmax"][isfinite.(gen["pmax"])]) for (n,nw_ref) in nws(pm) for (i, gen) in nw_ref[:gen]])
+
+    total_energy_ub = total_energy_ub <= 1.0 ? 1.0 : total_energy_ub
+    total_pmax = total_pmax <= 1.0 ? 1.0 : total_pmax
+
+    n_dispatchable_switches = Dict(n => length(ids(pm, n, :switch_dispatchable)) for n in nw_ids(pm))
+    for (n,nswitch) in n_dispatchable_switches
+        if nswitch < 1
+            n_dispatchable_switches[n] = 1
+        end
+    end
+
     JuMP.@objective(pm.model, Min,
         sum(
             sum( ref(pm, n, :block_weights, i) * (1-var(pm, n, :z_block, i)) for (i,block) in nw_ref[:blocks])
-            + sum( 1e-1 * Int(get(ref(pm, n), :apply_switch_scores, false)) * ref(pm, n, :switch_scores, l)*(1-var(pm, n, :switch_state, l)) for l in ids(pm, n, :switch_dispatchable) )
-            + sum( Int(get(ref(pm, n), :disable_switch_penalty, false)) * sum(var(pm, n, :delta_sw_state, l)) for l in ids(pm, n, :switch_dispatchable))
-            + sum( strg["energy_rating"] - var(pm, n, :se, i) for (i,strg) in nw_ref[:storage])
-            + sum( sum(get(gen,  "cost", [1.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [1.0, 0.0])[1] for c in  gen["connections"]) for (i,gen) in nw_ref[:gen])
+            + sum( Int(get(ref(pm, n), :apply_switch_scores, false)) * ref(pm, n, :switch_scores, l)*(1-var(pm, n, :switch_state, l)) for l in ids(pm, n, :switch_dispatchable) )
+            + sum( Int(get(ref(pm, n), :disable_switch_penalty, false)) * sum(var(pm, n, :delta_sw_state, l)) for l in ids(pm, n, :switch_dispatchable)) / n_dispatchable_switches[n]
+            + sum( strg["energy_rating"] - var(pm, n, :se, i) for (i,strg) in nw_ref[:storage]) / total_energy_ub
+            + sum( sum(get(gen,  "cost", [0.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [0.0, 0.0])[1] for c in  gen["connections"]) for (i,gen) in nw_ref[:gen]) / total_energy_ub
         for (n, nw_ref) in nws(pm))
     )
 end
@@ -218,13 +257,26 @@ function objective_min_shed_load_traditional(pm::AbstractUnbalancedPowerModel)
         ) for n in nw_ids(pm)
     )
 
+    total_energy_ub = sum(strg["energy_rating"] for (n,nw_ref) in nws(pm) for (i,strg) in nw_ref[:storage])
+    total_pmax = sum(Float64[all(.!isfinite.(gen["pmax"])) ? 0.0 : sum(gen["pmax"][isfinite.(gen["pmax"])]) for (n,nw_ref) in nws(pm) for (i, gen) in nw_ref[:gen]])
+
+    total_energy_ub = total_energy_ub <= 1.0 ? 1.0 : total_energy_ub
+    total_pmax = total_pmax <= 1.0 ? 1.0 : total_pmax
+
+    n_dispatchable_switches = Dict(n => length(ids(pm, n, :switch_dispatchable)) for n in nw_ids(pm))
+    for (n,nswitch) in n_dispatchable_switches
+        if nswitch < 1
+            n_dispatchable_switches[n] = 1
+        end
+    end
+
     JuMP.@objective(pm.model, Min,
         sum(
             sum( load_weights[n][i] * (1-var(pm, n, :z_demand, i)) for i in ids(pm, n, :load))
-            + sum( Int(get(ref(pm, n), :disable_switch_penalty, false)) * sum(var(pm, n, :delta_sw_state, l)) for l in ids(pm, n, :switch_dispatchable))
-            + sum( 1e-1 * Int(get(ref(pm, n), :apply_switch_scores, false)) * ref(pm, n, :switch_scores, l)*(1-var(pm, n, :switch_state, l)) for l in ids(pm, n, :switch_dispatchable) )
-            + sum( strg["energy_rating"] - var(pm, n, :se, i) for (i,strg) in nw_ref[:storage])
-            + sum( sum(get(gen,  "cost", [1.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [1.0, 0.0])[1] for c in  gen["connections"]) for (i,gen) in nw_ref[:gen])
+            + sum( Int(get(ref(pm, n), :apply_switch_scores, false)) * ref(pm, n, :switch_scores, l)*(1-var(pm, n, :switch_state, l)) for l in ids(pm, n, :switch_dispatchable) )
+            + sum( Int(get(ref(pm, n), :disable_switch_penalty, false)) * sum(var(pm, n, :delta_sw_state, l)) for l in ids(pm, n, :switch_dispatchable)) / n_dispatchable_switches[n]
+            + sum( strg["energy_rating"] - var(pm, n, :se, i) for (i,strg) in nw_ref[:storage]) / total_energy_ub
+            + sum( sum(get(gen,  "cost", [0.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [0.0, 0.0])[1] for c in  gen["connections"]) for (i,gen) in nw_ref[:gen]) / total_energy_ub
         for (n, nw_ref) in nws(pm))
     )
 end

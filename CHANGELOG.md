@@ -6,6 +6,7 @@
 
 ## v3.0.0
 
+- Changed objective function term balances to ensure that restoring load is always the most critical term
 - Fixed bug in `_prepare_fault_study_multinetwork_data` where `va` was not being used
 - Added option to `get_timestep_fault_currents` to filter out switches from outputs that have no associated protection devices (i.e., relay, recloser, fuse)
 - Changed instances of `Int64` to `Int`

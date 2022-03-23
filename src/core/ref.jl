@@ -86,6 +86,7 @@ function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any}
     ref[:neighbors] = Dict{Int,Vector{Int}}(i => Graphs.neighbors(ref[:block_graph], i) for i in Graphs.vertices(ref[:block_graph]))
 
     ref[:switch_scores] = Dict{Int,Real}(s => 0.0 for (s,_) in ref[:switch])
+    total_line_losses = sum(LinearAlgebra.norm(br["br_r"] .+ 1im*br["br_x"]) for (_,br) in ref[:branch])
     for type in ["storage", "gen"]
         for (id,obj) in ref[Symbol(type)]
             if obj[PMD.pmd_math_component_status[type]] != PMD.pmd_math_component_status_inactive[type]
@@ -97,11 +98,13 @@ function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any}
                     for (i,b) in enumerate(reverse(path[2:end]))
                         block_line_losses = 0.0  # to help with degeneracy
                         for line_id in ref[:block_branches][b]
-                            block_line_losses += LinearAlgebra.norm(ref[:branch][line_id]["br_r"] .+ 1im*ref[:branch][line_id]["br_x"])
+                            block_line_losses += 1e-2 * LinearAlgebra.norm(ref[:branch][line_id]["br_r"] .+ 1im*ref[:branch][line_id]["br_x"])
                         end
-                        cumulative_weight += ref[:block_weights][b]
+                        cumulative_weight += 1e-2 * ref[:block_weights][b]
+
                         b_prev = path[end-i]
-                        ref[:switch_scores][ref[:block_graph_edge_map][Graphs.Edge(b_prev,b)]] += cumulative_weight - (cumulative_weight == 0.0 ? 0.0 : block_line_losses / cumulative_weight)
+                        adjusted_cumulative_weight = cumulative_weight - (total_line_losses == 0.0 ? 0.0 : block_line_losses / total_line_losses)
+                        ref[:switch_scores][ref[:block_graph_edge_map][Graphs.Edge(b_prev,b)]] += adjusted_cumulative_weight < 0 ? 0.0 : adjusted_cumulative_weight
                     end
                 end
             end
