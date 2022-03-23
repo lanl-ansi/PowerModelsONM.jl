@@ -1,5 +1,7 @@
 {
-  "voltage_source": { "source": { "pg_lb": [0.0, 0.0, 0.0] } },
+  "voltage_source": {
+    "source": { "pg_lb": [0.0, 0.0, 0.0], "qg_lb": [0.0, 0.0, 0.0] }
+  },
   "line": {
     "632670": {
       "vad_ub": [5.0, 5.0, 5.0],
@@ -167,7 +169,11 @@
   },
   "shunt": {},
   "solar": {},
-  "storage": {},
+  "storage": {
+    "Battery_mg1a": { "phase_unbalance_factor": 0.0 },
+    "Battery_mg1b": { "phase_unbalance_factor": 0.0 },
+    "Battery_mg1c": { "phase_unbalance_factor": 0.0 }
+  },
   "switch": {
     "801675": { "cm_ub": [25.0, 25.0, 25.0] },
     "671692": { "cm_ub": [null, null, null] },
@@ -204,5 +210,7 @@
     "646_2": { "clpu_factor": 2.0 }
   },
   "max_switch_actions": [1, 1, 1, 1, 1, 1, 1, 1],
-  "disable_switch_penalty": false
+  "disable_switch_penalty": false,
+  "apply_switch_scores": true,
+  "disable_presolver": true
 }

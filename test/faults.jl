@@ -7,13 +7,13 @@
     )
     entrypoint(args)
 
-    @test all(isapprox.(args["fault_studies_results"]["1"]["702"]["3p"]["1"]["solution"]["fault"]["1"]["cf"], [22500.0, 24400.0, 21500.0]; atol=1e2))
-    @test all(isapprox.(args["fault_studies_results"]["1"]["702"]["ll"]["1"]["solution"]["fault"]["1"]["cf"], [18200.0, 18200.0]; atol=1e2))
-    @test all(isapprox.(args["fault_studies_results"]["1"]["702"]["lg"]["1"]["solution"]["fault"]["1"]["cf"], [14200.0]; atol=1e2))
+    @test all(isapprox.(args["fault_studies_results"]["1"]["702"]["3p"]["1"]["solution"]["fault"]["1"]["cf"], [11872.0, 11626.0, 10331.0]; atol=1e2))
+    @test all(isapprox.(args["fault_studies_results"]["1"]["702"]["ll"]["1"]["solution"]["fault"]["1"]["cf"], [8612.0, 8612.0]; atol=1e2))
+    @test all(isapprox.(args["fault_studies_results"]["1"]["702"]["lg"]["1"]["solution"]["fault"]["1"]["cf"], [6348.0]; atol=1e2))
 
-    @test all(isapprox.(args["output_data"]["Fault currents"][1]["702"]["3p"]["1"]["switch"]["701702"]["|I| (A)"], [5670.0, 6880.0, 5910.0]; atol=1e1))
-    @test all(isapprox.(args["output_data"]["Fault currents"][1]["702"]["ll"]["1"]["switch"]["701702"]["|I| (A)"], [6690.0, 5500.0, 193.0]; atol=1e1))
-    @test all(isapprox.(args["output_data"]["Fault currents"][1]["702"]["lg"]["1"]["switch"]["701702"]["|I| (A)"], [4510.0, 2200.0, 1490.0]; atol=1e1))
+    @test all(isapprox.(args["output_data"]["Fault currents"][1]["702"]["3p"]["1"]["switch"]["671700"]["|I| (A)"], [3486.9, 3600.17, 3321.74]; atol=1e1))
+    @test all(isapprox.(args["output_data"]["Fault currents"][1]["702"]["ll"]["1"]["switch"]["671700"]["|I| (A)"], [2475.4, 4143.17, 2300.95]; atol=1e1))
+    @test all(isapprox.(args["output_data"]["Fault currents"][1]["702"]["lg"]["1"]["switch"]["671700"]["|I| (A)"], [2134.33, 1124.02, 1581.26]; atol=1e1))
 
-    @test all(isapprox.(args["output_data"]["Fault currents"][1]["702"]["lg"]["1"]["switch"]["701702"]["|V| (V)"], [0.15, 2.51, 2.36]; atol=1e-2))
+    @test all(isapprox.(args["output_data"]["Fault currents"][1]["702"]["lg"]["1"]["switch"]["671700"]["|V| (V)"], [1.21938, 3.18223, 2.83371]; atol=1e-2))
 end

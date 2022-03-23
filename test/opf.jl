@@ -6,7 +6,7 @@
     )
     entrypoint(args)
 
-    vbase, _ = PowerModelsDistribution.calc_voltage_bases(args["base_network"], args["base_network"]["settings"]["vbases_default"])
+    vbase, _ = PMD.calc_voltage_bases(args["base_network"], args["base_network"]["settings"]["vbases_default"])
 
     args["opt-disp-formulation"] = "nfa"
     optimize_dispatch!(args)
@@ -22,8 +22,8 @@
     args["opt-disp-formulation"] = "lindistflow"
     optimize_dispatch!(args)
     @test isapprox(args["optimal_dispatch_result"]["objective"], 0.55; atol=1e-2)
-    @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["801"]["vm"] ./ vbase["801"], [1.03, 1.03, 1.03]; atol=1e-2))
-    @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["675"]["vm"] ./ vbase["675"], [1.02, 1.04, 1.01]; atol=1e-2))
+    @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["801"]["vm"] ./ vbase["801"], [1.02, 1.02, 1.02]; atol=1e-2))
+    @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["675"]["vm"] ./ vbase["675"], [1.00, 1.03, 1.00]; atol=1e-2))
 
     args["opt-disp-formulation"] = "acr"
     optimize_dispatch!(args)
