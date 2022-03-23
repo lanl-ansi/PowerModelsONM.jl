@@ -204,11 +204,17 @@ function build_solver_instances(;
         else
             if ismissing(mip_solver_options)
                 mip_solver_options = Pair[
-                    "loglevel" => verbose || debug ? 1 : 0,
+                    "output_flag" => verbose || debug ? true : false,
+                    "presolve" => disable_presolver ? "off" : "choose",
+                    "primal_feasibility_tolerance" => feas_tol,
+                    "dual_feasibility_tolerance" => feas_tol,
+                    "mip_rel_gap" => mip_gap_tol,
+                    "mip_abs_gap" => mip_gap_tol,
+                    "small_matrix_value" => 1e-12,
                 ]
             end
             mip_solver = optimizer_with_attributes(
-                Cbc.Optimizer,
+                HiGHS.Optimizer,
                 mip_solver_options...
             )
         end

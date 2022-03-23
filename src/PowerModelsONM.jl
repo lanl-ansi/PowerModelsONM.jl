@@ -28,7 +28,7 @@ module PowerModelsONM
     import PolyhedralRelaxations
 
     import Ipopt
-    import Cbc
+    import HiGHS
     import Juniper
 
     import ArgParse
