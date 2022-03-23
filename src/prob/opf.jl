@@ -58,7 +58,9 @@ function build_mn_opf(pm::AbstractUnbalancedPowerModel)
             PMD.constraint_storage_complementarity_mi(pm, i; nw=n)
             PMD.constraint_mc_storage_losses(pm, i; nw=n)
             PMD.constraint_mc_storage_thermal_limit(pm, i; nw=n)
-            constraint_mc_storage_phase_unbalance(pm, i; nw=n)
+            if Int(get(ref(pm, n, :storage, i), "inverter", GRID_FORMING)) == Int(GRID_FOLLOWING)
+                constraint_mc_storage_phase_unbalance(pm, i; nw=n)
+            end
         end
 
         for i in ids(pm, n, :branch)
@@ -154,7 +156,9 @@ function build_mn_opf(pm::PMD.AbstractUBFModels)
             PMD.constraint_storage_complementarity_mi(pm, i; nw=n)
             PMD.constraint_mc_storage_losses(pm, i; nw=n)
             PMD.constraint_mc_storage_thermal_limit(pm, i; nw=n)
-            constraint_mc_storage_phase_unbalance(pm, i; nw=n)
+            if Int(get(ref(pm, n, :storage, i), "inverter", GRID_FORMING)) == Int(GRID_FOLLOWING)
+                constraint_mc_storage_phase_unbalance(pm, i; nw=n)
+            end
         end
 
         for i in ids(pm, n, :branch)

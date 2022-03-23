@@ -187,3 +187,31 @@ function variable_load_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id
 
     report && _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :load, :status, ids(pm, nw, :load), z_demand)
 end
+
+
+"""
+    variable_inverter_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, relax::Bool=false, report::Bool=true)
+
+Variables for indicating whether a DER (storage or gen) is in grid-forming mode (1) or grid-following mode (0), binary is `relax=false`.
+Variables will appear in solution if `report=true`
+"""
+function variable_inverter_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, relax::Bool=false, report::Bool=true)
+    z_inverter = var(pm, nw)[:z_inverter] = Dict{Tuple{Symbol,Int},JuMP.VariableRef}()
+    for t in [:storage, :gen]
+        for i in ids(pm, nw, t)
+            var(pm, nw, :z_inverter)[(t,i)] = JuMP.@variable(
+                pm.model,
+                base_name="$(nw)_$(t)_z_inverter",
+                binary=!relax,
+                lower_bound=0,
+                upper_bound=1,
+                start=1
+            )
+        end
+    end
+
+    if report
+        _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :storage, :inverter, [i for ((t,i),_) in var(pm, nw, :z_inverter) if t == :storage], Dict{Int,JuMP.VariableRef}(i => v for ((t,i),v) in filter(x->x.first[1]==:storage, z_inverter)))
+        _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :gen, :inverter, [i for ((t,i),_) in var(pm, nw, :z_inverter) if t == :gen], Dict{Int,JuMP.VariableRef}(i => v for ((t,i),v) in filter(x->x.first[1]==:gen, z_inverter)))
+    end
+end

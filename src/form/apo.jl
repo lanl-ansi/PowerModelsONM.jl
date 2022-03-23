@@ -277,3 +277,7 @@ function constraint_storage_complementarity_mi_traditional_on_off(pm::PMD.Abstra
     JuMP.@constraint(pm.model, sd_on*discharge_ub >= sd)
 end
 
+
+"nothing to do, no voltage angle variables"
+function constraint_mc_inverter_theta_ref(::PMD.AbstractUnbalancedNFAModel, ::Int; nw::Int=nw_id_default)
+end

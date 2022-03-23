@@ -25,6 +25,7 @@ Multinetwork load shedding problem for Branch Flow model
 function build_mn_block_mld(pm::PMD.AbstractUBFModels)
     for n in nw_ids(pm)
         variable_block_indicator(pm; nw=n, relax=false)
+        variable_inverter_indicator(pm; nw=n, relax=false)
 
         PMD.variable_mc_bus_voltage_on_off(pm; nw=n)
 
@@ -47,8 +48,10 @@ function build_mn_block_mld(pm::PMD.AbstractUBFModels)
 
         PMD.constraint_mc_model_current(pm; nw=n)
 
-        for i in ids(pm, n, :ref_buses)
-            PMD.constraint_mc_theta_ref(pm, i; nw=n)
+        !get(ref(pm, n), :disable_inverter_constraint, false) && constraint_grid_forming_inverter_per_cc_block(pm; nw=n, relax=false)
+
+        for i in ids(pm, n, :bus)
+            constraint_mc_inverter_theta_ref(pm, i; nw=n)
         end
 
         constraint_mc_bus_voltage_block_on_off(pm; nw=n)
@@ -70,7 +73,7 @@ function build_mn_block_mld(pm::PMD.AbstractUBFModels)
             constraint_mc_storage_block_on_off(pm, i; nw=n)
             constraint_mc_storage_losses_block_on_off(pm, i; nw=n)
             PMD.constraint_mc_storage_thermal_limit(pm, i; nw=n)
-            constraint_mc_storage_phase_unbalance(pm, i; nw=n)
+            constraint_mc_storage_phase_unbalance_grid_following(pm, i; nw=n)
         end
 
         for i in ids(pm, n, :branch)
@@ -131,6 +134,7 @@ Multinetwork load shedding problem for Bus Injection models
 function build_mn_block_mld(pm::AbstractUnbalancedPowerModel)
     for n in nw_ids(pm)
         variable_block_indicator(pm; nw=n, relax=false)
+        variable_inverter_indicator(pm; nw=n, relax=false)
 
         PMD.variable_mc_bus_voltage_on_off(pm; nw=n)
 
@@ -152,8 +156,10 @@ function build_mn_block_mld(pm::AbstractUnbalancedPowerModel)
 
         PMD.constraint_mc_model_voltage(pm; nw=n)
 
-        for i in ids(pm, n, :ref_buses)
-            PMD.constraint_mc_theta_ref(pm, i; nw=n)
+        !get(ref(pm, n), :disable_inverter_constraint, false) && constraint_grid_forming_inverter_per_cc_block(pm; nw=n, relax=false)
+
+        for i in ids(pm, n, :bus)
+            constraint_mc_inverter_theta_ref(pm, i; nw=n)
         end
 
         constraint_mc_bus_voltage_block_on_off(pm; nw=n)
@@ -175,7 +181,7 @@ function build_mn_block_mld(pm::AbstractUnbalancedPowerModel)
             constraint_mc_storage_block_on_off(pm, i; nw=n)
             constraint_mc_storage_losses_block_on_off(pm, i; nw=n)
             PMD.constraint_mc_storage_thermal_limit(pm, i; nw=n)
-            constraint_mc_storage_phase_unbalance(pm, i; nw=n)
+            constraint_mc_storage_phase_unbalance_grid_following(pm, i; nw=n)
         end
 
         for i in ids(pm, n, :branch)
@@ -254,6 +260,7 @@ Single-network load shedding problem for Branch Flow model
 """
 function build_block_mld(pm::PMD.AbstractUBFModels)
     variable_block_indicator(pm; relax=false)
+    variable_inverter_indicator(pm; relax=false)
 
     PMD.variable_mc_bus_voltage_on_off(pm)
 
@@ -276,8 +283,10 @@ function build_block_mld(pm::PMD.AbstractUBFModels)
 
     PMD.constraint_mc_model_current(pm)
 
-    for i in ids(pm, :ref_buses)
-        PMD.constraint_mc_theta_ref(pm, i)
+    !get(ref(pm), :disable_inverter_constraint, false) && constraint_grid_forming_inverter_per_cc_block(pm; relax=false)
+
+    for i in ids(pm, :bus)
+        constraint_mc_inverter_theta_ref(pm, i)
     end
 
     constraint_mc_bus_voltage_block_on_off(pm)
@@ -339,81 +348,82 @@ end
 Single network load shedding problem for Bus Injection model
 """
 function build_block_mld(pm::AbstractUnbalancedPowerModel)
-    for n in nw_ids(pm)
-        variable_block_indicator(pm; relax=false)
+    variable_block_indicator(pm; relax=false)
+    variable_inverter_indicator(pm; relax=false)
 
-        PMD.variable_mc_bus_voltage_on_off(pm)
+    PMD.variable_mc_bus_voltage_on_off(pm)
 
-        PMD.variable_mc_branch_power(pm)
+    PMD.variable_mc_branch_power(pm)
 
-        PMD.variable_mc_switch_power(pm)
-        variable_switch_state(pm; relax=false)
+    PMD.variable_mc_switch_power(pm)
+    variable_switch_state(pm; relax=false)
 
-        PMD.variable_mc_transformer_power(pm)
-        PMD.variable_mc_oltc_transformer_tap(pm)
+    PMD.variable_mc_transformer_power(pm)
+    PMD.variable_mc_oltc_transformer_tap(pm)
 
-        PMD.variable_mc_generator_power_on_off(pm)
+    PMD.variable_mc_generator_power_on_off(pm)
 
-        variable_mc_storage_power_mi_on_off(pm; relax=false)
+    variable_mc_storage_power_mi_on_off(pm; relax=false)
 
-        PMD.variable_mc_load_power(pm)
+    PMD.variable_mc_load_power(pm)
 
-        PMD.variable_mc_capcontrol(pm; relax=false)
+    PMD.variable_mc_capcontrol(pm; relax=false)
 
-        PMD.constraint_mc_model_voltage(pm)
+    PMD.constraint_mc_model_voltage(pm)
 
-        for i in ids(pm, n, :ref_buses)
-            PMD.constraint_mc_theta_ref(pm, i)
-        end
+    !get(ref(pm), :disable_inverter_constraint, false) && constraint_grid_forming_inverter_per_cc_block(pm; relax=false)
 
-        constraint_mc_bus_voltage_block_on_off(pm)
+    for i in ids(pm, :bus)
+        constraint_mc_inverter_theta_ref(pm, i)
+    end
 
-        for i in ids(pm, n, :gen)
-            constraint_mc_generator_power_block_on_off(pm, i)
-        end
+    constraint_mc_bus_voltage_block_on_off(pm)
 
-        for i in ids(pm, n, :load)
-            PMD.constraint_mc_load_power(pm, i)
-        end
+    for i in ids(pm, :gen)
+        constraint_mc_generator_power_block_on_off(pm, i)
+    end
 
-        for i in ids(pm, n, :bus)
-            constraint_mc_power_balance_shed_block(pm, i)
-        end
+    for i in ids(pm, :load)
+        PMD.constraint_mc_load_power(pm, i)
+    end
 
-        for i in ids(pm, n, :storage)
-            PMD.constraint_storage_state(pm, i)
-            constraint_storage_complementarity_mi_block_on_off(pm, i)
-            constraint_mc_storage_block_on_off(pm, i)
-            constraint_mc_storage_losses_block_on_off(pm, i)
-            PMD.constraint_mc_storage_thermal_limit(pm, i)
-            constraint_mc_storage_phase_unbalance(pm, i)
-        end
+    for i in ids(pm, :bus)
+        constraint_mc_power_balance_shed_block(pm, i)
+    end
 
-        for i in ids(pm, n, :branch)
-            PMD.constraint_mc_ohms_yt_from(pm, i)
-            PMD.constraint_mc_ohms_yt_to(pm, i)
-            PMD.constraint_mc_voltage_angle_difference(pm, i)
+    for i in ids(pm, :storage)
+        PMD.constraint_storage_state(pm, i)
+        constraint_storage_complementarity_mi_block_on_off(pm, i)
+        constraint_mc_storage_block_on_off(pm, i)
+        constraint_mc_storage_losses_block_on_off(pm, i)
+        PMD.constraint_mc_storage_thermal_limit(pm, i)
+        constraint_mc_storage_phase_unbalance(pm, i)
+    end
 
-            PMD.constraint_mc_thermal_limit_from(pm, i)
-            PMD.constraint_mc_thermal_limit_to(pm, i)
+    for i in ids(pm, :branch)
+        PMD.constraint_mc_ohms_yt_from(pm, i)
+        PMD.constraint_mc_ohms_yt_to(pm, i)
+        PMD.constraint_mc_voltage_angle_difference(pm, i)
 
-            PMD.constraint_mc_ampacity_from(pm, i)
-            PMD.constraint_mc_ampacity_to(pm, i)
-        end
+        PMD.constraint_mc_thermal_limit_from(pm, i)
+        PMD.constraint_mc_thermal_limit_to(pm, i)
 
-        constraint_switch_close_action_limit(pm)
-        !get(ref(pm), :disable_radial_constraint, false) && constraint_radial_topology(pm; relax=false)
-        !get(ref(pm), :disable_isolation_constraint, false) && constraint_isolate_block(pm)
-        for i in ids(pm, n, :switch)
-            constraint_mc_switch_state_open_close(pm, i)
+        PMD.constraint_mc_ampacity_from(pm, i)
+        PMD.constraint_mc_ampacity_to(pm, i)
+    end
 
-            PMD.constraint_mc_switch_thermal_limit(pm, i)
-            PMD.constraint_mc_switch_ampacity(pm, i)
-        end
+    constraint_switch_close_action_limit(pm)
+    !get(ref(pm), :disable_radial_constraint, false) && constraint_radial_topology(pm; relax=false)
+    !get(ref(pm), :disable_isolation_constraint, false) && constraint_isolate_block(pm)
+    for i in ids(pm, :switch)
+        constraint_mc_switch_state_open_close(pm, i)
 
-        for i in ids(pm, n, :transformer)
-            constraint_mc_transformer_power_block_on_off(pm, i; fix_taps=false)
-        end
+        PMD.constraint_mc_switch_thermal_limit(pm, i)
+        PMD.constraint_mc_switch_ampacity(pm, i)
+    end
+
+    for i in ids(pm, :transformer)
+        constraint_mc_transformer_power_block_on_off(pm, i; fix_taps=false)
     end
 
     objective_min_shed_load_block_rolling_horizon(pm)

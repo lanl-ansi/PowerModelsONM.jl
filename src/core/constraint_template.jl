@@ -388,3 +388,12 @@ function constraint_grid_forming_inverter_per_cc_traditional(pm::AbstractUnbalan
 end
 
 
+"""
+    constraint_mc_inverter_theta_ref(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default)
+
+Template function for setting the reference bus theta constraint to only the bus with a grid-forming inverter
+"""
+function constraint_mc_inverter_theta_ref(pm::AbstractUnbalancedPowerModel, i::Int; nw::Int=nw_id_default)
+    va_ref = get(ref(pm, nw, :bus, i), "va", deg2rad.([0.0, -120.0, 120.0]))
+    constraint_mc_inverter_theta_ref(pm, nw, i, va_ref)
+end

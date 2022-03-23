@@ -11,7 +11,10 @@ const _eng2math_passthrough_default = Dict{String,Vector{String}}(
     ],
     "load"=>String["priority"],
     "bus"=>String["microgrid_id"],
-    "storage"=>String["phase_unbalance_factor"],
+    "generator"=>String["inverter"],
+    "solar"=>String["inverter"],
+    "storage"=>String["phase_unbalance_factor", "inverter"],
+    "voltage_source"=>["inverter"],
 )
 
 

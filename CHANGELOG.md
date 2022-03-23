@@ -6,6 +6,7 @@
 
 ## v3.0.0
 
+- Added constraint for reference buses that uses `inverter` state to set theta constraints, `constraint_mc_inverter_theta_ref`
 - Added phase unbalance constraint for grid-following storage `constraint_mc_storage_phase_unbalance_grid_following`
 - Added inverters to `_prepare_fault_study_multinetwork_data` and `_prepare_dispatch_data`
 - Added user option to disable inverter constraint: `disable_inverter_constraint`

@@ -509,3 +509,27 @@ function constraint_storage_complementarity_mi_traditional_on_off(pm::PMD.LPUBFD
     JuMP.@constraint(pm.model, sd_on*discharge_ub >= sd)
 end
 
+
+"""
+    constraint_mc_inverter_theta_ref(pm::PMD.LPUBFDiagModel, nw::Int, i::Int, ::Vector{<:Real})
+
+Constrains a bus with a connected grid-forming inverter to have a reference bus constraint
+"""
+function constraint_mc_inverter_theta_ref(pm::PMD.LPUBFDiagModel, nw::Int, i::Int, ::Vector{<:Real})
+    w = [var(pm, nw, :w, i)[t] for t in ref(pm, nw, :bus, i)["terminals"]]
+    inverter_objects = ref(pm, nw, :bus_inverters, i)
+    z_inverters = [var(pm, nw, :z_inverter, inv_obj) for inv_obj in inverter_objects]
+
+    vmax = min(ref(pm, nw, :bus, i, "vmax")..., 2.0)
+
+    if length(w) > 1 && !isempty(inverter_objects)
+        for t in 2:length(w)
+            # Indicator constraint version, for reference
+            # JuMP.@constraint(pm.model, sum(z_inverters) => { w[t] == w[1]})
+
+            JuMP.@constraint(pm.model, w[t] - w[1] <=  vmax^2 * (1 - sum(z_inverters)))
+            JuMP.@constraint(pm.model, w[t] - w[1] >= -vmax^2 * (1 - sum(z_inverters)))
+
+        end
+    end
+end

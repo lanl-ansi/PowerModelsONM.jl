@@ -24,6 +24,8 @@ Multinetwork load shedding problem for Branch Flow model
 """
 function build_mn_traditional_mld(pm::PMD.AbstractUBFModels)
     for n in nw_ids(pm)
+        variable_inverter_indicator(pm; nw=n, relax=false)
+
         variable_bus_voltage_indicator(pm; nw=n, relax=false)
         PMD.variable_mc_bus_voltage_on_off(pm; nw=n)
 
@@ -49,8 +51,10 @@ function build_mn_traditional_mld(pm::PMD.AbstractUBFModels)
 
         PMD.constraint_mc_model_current(pm; nw=n)
 
-        for i in ids(pm, n, :ref_buses)
-            PMD.constraint_mc_theta_ref(pm, i; nw=n)
+        !get(ref(pm, n), :disable_inverter_constraint, false) && constraint_grid_forming_inverter_per_cc_traditional(pm; nw=n, relax=false)
+
+        for i in ids(pm, n, :bus)
+            constraint_mc_inverter_theta_ref(pm, i; nw=n)
         end
 
         constraint_mc_bus_voltage_traditional_on_off(pm; nw=n)
@@ -72,7 +76,7 @@ function build_mn_traditional_mld(pm::PMD.AbstractUBFModels)
             constraint_mc_storage_traditional_on_off(pm, i; nw=n)
             constraint_mc_storage_losses_traditional_on_off(pm, i; nw=n)
             PMD.constraint_mc_storage_thermal_limit(pm, i; nw=n)
-            constraint_mc_storage_phase_unbalance(pm, i; nw=n)
+            constraint_mc_storage_phase_unbalance_grid_following(pm, i; nw=n)
         end
 
         for i in ids(pm, n, :branch)
@@ -150,6 +154,8 @@ end
 Single-network load shedding problem for Branch Flow model
 """
 function build_traditional_mld(pm::PMD.AbstractUBFModels)
+    variable_inverter_indicator(pm; relax=false)
+
     variable_bus_voltage_indicator(pm; relax=false)
     PMD.variable_mc_bus_voltage_on_off(pm)
 
@@ -175,8 +181,10 @@ function build_traditional_mld(pm::PMD.AbstractUBFModels)
 
     PMD.constraint_mc_model_current(pm)
 
-    for i in ids(pm, :ref_buses)
-        PMD.constraint_mc_theta_ref(pm, i)
+    !get(ref(pm), :disable_inverter_constraint, false) && constraint_grid_forming_inverter_per_cc_traditional(pm; relax=false)
+
+    for i in ids(pm, :bus)
+        constraint_mc_inverter_theta_ref(pm, i)
     end
 
     constraint_mc_bus_voltage_traditional_on_off(pm)
@@ -199,7 +207,7 @@ function build_traditional_mld(pm::PMD.AbstractUBFModels)
         constraint_mc_storage_traditional_on_off(pm, i)
         constraint_mc_storage_losses_traditional_on_off(pm, i)
         PMD.constraint_mc_storage_thermal_limit(pm, i)
-        constraint_mc_storage_phase_unbalance(pm, i)
+        constraint_mc_storage_phase_unbalance_grid_following(pm, i)
     end
 
     for i in ids(pm, :branch)

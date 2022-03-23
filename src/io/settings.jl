@@ -126,7 +126,15 @@ function apply_settings(network::Dict{String,<:Any}, settings::Dict{String,<:Any
                     mn_data["nw"]["$n"][s] = isa(setting, Vector) ? setting[n] : setting
                 end
             end
-        elseif s ∈ ["disable_networking", "disable_switch_penalty", "apply_switch_scores", "disable_radial_constraint", "disable_isolation_constraint"]
+        elseif s ∈ [
+            "disable_networking",
+            "disable_switch_penalty",
+            "apply_switch_scores",
+            "disable_radial_constraint",
+            "disable_isolation_constraint",
+            "disable_inverter_constraint",
+            "disable_presolver",
+        ]
             for (_,nw) in mn_data["nw"]
                 nw[s] = setting
             end
@@ -277,25 +285,35 @@ Helper function to build a settings file (json) for use with ONM. If properties 
   objective function (default: `false`)
 - `apply_switch_scores::Bool` is a toggle to enable switch actions weights applied in the objective function
   (default: `false`)
+- `disable_radial_constraint::Bool` is a toggle to disable the radiality constraint in the switching problem
+  (default: `false`)
+- `disable_isolation_constraint::Bool` is a toggle to disable the block isolation constraint in the switching
+  problem (default: `false`)
+- `storage_phase_unbalance_factor::Real` is a way to set the `phase_unbalance_factor` on *all* storage devices
+  (default: `missing`)
 """
 function build_settings_file(
     network_file::String,
     settings_file::String="ieee13_settings.json";
     max_switch_actions::Union{Missing,Int,Vector{Int}},
-    vm_lb_pu::Union{Missing,Float64}=missing,
-    vm_ub_pu::Union{Missing,Float64}=missing,
-    vad_deg::Union{Missing,Float64}=missing,
-    line_limit_mult::Float64=1.0,
-    sbase_default::Union{Missing,Float64}=missing,
-    time_elapsed::Union{Missing,Float64,Vector{Float64}}=missing,
+    vm_lb_pu::Union{Missing,Real}=missing,
+    vm_ub_pu::Union{Missing,Real}=missing,
+    vad_deg::Union{Missing,Real}=missing,
+    line_limit_mult::Real=1.0,
+    sbase_default::Union{Missing,Real}=missing,
+    time_elapsed::Union{Missing,Real,Vector{Real}}=missing,
     autogen_microgrid_ids::Bool=true,
     custom_settings::Dict{String,<:Any}=Dict{String,Any}(),
-    mip_solver_gap::Float64=0.05,
-    nlp_solver_tol::Float64=1e-4,
-    mip_solver_tol::Float64=1e-4,
-    clpu_factor::Union{Missing,Float64}=missing,
+    mip_solver_gap::Real=0.05,
+    nlp_solver_tol::Real=1e-4,
+    mip_solver_tol::Real=1e-4,
+    clpu_factor::Union{Missing,Real}=missing,
     disable_switch_penalty::Bool=false,
-    apply_switch_scores::Bool=true,
+    apply_switch_scores::Bool=false,
+    disable_radial_constraint::Bool=false,
+    disable_isolation_constraint::Bool=false,
+    disable_inverter_constraint::Bool=false,
+    storage_phase_unbalance_factor::Union{Missing,Real}=missing,
     )
 
     eng = PMD.parse_file(network_file; transformations=[PMD.apply_kron_reduction!])
@@ -333,6 +351,9 @@ function build_settings_file(
 
     settings["disable_switch_penalty"] = disable_switch_penalty
     settings["apply_switch_scores"] = apply_switch_scores
+    settings["disable_isolation_constraint"] = disable_isolation_constraint
+    settings["disable_radial_constraint"] = disable_radial_constraint
+    settings["disable_inverter_constraint"] = disable_inverter_constraint
 
     # Generate bus microgrid_ids
     if autogen_microgrid_ids
@@ -363,7 +384,7 @@ function build_settings_file(
 
     # Generate settings for buses
     PMD.apply_voltage_bounds!(eng; vm_lb=vm_lb_pu, vm_ub=vm_ub_pu, exclude=String[vs["bus"] for (_,vs) in get(eng, "voltage_source", Dict())])
-    for (b, bus) in eng["bus"]
+    for (b, bus) in get(eng, "bus", Dict())
         if !(b in String[vs["bus"] for (_,vs) in get(eng, "voltage_source", Dict())])
             settings["bus"][b] = merge(
                 get(settings["bus"], b, Dict{String,Any}()),
@@ -380,7 +401,7 @@ function build_settings_file(
 
     # Generate settings for loads
     if !ismissing(clpu_factor)
-        for (l,_) in eng["load"]
+        for (l,_) in get(eng, "load", Dict())
             settings["load"][l] = merge(
                 get(settings["load"], l, Dict{String,Any}()),
                 Dict{String,Any}(
@@ -393,7 +414,7 @@ function build_settings_file(
     # Generate settings for lines
     PMD.adjust_line_limits!(eng, line_limit_mult)
     !ismissing(vad_deg) && PMD.apply_voltage_angle_difference_bounds!(eng, vad_deg)
-    for (l, line) in eng["line"]
+    for (l, line) in get(eng, "line", Dict())
         settings["line"][l] = merge(
             get(settings["line"], l, Dict{String,Any}()),
             Dict{String,Any}(
@@ -405,7 +426,7 @@ function build_settings_file(
     end
 
     # Generate settings for switches
-    for (s, switch) in eng["switch"]
+    for (s, switch) in get(eng, "switch", Dict())
         settings["switch"][s] = merge(
             get(settings["switch"], s, Dict{String,Any}()),
             Dict{String,Any}(
@@ -416,7 +437,7 @@ function build_settings_file(
 
     # Generate settings for transformers
     PMD.adjust_transformer_limits!(eng, line_limit_mult)
-    for (t, transformer) in eng["transformer"]
+    for (t, transformer) in get(eng, "transformer", Dict())
         settings["transformer"][t] = merge(
             get(settings["transformer"], t, Dict{String,Any}()),
             Dict{String,Any}(
@@ -425,7 +446,15 @@ function build_settings_file(
         )
     end
 
-    settings = recursive_merge_no_vecs(settings, custom_settings)
+    if !ismissing(storage_phase_unbalance_factor)
+        for (i,strg) in get(eng, "storage", Dict())
+            settings["storage"][i] = Dict{String,Any}(
+                "phase_unbalance_factor" => storage_phase_unbalance_factor
+            )
+        end
+    end
+
+    settings = recursive_merge(settings, custom_settings)
 
     # Save the ieee13_settings.json file
     open(settings_file, "w") do io
