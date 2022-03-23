@@ -141,3 +141,42 @@ Ref extension to add max_switch_actions to ref, and set to Inf if option is miss
 function ref_add_max_switch_actions!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
     PMD.apply_pmd!(_ref_add_max_switch_actions!, ref, data; apply_to_subnetworks=true)
 end
+
+
+"""
+    _correct_branch_directions!(switches::Dict{String,<:Any}, ref::Dict{Symbol,<:Any})::Dict{String,Any}
+
+Helper function that will attempt to make a directed graph that is strong-connected by adjusting the
+switch directions starting from the voltage_sources
+"""
+function _correct_switch_directions!(switches::Dict{String,<:Any}, blocks::Dict{Int,Set}, bus_block_map::Dict{Int,Int}, substation_blocks::Vector{Int})::Dict{String,Any}
+    bl_switches = Dict(i => Set([]) for (i,_) in blocks)
+    for (id,sw) in switches
+        push!(bl_switches[bus_block_map[sw["f_bus"]]], id)
+        push!(bl_switches[bus_block_map[sw["t_bus"]]], id)
+    end
+    touched_sw = Set()
+    touched_bl = Set()
+    todo = Set(substation_blocks)
+    while !isempty(todo)
+        _bl = pop!(todo)
+        if !(_bl in touched_bl)
+            push!(touched_bl, _bl)
+            for sw_id in filter(x->!(x in touched_sw), bl_switches[_bl])
+                push!(touched_sw, sw_id)
+                if bus_block_map[switches["$sw_id"]["t_bus"]] == _bl
+                    _f_bus = deepcopy(switches["$sw_id"]["f_bus"])
+                    _t_bus = deepcopy(switches["$sw_id"]["t_bus"])
+                    switches["$sw_id"]["f_bus"] = _t_bus
+                    switches["$sw_id"]["t_bus"] = _f_bus
+                    push!(todo, bus_block_map[_f_bus])
+                    @debug "fixed directionality of $(switches["$sw_id"]["name"])"
+                else
+                    push!(todo, bus_block_map[switches["$sw_id"]["t_bus"]])
+                end
+            end
+        end
+    end
+
+    return switches
+end
