@@ -6,6 +6,7 @@
 
 ## v3.0.0
 
+- Added phase unbalance constraint for grid-following storage `constraint_mc_storage_phase_unbalance_grid_following`
 - Added inverters to `_prepare_fault_study_multinetwork_data` and `_prepare_dispatch_data`
 - Added user option to disable inverter constraint: `disable_inverter_constraint`
 - Added constraint for identifying a single grid-forming inverter per connected component `constraint_grid_forming_inverter_per_cc_{block|traditional}`

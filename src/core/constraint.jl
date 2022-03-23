@@ -601,6 +601,76 @@ function constraint_storage_complementarity_mi_traditional_on_off(pm::AbstractUn
     JuMP.@constraint(pm.model, sd_on*discharge_ub >= sd)
 end
 
+
+@doc raw"""
+    constraint_mc_storage_phase_unbalance_grid_following(
+        pm::AbstractUnbalancedPowerModel,
+        nw::Int,
+        i::Int,
+        connections::Vector{Int},
+        unbalance_factor::Real
+    )
+
+Enforces that storage inputs/outputs are (approximately) balanced across each phase, by some `unbalance_factor` on grid-following
+inverters only. Requires z_inverter variable
+
+```math
+S^{strg}_{i,c} \geq S^{strg}_{i,d} - f^{unbal} \left( -d^{on}_i S^{strg}_{i,d} + c^{on}_i S^{strg}_{i,d} \right) \forall c,d \in C
+S^{strg}_{i,c} \leq S^{strg}_{i,d} + f^{unbal} \left( -d^{on}_i S^{strg}_{i,d} + c^{on}_i S^{strg}_{i,d} \right) \forall c,d \in C
+```
+"""
+function constraint_mc_storage_phase_unbalance_grid_following(pm::AbstractUnbalancedPowerModel, nw::Int, i::Int, connections::Vector{Int}, unbalance_factor::Real)
+    z_inverter = var(pm, nw, :z_inverter, (:storage, i))
+
+    ps = var(pm, nw, :ps, i)
+    qs = var(pm, nw, :qs, i)
+
+    sc_on = var(pm, nw, :sc_on, i)  # ==1 charging (p,q > 0)
+    sd_on = var(pm, nw, :sd_on, i)  # ==1 discharging (p,q < 0)
+
+    sd_on_ps = JuMP.@variable(pm.model, [c in connections], base_name="$(nw)_sd_on_ps_$(i)")
+    sc_on_ps = JuMP.@variable(pm.model, [c in connections], base_name="$(nw)_sc_on_ps_$(i)")
+    sd_on_qs = JuMP.@variable(pm.model, [c in connections], base_name="$(nw)_sd_on_qs_$(i)")
+    sc_on_qs = JuMP.@variable(pm.model, [c in connections], base_name="$(nw)_sc_on_qs_$(i)")
+    for c in connections
+        PolyhedralRelaxations.construct_bilinear_relaxation!(pm.model, sd_on, ps[c], sd_on_ps[c], [0,1], [JuMP.lower_bound(ps[c]), JuMP.upper_bound(ps[c])])
+        PolyhedralRelaxations.construct_bilinear_relaxation!(pm.model, sc_on, ps[c], sc_on_ps[c], [0,1], [JuMP.lower_bound(ps[c]), JuMP.upper_bound(ps[c])])
+        PolyhedralRelaxations.construct_bilinear_relaxation!(pm.model, sd_on, qs[c], sd_on_qs[c], [0,1], [JuMP.lower_bound(qs[c]), JuMP.upper_bound(qs[c])])
+        PolyhedralRelaxations.construct_bilinear_relaxation!(pm.model, sc_on, qs[c], sc_on_qs[c], [0,1], [JuMP.lower_bound(qs[c]), JuMP.upper_bound(qs[c])])
+    end
+
+    ps_zinverter = JuMP.@variable(pm.model, [c in connections], base_name="$(nw)_ps_zinverter_$(i)")
+    qs_zinverter = JuMP.@variable(pm.model, [c in connections], base_name="$(nw)_qs_zinverter_$(i)")
+    for c in connections
+        PolyhedralRelaxations.construct_bilinear_relaxation!(pm.model, z_inverter, ps[c], ps_zinverter[c], [0,1], [JuMP.lower_bound(ps[c]), JuMP.upper_bound(ps[c])])
+        PolyhedralRelaxations.construct_bilinear_relaxation!(pm.model, z_inverter, qs[c], qs_zinverter[c], [0,1], [JuMP.lower_bound(qs[c]), JuMP.upper_bound(qs[c])])
+    end
+
+    sd_on_ps_zinverter = JuMP.@variable(pm.model, [c in connections], base_name="$(nw)_sd_on_ps_zinverter_$(i)")
+    sc_on_ps_zinverter = JuMP.@variable(pm.model, [c in connections], base_name="$(nw)_sc_on_ps_zinverter_$(i)")
+    sd_on_qs_zinverter = JuMP.@variable(pm.model, [c in connections], base_name="$(nw)_sd_on_qs_zinverter_$(i)")
+    sc_on_qs_zinverter = JuMP.@variable(pm.model, [c in connections], base_name="$(nw)_sc_on_qs_zinverter_$(i)")
+    for c in connections
+        PolyhedralRelaxations.construct_bilinear_relaxation!(pm.model, z_inverter, sd_on_ps[c], sd_on_ps_zinverter[c], [0,1], [JuMP.lower_bound(ps[c]), JuMP.upper_bound(ps[c])])
+        PolyhedralRelaxations.construct_bilinear_relaxation!(pm.model, z_inverter, sc_on_ps[c], sc_on_ps_zinverter[c], [0,1], [JuMP.lower_bound(ps[c]), JuMP.upper_bound(ps[c])])
+        PolyhedralRelaxations.construct_bilinear_relaxation!(pm.model, z_inverter, sd_on_qs[c], sd_on_qs_zinverter[c], [0,1], [JuMP.lower_bound(qs[c]), JuMP.upper_bound(qs[c])])
+        PolyhedralRelaxations.construct_bilinear_relaxation!(pm.model, z_inverter, sc_on_qs[c], sc_on_qs_zinverter[c], [0,1], [JuMP.lower_bound(qs[c]), JuMP.upper_bound(qs[c])])
+    end
+
+    for (idx,c) in enumerate(connections)
+        if idx < length(connections)
+            for d in connections[idx+1:end]
+                JuMP.@constraint(pm.model, ps[c]-ps_zinverter[c] >= ps[d] - unbalance_factor*(-1*sd_on_ps[d] + 1*sc_on_ps[d]) - ps_zinverter[d] + unbalance_factor*(-1*sd_on_ps_zinverter[d] + 1*sc_on_ps_zinverter[d]))
+                JuMP.@constraint(pm.model, ps[c]-ps_zinverter[c] <= ps[d] + unbalance_factor*(-1*sd_on_ps[d] + 1*sc_on_ps[d]) - ps_zinverter[d] - unbalance_factor*(-1*sd_on_ps_zinverter[d] + 1*sc_on_ps_zinverter[d]))
+
+                JuMP.@constraint(pm.model, qs[c]-qs_zinverter[c] >= qs[d] - unbalance_factor*(-1*sd_on_qs[d] + 1*sc_on_qs[d]) - qs_zinverter[d] + unbalance_factor*(-1*sd_on_qs_zinverter[d] + 1*sc_on_qs_zinverter[d]))
+                JuMP.@constraint(pm.model, qs[c]-qs_zinverter[c] <= qs[d] + unbalance_factor*(-1*sd_on_qs[d] + 1*sc_on_qs[d]) - qs_zinverter[d] - unbalance_factor*(-1*sd_on_qs_zinverter[d] + 1*sc_on_qs_zinverter[d]))
+            end
+        end
+    end
+end
+
+
 @doc raw"""
     constraint_grid_forming_inverter_per_cc_block
 

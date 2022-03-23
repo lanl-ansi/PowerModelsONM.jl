@@ -235,6 +235,22 @@ end
 
 
 """
+    constraint_mc_storage_phase_unbalance_grid_following(pm::AbstractUnbalancedPowerModel, i::Int; nw::Int=nw_id_default)
+
+Constraint template for constraint to enforce balance between phases of ps/qs on storage for grid-following inverters only.
+Requires `z_inverter` variables to indicate if a DER is grid-forming or grid-following
+"""
+function constraint_mc_storage_phase_unbalance_grid_following(pm::AbstractUnbalancedPowerModel, i::Int; nw::Int=nw_id_default)
+    strg = ref(pm, nw, :storage, i)
+    phase_unbalance_factor = get(strg, "phase_unbalance_factor", Inf)
+
+    if phase_unbalance_factor < Inf
+        constraint_mc_storage_phase_unbalance_grid_following(pm, nw, i, strg["connections"], phase_unbalance_factor)
+    end
+end
+
+
+"""
     constraint_switch_close_action_limit(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default)
 
 Template function for constraint of maximum switch closes per timestep (allows unlimited switch opens).
