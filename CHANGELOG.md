@@ -6,6 +6,7 @@
 
 ## v3.0.0
 
+- Changed instances of `Int64` to `Int`
 - Fixed issue with transformer control constraints in dispatch optimization
 - Added support for [JuMP](https://jump.dev) v0.23
 - Changed built-in mip solver from [Cbc](https://github.com/jump-dev/Cbc.jl) to [HiGHS](https://github.com/jump-dev/HiGHS.jl)

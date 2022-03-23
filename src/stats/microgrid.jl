@@ -105,7 +105,7 @@ function get_timestep_load_served(dispatch_solution::Dict{String,<:Any}, network
         total_load_served = 0.0
         total_cust_served = 0
 
-        mg_ncustomers = sum(Int64[length(mg_loads) for (mg,mg_loads) in microgrid_loads])
+        mg_ncustomers = sum(Int[length(mg_loads) for (mg,mg_loads) in microgrid_loads])
         total_mg_load = sum(Float64[sum(abs.(load["pd_nom"])) for (id,load) in get(network["nw"]["$n"], "load", Dict()) if id ∈ keys(load2mg) && load["status"] == PMD.ENABLED])
 
         mg_bonus_ncustomers = length(get(network["nw"]["$n"], "load", Dict())) - mg_ncustomers
