@@ -157,7 +157,7 @@ function _prepare_fault_study_multinetwork_data(network::Dict{String,<:Any}, swi
                         data["nw"]["$n"]["bus"][i]["vm"] = nw_sol["bus"][i]["vm"]
                     end
                     if haskey(nw_sol["bus"][i], "va")
-                        data["nw"]["$n"]["bus"][i]["vm"] = nw_sol["bus"][i]["va"]
+                        data["nw"]["$n"]["bus"][i]["va"] = nw_sol["bus"][i]["va"]
                     end
                 end
             end
