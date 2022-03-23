@@ -33,3 +33,9 @@ _get_formulation(form_string::String)::Type = _formulation_lookup[lowercase(form
 helper function to convert from PowerModelsDistribution Type to PowerModelsDistribution Type
 """
 _get_formulation(form::Type)::Type = form
+
+
+"Inverter Enum to indicate device is operating in grid-follow or grid-forming mode"
+@enum Inverter GRID_FOLLOWING GRID_FORMING
+@doc "Inverter acting as grid-following" GRID_FOLLOWING
+@doc "Inverter acting as grid-forming" GRID_FORMING

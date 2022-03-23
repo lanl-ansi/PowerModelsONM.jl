@@ -171,7 +171,7 @@ function _prepare_fault_study_multinetwork_data(network::Dict{String,<:Any}, swi
         for type in ["solar", "storage", "generator"]
             if haskey(nw, type)
                 for (i,obj) in nw[type]
-                    if obj["status"] == PMD.ENABLED
+                    if haskey(obj, "inverter") && obj["inverter"] == GRID_FORMING
                         data["nw"]["$n"][type][i]["grid_forming"] = true
 
                         bus = data["nw"]["$n"]["bus"]["$(obj["bus"])"]

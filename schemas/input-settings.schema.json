@@ -77,6 +77,10 @@
       "type": ["boolean"],
       "description": "Disables block isolation constraint"
     },
+    "disable_inverter_constraint": {
+      "type": ["boolean"],
+      "description": "Disables constraint that enforces only one grid-forming inverter per connected component (might cause issues with Cbc)"
+    },
     "disable_switch_penalty": {
       "type": ["boolean"],
       "description": "apply penalty to switching in objective"

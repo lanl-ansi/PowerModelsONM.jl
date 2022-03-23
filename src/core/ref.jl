@@ -14,6 +14,8 @@ function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any}
     ref[:block_storages] = Dict{Int,Set{Int}}(i => Set{Int}() for (i,_) in ref[:blocks])
     ref[:microgrid_blocks] = Dict{Int,String}()
     ref[:substation_blocks] = Vector{Int}()
+    ref[:bus_inverters] = Dict{Int,Set{Tuple{Symbol,Int}}}(i => Set{Tuple{Symbol,Int}}() for (i,_) in ref[:bus])
+    ref[:block_inverters] = Dict{Int,Set{Tuple{Symbol,Int}}}(b => Set{Tuple{Symbol,Int}}() for (b,_) in ref[:blocks])
 
     for (b,bus) in ref[:bus]
         if !isempty(get(bus, "microgrid_id", ""))
@@ -40,11 +42,15 @@ function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any}
     for (g,gen) in ref[:gen]
         push!(ref[:block_gens][ref[:bus_block_map][gen["gen_bus"]]], g)
         startswith(gen["source_id"], "voltage_source") && push!(ref[:substation_blocks], ref[:bus_block_map][gen["gen_bus"]])
+        push!(ref[:bus_inverters][gen["gen_bus"]], (:gen, g))
+        push!(ref[:block_inverters][ref[:bus_block_map][gen["gen_bus"]]], (:gen, g))
     end
     ref[:gen_block_map] = Dict{Int,Int}(gen => b for (b,block_gens) in ref[:block_gens] for gen in block_gens)
 
     for (s,strg) in ref[:storage]
         push!(ref[:block_storages][ref[:bus_block_map][strg["storage_bus"]]], s)
+        push!(ref[:bus_inverters][strg["storage_bus"]], (:storage, s))
+        push!(ref[:block_inverters][ref[:bus_block_map][strg["storage_bus"]]], (:storage, s))
     end
     ref[:storage_block_map] = Dict{Int,Int}(strg => b for (b,block_storages) in ref[:block_storages] for strg in block_storages)
 

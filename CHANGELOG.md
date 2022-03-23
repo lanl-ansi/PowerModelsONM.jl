@@ -6,6 +6,12 @@
 
 ## v3.0.0
 
+- Added inverters to `_prepare_fault_study_multinetwork_data` and `_prepare_dispatch_data`
+- Added user option to disable inverter constraint: `disable_inverter_constraint`
+- Added constraint for identifying a single grid-forming inverter per connected component `constraint_grid_forming_inverter_per_cc_{block|traditional}`
+- Added `get_timestep_inverter_states!` which adds inverter states to the `"Powerflow output"`
+- Added `solution_inverter!`, which converts `inverter` variable value to `Inverter` enum
+- Added `Inverter`, with `GRID_FOLLOWING` and `GRID_FORMING` enums to indicate what generation object is acting as grid-forming or following
 - Fixed `constraint_mc_power_balance_shed_block`, wrong call to `PMD.diag`, should have been `LinearAlgebra.diag`
 - Added `cost_pg_parameters` and `cost_pg_model` to settings schemas for generators, voltage sources, and storage and solar devices
 - Added `opt-switch-problem` flag to runtime input to enable section of `block` or `traditional` optimal switching problems

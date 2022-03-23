@@ -78,6 +78,10 @@ function _prepare_dispatch_data(network::Dict{String,<:Any}, switching_solutions
                     if obj["bus"] in shed || get(obj_sol, "status", obj["status"]) == PMD.DISABLED
                         data["nw"]["$n"][type][i]["status"] = PMD.DISABLED
                     end
+                    if type ∈ ["storage", "solar", "voltage_source", "generator"] && haskey(obj_sol, "inverter")
+                        data["nw"]["$n"][type][i]["inverter"] = obj_sol["inverter"]
+                        data["nw"]["$n"][type][i]["control_mode"] = obj_sol["inverter"] == GRID_FORMING ? PMD.ISOCHRONOUS : PMD.FREQUENCYDROOP
+                    end
                 end
             end
 

@@ -161,6 +161,60 @@ end
 
 
 """
+    get_timestep_inverter_states!(args::Dict{String,<:Any})::Vector{Dict{String,Any}}
+
+Adds field "inverter" to power flow output for inverter objects, i.e., storage
+generator, voltage_source, solar. See [`get_timestep_inverter_states`](@ref get_timestep_inverter_states)
+"""
+function get_timestep_inverter_states!(args::Dict{String,<:Any})::Vector{Dict{String,Any}}
+    states = get_timestep_inverter_states(get(args, "optimal_switching_results", Dict{String,Any}()))
+
+    _powerflow_outputs = Dict{String,Any}[]
+    powerflow_outputs = get(args["output_data"], "Powerflow output", Dict{String,Any}())
+    if !isempty(powerflow_outputs) && length(powerflow_outputs) == length(states)
+        for (pfo, state) in zip(powerflow_outputs, states)
+            push!(_powerflow_outputs, recursive_merge(pfo, state))
+        end
+    elseif !isempty(powerflow_outputs) && length(powerflow_outputs) != length(states)
+        @error "size of inverter states timeline and powerflow timeline are different"
+    else
+        _powerflow_outputs = states
+    end
+
+    args["output_data"]["Powerflow output"] = _powerflow_outputs
+
+    return states
+end
+
+
+"""
+    get_timestep_inverter_states(optimal_switching_results::Dict{String,<:Any})::Vector{Dict{String,Any}}
+
+Gets 'inverter' state for each generation object at each timestep from `optimal_switching_results`. Defaults
+to `GRID_FORMING` if no inverter state is available.
+"""
+function get_timestep_inverter_states(optimal_switching_results::Dict{String,<:Any})::Vector{Dict{String,Any}}
+    timesteps = Dict{String,Any}[]
+    for n in sort(parse.(Int, collect(keys(optimal_switching_results))))
+        sol = get(optimal_switching_results["$n"], "solution", Dict())
+        timestep = Dict{String,Any}()
+        for t in ["generator", "solar", "storage", "voltage_source"]
+            if haskey(sol, t) && !isempty(sol[t])
+                timestep[t] = Dict{String,Any}()
+                for (i,obj) in sol[t]
+                    timestep[t][i] = Dict{String,Any}("inverter"=>string(get(obj, "inverter", GRID_FORMING)))
+                end
+            end
+        end
+
+        push!(timesteps, timestep)
+    end
+
+    return timesteps
+end
+
+
+"""
     get_timestep_dispatch_optimization_metadata!(
         args::Dict{String,<:Any}
     )::Dict{String,Any}

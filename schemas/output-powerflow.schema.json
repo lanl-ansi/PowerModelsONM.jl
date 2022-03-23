@@ -78,6 +78,11 @@
                 "items": {
                   "type": "integer"
                 }
+              },
+              "inverter": {
+                "type": "string",
+                "enum": ["GRID_FOLLOWING", "GRID_FORMING"],
+                "description": "Indicator for whether the generation object is grid-forming or grid-following"
               }
             }
           }
@@ -113,6 +118,11 @@
                 "items": {
                   "type": "integer"
                 }
+              },
+              "inverter": {
+                "type": "string",
+                "enum": ["GRID_FOLLOWING", "GRID_FORMING"],
+                "description": "Indicator for whether the generation object is grid-forming or grid-following"
               }
             }
           }
@@ -148,6 +158,11 @@
                 "items": {
                   "type": "integer"
                 }
+              },
+              "inverter": {
+                "type": "string",
+                "enum": ["GRID_FOLLOWING", "GRID_FORMING"],
+                "description": "Indicator for whether the generation object is grid-forming or grid-following"
               }
             }
           }
@@ -183,6 +198,11 @@
                 "items": {
                   "type": "integer"
                 }
+              },
+              "inverter": {
+                "type": "string",
+                "enum": ["GRID_FOLLOWING", "GRID_FORMING"],
+                "description": "Indicator for whether the generation object is grid-forming or grid-following"
               }
             }
           }

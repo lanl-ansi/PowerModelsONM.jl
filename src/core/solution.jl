@@ -156,3 +156,37 @@ function _solution_statuses!(sol::Dict{String,<:Any})
         end
     end
 end
+
+
+"""
+    solution_inverter!(pm::AbstractUnbalancedPowerModel, sol::Dict{String,Any})
+
+Converts `inverter` to Inverter enum, across all time steps.
+"""
+function solution_inverter!(pm::AbstractUnbalancedPowerModel, sol::Dict{String,Any})
+    if !PMD.ismultinetwork(PMD.get_pmd_data(pm.data)) && PMD.ismultinetwork(PMD.get_pmd_data(sol))
+        _sol = PMD.get_pmd_data(sol)["nw"]["0"]
+    else
+        _sol = sol
+    end
+
+    PMD.apply_pmd!(_solution_inverter!, pm.data, _sol; apply_to_subnetworks=true)
+end
+
+
+"""
+    _solution_inverter!(data::Dict{String,<:Any}, sol::Dict{String,<:Any})
+
+Converts `inverter` to Inverter enum, from a single time step.
+"""
+function _solution_inverter!(data::Dict{String,<:Any}, sol::Dict{String,<:Any})
+    for t in ["gen", "storage"]
+        if haskey(sol, t)
+            for (_,obj) in sol[t]
+                if haskey(obj, "inverter")
+                    obj["inverter"] = Inverter(round(Int, obj["inverter"]))
+                end
+            end
+        end
+    end
+end

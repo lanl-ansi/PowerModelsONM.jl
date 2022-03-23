@@ -7,6 +7,7 @@ const _eng2math_passthrough_default = Dict{String,Vector{String}}(
         "apply_switch_scores",
         "disable_radial_constraint",
         "disable_isolation_constraint",
+        "disable_inverter_constraint"
     ],
     "load"=>String["priority"],
     "bus"=>String["microgrid_id"],
@@ -47,8 +48,18 @@ function solve_onm_model(
         solver,
         model_builder;
         multinetwork=multinetwork,
-        solution_processors=Function[PMD.sol_data_model!, solution_reference_buses!, solution_statuses!, solution_processors...],
-        ref_extensions=Function[ref_add_load_blocks!, ref_add_max_switch_actions!, ref_extensions...],
+        solution_processors=Function[
+            PMD.sol_data_model!,
+            solution_reference_buses!,
+            solution_statuses!,
+            solution_inverter!,
+            solution_processors...
+        ],
+        ref_extensions=Function[
+            ref_add_load_blocks!,
+            ref_add_max_switch_actions!,
+            ref_extensions...
+        ],
         eng2math_passthrough=recursive_merge(_eng2math_passthrough_default, eng2math_passthrough),
         kwargs...
     )
