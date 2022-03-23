@@ -106,6 +106,8 @@ function _prepare_dispatch_data(network::Dict{String,<:Any}, switching_solutions
             end
 
             for (i,transformer) in get(data["nw"]["$n"], "transformer", Dict())
+                # TODO: debug controls formulations in transformer constraints
+                haskey(transformer, "controls") && delete!(data["nw"]["$n"]["transformer"][i], "controls")
                 obj_sol = get(get(nw, "transformer", Dict()), i, Dict())
                 if any(bus in shed for bus in transformer["bus"]) || get(obj_sol, "status", transformer["status"]) == PMD.DISABLED
                     data["nw"]["$n"]["transformer"][i]["status"] = PMD.DISABLED
