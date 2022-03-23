@@ -246,7 +246,7 @@ function _find_switch_id_from_source_id(network::Dict{String,<:Any}, source_id::
             return id
         end
     end
-    @warn "switch '$(source_id)' not found in network model, skipping"
+    @info "events parsing: switch '$(source_id)' not found in network model, skipping"
     return missing
 end
 
