@@ -289,6 +289,8 @@ Helper function to build a settings file (json) for use with ONM. If properties 
   (default: `false`)
 - `disable_isolation_constraint::Bool` is a toggle to disable the block isolation constraint in the switching
   problem (default: `false`)
+- `disable_presolver::Bool` is a toggle to disable presolvers on built-in solvers that support it (Gurobi,
+  KNITRO) (default: `false`)
 - `storage_phase_unbalance_factor::Real` is a way to set the `phase_unbalance_factor` on *all* storage devices
   (default: `missing`)
 """
@@ -314,6 +316,7 @@ function build_settings_file(
     disable_isolation_constraint::Bool=false,
     disable_inverter_constraint::Bool=false,
     storage_phase_unbalance_factor::Union{Missing,Real}=missing,
+    disable_presolver::Bool=false,
     )
 
     eng = PMD.parse_file(network_file; transformations=[PMD.apply_kron_reduction!])
@@ -354,6 +357,7 @@ function build_settings_file(
     settings["disable_isolation_constraint"] = disable_isolation_constraint
     settings["disable_radial_constraint"] = disable_radial_constraint
     settings["disable_inverter_constraint"] = disable_inverter_constraint
+    settings["disable_presolver"] = disable_presolver
 
     # Generate bus microgrid_ids
     if autogen_microgrid_ids
