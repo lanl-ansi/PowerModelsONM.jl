@@ -215,7 +215,7 @@ function constraint_mc_transformer_power_yy_block_on_off(pm::PMD.AbstractUnbalan
             JuMP.@constraint(pm.model, vr_fr[fc] == pol*tm_scale*tm[idx]*vr_to[tc])
             JuMP.@constraint(pm.model, vi_fr[fc] == pol*tm_scale*tm[idx]*vi_to[tc])
 
-            # with regcontrol
+            # TODO: with regcontrol
             if haskey(transformer,"controls")
                 # v_ref = transformer["controls"]["vreg"][idx]
                 # δ = transformer["controls"]["band"][idx]
@@ -301,4 +301,54 @@ function constraint_mc_storage_losses_traditional_on_off(pm::PMD.AbstractUnbalan
         ==
         (qsc + q_loss + x * sum((ps[c]^2 + qs[c]^2)/(vr[c]^2 + vi[c]^2) for (idx,c) in enumerate(connections))) * z_storage
     )
+end
+
+
+@doc raw"""
+    constraint_mc_inverter_theta_ref(pm::PMD.AbstractUnbalancedACRModel, nw::Int, i::Int, va_ref::Vector{<:Real})
+
+Creates phase angle constraints at reference buses for the ACR formulation
+
+math```
+\begin{align}
+\Im(V) = \tan(V_a^{ref}) \Re(V)
+\end{align}
+```
+"""
+function constraint_mc_inverter_theta_ref(pm::PMD.AbstractUnbalancedACRModel, nw::Int, i::Int, va_ref::Vector{<:Real})
+    terminals = ref(pm, nw, :bus, i, "terminals")
+    vr = var(pm, nw, :vr, i)
+    vi = var(pm, nw, :vi, i)
+    inverter_objects = ref(pm, nw, :bus_inverters, i)
+    z_inverters = [var(pm, nw, :z_inverter, inv_obj) for inv_obj in inverter_objects]
+
+    # deal with cases first where tan(theta)==Inf or tan(theta)==0
+    for (idx, t) in enumerate(terminals)
+        if va_ref[t] == pi/2
+            JuMP.@constraint(pm.model, vr[t] <=  JuMP.upper_bound(vr[t]) * (1-sum(z_inverters)))
+            JuMP.@constraint(pm.model, vr[t] >= -JuMP.upper_bound(vr[t]) * (1-sum(z_inverters)))
+            JuMP.@constraint(pm.model, vi[t] >= -JuMP.upper_bound(vi[t]) * (1-sum(z_inverters)))
+        elseif va_ref[t] == -pi/2
+            JuMP.@constraint(pm.model, vr[t] <=  JuMP.upper_bound(vr[t]) * (1-sum(z_inverters)))
+            JuMP.@constraint(pm.model, vr[t] >= -JuMP.upper_bound(vr[t]) * (1-sum(z_inverters)))
+            JuMP.@constraint(pm.model, vi[t] <=  JuMP.upper_bound(vi[t]) * (1-sum(z_inverters)))
+        elseif va_ref[t] == 0
+            JuMP.@constraint(pm.model, vr[t] >= -JuMP.upper_bound(vr[t]) * (1-sum(z_inverters)))
+            JuMP.@constraint(pm.model, vi[t] <=  JuMP.upper_bound(vi[t]) * (1-sum(z_inverters)))
+            JuMP.@constraint(pm.model, vi[t] >= -JuMP.upper_bound(vi[t]) * (1-sum(z_inverters)))
+        elseif va_ref[t] == pi
+            JuMP.@constraint(pm.model, vr[t] >= -JuMP.upper_bound(vr[t]) * (1-sum(z_inverters)))
+            JuMP.@constraint(pm.model, vi[t] <=  JuMP.upper_bound(vi[t]) * (1-sum(z_inverters)))
+            JuMP.@constraint(pm.model, vi[t] >= -JuMP.upper_bound(vi[t]) * (1-sum(z_inverters)))
+        else
+            JuMP.@constraint(pm.model, vi[t] - tan(va_ref[idx])*vr[t] <=  deg2rad(60.0) * (1-sum(z_inverters)))
+            JuMP.@constraint(pm.model, vi[t] - tan(va_ref[idx])*vr[t] >= -deg2rad(60.0) * (1-sum(z_inverters)))
+            # va_ref also implies a sign for vr, vi
+            if 0<=va_ref[t] && va_ref[t] <= pi
+                JuMP.@constraint(pm.model, vi[t] >= -JuMP.upper_bound(vi[t]) * (1-sum(z_inverters)))
+            else
+                JuMP.@constraint(pm.model, vi[t] <=  JuMP.upper_bound(vi[t]) * (1-sum(z_inverters)))
+            end
+        end
+    end
 end
