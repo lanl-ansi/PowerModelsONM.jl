@@ -209,8 +209,8 @@ function build_solver_instances(;
                     "primal_feasibility_tolerance" => feas_tol,
                     "dual_feasibility_tolerance" => feas_tol,
                     "mip_rel_gap" => mip_gap_tol,
-                    "mip_abs_gap" => mip_gap_tol,
                     "small_matrix_value" => 1e-12,
+                    "allow_unbounded_or_infeasible" => true,
                 ]
             end
             mip_solver = optimizer_with_attributes(
