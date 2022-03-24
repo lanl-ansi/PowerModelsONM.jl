@@ -49,7 +49,15 @@ function _convert_depreciated_runtime_args!(runtime_args::Dict{String,<:Any}, se
     haskey(runtime_args, "voltage-angle-difference") && _convert_to_settings!(settings, base_network, "line", "vad_ub",  pop!(runtime_args, "voltage-angle-difference"))
     haskey(runtime_args, "clpu-factor") && _convert_to_settings!(settings, base_network, "load", "clpu_factor", pop!(runtime_args, "clpu-factor"); multiphase=false)
 
-    for k in ["disable-switch-penalty", "apply-switch-scores", "disable-radial-constraint", "disable-isolation-constraint", "max-switch-actions"]
+    for k in [
+        "disable-switch-penalty",
+        "apply-switch-scores",
+        "disable-radial-constraint",
+        "disable-isolation-constraint",
+        "max-switch-actions",
+        "disable-inverter-constraint",
+        "disable-presolver"
+    ]
         if haskey(runtime_args, k)
             settings[replace(k, "-"=>"_")] = pop!(runtime_args, k)
         end
