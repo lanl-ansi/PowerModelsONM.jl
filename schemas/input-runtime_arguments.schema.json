@@ -216,7 +216,7 @@
     "disable-switch-penalty": {
       "type": "boolean",
       "description": "Toggle to disable applying a penalty to changing switch status in the objective function",
-      "default": true
+      "default": false
     },
     "apply-switch-scores": {
       "type": "boolean",
@@ -226,12 +226,22 @@
     "disable-radial-constraint": {
       "type": "boolean",
       "description": "Toggle to disable the radial constraint (allow mesh-networking)",
-      "default": true
+      "default": false
     },
     "disable-isolation-constraint": {
       "type": "boolean",
       "description": "Toggle to disable the block isolation constraint (allow power to pass through 'shedded' blocks)",
-      "default": true
+      "default": false
+    },
+    "disable-inverter-constraint": {
+      "type": "boolean",
+      "description": "Toggle to disable the grid-forming inverter constraint that restricts only one grid-forming inverter per connected component",
+      "default": false
+    },
+    "disable-presolver": {
+      "type": "boolean",
+      "description": "Toggle to disable the presolver that exist in some MIP solvers, which can sometimes be overly agressive",
+      "default": false
     }
   },
   "required": ["network"]
