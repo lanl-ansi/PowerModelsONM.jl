@@ -122,6 +122,18 @@ function parse_commandline(; validate::Bool=true)::Dict{String,Any}
         "--pretty-print"
             help = "flag to toggle pretty-printed output json"
             action = :store_true
+        "--disable-isolation-constraint"
+            help = "flag to disable block isolation constraint"
+            action = :store_true
+        "--disable-radial-constraint"
+            help = "flag to disable the radiality constraint"
+            action = :store_true
+        "--disable-inverter-constraint"
+            help = "flag to disable the constraint that requires exactly one grid-forming inverter per connected component"
+            action = :store_true
+        "--disable-presolver"
+            help = "flag to disable the presolver (supported by some MIP solvers), which can sometimes be overly agressive"
+            action = :store_true
     end
 
     # Depreciated Command Line Arguments
@@ -185,7 +197,7 @@ function parse_commandline(; validate::Bool=true)::Dict{String,Any}
     end
 
     if validate && !validate_runtime_arguments(arguments)
-        error("invalid runtime arguments detected")
+        error("invalid runtime arguments detected: $(evaluate_runtime_arguments(arguments))")
     end
 
     _deepcopy_args!(arguments)
