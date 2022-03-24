@@ -54,6 +54,10 @@
         "--clpu-factor", "2",
         "--skip", "faults, stability",
         "--pretty-print",
+        "--disable-presolver",
+        "--disable-isolation-constraint",
+        "--disable-radial-constraint",
+        "--disable-inverter-constraint",
         ]
     )
 
@@ -91,5 +95,9 @@
         "opt-switch-problem" => "block",
         "opt-switch-solver" => "misocp_solver",
         "opt-disp-algorithm" => "opf",
+        "disable-presolver" => true,
+        "disable-isolation-constraint" => true,
+        "disable-radial-constraint" => true,
+        "disable-inverter-constraint" => true,
     )
 end

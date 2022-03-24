@@ -155,7 +155,7 @@ New Load.801 Phases=3 Bus1=801 conn=wye model=1 kv=4.16 kw=200.0 kvar=120.0 dail
 New Storage.Battery_mg1c Phases=3 Bus1=801 kwhstored=500 kwhrated=1000 kwrated=250 %idlingkw=0 %idlingkvar=0 %effcharge=100 %effdischarge=100 %charge=100 %discharge=100 %r=0 %x=0 enabled=y
 
 New Line.801675 Phases=3 Bus1=801 Bus2=675aux Switch=y r1=0 r0=0 x1=0 x0=0 c1=0.0 c0=0.0 normamps=50 emergamps=50 enabled=n  ! tie switch
-New Line.675675aux Phases=3 Bus1=675 Bus2=675aux LineCode=mtx601 Length=10 units=mi  normamps=800 emergamps=800
+New Line.675675aux Phases=3 Bus1=675 Bus2=675aux LineCode=mtx601 Length=15 units=mi  normamps=800 emergamps=800
 
 New Generator.675 Phases=3 Bus1=675 kv=2.4 kva=500 kw=500 kvar=350
 

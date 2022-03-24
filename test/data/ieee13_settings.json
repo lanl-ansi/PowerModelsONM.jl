@@ -158,9 +158,9 @@
       "vm_lb": [2.161599407845959, 2.161599407845959]
     }
   },
-  "nlp_solver_tol": 0.0001,
-  "mip_solver_tol": 0.0001,
-  "mip_solver_gap": 0.05,
+  "nlp_solver_tol": 0.00001,
+  "mip_solver_tol": 0.00001,
+  "mip_solver_gap": 0.0001,
   "settings": { "sbase_default": 1000.0 },
   "transformer": {
     "xfm1": { "sm_ub": null },
@@ -212,5 +212,5 @@
   "max_switch_actions": [1, 1, 1, 1, 1, 1, 1, 1],
   "disable_switch_penalty": false,
   "apply_switch_scores": true,
-  "disable_presolver": true
+  "disable_presolver": false
 }
