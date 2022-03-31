@@ -88,7 +88,7 @@ end
         bus_loads::Vector{Tuple{Int,Vector{Int}}}, bus_shunts::Vector{Tuple{Int,Vector{Int}}}
     )
 
-KCL for load shed problem with transformers (NFAU Form)
+KCL for block load shed problem with transformers (NFAU Form)
 """
 function constraint_mc_power_balance_shed_block(pm::PMD.AbstractUnbalancedNFAModel, nw::Int, i::Int, terminals::Vector{Int}, grounded::Vector{Bool}, bus_arcs::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_arcs_sw::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_arcs_trans::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_gens::Vector{Tuple{Int,Vector{Int}}}, bus_storage::Vector{Tuple{Int,Vector{Int}}}, bus_loads::Vector{Tuple{Int,Vector{Int}}}, bus_shunts::Vector{Tuple{Int,Vector{Int}}})
     p   = get(var(pm, nw),      :p,  Dict()); PMD._check_var_keys(p,   bus_arcs, "active power", "branch")
@@ -122,6 +122,65 @@ function constraint_mc_power_balance_shed_block(pm::PMD.AbstractUnbalancedNFAMod
             sum(pg[g][t] for (g, conns) in bus_gens if t in conns)
             - sum(ps[s][t] for (s, conns) in bus_storage if t in conns)
             - sum(pd_zblock[l][t] for (l, conns) in bus_loads if t in conns)
+            - LinearAlgebra.diag(Gt)[idx]
+        )
+        push!(cstr_p, cp)
+    end
+    # omit reactive constraint
+
+    con(pm, nw, :lam_kcl_r)[i] = cstr_p
+    con(pm, nw, :lam_kcl_i)[i] = []
+
+    if _IM.report_duals(pm)
+        sol(pm, nw, :bus, i)[:lam_kcl_r] = cstr_p
+        sol(pm, nw, :bus, i)[:lam_kcl_i] = []
+    end
+end
+
+
+@doc raw"""
+    constraint_mc_power_balance_shed_traditional(pm::PMD.AbstractUnbalancedNFAModel, nw::Int, i::Int,
+        terminals::Vector{Int}, grounded::Vector{Bool}, bus_arcs::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}},
+        bus_arcs_sw::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_arcs_trans::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}},
+        bus_gens::Vector{Tuple{Int,Vector{Int}}}, bus_storage::Vector{Tuple{Int,Vector{Int}}},
+        bus_loads::Vector{Tuple{Int,Vector{Int}}}, bus_shunts::Vector{Tuple{Int,Vector{Int}}}
+    )
+
+KCL for traditional load shed problem with transformers (NFAU Form)
+"""
+function constraint_mc_power_balance_shed_traditional(pm::PMD.AbstractUnbalancedNFAModel, nw::Int, i::Int, terminals::Vector{Int}, grounded::Vector{Bool}, bus_arcs::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_arcs_sw::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_arcs_trans::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_gens::Vector{Tuple{Int,Vector{Int}}}, bus_storage::Vector{Tuple{Int,Vector{Int}}}, bus_loads::Vector{Tuple{Int,Vector{Int}}}, bus_shunts::Vector{Tuple{Int,Vector{Int}}})
+    p   = get(var(pm, nw),      :p,  Dict()); PMD._check_var_keys(p,   bus_arcs, "active power", "branch")
+    psw = get(var(pm, nw),    :psw,  Dict()); PMD._check_var_keys(psw, bus_arcs_sw, "active power", "switch")
+    pt  = get(var(pm, nw),     :pt,  Dict()); PMD._check_var_keys(pt,  bus_arcs_trans, "active power", "transformer")
+    pg  = get(var(pm, nw),     :pg,  Dict()); PMD._check_var_keys(pg,  bus_gens, "active power", "generator")
+    ps  = get(var(pm, nw),     :ps,  Dict()); PMD._check_var_keys(ps,  bus_storage, "active power", "storage")
+    pd  = get(var(pm, nw), :pd_bus,  Dict()); PMD._check_var_keys(pd,  bus_loads, "active power", "load")
+
+    z_demand = Dict(l => var(pm, nw, :z_demand, l) for (l,_) in bus_loads)
+
+    Gt, _ = PMD._build_bus_shunt_matrices(pm, nw, terminals, bus_shunts)
+
+    cstr_p = []
+
+    ungrounded_terminals = [(idx,t) for (idx,t) in enumerate(terminals) if !grounded[idx]]
+
+    pd_zdemand = Dict{Int,JuMP.Containers.DenseAxisArray{JuMP.VariableRef}}(l => JuMP.@variable(pm.model, [c in conns], base_name="$(nw)_pd_zdemand_$(l)") for (l,conns) in bus_loads)
+
+    for (l,conns) in bus_loads
+        for c in conns
+            _IM.relaxation_product(pm.model, pd[l][c], z_demand[l], pd_zdemand[l][c])
+        end
+    end
+
+    for (idx, t) in ungrounded_terminals
+        cp = JuMP.@constraint(pm.model,
+            sum(p[a][t] for (a, conns) in bus_arcs if t in conns)
+            + sum(psw[a_sw][t] for (a_sw, conns) in bus_arcs_sw if t in conns)
+            + sum(pt[a_trans][t] for (a_trans, conns) in bus_arcs_trans if t in conns)
+            ==
+            sum(pg[g][t] for (g, conns) in bus_gens if t in conns)
+            - sum(ps[s][t] for (s, conns) in bus_storage if t in conns)
+            - sum(pd_zdemand[l][t] for (l, conns) in bus_loads if t in conns)
             - LinearAlgebra.diag(Gt)[idx]
         )
         push!(cstr_p, cp)
