@@ -111,7 +111,7 @@ function PowerModelsDistribution.constraint_mc_power_balance_shed(pm::LPUBFSwitc
             if t in sh_conns
                 cq_cap = var(pm, nw, :capacitor_reactive_power, sh)[t]
                 cap_state = var(pm, nw, :capacitor_state, sh)[t]
-                bs = PMD.diag(ref(pm, nw, :shunt, sh, "bs"))[findfirst(isequal(t), sh_conns)]
+                bs = LinearAlgebra.diag(ref(pm, nw, :shunt, sh, "bs"))[findfirst(isequal(t), sh_conns)]
                 w_lb, w_ub = _IM.variable_domain(w[t])
 
                 # tie to z_block
