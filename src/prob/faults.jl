@@ -176,7 +176,7 @@ function _prepare_fault_study_multinetwork_data(network::Dict{String,<:Any}, swi
 
                         bus = data["nw"]["$n"]["bus"]["$(obj["bus"])"]
                         if !haskey(bus, "vm")
-                            data["nw"]["$n"]["bus"]["$(obj["bus"])"]["vm"] = ones(length(bus["terminals"]))[bus["terminals"]]
+                            data["nw"]["$n"]["bus"]["$(obj["bus"])"]["vm"] = [ones(3)..., zeros(length(bus["terminals"]))...][bus["terminals"]]
                         end
                         if !haskey(bus, "va")
                             data["nw"]["$n"]["bus"]["$(obj["bus"])"]["va"] = [0.0, -120.0, 120.0, zeros(length(bus["terminals"]))...][bus["terminals"]]
