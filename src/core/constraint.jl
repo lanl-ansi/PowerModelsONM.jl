@@ -222,9 +222,6 @@ function constraint_radial_topology(pm::AbstractUnbalancedPowerModel, nw::Int; r
     N = [N₀..., virtual_iᵣ]
     iᵣ = [virtual_iᵣ]
 
-    # if disable_networking, add microgrid blocks to set iᵣ
-    ref(pm, nw, :disable_networking) && append!(iᵣ, ids(pm, nw, :microgrid_blocks))
-
     # create a set L of all branches, including virtual branches between iᵣ and all other nodes in L₀
     L = [L₀..., [(virtual_iᵣ, n) for n in N₀]...]
 

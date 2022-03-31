@@ -242,6 +242,11 @@
       "type": "boolean",
       "description": "Toggle to disable the presolver that exist in some MIP solvers, which can sometimes be overly agressive",
       "default": false
+    },
+    "disable-networking": {
+      "type": "boolean",
+      "description": "Toggle to disable the ability of microgrids to network together",
+      "default": false
     }
   },
   "required": ["network"]

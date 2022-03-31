@@ -50,6 +50,7 @@ function _convert_depreciated_runtime_args!(runtime_args::Dict{String,<:Any}, se
     haskey(runtime_args, "clpu-factor") && _convert_to_settings!(settings, base_network, "load", "clpu_factor", pop!(runtime_args, "clpu-factor"); multiphase=false)
 
     for k in [
+        "disable-networking",
         "disable-switch-penalty",
         "apply-switch-scores",
         "disable-radial-constraint",

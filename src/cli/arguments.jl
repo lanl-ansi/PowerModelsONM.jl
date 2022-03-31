@@ -134,6 +134,9 @@ function parse_commandline(; validate::Bool=true)::Dict{String,Any}
         "--disable-presolver"
             help = "flag to disable the presolver (supported by some MIP solvers), which can sometimes be overly agressive"
             action = :store_true
+        "--disable-networking"
+            help = "flag to disable networking between microgrids"
+            action = :store_true
     end
 
     # Depreciated Command Line Arguments
