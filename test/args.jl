@@ -99,5 +99,6 @@
         "disable-isolation-constraint" => true,
         "disable-radial-constraint" => true,
         "disable-inverter-constraint" => true,
+        "disable-networking" => false,
     )
 end

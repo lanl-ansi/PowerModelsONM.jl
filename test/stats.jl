@@ -22,9 +22,9 @@
     end
 
     @testset "test action stats" begin
-        @test args["output_data"]["Device action timeline"] == Any[Dict{String, Any}("Shedded loads" => ["692_3", "675b", "675a", "692_1", "702", "801", "703", "675c"], "Microgrid networks" => [["2"], ["4"], ["1"], ["3"]], "Switch configurations" => Dict("801675" => "open", "671692" => "open", "671700" => "open", "703800" => "open", "800801" => "open", "701702" => "open")), Dict{String, Any}("Shedded loads" => ["692_3", "675b", "675a", "692_1", "702", "801", "703", "675c"], "Microgrid networks" => [["2"], ["4"], ["1"], ["3"]], "Switch configurations" => Dict("801675" => "open", "671692" => "open", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "open")), Dict{String, Any}("Shedded loads" => ["692_3", "675b", "675a", "692_1", "675c"], "Microgrid networks" => [["2"], ["4", "3"], ["1"]], "Switch configurations" => Dict("801675" => "open", "671692" => "open", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "closed")), Dict{String, Any}("Shedded loads" => String[], "Microgrid networks" => [["1"], ["4", "2", "3"]], "Switch configurations" => Dict("801675" => "open", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "closed")), Dict{String, Any}("Shedded loads" => String[], "Microgrid networks" => [["4", "3"], ["1", "2"]], "Switch configurations" => Dict("801675" => "closed", "671692" => "closed", "671700" => "open", "703800" => "open", "800801" => "open", "701702" => "closed")), Dict{String, Any}("Shedded loads" => ["801"], "Microgrid networks" => [["1"], ["4", "2", "3"]], "Switch configurations" => Dict("801675" => "open", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "closed")), Dict{String, Any}("Shedded loads" => ["702", "801", "703"], "Microgrid networks" => [["4"], ["2", "3"], ["1"]], "Switch configurations" => Dict("801675" => "open", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "closed", "701702" => "open")), Dict{String, Any}("Shedded loads" => ["801"], "Microgrid networks" => [["1"], ["4", "2", "3"]], "Switch configurations" => Dict("801675" => "open", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "closed"))]
+        @test args["output_data"]["Device action timeline"] == Any[Dict{String, Any}("Shedded loads" => ["692_3", "675b", "675a", "692_1", "701", "702", "700", "703", "675c"], "Microgrid networks" => [["2"], ["4"], ["1"], ["3"]], "Switch configurations" => Dict("801675" => "open", "671692" => "open", "671700" => "open", "703800" => "open", "800801" => "open", "701702" => "open")), Dict{String, Any}("Shedded loads" => ["702", "703"], "Microgrid networks" => [["2"], ["4"], ["1"], ["3"]], "Switch configurations" => Dict("801675" => "open", "671692" => "closed", "671700" => "open", "703800" => "open", "800801" => "open", "701702" => "open")), Dict{String, Any}("Shedded loads" => ["702", "703"], "Microgrid networks" => [["4"], ["2", "3"], ["1"]], "Switch configurations" => Dict("801675" => "open", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "open")), Dict{String, Any}("Shedded loads" => String[], "Microgrid networks" => [["1"], ["4", "2", "3"]], "Switch configurations" => Dict("801675" => "open", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "closed")), Dict{String, Any}("Shedded loads" => ["801"], "Microgrid networks" => [["1"], ["4", "2", "3"]], "Switch configurations" => Dict("801675" => "open", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "closed", "701702" => "closed")), Dict{String, Any}("Shedded loads" => String[], "Microgrid networks" => [["4", "1", "2", "3"]], "Switch configurations" => Dict("801675" => "open", "671692" => "closed", "671700" => "closed", "703800" => "closed", "800801" => "closed", "701702" => "closed")), Dict{String, Any}("Shedded loads" => String[], "Microgrid networks" => [["4", "1", "2", "3"]], "Switch configurations" => Dict("801675" => "closed", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "closed", "701702" => "closed")), Dict{String, Any}("Shedded loads" => String[], "Microgrid networks" => [["4", "1", "2", "3"]], "Switch configurations" => Dict("801675" => "closed", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "closed", "701702" => "closed"))]
 
-        @test args["output_data"]["Switch changes"] == [String[], ["671700"], ["701702"], ["671692"], ["801675", "671700"], ["801675", "671700"], ["800801", "701702"], ["800801", "701702"]]
+        @test args["output_data"]["Switch changes"] == [String[], ["671692"], ["671700"], ["701702"], ["800801"], ["703800"], ["801675", "703800"], String[]]
 
         @test all(isnan(metadata["mip_gap"]) for metadata in args["output_data"]["Optimal switching metadata"])
     end
@@ -50,21 +50,21 @@
     end
 
     @testset "test fault stats" begin
-        @test all(isempty(args["output_data"]["Fault studies metadata"][i]) for i in 1:2)
-        @test all(!isempty(args["output_data"]["Fault studies metadata"][i]) for i in 3:8)
+        @test all(isempty(args["output_data"]["Fault studies metadata"][i]) for i in 1:3)
+        @test all(!isempty(args["output_data"]["Fault studies metadata"][i]) for i in 4:8)
     end
 
     @testset "test microgrid stats" begin
-        @test all(isapprox.(args["output_data"]["Storage SOC (%)"], [40.4, 45.2, 37.2, 26.0, 15.5774, 59.68, 60.0, 60.0]; atol=1e0))
+        @test all(isapprox.(args["output_data"]["Storage SOC (%)"], [38.4, 30.0, 21.9996, 10.7991, 54.7982, 79.5962, 76.084, 75.5948]; atol=1e0))
 
-        @test all(isapprox.(args["output_data"]["Load served"]["Bonus load via microgrid (%)"], [0.0, 0.0, 0.0, 9.19091, 17.0281, 7.09584, 7.90405, 8.15687]; atol=1e-1))
-        @test all(isapprox.(args["output_data"]["Load served"]["Feeder load (%)"], [94.2578, 94.2372, 94.1712, 84.7467, 77.1714, 86.9103, 86.1498, 85.9354]; atol=1e-1))
-        @test all(isapprox.(args["output_data"]["Load served"]["Microgrid load (%)"], [4.74879, 4.27936, 44.7354, 92.0115, 92.5071, 64.207, 64.5916, 74.21]; atol=1e-1))
+        @test all(isapprox.(args["output_data"]["Load served"]["Bonus load via microgrid (%)"], [0.0, 8.77971, 6.89257, 9.19113, 8.51601, 0.240061, 15.2728, 15.242]; atol=1e-1))
+        @test all(isapprox.(args["output_data"]["Load served"]["Feeder load (%)"], [94.2578, 85.4502, 87.3202, 84.7465, 85.4157, 93.6999, 79.0702, 79.2458]; atol=1e-1))
+        @test all(isapprox.(args["output_data"]["Load served"]["Microgrid load (%)"], [9.49758, 79.7379, 73.7578, 92.0115, 73.6083, 93.4183, 92.1845, 92.5304]; atol=1e-1))
 
-        @test all(isapprox.(args["output_data"]["Generator profiles"]["Diesel DG (kW)"], [0.0, 0.0, 0.0, 267.962, 499.992, 263.48, 259.3, 256.72]; atol=1e0))
-        @test all(isapprox.(args["output_data"]["Generator profiles"]["Energy storage (kW)"], [25.0, -60.0, 100.0, 140.0, 130.283, -59.9999, -4.00013, -1.16366e-7]; atol=1e0))
-        @test all(isapprox.(args["output_data"]["Generator profiles"]["Solar DG (kW)"], [0.0, 0.0, 48.9571, 124.902, 196.0, 36.9009, 0.0, 0.0]; atol=1e0))
-        @test all(isapprox.(args["output_data"]["Generator profiles"]["Grid mix (kW)"], [2312.14, 2396.64, 2489.06, 3069.25, 2860.95, 2944.2, 2782.63, 2704.63]; atol=1e1))
+        @test all(isapprox.(args["output_data"]["Generator profiles"]["Diesel DG (kW)"], [0.0, 248.986, 249.93, 267.962, 268.575, 281.907, 499.584, 499.165]; atol=1e0))
+        @test all(isapprox.(args["output_data"]["Generator profiles"]["Energy storage (kW)"], [50.0, 105.0, 100.005, 140.007, -59.9897, -309.975, 43.9025, 6.11582]; atol=1e0))
+        @test all(isapprox.(args["output_data"]["Generator profiles"]["Solar DG (kW)"], [0.0, 0.0, 6.99837, 124.904, 99.6135, 37.224, 0.0, 0.0]; atol=1e0))
+        @test all(isapprox.(args["output_data"]["Generator profiles"]["Grid mix (kW)"], [2312.14, 2423.3, 2494.9, 3069.24, 3091.24, 3573.53, 2813.72, 2627.05]; atol=1e1))
     end
 
     @testset "test stability stats" begin
