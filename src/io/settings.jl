@@ -242,17 +242,19 @@ function _apply_to_network!(network::Dict{String,<:Any}, type::String, data::Dic
 end
 
 
+build_settings(network_file::String; kwargs...) = build_settings(PMD.parse_file(network_file; transformations=[PMD.apply_kron_reduction!]); kwargs...)
+
+
 """
-    build_settings_file(
-        network_file::String,
-        settings_file::String="ieee13_settings.json";
+    build_settings(
+        eng::Dict{String,<:Any};
         max_switch_actions::Union{Missing,Int,Vector{Int}},
         vm_lb_pu::Union{Missing,Real}=missing,
         vm_ub_pu::Union{Missing,Real}=missing,
         vad_deg::Union{Missing,Real}=missing,
         line_limit_mult::Real=1.0,
         sbase_default::Union{Missing,Real}=missing,
-        time_elapsed::Union{Missing,Real,Vector{<:Real}}=missing,
+        time_elapsed::Union{Missing,Real,Vector{Real}}=missing,
         autogen_microgrid_ids::Bool=true,
         custom_settings::Dict{String,<:Any}=Dict{String,Any}(),
         mip_solver_gap::Real=0.05,
@@ -260,7 +262,13 @@ end
         mip_solver_tol::Real=1e-4,
         clpu_factor::Union{Missing,Real}=missing,
         disable_switch_penalty::Bool=false,
-    )
+        apply_switch_scores::Bool=false,
+        disable_radial_constraint::Bool=false,
+        disable_isolation_constraint::Bool=false,
+        disable_inverter_constraint::Bool=false,
+        storage_phase_unbalance_factor::Union{Missing,Real}=missing,
+        disable_presolver::Bool=false,
+    )::Dict{String,Any}
 
 Helper function to build a settings file (json) for use with ONM. If properties are `missing` they will not be set.
 
@@ -303,9 +311,8 @@ Helper function to build a settings file (json) for use with ONM. If properties 
 - `storage_phase_unbalance_factor::Real` is a way to set the `phase_unbalance_factor` on *all* storage devices
   (default: `missing`)
 """
-function build_settings_file(
-    network_file::String,
-    settings_file::String="ieee13_settings.json";
+function build_settings(
+    eng::Dict{String,<:Any};
     max_switch_actions::Union{Missing,Int,Vector{Int}},
     vm_lb_pu::Union{Missing,Real}=missing,
     vm_ub_pu::Union{Missing,Real}=missing,
@@ -326,9 +333,7 @@ function build_settings_file(
     disable_inverter_constraint::Bool=false,
     storage_phase_unbalance_factor::Union{Missing,Real}=missing,
     disable_presolver::Bool=false,
-    )
-
-    eng = PMD.parse_file(network_file; transformations=[PMD.apply_kron_reduction!])
+    )::Dict{String,Any}
     n_steps = !haskey(eng, "time_series") ? 1 : length(first(eng["time_series"]).second["values"])
 
     settings = Dict{String,Any}(
@@ -467,10 +472,113 @@ function build_settings_file(
         end
     end
 
-    settings = recursive_merge(settings, custom_settings)
+    settings = recursive_merge_no_vecs(settings, custom_settings)
+end
 
-    # Save the ieee13_settings.json file
+
+"""
+    build_settings_file(network_file::String, settings_file::String; kwargs...)
+
+Builds and writes a `settings_file::String` by parsing a `network_file`
+"""
+function build_settings_file(network_file::String, settings_file::String; kwargs...)
     open(settings_file, "w") do io
-        JSON.print(io, settings)
+        build_settings_file(PMD.parse_file(network_file; transformations=[PMD.apply_kron_reduction!]), io; kwargs...)
     end
+end
+
+
+"""
+    build_settings_file(eng::Dict{String,<:Any}, settings_file::String; kwargs...)
+
+Builds and writes a `settings_file::String` from a network data set `eng::Dict{String,Any}`
+"""
+function build_settings_file(eng::Dict{String,<:Any}, settings_file::String; kwargs...)
+    open(settings_file, "w") do io
+        build_settings_file(eng, io; kwargs...)
+    end
+end
+
+
+"""
+    build_settings_file(
+        network_file::String,
+        settings_file::String="settings.json";
+        max_switch_actions::Union{Missing,Int,Vector{Int}},
+        vm_lb_pu::Union{Missing,Real}=missing,
+        vm_ub_pu::Union{Missing,Real}=missing,
+        vad_deg::Union{Missing,Real}=missing,
+        line_limit_mult::Real=1.0,
+        sbase_default::Union{Missing,Real}=missing,
+        time_elapsed::Union{Missing,Real,Vector{Real}}=missing,
+        autogen_microgrid_ids::Bool=true,
+        custom_settings::Dict{String,<:Any}=Dict{String,Any}(),
+        mip_solver_gap::Real=0.05,
+        nlp_solver_tol::Real=1e-4,
+        mip_solver_tol::Real=1e-4,
+        clpu_factor::Union{Missing,Real}=missing,
+        disable_switch_penalty::Bool=false,
+        apply_switch_scores::Bool=false,
+        disable_radial_constraint::Bool=false,
+        disable_isolation_constraint::Bool=false,
+        disable_inverter_constraint::Bool=false,
+        storage_phase_unbalance_factor::Union{Missing,Real}=missing,
+        disable_presolver::Bool=false,
+    )
+
+Helper function to write a settings structure to an `io` for use with ONM from a network data
+structure `eng::Dict{String,<:Any}`.
+
+See [`build_settings`](@ref build_settings) for explanation of keyword options.
+"""
+function build_settings_file(
+    eng::Dict{String,<:Any},
+    io::IO;
+    max_switch_actions::Union{Missing,Int,Vector{Int}},
+    vm_lb_pu::Union{Missing,Real}=missing,
+    vm_ub_pu::Union{Missing,Real}=missing,
+    vad_deg::Union{Missing,Real}=missing,
+    line_limit_mult::Real=1.0,
+    sbase_default::Union{Missing,Real}=missing,
+    time_elapsed::Union{Missing,Real,Vector{Real}}=missing,
+    autogen_microgrid_ids::Bool=true,
+    custom_settings::Dict{String,<:Any}=Dict{String,Any}(),
+    mip_solver_gap::Real=0.05,
+    nlp_solver_tol::Real=1e-4,
+    mip_solver_tol::Real=1e-4,
+    clpu_factor::Union{Missing,Real}=missing,
+    disable_switch_penalty::Bool=false,
+    apply_switch_scores::Bool=false,
+    disable_radial_constraint::Bool=false,
+    disable_isolation_constraint::Bool=false,
+    disable_inverter_constraint::Bool=false,
+    storage_phase_unbalance_factor::Union{Missing,Real}=missing,
+    disable_presolver::Bool=false,
+    )
+
+    settings = build_settings(
+        eng;
+        max_switch_actions=max_switch_actions,
+        vm_lb_pu=vm_lb_pu,
+        vm_ub_pu=vm_ub_pu,
+        vad_deg=vad_deg,
+        line_limit_mult=line_limit_mult,
+        sbase_default=sbase_default,
+        time_elapsed=time_elapsed,
+        autogen_microgrid_ids=autogen_microgrid_ids,
+        custom_settings=custom_settings,
+        mip_solver_gap=mip_solver_gap,
+        nlp_solver_tol=nlp_solver_tol,
+        mip_solver_tol=mip_solver_tol,
+        clpu_factor=clpu_factor,
+        disable_switch_penalty=disable_switch_penalty,
+        apply_switch_scores=apply_switch_scores,
+        disable_radial_constraint=disable_radial_constraint,
+        disable_isolation_constraint=disable_isolation_constraint,
+        disable_inverter_constraint=disable_inverter_constraint,
+        storage_phase_unbalance_factor=storage_phase_unbalance_factor,
+        disable_presolver=disable_presolver,
+    )
+
+    JSON.print(io, settings)
 end

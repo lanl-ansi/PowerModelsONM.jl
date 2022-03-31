@@ -82,4 +82,42 @@
         @test all(isa(fault["g"], Matrix) && isa(fault["b"], Matrix) for (bus,fts) in faults for (ft,fids) in fts for (fid,fault) in fids)
         @test all(isa(fault["connections"], Vector{Int}) for (bus,fts) in faults for (ft,fids) in fts for (fid,fault) in fids)
     end
+
+    @testset "test build settings" begin
+        custom_settings = Dict{String,Any}(
+            "switch" => Dict{String,Any}(
+                "801675" => Dict{String,Any}("cm_ub" => [25.0, 25.0, 25.0]),
+                "800801" => Dict{String,Any}("cm_ub" => [25.0, 25.0, 25.0])
+            ),
+            "voltage_source" => Dict{String,Any}(
+                "source" => Dict{String,Any}(
+                    "pg_lb" => [0.0, 0.0, 0.0],
+                    "qg_lb" => [0.0, 0.0, 0.0],
+                )
+            )
+        )
+
+        settings = PowerModelsONM.build_settings(
+            "../test/data/ieee13_feeder.dss";
+            clpu_factor=2.0,
+            max_switch_actions=1,
+            disable_switch_penalty=false,
+            apply_switch_scores=true,
+            disable_presolver=false,
+            mip_solver_gap=0.0001,
+            nlp_solver_tol=0.00001,
+            mip_solver_tol=0.00001,
+            sbase_default=1000.0,
+            vm_lb_pu=0.9,
+            vm_ub_pu=1.1,
+            vad_deg=5.0,
+            line_limit_mult=Inf,
+            storage_phase_unbalance_factor=0.0,
+            custom_settings=custom_settings
+        )
+
+        local_settings = parse_settings("../test/data/ieee13_settings.json")
+
+        @test settings == local_settings
+    end
 end

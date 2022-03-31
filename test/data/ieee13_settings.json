@@ -170,9 +170,9 @@
   "shunt": {},
   "solar": {},
   "storage": {
-    "Battery_mg1a": { "phase_unbalance_factor": 0.0 },
-    "Battery_mg1b": { "phase_unbalance_factor": 0.0 },
-    "Battery_mg1c": { "phase_unbalance_factor": 0.0 }
+    "battery_mg1a": { "phase_unbalance_factor": 0.0 },
+    "battery_mg1b": { "phase_unbalance_factor": 0.0 },
+    "battery_mg1c": { "phase_unbalance_factor": 0.0 }
   },
   "switch": {
     "801675": { "cm_ub": [25.0, 25.0, 25.0] },
@@ -212,5 +212,8 @@
   "max_switch_actions": [1, 1, 1, 1, 1, 1, 1, 1],
   "disable_switch_penalty": false,
   "apply_switch_scores": true,
-  "disable_presolver": false
+  "disable_presolver": false,
+  "disable_inverter_constraint": false,
+  "disable_isolation_constraint": false,
+  "disable_radial_constraint": false
 }
