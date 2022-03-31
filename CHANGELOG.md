@@ -2,6 +2,7 @@
 
 ## staged
 
+- Fixed bug in recursive merge for `build_settings_file`
 - Fixed bug where `PMD.diag` should have been `LinearAlgebra.diag`
 - Fixed bug in `build_settings_file` where the recursive merge was not overwriting the `settings` variable
 

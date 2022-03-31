@@ -342,7 +342,7 @@ function build_settings_file(
         )
     end
 
-    settings = recursive_merge(settings, custom_settings)
+    settings = recursive_merge_no_vecs(settings, custom_settings)
 
     # Save the ieee13_settings.json file
     open(settings_file, "w") do io

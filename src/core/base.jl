@@ -122,6 +122,12 @@ recursive_merge(x::AbstractVector...) = cat(x...; dims=1)
 "recursive other merge"
 recursive_merge(x...) = x[end]
 
+"recursive dictionary merge, similar to update data, with vectors getting overwritten instead of appended"
+recursive_merge_no_vecs(x::AbstractDict...) = merge(recursive_merge_no_vecs, x...)
+
+"recursive other merge, with vectors getting overwritten instead of appended"
+recursive_merge_no_vecs(x...) = x[end]
+
 
 "helper function to recursively merge timestep vectors (e.g., of dictionaries)"
 function recursive_merge_timesteps(x::T, y::U)::promote_type(T,U) where {T<: AbstractVector,U<: AbstractVector}
