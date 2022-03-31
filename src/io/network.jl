@@ -201,9 +201,15 @@ function get_timestep_bus_types(optimal_dispatch_solution::Dict{String,<:Any}, n
     timesteps = Dict{String,String}[]
 
     for n in sort(parse.(Int, collect(keys(get(optimal_dispatch_solution, "nw", Dict())))))
+        nw = network["nw"]["$n"]
+        buses = collect(keys(get(nw, "bus", Dict{String,Any}())))
+
         vsource_buses = [vs["bus"] for (_,vs) in get(network["nw"]["$n"], "voltage_source", Dict()) if vs["status"] == PMD.ENABLED]
         timestep = Dict{String,String}()
-        for (id,bus) in get(optimal_dispatch_solution["nw"]["$n"], "bus", Dict())
+        nw_sol_bus = get(optimal_dispatch_solution["nw"]["$n"], "bus", Dict())
+        for id in buses
+            bus = get(nw_sol_bus, id, Dict("bus_type"=>4))
+
             timestep[id] = Dict{Int,String}(1=>"pq",2=>"pv",3=>"ref",4=>"isolated")[get(bus, "bus_type", 1)]
             if id in vsource_buses
                 timestep[id] = "ref"
