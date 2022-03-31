@@ -426,15 +426,20 @@ function constraint_mc_storage_losses_block_on_off(pm::PMD.LPUBFDiagModel, nw::I
     sd = var(pm, nw, :sd, i)
     qsc = var(pm, nw, :qsc, i)
 
-    qsc_zblock = JuMP.@variable(pm.model, base_name="$(nw)_qd_zblock_$(i)")
+    if JuMP.has_lower_bound(qsc) && JuMP.has_upper_bound(qsc)
+        qsc_zblock = JuMP.@variable(pm.model, base_name="$(nw)_qd_zblock_$(i)")
 
-    JuMP.@constraint(pm.model, qsc_zblock >= JuMP.lower_bound(qsc) * z_block)
-    JuMP.@constraint(pm.model, qsc_zblock >= JuMP.upper_bound(qsc) * z_block + qsc - JuMP.upper_bound(qsc))
-    JuMP.@constraint(pm.model, qsc_zblock <= JuMP.upper_bound(qsc) * z_block)
-    JuMP.@constraint(pm.model, qsc_zblock <= qsc + JuMP.lower_bound(qsc) * z_block - JuMP.lower_bound(qsc))
+        JuMP.@constraint(pm.model, qsc_zblock >= JuMP.lower_bound(qsc) * z_block)
+        JuMP.@constraint(pm.model, qsc_zblock >= JuMP.upper_bound(qsc) * z_block + qsc - JuMP.upper_bound(qsc))
+        JuMP.@constraint(pm.model, qsc_zblock <= JuMP.upper_bound(qsc) * z_block)
+        JuMP.@constraint(pm.model, qsc_zblock <= qsc + JuMP.lower_bound(qsc) * z_block - JuMP.lower_bound(qsc))
 
-    JuMP.@constraint(pm.model, sum(ps[c] for c in connections) + (sd - sc) == p_loss * z_block)
-    JuMP.@constraint(pm.model, sum(qs[c] for c in connections) == qsc_zblock + q_loss * z_block)
+        JuMP.@constraint(pm.model, sum(ps[c] for c in connections) + (sd - sc) == p_loss * z_block)
+        JuMP.@constraint(pm.model, sum(qs[c] for c in connections) == qsc_zblock + q_loss * z_block)
+    else
+        # Note that this is not supported in LP solvers when z_block is continuous
+        JuMP.@constraint(pm.model, sum(qs[c] for c in connections) == qsc * z_block + q_loss * z_block)
+    end
 end
 
 
