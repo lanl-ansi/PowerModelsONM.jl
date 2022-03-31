@@ -309,7 +309,7 @@ function build_block_mld(pm::PMD.AbstractUBFModels)
         constraint_mc_storage_block_on_off(pm, i)
         constraint_mc_storage_losses_block_on_off(pm, i)
         PMD.constraint_mc_storage_thermal_limit(pm, i)
-        constraint_mc_storage_phase_unbalance(pm, i)
+        constraint_mc_storage_phase_unbalance_grid_following(pm, i)
     end
 
     for i in ids(pm, :branch)
@@ -397,7 +397,7 @@ function build_block_mld(pm::AbstractUnbalancedPowerModel)
         constraint_mc_storage_block_on_off(pm, i)
         constraint_mc_storage_losses_block_on_off(pm, i)
         PMD.constraint_mc_storage_thermal_limit(pm, i)
-        constraint_mc_storage_phase_unbalance(pm, i)
+        constraint_mc_storage_phase_unbalance_grid_following(pm, i)
     end
 
     for i in ids(pm, :branch)
