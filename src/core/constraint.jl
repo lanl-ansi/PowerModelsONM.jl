@@ -684,7 +684,7 @@ end
 
 
 @doc raw"""
-    constraint_grid_forming_inverter_per_cc_block
+    constraint_grid_forming_inverter_per_cc(pm::AbstractUnbalancedPowerModel, nw::Int; relax::Bool=false)
 
 Constrains each connected component of the load block graph to have only one grid-forming inverter, if the block is enabled
 
@@ -697,7 +697,7 @@ y^{k'}_{dc} - (1 - z_{dc}) - (1 - z_{ab}) \le y^{k'}_{ab} \le  y^{k'}_{dc} + (1 
 \end{align}
 ```
 """
-function constraint_grid_forming_inverter_per_cc_block(pm::AbstractUnbalancedPowerModel, nw::Int; relax::Bool=false)
+function constraint_grid_forming_inverter_per_cc(pm::AbstractUnbalancedPowerModel, nw::Int; relax::Bool=false)
     # Set of base connected components
     L = Set{Int}(ids(pm, nw, :blocks))
 
@@ -718,86 +718,10 @@ function constraint_grid_forming_inverter_per_cc_block(pm::AbstractUnbalancedPow
     y = var(pm, nw, :y)
     z = var(pm, nw, :switch_state)
     x = var(pm, nw, :z_inverter)
-    zᵦ = var(pm, nw, :z_block)
 
     for ((t,j), z_inv) in x
         if t == :gen && startswith(ref(pm, nw, t, j, "source_id"), "voltage_source")
-            JuMP.@constraint(pm.model, z_inv == zᵦ[ref(pm, nw, :gen_block_map, j)])
-        end
-    end
-
-    # Eq. (2)
-    for ab in ids(pm, nw, :switch)
-        JuMP.@constraint(pm.model, sum(y[(k,ab)] for k in L) == 1)
-    end
-
-    # Eqs. (3)-(5)
-    for k in L
-        Dₖ = ref(pm, nw, :block_inverters, k)
-        Tₖ = ref(pm, nw, :block_switches, k)
-
-        # Eq. (3)
-        if !isempty(Dₖ)
-            JuMP.@constraint(pm.model, sum(x[i] for i in Dₖ) >= sum(1-z[ab] for ab in Tₖ)-length(Tₖ)+zᵦ[k])
-            JuMP.@constraint(pm.model, sum(x[i] for i in Dₖ) <= zᵦ[k])
-        end
-
-        for ab in Tₖ
-            # Eq. (4)
-            JuMP.@constraint(pm.model, sum(x[i] for i in Dₖ) >= y[(k, ab)] - (1 - z[ab]))
-            JuMP.@constraint(pm.model, sum(x[i] for i in Dₖ) <= y[(k, ab)] + (1 - z[ab]))
-
-            for dc in filter(x->x!=ab, Tₖ)
-                for k′ in L
-                    # Eq. (5)
-                    JuMP.@constraint(pm.model, y[(k′,ab)] >= y[(k′,dc)] - (1 - z[dc]) - (1 - z[ab]))
-                    JuMP.@constraint(pm.model, y[(k′,ab)] <= y[(k′,dc)] + (1 - z[dc]) + (1 - z[ab]))
-                end
-            end
-        end
-    end
-end
-
-
-@doc raw"""
-    constraint_grid_forming_inverter_per_cc_traditional(pm::AbstractUnbalancedPowerModel, nw::Int; relax::Bool=false)
-
-Constrains each connected component of the load block graph to have only one grid-forming inverter, if the block is enabled
-
-```math
-\sum_{k \in |{\cal L}|} y^k_{ab} = 1 \forall ab \in \cal S \\
-\sum_{ab \in {\cal T}_k} (1-z_{ab}) - |{\cal T}_k| + 1 \le \sum_{i \in {\cal D}_k} x_i \le 1  \forall k \in \cal L  \\
-y^k_{ab} - (1 - z_{ab}) \le \sum_{i \in {\cal D}_k} x_i \le  y^k_{ab} + (1 - z_{ab})   \forall k \in \cal L,ab \in {\cal T}_k \\
-y^{k'}_{dc} - (1 - z_{dc}) - (1 - z_{ab}) \le y^{k'}_{ab} \le  y^{k'}_{dc} + (1 - z_{dc}) + (1 - z_{ab})    \forall k \in \cal L,ab \in {\cal T}_k, dc \in {\cal T}_k
-```
-"""
-function constraint_grid_forming_inverter_per_cc_traditional(pm::AbstractUnbalancedPowerModel, nw::Int; relax::Bool=false)
-    # Set of base connected components
-    L = Set{Int}(ids(pm, nw, :blocks))
-
-    # variable representing if switch ab has 'color' k
-    var(pm, nw)[:y] = Dict{Tuple{Int,Int},JuMP.VariableRef}()
-    for k in L
-        for ab in ids(pm, nw, :switch)
-            var(pm, nw, :y)[(k,ab)] = JuMP.@variable(
-                pm.model,
-                base_name="$(nw)_y",
-                binary=!relax,
-                lower_bound=0,
-                upper_bound=1
-            )
-        end
-    end
-
-    y = var(pm, nw, :y)
-    z = var(pm, nw, :switch_state)
-    x = var(pm, nw, :z_inverter)
-    zᵧ = var(pm, nw, :z_gen)
-    zₛ = var(pm, nw, :z_storage)
-
-    for ((t,j), z_inv) in x
-        if t == :gen && startswith(ref(pm, nw, t, j, "source_id"), "voltage_source")
-            JuMP.@constraint(pm.model, z_inv == zᵧ[j])
+            JuMP.@constraint(pm.model, z_inv == 1)
         end
     end
 

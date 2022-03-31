@@ -48,7 +48,7 @@ function build_mn_block_mld(pm::PMD.AbstractUBFModels)
 
         PMD.constraint_mc_model_current(pm; nw=n)
 
-        !get(ref(pm, n), :disable_inverter_constraint, false) && constraint_grid_forming_inverter_per_cc_block(pm; nw=n, relax=false)
+        !get(ref(pm, n), :disable_inverter_constraint, false) && constraint_grid_forming_inverter_per_cc(pm; nw=n, relax=false)
 
         for i in ids(pm, n, :bus)
             constraint_mc_inverter_theta_ref(pm, i; nw=n)
@@ -156,7 +156,7 @@ function build_mn_block_mld(pm::AbstractUnbalancedPowerModel)
 
         PMD.constraint_mc_model_voltage(pm; nw=n)
 
-        !get(ref(pm, n), :disable_inverter_constraint, false) && constraint_grid_forming_inverter_per_cc_block(pm; nw=n, relax=false)
+        !get(ref(pm, n), :disable_inverter_constraint, false) && constraint_grid_forming_inverter_per_cc(pm; nw=n, relax=false)
 
         for i in ids(pm, n, :bus)
             constraint_mc_inverter_theta_ref(pm, i; nw=n)
@@ -283,7 +283,7 @@ function build_block_mld(pm::PMD.AbstractUBFModels)
 
     PMD.constraint_mc_model_current(pm)
 
-    !get(ref(pm), :disable_inverter_constraint, false) && constraint_grid_forming_inverter_per_cc_block(pm; relax=false)
+    !get(ref(pm), :disable_inverter_constraint, false) && constraint_grid_forming_inverter_per_cc(pm; relax=false)
 
     for i in ids(pm, :bus)
         constraint_mc_inverter_theta_ref(pm, i)
@@ -371,7 +371,7 @@ function build_block_mld(pm::AbstractUnbalancedPowerModel)
 
     PMD.constraint_mc_model_voltage(pm)
 
-    !get(ref(pm), :disable_inverter_constraint, false) && constraint_grid_forming_inverter_per_cc_block(pm; relax=false)
+    !get(ref(pm), :disable_inverter_constraint, false) && constraint_grid_forming_inverter_per_cc(pm; relax=false)
 
     for i in ids(pm, :bus)
         constraint_mc_inverter_theta_ref(pm, i)
