@@ -86,7 +86,7 @@ function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any}
     ref[:neighbors] = Dict{Int,Vector{Int}}(i => Graphs.neighbors(ref[:block_graph], i) for i in Graphs.vertices(ref[:block_graph]))
 
     ref[:switch_scores] = Dict{Int,Real}(s => 0.0 for (s,_) in ref[:switch])
-    total_line_losses = sum(LinearAlgebra.norm(br["br_r"] .+ 1im*br["br_x"]) for (_,br) in ref[:branch])
+    total_line_losses = sum(Float64[LinearAlgebra.norm(br["br_r"] .+ 1im*br["br_x"]) for (_,br) in ref[:branch]])
     for type in ["storage", "gen"]
         for (id,obj) in ref[Symbol(type)]
             if obj[PMD.pmd_math_component_status[type]] != PMD.pmd_math_component_status_inactive[type]
