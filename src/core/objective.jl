@@ -295,9 +295,16 @@ Minimizes the amount of storage that gets utilized in favor of using all availab
 ```
 """
 function objective_mc_min_storage_utilization(pm::AbstractUnbalancedPowerModel)
+    total_energy_ub = sum(strg["energy_rating"] for (n,nw_ref) in nws(pm) for (i,strg) in nw_ref[:storage])
+    total_pmax = sum(Float64[all(.!isfinite.(gen["pmax"])) ? 0.0 : sum(gen["pmax"][isfinite.(gen["pmax"])]) for (n,nw_ref) in nws(pm) for (i, gen) in nw_ref[:gen]])
+
+    total_energy_ub = total_energy_ub <= 1.0 ? 1.0 : total_energy_ub
+    total_pmax = total_pmax <= 1.0 ? 1.0 : total_pmax
+
     JuMP.@objective(pm.model, Min,
         sum(
-            sum( strg["energy_rating"] - var(pm, n, :se, i) for (i,strg) in nw_ref[:storage])
+            sum( strg["energy_rating"] - var(pm, n, :se, i) for (i,strg) in nw_ref[:storage]) / total_energy_ub
+            + sum( sum(get(gen,  "cost", [0.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [0.0, 0.0])[1] for c in  gen["connections"]) for (i,gen) in nw_ref[:gen]) / total_energy_ub
         for (n, nw_ref) in nws(pm))
     )
 end
