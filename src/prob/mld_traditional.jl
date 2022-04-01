@@ -91,6 +91,7 @@ function build_mn_traditional_mld(pm::PMD.AbstractUBFModels)
             PMD.constraint_mc_ampacity_to(pm, i; nw=n)
         end
 
+        get(ref(pm, n), :disable_networking, false) && constraint_disable_networking(pm; nw=n, relax=false)
         !get(ref(pm, n), :disable_radial_constraint, false) && constraint_radial_topology(pm; nw=n, relax=false)
         !get(ref(pm, n), :disable_isolation_constraint, false) && constraint_isolate_block_traditional(pm; nw=n)
         for i in ids(pm, n, :switch)
@@ -202,6 +203,7 @@ function build_mn_traditional_mld(pm::PMD.AbstractUnbalancedPowerModel)
             PMD.constraint_mc_ampacity_to(pm, i; nw=n)
         end
 
+        get(ref(pm, n), :disable_networking, false) && constraint_disable_networking(pm; nw=n, relax=false)
         !get(ref(pm, n), :disable_radial_constraint, false) && constraint_radial_topology(pm; nw=n, relax=false)
         !get(ref(pm, n), :disable_isolation_constraint, false) && constraint_isolate_block_traditional(pm; nw=n)
         for i in ids(pm, n, :switch)
@@ -334,6 +336,7 @@ function build_traditional_mld(pm::PMD.AbstractUBFModels)
     end
 
     constraint_switch_close_action_limit(pm)
+    get(ref(pm), :disable_networking, false) && constraint_disable_networking(pm; relax=false)
     !get(ref(pm), :disable_radial_constraint, false) && constraint_radial_topology(pm; relax=false)
     !get(ref(pm), :disable_isolation_constraint, false) && constraint_isolate_block_traditional(pm)
     for i in ids(pm, :switch)
@@ -425,6 +428,7 @@ function build_traditional_mld(pm::PMD.AbstractUnbalancedPowerModel)
     end
 
     constraint_switch_close_action_limit(pm)
+    get(ref(pm), :disable_networking, false) && constraint_disable_networking(pm; relax=false)
     !get(ref(pm), :disable_radial_constraint, false) && constraint_radial_topology(pm; relax=false)
     !get(ref(pm), :disable_isolation_constraint, false) && constraint_isolate_block_traditional(pm)
     for i in ids(pm, :switch)

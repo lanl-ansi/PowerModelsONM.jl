@@ -6,6 +6,8 @@
 
 ## v3.0.0
 
+- Added `constraint_disable_networking` based on coloring model to enabled microgrids to expand but not network
+- Updated events schema to allow for typical string values for certain switch fields
 - Added disable-networking option to CLI for future implementation of feature
 - Changed objective function term balances to ensure that restoring load is always the most critical term
 - Fixed bug in `_prepare_fault_study_multinetwork_data` where `va` was not being used

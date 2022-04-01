@@ -701,17 +701,19 @@ function constraint_grid_forming_inverter_per_cc(pm::AbstractUnbalancedPowerMode
     # Set of base connected components
     L = Set{Int}(ids(pm, nw, :blocks))
 
-    # variable representing if switch ab has 'color' k
-    var(pm, nw)[:y] = Dict{Tuple{Int,Int},JuMP.VariableRef}()
-    for k in L
-        for ab in ids(pm, nw, :switch)
-            var(pm, nw, :y)[(k,ab)] = JuMP.@variable(
-                pm.model,
-                base_name="$(nw)_y",
-                binary=!relax,
-                lower_bound=0,
-                upper_bound=1
-            )
+    if !(haskey(var(pm, nw), :y) && !isempty(var(pm, nw, :y)))
+        # variable representing if switch ab has 'color' k
+        var(pm, nw)[:y] = Dict{Tuple{Int,Int},JuMP.VariableRef}()
+        for k in L
+            for ab in ids(pm, nw, :switch)
+                var(pm, nw, :y)[(k,ab)] = JuMP.@variable(
+                    pm.model,
+                    base_name="$(nw)_y",
+                    binary=!relax,
+                    lower_bound=0,
+                    upper_bound=1
+                )
+            end
         end
     end
 
@@ -726,8 +728,12 @@ function constraint_grid_forming_inverter_per_cc(pm::AbstractUnbalancedPowerMode
     end
 
     # Eq. (2)
-    for ab in ids(pm, nw, :switch)
-        JuMP.@constraint(pm.model, sum(y[(k,ab)] for k in L) == 1)
+    if !(haskey(con(pm, nw), :y) && !isempty(con(pm, nw, :y)))
+        # constrain each y to have only one color
+        con(pm, nw)[:y] = Dict{Int,JuMP.ConstraintRef}()
+        for ab in ids(pm, nw, :switch)
+            con(pm, nw, :y)[ab] = JuMP.@constraint(pm.model, sum(y[(k,ab)] for k in L) == 1)
+        end
     end
 
     # Eqs. (3)-(5)
@@ -745,6 +751,72 @@ function constraint_grid_forming_inverter_per_cc(pm::AbstractUnbalancedPowerMode
             # Eq. (4)
             JuMP.@constraint(pm.model, sum(x[i] for i in Dₖ) >= y[(k, ab)] - (1 - z[ab]))
             JuMP.@constraint(pm.model, sum(x[i] for i in Dₖ) <= y[(k, ab)] + (1 - z[ab]))
+
+            for dc in filter(x->x!=ab, Tₖ)
+                for k′ in L
+                    # Eq. (5)
+                    JuMP.@constraint(pm.model, y[(k′,ab)] >= y[(k′,dc)] - (1 - z[dc]) - (1 - z[ab]))
+                    JuMP.@constraint(pm.model, y[(k′,ab)] <= y[(k′,dc)] + (1 - z[dc]) + (1 - z[ab]))
+                end
+            end
+        end
+    end
+end
+
+
+@doc raw"""
+    constraint_disable_networking(pm::AbstractUnbalancedPowerModel, nw::Int; relax::Bool=false)
+
+Constrains each microgrid to not network with another microgrid, while still allowing them to expand.
+
+```math
+\begin{align}
+\sum_{k \in |{\cal L}|} y^k_{ab} = 1, \forall ab \in {\cal S}\\
+y^k_{ab} - (1 - z_{ab}) \le x_k^{mg} \le  y^k_{ab} + (1 - z_{ab}), \forall k \in {\cal L}\\
+y^{k'}_{dc} - (1 - z_{dc}) - (1 - z_{ab}) \le y^{k'}_{ab} \le  y^{k'}_{dc} + (1 - z_{dc}) + (1 - z_{ab}), \forall k \in {\cal L}, \forall ab \in {\cal T}_k, \forall dc \in {\cal T}_k\setminus {ab}
+\end{align}
+```
+"""
+function constraint_disable_networking(pm::AbstractUnbalancedPowerModel, nw::Int; relax::Bool=false)
+    # Set of base connected components
+    L = Set{Int}(ids(pm, nw, :blocks))
+
+    if !(haskey(var(pm, nw), :yy) && !isempty(var(pm, nw, :yy)))
+        # variable representing if switch ab has 'color' k
+        var(pm, nw)[:yy] = Dict{Tuple{Int,Int},JuMP.VariableRef}()
+        for k in L
+            for ab in ids(pm, nw, :switch)
+                var(pm, nw, :yy)[(k,ab)] = JuMP.@variable(
+                    pm.model,
+                    base_name="$(nw)_yy",
+                    binary=!relax,
+                    lower_bound=0,
+                    upper_bound=1
+                )
+            end
+        end
+    end
+
+    y = var(pm, nw, :yy)
+    z = var(pm, nw, :switch_state)
+    x = Dict{Int,Int}(n => (n in ids(pm, nw, :microgrid_blocks) ? 1 : 0) for n in ids(pm, nw, :blocks))
+
+    if !(haskey(con(pm, nw), :yy) && !isempty(con(pm, nw, :yy)))
+        # constrain each y to have only one color
+        con(pm, nw)[:yy] = Dict{Int,JuMP.ConstraintRef}()
+        for ab in ids(pm, nw, :switch)
+            con(pm, nw, :yy)[ab] = JuMP.@constraint(pm.model, sum(y[(k,ab)] for k in L) == 1)
+        end
+    end
+
+    # Eqs. (4)-(5)
+    for k in L
+        Tₖ = ref(pm, nw, :block_switches, k)
+
+        for ab in Tₖ
+            # Eq. (4)
+            JuMP.@constraint(pm.model, x[k] >= y[(k, ab)] - (1 - z[ab]))
+            JuMP.@constraint(pm.model, x[k] <= y[(k, ab)] + (1 - z[ab]))
 
             for dc in filter(x->x!=ab, Tₖ)
                 for k′ in L

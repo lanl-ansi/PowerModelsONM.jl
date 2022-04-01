@@ -387,3 +387,13 @@ function constraint_mc_inverter_theta_ref(pm::AbstractUnbalancedPowerModel, i::I
     va_ref = get(ref(pm, nw, :bus, i), "va", deg2rad.([0.0, -120.0, 120.0]))
     constraint_mc_inverter_theta_ref(pm, nw, i, va_ref)
 end
+
+
+"""
+    constraint_disable_networking(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, relax::Bool=false)
+
+Template function for constraint to disable microgrid networking.
+"""
+function constraint_disable_networking(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, relax::Bool=false)
+    constraint_disable_networking(pm, nw; relax=relax)
+end
