@@ -94,7 +94,12 @@
                     "pg_lb" => [0.0, 0.0, 0.0],
                     "qg_lb" => [0.0, 0.0, 0.0],
                 )
-            )
+            ),
+            "transformer" => Dict{String,Any}(
+                    "xfm1" => Dict{String,Any}( "sm_ub" => 25000.0 ),
+                    "reg1" => Dict{String,Any}( "sm_ub" => 25000.0 ),
+                    "sub" => Dict{String,Any}( "sm_ub" => 25000.0 ),
+            ),
         )
 
         settings = PowerModelsONM.build_settings(

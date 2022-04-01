@@ -6,7 +6,6 @@
     "event_data": {
       "dispatchable": false,
       "state": "open",
-      "type": "breaker",
       "status": 1
     }
   },
@@ -15,10 +14,9 @@
     "event_type": "switch",
     "timestep": 1,
     "event_data": {
-      "dispatchable": false,
-      "state": "open",
-      "type": "breaker",
-      "status": 1
+      "dispatchable": "NO",
+      "state": "OPEN",
+      "status": "ENABLED"
     }
   },
   {
@@ -26,9 +24,9 @@
     "event_type": "switch",
     "timestep": 1,
     "event_data": {
-      "dispatchable": false,
-      "state": "open",
-      "type": "breaker"
+      "dispatchable": "NO",
+      "state": "OPEN",
+      "status": "ENABLED"
     }
   },
   {
@@ -36,9 +34,9 @@
     "event_type": "switch",
     "timestep": 1,
     "event_data": {
-      "dispatchable": false,
-      "state": "open",
-      "type": "breaker"
+      "dispatchable": "NO",
+      "state": "OPEN",
+      "status": "ENABLED"
     }
   },
   {
@@ -46,9 +44,9 @@
     "event_type": "switch",
     "timestep": 1,
     "event_data": {
-      "dispatchable": false,
-      "state": "open",
-      "type": "breaker"
+      "dispatchable": "NO",
+      "state": "OPEN",
+      "status": "ENABLED"
     }
   },
   {
@@ -56,10 +54,9 @@
     "event_type": "switch",
     "timestep": 1,
     "event_data": {
-      "dispatchable": false,
-      "state": "open",
-      "type": "tie",
-      "status": 1
+      "dispatchable": "NO",
+      "state": "OPEN",
+      "status": "ENABLED"
     }
   },
 
@@ -68,7 +65,7 @@
     "event_type": "switch",
     "timestep": 2,
     "event_data": {
-      "dispatchable": true
+      "dispatchable": "YES"
     }
   },
   {
@@ -76,7 +73,7 @@
     "event_type": "switch",
     "timestep": 2,
     "event_data": {
-      "dispatchable": true
+      "dispatchable": "YES"
     }
   },
   {
@@ -84,7 +81,7 @@
     "event_type": "switch",
     "timestep": 2,
     "event_data": {
-      "dispatchable": true
+      "dispatchable": "YES"
     }
   },
   {
@@ -92,7 +89,7 @@
     "event_type": "switch",
     "timestep": 2,
     "event_data": {
-      "dispatchable": true
+      "dispatchable": "YES"
     }
   },
   {
@@ -100,7 +97,7 @@
     "event_type": "switch",
     "timestep": 2,
     "event_data": {
-      "dispatchable": true
+      "dispatchable": "YES"
     }
   },
   {
@@ -108,7 +105,7 @@
     "event_type": "switch",
     "timestep": 2,
     "event_data": {
-      "dispatchable": true
+      "dispatchable": "YES"
     }
   }
 ]
