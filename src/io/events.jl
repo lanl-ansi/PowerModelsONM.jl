@@ -76,7 +76,13 @@ function _convert_event_data_types!(events::Vector{<:Dict{String,<:Any}})::Vecto
     for event in events
         for (k,v) in event["event_data"]
             if k == "dispatchable"
-                event["event_data"][k] = PMD.Dispatchable(Int(v))
+                if isa(v, Bool) || isa(v, Real)
+                    event["event_data"][k] = PMD.Dispatchable(Int(v))
+                elseif isa(v, String)
+                    event["event_data"][k] = lowercase(v) == "yes" ? PMD.YES : PMD.NO
+                else
+                    @error "type of $k in event_data is no recognized"
+                end
             end
 
             if k == "state"
@@ -84,7 +90,13 @@ function _convert_event_data_types!(events::Vector{<:Dict{String,<:Any}})::Vecto
             end
 
             if k == "status"
-                event["event_data"][k] = PMD.Status(Int(v))
+                if isa(v, Real)
+                    event["event_data"][k] = PMD.Status(Int(v))
+                elseif isa(v, String)
+                    event["event_data"][k] = lowercase(v) == "enabled" ? PMD.ENABLED : PMD.DISABLED
+                else
+                    @error "type of $k in event_data is no recognized"
+                end
             end
         end
     end
@@ -349,10 +361,9 @@ function build_events_file(case_file::String, events_file::String; custom_events
                 "event_type" => "switch",
                 "affected_asset" => switch["source_id"],
                 "event_data" => Dict{String,Any}(
-                    "type" => "breaker",
-                    "state" => lowercase(string(default_switch_state)),
-                    "dispatchable" => Bool(Int(default_switch_dispatchable)),
-                    "status" => ismissing(default_switch_status) ? Int(switch["status"]) : Int(default_switch_status),
+                    "state" => string(default_switch_state),
+                    "dispatchable" => string(default_switch_dispatchable),
+                    "status" => ismissing(default_switch_status) ? string(switch["status"]) : string(default_switch_status),
                 )
             )
         )
