@@ -15,7 +15,7 @@ end
 
 Validates runtime_arguments data against models/runtime_arguments schema
 """
-validate_runtime_arguments(data::Dict)::Bool = _validate_against_schema(data, "input.runtime_arguments")
+validate_runtime_arguments(data::Dict)::Bool = _validate_against_schema(data, "input-runtime_arguments")
 
 
 """
@@ -23,7 +23,7 @@ validate_runtime_arguments(data::Dict)::Bool = _validate_against_schema(data, "i
 
 Validates events data against models/events schema
 """
-validate_events(data::Vector)::Bool = _validate_against_schema(data, "input.events")
+validate_events(data::Vector)::Bool = _validate_against_schema(data, "input-events")
 
 
 """
@@ -31,7 +31,7 @@ validate_events(data::Vector)::Bool = _validate_against_schema(data, "input.even
 
 Validates inverter data against models/inverters schema
 """
-validate_inverters(data::Dict)::Bool = _validate_against_schema(data, "input.inverters")
+validate_inverters(data::Dict)::Bool = _validate_against_schema(data, "input-inverters")
 
 
 """
@@ -39,7 +39,7 @@ validate_inverters(data::Dict)::Bool = _validate_against_schema(data, "input.inv
 
 Validates fault input data against models/faults schema
 """
-validate_faults(data::Dict)::Bool = _validate_against_schema(data, "input.faults")
+validate_faults(data::Dict)::Bool = _validate_against_schema(data, "input-faults")
 
 
 """
@@ -47,7 +47,7 @@ validate_faults(data::Dict)::Bool = _validate_against_schema(data, "input.faults
 
 Validates runtime_settings data against models/runtime_settings schema
 """
-validate_settings(data::Dict)::Bool = _validate_against_schema(data, "input.settings")
+validate_settings(data::Dict)::Bool = _validate_against_schema(data, "input-settings")
 
 
 """
