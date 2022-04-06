@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>output · PowerModelsONM</title><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.039/juliamono-regular.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../index.html">PowerModelsONM</a></span></div><form class="docs-search" action="../search.html"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../index.html">Introduction</a></li><li><a class="tocitem" href="../installation.html">Installation Guide</a></li><li><span class="tocitem">Manual</span><ul><li><a class="tocitem" href="../manual/quickguide.html">Getting Started</a></li><li><a class="tocitem" href="../manual/onm_workflow.html">The ONM Workflow</a></li><li><a class="tocitem" href="../manual/osw_mld_model.html">Optimal Switch / Load shed Mathematical Model</a></li><li><a class="tocitem" href="../manual/opf_model.html">Optimal Dispatch Mathematical Model</a></li></ul></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../tutorials/Beginners Guide.html">Beginners Guide</a></li></ul></li><li><span class="tocitem">API Reference</span><ul><li><a class="tocitem" href="../reference/base.html">Base functions</a></li><li><a class="tocitem" href="../reference/data.html">Data Handling</a></li><li><a class="tocitem" href="../reference/entrypoint.html">Main Entrypoint</a></li><li><a class="tocitem" href="../reference/internal.html">Internal Functions</a></li><li><a class="tocitem" href="../reference/io.html">IO Functions</a></li><li><a class="tocitem" href="../reference/logging.html">Logging</a></li><li><a class="tocitem" href="../reference/prob.html">Optimization Problems</a></li><li><a class="tocitem" href="../reference/stats.html">Solution Statistics</a></li><li><a class="tocitem" href="../reference/variable_constraint.html">Variables and Constraints</a></li><li><a class="tocitem" href="../reference/types.html">Types</a></li></ul></li><li><span class="tocitem">Developer Docs</span><ul><li><a class="tocitem" href="../developer/contributing.html">Contributing Guide</a></li><li><a class="tocitem" href="../developer/style.html">Style Guide</a></li><li><a class="tocitem" href="../developer/roadmap.html">Roadmap</a></li></ul></li><li><span class="tocitem">Schema Documentation</span><ul><li><a class="tocitem" href="input-events.html">input-events</a></li><li><a class="tocitem" href="input-faults.html">input-faults</a></li><li><a class="tocitem" href="input-fuse.html">input-fuse</a></li><li><a class="tocitem" href="input-inverters.html">input-inverters</a></li><li><a class="tocitem" href="input-recloser.html">input-recloser</a></li><li><a class="tocitem" href="input-runtime_arguments.html">input-runtime_arguments</a></li><li><a class="tocitem" href="input-settings.html">input-settings</a></li><li><a class="tocitem" href="output-additional_statistics.html">output-additional_statistics</a></li><li><a class="tocitem" href="output-device_action_timeline.html">output-device<em>action</em>timeline</a></li><li><a class="tocitem" href="output-fault_currents.html">output-fault_currents</a></li><li><a class="tocitem" href="output-fault_study_metadata.html">output-fault<em>study</em>metadata</a></li><li><a class="tocitem" href="output-generator_profiles.html">output-generator_profiles</a></li><li><a class="tocitem" href="output-load_served.html">output-load_served</a></li><li><a class="tocitem" href="output-optimization_metadata.html">output-optimization_metadata</a></li><li><a class="tocitem" href="output-powerflow.html">output-powerflow</a></li><li><a class="tocitem" href="output-protection.html">output-protection</a></li><li><a class="tocitem" href="output-small_signal.html">output-small_signal</a></li><li><a class="tocitem" href="output-storage_soc.html">output-storage_soc</a></li><li><a class="tocitem" href="output-switch_changes.html">output-switch_changes</a></li><li><a class="tocitem" href="output-system_metadata.html">output-system_metadata</a></li><li><a class="tocitem" href="output-timesteps.html">output-timesteps</a></li><li><a class="tocitem" href="output-voltages.html">output-voltages</a></li><li class="is-active"><a class="tocitem" href="output.html">output</a><ul class="internal"><li><a class="tocitem" href="#Outputs-Type"><span>Outputs Type</span></a></li><li><a class="tocitem" href="#Outputs-Examples"><span>Outputs Examples</span></a></li><li class="toplevel"><a class="tocitem" href="#Outputs-Properties"><span>Outputs Properties</span></a></li><li><a class="tocitem" href="#Runtime-timestamp"><span>Runtime timestamp</span></a></li><li><a class="tocitem" href="#Simulation-time-steps"><span>Simulation time steps</span></a></li><li><a class="tocitem" href="#Load-served"><span>Load served</span></a></li><li><a class="tocitem" href="#Generator-profiles"><span>Generator profiles</span></a></li><li><a class="tocitem" href="#Voltages"><span>Voltages</span></a></li><li><a class="tocitem" href="#Storage-SOC-(%)"><span>Storage SOC (%)</span></a></li><li><a class="tocitem" href="#Device-action-timeline"><span>Device action timeline</span></a></li><li><a class="tocitem" href="#Powerflow-output"><span>Powerflow output</span></a></li><li><a class="tocitem" href="#Additional-statistics"><span>Additional statistics</span></a></li><li><a class="tocitem" href="#Events"><span>Events</span></a></li><li><a class="tocitem" href="#Runtime-arguments"><span>Runtime arguments</span></a></li><li><a class="tocitem" href="#Fault-currents"><span>Fault currents</span></a></li><li><a class="tocitem" href="#Small-signal-stable"><span>Small signal stable</span></a></li><li><a class="tocitem" href="#Switch-changes"><span>Switch changes</span></a></li><li><a class="tocitem" href="#Optimal-switching-metadata"><span>Optimal switching metadata</span></a></li><li><a class="tocitem" href="#Optimal-dispatch-metadata"><span>Optimal dispatch metadata</span></a></li><li><a class="tocitem" href="#Fault-studies-metadata"><span>Fault studies metadata</span></a></li><li><a class="tocitem" href="#System-metadata"><span>System metadata</span></a></li><li><a class="tocitem" href="#Protection-settings"><span>Protection settings</span></a></li></ul></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Schema Documentation</a></li><li class="is-active"><a href="output.html">output</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href="output.html">output</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/lanl-ansi/PowerModelsONM.jl/blob/master/docs/src/schemas/output.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Outputs-Schema"><a class="docs-heading-anchor" href="#Outputs-Schema">Outputs Schema</a><a id="Outputs-Schema-1"></a><a class="docs-heading-anchor-permalink" href="#Outputs-Schema" title="Permalink"></a></h1><pre><code class="language-txt hljs">schemas/outputs</code></pre><p>This is the schema for the output statistics and analytics from the ONM workflow using [<code>entrypoint</code>](@ref entrypoint) and [<code>analyze_results!</code>](@ref analyze_results!)</p><table><tr><th style="text-align: left">Abstract</th><th style="text-align: left">Extensible</th><th style="text-align: left">Status</th><th style="text-align: left">Identifiable</th><th style="text-align: left">Custom Properties</th><th style="text-align: left">Additional Properties</th><th style="text-align: left">Access Restrictions</th><th style="text-align: left">Defined In</th></tr><tr><td style="text-align: left">Can be instantiated</td><td style="text-align: left">No</td><td style="text-align: left">Unknown status</td><td style="text-align: left">No</td><td style="text-align: left">Forbidden</td><td style="text-align: left">Forbidden</td><td style="text-align: left">none</td><td style="text-align: left"><a href="https://raw.githubusercontent.com/lanl-ansi/PowerModelsONM.jl/main/schemas/output.schema.json">output.schema.json</a></td></tr></table><h2 id="Outputs-Type"><a class="docs-heading-anchor" href="#Outputs-Type">Outputs Type</a><a id="Outputs-Type-1"></a><a class="docs-heading-anchor-permalink" href="#Outputs-Type" title="Permalink"></a></h2><p><code>object</code> (<a href="output.html">Outputs</a>)</p><h2 id="Outputs-Examples"><a class="docs-heading-anchor" href="#Outputs-Examples">Outputs Examples</a><a id="Outputs-Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Outputs-Examples" title="Permalink"></a></h2><pre><code class="language-json hljs">{
+  &quot;Events&quot;: [
+    {
+      &quot;event_data&quot;: {
+        &quot;status&quot;: 1,
+        &quot;dispatchable&quot;: false,
+        &quot;type&quot;: &quot;breaker&quot;,
+        &quot;state&quot;: &quot;open&quot;
+      },
+      &quot;timestep&quot;: 1,
+      &quot;affected_asset&quot;: &quot;line.671700&quot;,
+      &quot;event_type&quot;: &quot;switch&quot;
+    }
+  ],
+  &quot;Generator profiles&quot;: {
+    &quot;Diesel DG (kW)&quot;: [
+      0,
+      0,
+      0
+    ],
+    &quot;Energy storage (kW)&quot;: [
+      0,
+      0,
+      0
+    ],
+    &quot;Solar DG (kW)&quot;: [
+      200,
+      175,
+      100
+    ],
+    &quot;Grid mix (kW)&quot;: [
+      1750,
+      2000,
+      3000
+    ]
+  },
+  &quot;Fault currents&quot;: [
+    {
+      &quot;701_lg_1&quot;: {
+        &quot;fault&quot;: {
+          &quot;susceptance (S)&quot;: [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ],
+          &quot;connections&quot;: [
+            1,
+            4
+          ],
+          &quot;conductance (S)&quot;: [
+            [
+              100,
+              -100
+            ],
+            [
+              -100,
+              100
+            ]
+          ],
+          &quot;bus&quot;: &quot;701&quot;,
+          &quot;type&quot;: &quot;lg&quot;
+        },
+        &quot;switch&quot;: {
+          &quot;671692&quot;: {
+            &quot;|I| (A)&quot;: null,
+            &quot;|I2| (A)&quot;: 0.8,
+            &quot;|I0| (A)&quot;: 1.2,
+            &quot;|I1| (A)&quot;: 90.1,
+            &quot;|V| (V)&quot;: [
+              2.5,
+              2.5,
+              2.5
+            ]
+          }
+        }
+      }
+    }
+  ],
+  &quot;Runtime timestamp&quot;: &quot;2021-01-01T00:00:00.000&quot;,
+  &quot;Switch changes&quot;: [
+    [],
+    [
+      &quot;671700&quot;
+    ],
+    [
+      &quot;701702&quot;
+    ]
+  ],
+  &quot;Runtime arguments&quot;: {
+    &quot;events&quot;: &quot;../test/data/ieee13_events.json&quot;,
+    &quot;faults&quot;: &quot;../test/data/ieee13_faults.json&quot;,
+    &quot;voltage-angle-difference&quot;: 5,
+    &quot;network&quot;: &quot;../test/data/ieee13_feeder.dss&quot;,
+    &quot;settings&quot;: &quot;../test/data/ieee13_settings.json&quot;,
+    &quot;voltage-lower-bound&quot;: 0.8,
+    &quot;quiet&quot;: true,
+    &quot;inverters&quot;: &quot;../test/data/ieee13_inverters.json&quot;,
+    &quot;max-switch-actions&quot;: 1,
+    &quot;voltage-upper-bound&quot;: 1.2
+  },
+  &quot;Simulation time steps&quot;: [
+    1,
+    2,
+    3
+  ],
+  &quot;Voltages&quot;: {
+    &quot;Min voltage (p.u.)&quot;: [
+      1,
+      1,
+      1
+    ],
+    &quot;Max voltage (p.u.)&quot;: [
+      1.2,
+      1,
+      1.1
+    ],
+    &quot;Mean voltage (p.u.)&quot;: [
+      1.1,
+      1,
+      1
+    ]
+  },
+  &quot;Additional statistics&quot;: {},
+  &quot;Storage SOC (%)&quot;: [
+    null,
+    null,
+    null
+  ],
+  &quot;Powerflow output&quot;: [
+    {
+      &quot;voltage_source&quot;: {
+        &quot;source&quot;: {
+          &quot;real power setpoint (kW)&quot;: [
+            581.8173560045832,
+            468.8619242602074,
+            708.8039492196247
+          ],
+          &quot;reactive power setpoint (kVar)&quot;: [
+            244.09972136399347,
+            32.25338488759224,
+            40.35427973972425
+          ]
+        }
+      },
+      &quot;solar&quot;: {
+        &quot;pv1&quot;: {
+          &quot;real power setpoint (kW)&quot;: [
+            64.49371884320102,
+            64.507863885424,
+            64.49849984139108
+          ],
+          &quot;reactive power setpoint (kVar)&quot;: [
+            41.23181415943054,
+            41.23340639500285,
+            41.23312440672468
+          ]
+        }
+      },
+      &quot;bus&quot;: {
+        &quot;611&quot;: {
+          &quot;voltage (V)&quot;: [
+            2.5217499128997907
+          ]
+        }
+      }
+    }
+  ],
+  &quot;Small signal stable&quot;: [
+    false,
+    false,
+    false
+  ],
+  &quot;Load served&quot;: {
+    &quot;Bonus load via microgrid (%)&quot;: [
+      0,
+      0,
+      0
+    ],
+    &quot;Feeder load (%)&quot;: [
+      85.8,
+      91.2,
+      96.7
+    ],
+    &quot;Microgrid load (%)&quot;: [
+      9.4,
+      9,
+      3.2
+    ]
+  },
+  &quot;Device action timeline&quot;: [
+    {
+      &quot;Shedded loads&quot;: [
+        &quot;701&quot;,
+        &quot;700&quot;
+      ],
+      &quot;Switch configurations&quot;: {
+        &quot;671692&quot;: &quot;closed&quot;,
+        &quot;671700&quot;: &quot;open&quot;,
+        &quot;701702&quot;: &quot;open&quot;
+      }
+    },
+    {
+      &quot;Shedded loads&quot;: [],
+      &quot;Switch configurations&quot;: {
+        &quot;671692&quot;: &quot;closed&quot;,
+        &quot;671700&quot;: &quot;closed&quot;,
+        &quot;701702&quot;: &quot;open&quot;
+      }
+    },
+    {
+      &quot;Shedded loads&quot;: [],
+      &quot;Switch configurations&quot;: {
+        &quot;671692&quot;: &quot;closed&quot;,
+        &quot;671700&quot;: &quot;closed&quot;,
+        &quot;701702&quot;: &quot;closed&quot;
+      }
+    }
+  ]
+}</code></pre><h1 id="Outputs-Properties"><a class="docs-heading-anchor" href="#Outputs-Properties">Outputs Properties</a><a id="Outputs-Properties-1"></a><a class="docs-heading-anchor-permalink" href="#Outputs-Properties" title="Permalink"></a></h1><table><tr><th style="text-align: left">Property</th><th style="text-align: left">Type</th><th style="text-align: left">Required</th><th style="text-align: left">Nullable</th><th style="text-align: left">Defined by</th></tr><tr><td style="text-align: left"><a href="#runtime-timestamp">Runtime timestamp</a></td><td style="text-align: left"><code>string</code></td><td style="text-align: left">Required</td><td style="text-align: left">cannot be null</td><td style="text-align: left"><a href="output-properties-runtime-timestamp.html">Outputs</a></td></tr><tr><td style="text-align: left"><a href="#simulation-time-steps">Simulation time steps</a></td><td style="text-align: left"><code>array</code></td><td style="text-align: left">Required</td><td style="text-align: left">cannot be null</td><td style="text-align: left"><a href="output-timesteps.html">Outputs</a></td></tr><tr><td style="text-align: left"><a href="#load-served">Load served</a></td><td style="text-align: left"><code>object</code></td><td style="text-align: left">Required</td><td style="text-align: left">cannot be null</td><td style="text-align: left"><a href="output-load_served.html">Outputs</a></td></tr><tr><td style="text-align: left"><a href="#generator-profiles">Generator profiles</a></td><td style="text-align: left"><code>object</code></td><td style="text-align: left">Required</td><td style="text-align: left">cannot be null</td><td style="text-align: left"><a href="output-generator_profiles.html">Outputs</a></td></tr><tr><td style="text-align: left"><a href="#voltages">Voltages</a></td><td style="text-align: left"><code>object</code></td><td style="text-align: left">Required</td><td style="text-align: left">cannot be null</td><td style="text-align: left"><a href="output-voltages.html">Outputs</a></td></tr><tr><td style="text-align: left"><a href="#storage-soc-">Storage SOC (%)</a></td><td style="text-align: left"><code>array</code></td><td style="text-align: left">Required</td><td style="text-align: left">cannot be null</td><td style="text-align: left"><a href="output-storage_soc.html">Outputs</a></td></tr><tr><td style="text-align: left"><a href="#device-action-timeline">Device action timeline</a></td><td style="text-align: left"><code>array</code></td><td style="text-align: left">Required</td><td style="text-align: left">cannot be null</td><td style="text-align: left"><a href="output-device_action_timeline.html">Outputs</a></td></tr><tr><td style="text-align: left"><a href="#powerflow-output">Powerflow output</a></td><td style="text-align: left"><code>array</code></td><td style="text-align: left">Required</td><td style="text-align: left">cannot be null</td><td style="text-align: left"><a href="output-powerflow.html">Outputs</a></td></tr><tr><td style="text-align: left"><a href="#additional-statistics">Additional statistics</a></td><td style="text-align: left"><code>object</code></td><td style="text-align: left">Optional</td><td style="text-align: left">cannot be null</td><td style="text-align: left"><a href="output-additional_statistics.html">Outputs</a></td></tr><tr><td style="text-align: left"><a href="#events">Events</a></td><td style="text-align: left"><code>array</code></td><td style="text-align: left">Optional</td><td style="text-align: left">cannot be null</td><td style="text-align: left"><a href="input-events.html">Outputs</a></td></tr><tr><td style="text-align: left"><a href="#runtime-arguments">Runtime arguments</a></td><td style="text-align: left"><code>object</code></td><td style="text-align: left">Required</td><td style="text-align: left">cannot be null</td><td style="text-align: left"><a href="input-runtime_arguments.html">Outputs</a></td></tr><tr><td style="text-align: left"><a href="#fault-currents">Fault currents</a></td><td style="text-align: left"><code>array</code></td><td style="text-align: left">Optional</td><td style="text-align: left">cannot be null</td><td style="text-align: left"><a href="output-fault_currents.html">Outputs</a></td></tr><tr><td style="text-align: left"><a href="#small-signal-stable">Small signal stable</a></td><td style="text-align: left"><code>array</code></td><td style="text-align: left">Optional</td><td style="text-align: left">cannot be null</td><td style="text-align: left"><a href="output-small_signal.html">Outputs</a></td></tr><tr><td style="text-align: left"><a href="#switch-changes">Switch changes</a></td><td style="text-align: left"><code>array</code></td><td style="text-align: left">Required</td><td style="text-align: left">cannot be null</td><td style="text-align: left"><a href="output-switch_changes.html">Outputs</a></td></tr><tr><td style="text-align: left"><a href="#optimal-switching-metadata">Optimal switching metadata</a></td><td style="text-align: left"><code>array</code></td><td style="text-align: left">Optional</td><td style="text-align: left">cannot be null</td><td style="text-align: left"><a href="output-properties-optimal-switching-metadata.html">Outputs</a></td></tr><tr><td style="text-align: left"><a href="#optimal-dispatch-metadata">Optimal dispatch metadata</a></td><td style="text-align: left"><code>object</code></td><td style="text-align: left">Optional</td><td style="text-align: left">cannot be null</td><td style="text-align: left"><a href="output-optimization_metadata.html">Outputs</a></td></tr><tr><td style="text-align: left"><a href="#fault-studies-metadata">Fault studies metadata</a></td><td style="text-align: left"><code>array</code></td><td style="text-align: left">Optional</td><td style="text-align: left">cannot be null</td><td style="text-align: left"><a href="output-fault_study_metadata.html">Outputs</a></td></tr><tr><td style="text-align: left"><a href="#system-metadata">System metadata</a></td><td style="text-align: left"><code>object</code></td><td style="text-align: left">Required</td><td style="text-align: left">cannot be null</td><td style="text-align: left"><a href="output-system_metadata.html">Outputs</a></td></tr><tr><td style="text-align: left"><a href="#protection-settings">Protection settings</a></td><td style="text-align: left"><code>object</code></td><td style="text-align: left">Required</td><td style="text-align: left">cannot be null</td><td style="text-align: left"><a href="output-protection.html">Outputs</a></td></tr></table><h2 id="Runtime-timestamp"><a class="docs-heading-anchor" href="#Runtime-timestamp">Runtime timestamp</a><a id="Runtime-timestamp-1"></a><a class="docs-heading-anchor-permalink" href="#Runtime-timestamp" title="Permalink"></a></h2><p>Time at which ONM algorithm was executed</p><p><code>Runtime timestamp</code></p><ul><li><p>is required</p></li><li><p>Type: <code>string</code></p></li><li><p>cannot be null</p></li><li><p>defined in: <a href="output-properties-runtime-timestamp.html">Outputs</a></p></li></ul><h3 id="Runtime-timestamp-Type"><a class="docs-heading-anchor" href="#Runtime-timestamp-Type">Runtime timestamp Type</a><a id="Runtime-timestamp-Type-1"></a><a class="docs-heading-anchor-permalink" href="#Runtime-timestamp-Type" title="Permalink"></a></h3><p><code>string</code></p><h3 id="Runtime-timestamp-Constraints"><a class="docs-heading-anchor" href="#Runtime-timestamp-Constraints">Runtime timestamp Constraints</a><a id="Runtime-timestamp-Constraints-1"></a><a class="docs-heading-anchor-permalink" href="#Runtime-timestamp-Constraints" title="Permalink"></a></h3><p><strong>date time</strong>: the string must be a date time string, according to <a href="https://tools.ietf.org/html/rfc3339">RFC 3339, section 5.6</a></p><h2 id="Simulation-time-steps"><a class="docs-heading-anchor" href="#Simulation-time-steps">Simulation time steps</a><a id="Simulation-time-steps-1"></a><a class="docs-heading-anchor-permalink" href="#Simulation-time-steps" title="Permalink"></a></h2><p>The actual timesteps, either in datetime strings, or as numbers</p><p><code>Simulation time steps</code></p><ul><li><p>is required</p></li><li><p>Type: an array of the following:<code>string</code> or <code>number</code> (<a href="output-timesteps-items.html">Details</a>)</p></li><li><p>cannot be null</p></li><li><p>defined in: <a href="output-timesteps.html">Outputs</a></p></li></ul><h3 id="Simulation-time-steps-Type"><a class="docs-heading-anchor" href="#Simulation-time-steps-Type">Simulation time steps Type</a><a id="Simulation-time-steps-Type-1"></a><a class="docs-heading-anchor-permalink" href="#Simulation-time-steps-Type" title="Permalink"></a></h3><p>an array of the following:<code>string</code> or <code>number</code> (<a href="output-timesteps-items.html">Details</a>)</p><h2 id="Load-served"><a class="docs-heading-anchor" href="#Load-served">Load served</a><a id="Load-served-1"></a><a class="docs-heading-anchor-permalink" href="#Load-served" title="Permalink"></a></h2><p>Statistics about the load served, in percent, either by the Grid (feeder), or by the microgrids</p><p><code>Load served</code></p><ul><li><p>is required</p></li><li><p>Type: <code>object</code> (<a href="output-load_served.html">output.load_served.schema</a>)</p></li><li><p>cannot be null</p></li><li><p>defined in: <a href="output-load_served.html">Outputs</a></p></li></ul><h3 id="Load-served-Type"><a class="docs-heading-anchor" href="#Load-served-Type">Load served Type</a><a id="Load-served-Type-1"></a><a class="docs-heading-anchor-permalink" href="#Load-served-Type" title="Permalink"></a></h3><p><code>object</code> (<a href="output-load_served.html">output.load_served.schema</a>)</p><h2 id="Generator-profiles"><a class="docs-heading-anchor" href="#Generator-profiles">Generator profiles</a><a id="Generator-profiles-1"></a><a class="docs-heading-anchor-permalink" href="#Generator-profiles" title="Permalink"></a></h2><p>Statistics about the sources of generation, including solar PV, energy storage, traditional diesel, and from the grid (feeder)</p><p><code>Generator profiles</code></p><ul><li><p>is required</p></li><li><p>Type: <code>object</code> (<a href="output-generator_profiles.html">output.generator_profiles.schema</a>)</p></li><li><p>cannot be null</p></li><li><p>defined in: <a href="output-generator_profiles.html">Outputs</a></p></li></ul><h3 id="Generator-profiles-Type"><a class="docs-heading-anchor" href="#Generator-profiles-Type">Generator profiles Type</a><a id="Generator-profiles-Type-1"></a><a class="docs-heading-anchor-permalink" href="#Generator-profiles-Type" title="Permalink"></a></h3><p><code>object</code> (<a href="output-generator_profiles.html">output.generator_profiles.schema</a>)</p><h2 id="Voltages"><a class="docs-heading-anchor" href="#Voltages">Voltages</a><a id="Voltages-1"></a><a class="docs-heading-anchor-permalink" href="#Voltages" title="Permalink"></a></h2><p>Statistics about the voltage magnitudes at each timestep</p><p><code>Voltages</code></p><ul><li><p>is required</p></li><li><p>Type: <code>object</code> (<a href="output-voltages.html">output.voltages.schema</a>)</p></li><li><p>cannot be null</p></li><li><p>defined in: <a href="output-voltages.html">Outputs</a></p></li></ul><h3 id="Voltages-Type"><a class="docs-heading-anchor" href="#Voltages-Type">Voltages Type</a><a id="Voltages-Type-1"></a><a class="docs-heading-anchor-permalink" href="#Voltages-Type" title="Permalink"></a></h3><p><code>object</code> (<a href="output-voltages.html">output.voltages.schema</a>)</p><h2 id="Storage-SOC-(%)"><a class="docs-heading-anchor" href="#Storage-SOC-(%)">Storage SOC (%)</a><a id="Storage-SOC-(%)-1"></a><a class="docs-heading-anchor-permalink" href="#Storage-SOC-(%)" title="Permalink"></a></h2><p>List of lists of switches whose state changed between timesteps</p><p><code>Storage SOC (%)</code></p><ul><li><p>is required</p></li><li><p>Type: <code>number[]</code></p></li><li><p>cannot be null</p></li><li><p>defined in: <a href="output-storage_soc.html">Outputs</a></p></li></ul><h3 id="Storage-SOC-(%)-Type"><a class="docs-heading-anchor" href="#Storage-SOC-(%)-Type">Storage SOC (%) Type</a><a id="Storage-SOC-(%)-Type-1"></a><a class="docs-heading-anchor-permalink" href="#Storage-SOC-(%)-Type" title="Permalink"></a></h3><p><code>number[]</code></p><h2 id="Device-action-timeline"><a class="docs-heading-anchor" href="#Device-action-timeline">Device action timeline</a><a id="Device-action-timeline-1"></a><a class="docs-heading-anchor-permalink" href="#Device-action-timeline" title="Permalink"></a></h2><p>Object for each timestep, in order, containing information about the switch topology and a list of each load that has been shed at that timestep.</p><p><code>Device action timeline</code></p><ul><li><p>is required</p></li><li><p>Type: <code>object[]</code> (<a href="output-device_action_timeline-device-actions-timestep.html">device actions timestep</a>)</p></li><li><p>cannot be null</p></li><li><p>defined in: <a href="output-device_action_timeline.html">Outputs</a></p></li></ul><h3 id="Device-action-timeline-Type"><a class="docs-heading-anchor" href="#Device-action-timeline-Type">Device action timeline Type</a><a id="Device-action-timeline-Type-1"></a><a class="docs-heading-anchor-permalink" href="#Device-action-timeline-Type" title="Permalink"></a></h3><p><code>object[]</code> (<a href="output-device_action_timeline-device-actions-timestep.html">device actions timestep</a>)</p><h3 id="Device-action-timeline-Examples"><a class="docs-heading-anchor" href="#Device-action-timeline-Examples">Device action timeline Examples</a><a id="Device-action-timeline-Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Device-action-timeline-Examples" title="Permalink"></a></h3><pre><code class="language-json hljs">[
+  {
+    &quot;Shedded loads&quot;: [
+      &quot;load.123&quot;
+    ],
+    &quot;Switch configurations&quot;: {
+      &quot;switch.123&quot;: &quot;open&quot;,
+      &quot;switch.456&quot;: &quot;closed&quot;
+    }
+  },
+  {
+    &quot;Shedded loads&quot;: [],
+    &quot;Switch configurations&quot;: {
+      &quot;switch.123&quot;: &quot;closed&quot;,
+      &quot;switch.456&quot;: &quot;closed&quot;
+    }
+  }
+]</code></pre><h2 id="Powerflow-output"><a class="docs-heading-anchor" href="#Powerflow-output">Powerflow output</a><a id="Powerflow-output-1"></a><a class="docs-heading-anchor-permalink" href="#Powerflow-output" title="Permalink"></a></h2><p>The schema for the powerflow outputs from [<code>optimize_dispatch</code>](@ref optimize_dispatch), which include real and reactive power setpoints at generation objects, which include diesel generators (<code>generator</code>), substations/grid/feeder (<code>voltage_source</code>), solar PV (<code>solar</code>), or energy storage (<code>storage</code>), and voltage magnitudes at buses. All values are in SI units.</p><p><code>Powerflow output</code></p><ul><li><p>is required</p></li><li><p>Type: <code>object[]</code> (<a href="output-powerflow-items.html">Details</a>)</p></li><li><p>cannot be null</p></li><li><p>defined in: <a href="output-powerflow.html">Outputs</a></p></li></ul><h3 id="Powerflow-output-Type"><a class="docs-heading-anchor" href="#Powerflow-output-Type">Powerflow output Type</a><a id="Powerflow-output-Type-1"></a><a class="docs-heading-anchor-permalink" href="#Powerflow-output-Type" title="Permalink"></a></h3><p><code>object[]</code> (<a href="output-powerflow-items.html">Details</a>)</p><h3 id="Powerflow-output-Examples"><a class="docs-heading-anchor" href="#Powerflow-output-Examples">Powerflow output Examples</a><a id="Powerflow-output-Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Powerflow-output-Examples" title="Permalink"></a></h3><pre><code class="language-json hljs">[
+  {
+    &quot;voltage_source&quot;: {
+      &quot;source&quot;: {
+        &quot;real power setpoint (kW)&quot;: [
+          581.8173560045832,
+          468.8619242602074,
+          708.8039492196247
+        ],
+        &quot;reactive power setpoint (kVar)&quot;: [
+          244.09972136399347,
+          32.25338488759224,
+          40.35427973972425
+        ]
+      }
+    },
+    &quot;solar&quot;: {
+      &quot;pv1&quot;: {
+        &quot;real power setpoint (kW)&quot;: [
+          64.49371884320102,
+          64.507863885424,
+          64.49849984139108
+        ],
+        &quot;reactive power setpoint (kVar)&quot;: [
+          41.23181415943054,
+          41.23340639500285,
+          41.23312440672468
+        ]
+      }
+    },
+    &quot;bus&quot;: {
+      &quot;611&quot;: {
+        &quot;voltage (V)&quot;: [
+          2.5217499128997907
+        ]
+      }
+    }
+  }
+]</code></pre><h2 id="Additional-statistics"><a class="docs-heading-anchor" href="#Additional-statistics">Additional statistics</a><a id="Additional-statistics-1"></a><a class="docs-heading-anchor-permalink" href="#Additional-statistics" title="Permalink"></a></h2><p>A place for additional statistics and analytics, which can be specified arbitrarily.</p><p><code>Additional statistics</code></p><ul><li><p>is optional</p></li><li><p>Type: <code>object</code> (<a href="output-additional_statistics.html">Additional statistics</a>)</p></li><li><p>cannot be null</p></li><li><p>defined in: <a href="output-additional_statistics.html">Outputs</a></p></li></ul><h3 id="Additional-statistics-Type"><a class="docs-heading-anchor" href="#Additional-statistics-Type">Additional statistics Type</a><a id="Additional-statistics-Type-1"></a><a class="docs-heading-anchor-permalink" href="#Additional-statistics-Type" title="Permalink"></a></h3><p><code>object</code> (<a href="output-additional_statistics.html">Additional statistics</a>)</p><h3 id="Additional-statistics-Examples"><a class="docs-heading-anchor" href="#Additional-statistics-Examples">Additional statistics Examples</a><a id="Additional-statistics-Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Additional-statistics-Examples" title="Permalink"></a></h3><pre><code class="language-json hljs">{
+  &quot;Protection settings&quot;: [
+    {
+      &quot;primary pickup (A)&quot;: [
+        0
+      ],
+      &quot;TDS&quot;: [
+        0
+      ],
+      &quot;to&quot;: [
+        &quot;string&quot;
+      ],
+      &quot;from&quot;: [
+        &quot;string&quot;
+      ],
+      &quot;TOC&quot;: [
+        &quot;string&quot;
+      ],
+      &quot;operating time (s)&quot;: [
+        0
+      ]
+    }
+  ]
+}</code></pre><h2 id="Events"><a class="docs-heading-anchor" href="#Events">Events</a><a id="Events-1"></a><a class="docs-heading-anchor-permalink" href="#Events" title="Permalink"></a></h2><p>A list of events, ordered (<em>i.e.</em>, later events will overwrite earlier ones if there is a conflict), that can either be a switching action, or a fault.</p><p><code>Events</code></p><ul><li><p>is optional</p></li><li><p>Type: <code>object[]</code> (<a href="input-events-items.html">Details</a>)</p></li><li><p>cannot be null</p></li><li><p>defined in: <a href="input-events.html">Outputs</a></p></li></ul><h3 id="Events-Type"><a class="docs-heading-anchor" href="#Events-Type">Events Type</a><a id="Events-Type-1"></a><a class="docs-heading-anchor-permalink" href="#Events-Type" title="Permalink"></a></h3><p><code>object[]</code> (<a href="input-events-items.html">Details</a>)</p><h3 id="Events-Constraints"><a class="docs-heading-anchor" href="#Events-Constraints">Events Constraints</a><a id="Events-Constraints-1"></a><a class="docs-heading-anchor-permalink" href="#Events-Constraints" title="Permalink"></a></h3><p><strong>minimum number of items</strong>: the minimum number of items for this array is: <code>0</code></p><h3 id="Events-Examples"><a class="docs-heading-anchor" href="#Events-Examples">Events Examples</a><a id="Events-Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Events-Examples" title="Permalink"></a></h3><pre><code class="language-json hljs">[
+  {
+    &quot;timestep&quot;: 1,
+    &quot;event_type&quot;: &quot;switch&quot;,
+    &quot;affected_asset&quot;: &quot;line.switch_name&quot;,
+    &quot;event_data&quot;: {
+      &quot;type&quot;: &quot;breaker&quot;,
+      &quot;state&quot;: &quot;open&quot;,
+      &quot;dispatchable&quot;: false,
+      &quot;status&quot;: 1
+    }
+  }
+]</code></pre><h2 id="Runtime-arguments"><a class="docs-heading-anchor" href="#Runtime-arguments">Runtime arguments</a><a id="Runtime-arguments-1"></a><a class="docs-heading-anchor-permalink" href="#Runtime-arguments" title="Permalink"></a></h2><p>The allowed runtime arguments for PowerModelsONM&#39;s [<code>entrypoint</code>](@ref entrypoint).</p><p><code>Runtime arguments</code></p><ul><li><p>is required</p></li><li><p>Type: <code>object</code> (<a href="input-runtime_arguments.html">Runtime arguments</a>)</p></li><li><p>cannot be null</p></li><li><p>defined in: <a href="input-runtime_arguments.html">Outputs</a></p></li></ul><h3 id="Runtime-arguments-Type"><a class="docs-heading-anchor" href="#Runtime-arguments-Type">Runtime arguments Type</a><a id="Runtime-arguments-Type-1"></a><a class="docs-heading-anchor-permalink" href="#Runtime-arguments-Type" title="Permalink"></a></h3><p><code>object</code> (<a href="input-runtime_arguments.html">Runtime arguments</a>)</p><h3 id="Runtime-arguments-Examples"><a class="docs-heading-anchor" href="#Runtime-arguments-Examples">Runtime arguments Examples</a><a id="Runtime-arguments-Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Runtime-arguments-Examples" title="Permalink"></a></h3><pre><code class="language-json hljs">{
+  &quot;network&quot;: &quot;../test/data/ieee13_feeder.dss&quot;,
+  &quot;gurobi&quot;: false,
+  &quot;settings&quot;: &quot;../test/data/ieee13_settings.json&quot;,
+  &quot;faults&quot;: &quot;../test/data/ieee13_faults.json&quot;,
+  &quot;inverters&quot;: &quot;../test/data/ieee13_inverters.json&quot;,
+  &quot;events&quot;: &quot;../test/data/ieee13_events.json&quot;,
+  &quot;quiet&quot;: true,
+  &quot;opt-disp-formulation&quot;: &quot;acr&quot;
+}</code></pre><h2 id="Fault-currents"><a class="docs-heading-anchor" href="#Fault-currents">Fault currents</a><a id="Fault-currents-1"></a><a class="docs-heading-anchor-permalink" href="#Fault-currents" title="Permalink"></a></h2><p>Collection of data about fault currents collected from the outputs of fault studies using PowerModelsProtection</p><p><code>Fault currents</code></p><ul><li><p>is optional</p></li><li><p>Type: <code>object[]</code> (<a href="output-fault_currents-items.html">Details</a>)</p></li><li><p>cannot be null</p></li><li><p>defined in: <a href="output-fault_currents.html">Outputs</a></p></li></ul><h3 id="Fault-currents-Type"><a class="docs-heading-anchor" href="#Fault-currents-Type">Fault currents Type</a><a id="Fault-currents-Type-1"></a><a class="docs-heading-anchor-permalink" href="#Fault-currents-Type" title="Permalink"></a></h3><p><code>object[]</code> (<a href="output-fault_currents-items.html">Details</a>)</p><h3 id="Fault-currents-Examples"><a class="docs-heading-anchor" href="#Fault-currents-Examples">Fault currents Examples</a><a id="Fault-currents-Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Fault-currents-Examples" title="Permalink"></a></h3><pre><code class="language-json hljs">[
+  {
+    &quot;701_lg_1&quot;: {
+      &quot;fault&quot;: {
+        &quot;susceptance (S)&quot;: [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        &quot;connections&quot;: [
+          1,
+          4
+        ],
+        &quot;conductance (S)&quot;: [
+          [
+            100,
+            -100
+          ],
+          [
+            -100,
+            100
+          ]
+        ],
+        &quot;bus&quot;: &quot;701&quot;,
+        &quot;type&quot;: &quot;lg&quot;
+      },
+      &quot;switch&quot;: {
+        &quot;671692&quot;: {
+          &quot;|I| (A)&quot;: null,
+          &quot;|I2| (A)&quot;: 0.8,
+          &quot;|I0| (A)&quot;: 1.2,
+          &quot;|I1| (A)&quot;: 90.1,
+          &quot;|V| (V)&quot;: [
+            2.5,
+            2.5,
+            2.5
+          ]
+        }
+      }
+    }
+  }
+]</code></pre><h2 id="Small-signal-stable"><a class="docs-heading-anchor" href="#Small-signal-stable">Small signal stable</a><a id="Small-signal-stable-1"></a><a class="docs-heading-anchor-permalink" href="#Small-signal-stable" title="Permalink"></a></h2><p>Output from small signal stability analysis</p><p><code>Small signal stable</code></p><ul><li><p>is optional</p></li><li><p>Type: <code>boolean[]</code></p></li><li><p>cannot be null</p></li><li><p>defined in: <a href="output-small_signal.html">Outputs</a></p></li></ul><h3 id="Small-signal-stable-Type"><a class="docs-heading-anchor" href="#Small-signal-stable-Type">Small signal stable Type</a><a id="Small-signal-stable-Type-1"></a><a class="docs-heading-anchor-permalink" href="#Small-signal-stable-Type" title="Permalink"></a></h3><p><code>boolean[]</code></p><h2 id="Switch-changes"><a class="docs-heading-anchor" href="#Switch-changes">Switch changes</a><a id="Switch-changes-1"></a><a class="docs-heading-anchor-permalink" href="#Switch-changes" title="Permalink"></a></h2><p>List of lists of switches whose state changed between timesteps</p><p><code>Switch changes</code></p><ul><li><p>is required</p></li><li><p>Type: <code>string[][]</code></p></li><li><p>cannot be null</p></li><li><p>defined in: <a href="output-switch_changes.html">Outputs</a></p></li></ul><h3 id="Switch-changes-Type"><a class="docs-heading-anchor" href="#Switch-changes-Type">Switch changes Type</a><a id="Switch-changes-Type-1"></a><a class="docs-heading-anchor-permalink" href="#Switch-changes-Type" title="Permalink"></a></h3><p><code>string[][]</code></p><h2 id="Optimal-switching-metadata"><a class="docs-heading-anchor" href="#Optimal-switching-metadata">Optimal switching metadata</a><a id="Optimal-switching-metadata-1"></a><a class="docs-heading-anchor-permalink" href="#Optimal-switching-metadata" title="Permalink"></a></h2><p>Results (not the solutions) from the optimal switching alogrithm, including information about the solver, solve time, mip_gap, etc. If opt-switch-algorithm=global is used, there will only be a single dict</p><p><code>Optimal switching metadata</code></p><ul><li><p>is optional</p></li><li><p>Type: <code>object[]</code> (<a href="output-optimization_metadata.html">optimization_metadata</a>)</p></li><li><p>cannot be null</p></li><li><p>defined in: <a href="output-properties-optimal-switching-metadata.html">Outputs</a></p></li></ul><h3 id="Optimal-switching-metadata-Type"><a class="docs-heading-anchor" href="#Optimal-switching-metadata-Type">Optimal switching metadata Type</a><a id="Optimal-switching-metadata-Type-1"></a><a class="docs-heading-anchor-permalink" href="#Optimal-switching-metadata-Type" title="Permalink"></a></h3><p><code>object[]</code> (<a href="output-optimization_metadata.html">optimization_metadata</a>)</p><h2 id="Optimal-dispatch-metadata"><a class="docs-heading-anchor" href="#Optimal-dispatch-metadata">Optimal dispatch metadata</a><a id="Optimal-dispatch-metadata-1"></a><a class="docs-heading-anchor-permalink" href="#Optimal-dispatch-metadata" title="Permalink"></a></h2><p>Information about the optimization results</p><p><code>Optimal dispatch metadata</code></p><ul><li><p>is optional</p></li><li><p>Type: <code>object</code> (<a href="output-optimization_metadata.html">optimization_metadata</a>)</p></li><li><p>cannot be null</p></li><li><p>defined in: <a href="output-optimization_metadata.html">Outputs</a></p></li></ul><h3 id="Optimal-dispatch-metadata-Type"><a class="docs-heading-anchor" href="#Optimal-dispatch-metadata-Type">Optimal dispatch metadata Type</a><a id="Optimal-dispatch-metadata-Type-1"></a><a class="docs-heading-anchor-permalink" href="#Optimal-dispatch-metadata-Type" title="Permalink"></a></h3><p><code>object</code> (<a href="output-optimization_metadata.html">optimization_metadata</a>)</p><h2 id="Fault-studies-metadata"><a class="docs-heading-anchor" href="#Fault-studies-metadata">Fault studies metadata</a><a id="Fault-studies-metadata-1"></a><a class="docs-heading-anchor-permalink" href="#Fault-studies-metadata" title="Permalink"></a></h2><p>Outputs from fault studies</p><p><code>Fault studies metadata</code></p><ul><li><p>is optional</p></li><li><p>Type: <code>object[]</code> (<a href="output-fault_study_metadata-items.html">Details</a>)</p></li><li><p>cannot be null</p></li><li><p>defined in: <a href="output-fault_study_metadata.html">Outputs</a></p></li></ul><h3 id="Fault-studies-metadata-Type"><a class="docs-heading-anchor" href="#Fault-studies-metadata-Type">Fault studies metadata Type</a><a id="Fault-studies-metadata-Type-1"></a><a class="docs-heading-anchor-permalink" href="#Fault-studies-metadata-Type" title="Permalink"></a></h3><p><code>object[]</code> (<a href="output-fault_study_metadata-items.html">Details</a>)</p><h2 id="System-metadata"><a class="docs-heading-anchor" href="#System-metadata">System metadata</a><a id="System-metadata-1"></a><a class="docs-heading-anchor-permalink" href="#System-metadata" title="Permalink"></a></h2><p>Metadata about the system that ran the ONM process</p><p><code>System metadata</code></p><ul><li><p>is required</p></li><li><p>Type: <code>object</code> (<a href="output-system_metadata.html">output.system_metadata.schema</a>)</p></li><li><p>cannot be null</p></li><li><p>defined in: <a href="output-system_metadata.html">Outputs</a></p></li></ul><h3 id="System-metadata-Type"><a class="docs-heading-anchor" href="#System-metadata-Type">System metadata Type</a><a id="System-metadata-Type-1"></a><a class="docs-heading-anchor-permalink" href="#System-metadata-Type" title="Permalink"></a></h3><p><code>object</code> (<a href="output-system_metadata.html">output.system_metadata.schema</a>)</p><h2 id="Protection-settings"><a class="docs-heading-anchor" href="#Protection-settings">Protection settings</a><a id="Protection-settings-1"></a><a class="docs-heading-anchor-permalink" href="#Protection-settings" title="Permalink"></a></h2><p>Protection settings outputs</p><p><code>Protection settings</code></p><ul><li><p>is required</p></li><li><p>Type: <code>object</code> (<a href="output-protection.html">protection.schema</a>)</p></li><li><p>cannot be null</p></li><li><p>defined in: <a href="output-protection.html">Outputs</a></p></li></ul><h3 id="Protection-settings-Type"><a class="docs-heading-anchor" href="#Protection-settings-Type">Protection settings Type</a><a id="Protection-settings-Type-1"></a><a class="docs-heading-anchor-permalink" href="#Protection-settings-Type" title="Permalink"></a></h3><p><code>object</code> (<a href="output-protection.html">protection.schema</a>)</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="output-voltages.html">« output-voltages</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.15 on <span class="colophon-date" title="Wednesday 6 April 2022 21:34">Wednesday 6 April 2022</span>. Using Julia version 1.7.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
