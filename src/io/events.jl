@@ -332,26 +332,34 @@ end
 
 
 """
-    build_events_file(
-        case_file::String,
-        events_file::String;
+    build_events(case_file::String; kwargs...)::Vector{Dict{String,Any}}
+
+A helper function to assist in making rudamentary events data structure with some default settings for switches from a network case at path `case_file`.
+
+See [`build_events`](@ref build_events) for keyword options.
+"""
+build_events(case_file::String; kwargs...)::Vector{Dict{String,Any}} = build_events(PMD.parse_file(case_file); kwargs...)
+
+
+"""
+    build_events(
+        eng::Dict{String,<:Any},
         custom_events::Vector{Dict{String,Any}}=Dict{String,Any}[],
         default_switch_state::PMD.SwitchState=PMD.CLOSED,
-        default_switch_dispatchable::PMD.Dispatchable=PMD.YES
-    )
+        default_switch_dispatchable::PMD.Dispatchable=PMD.YES,
+        default_switch_status::Union{Misssing,PMD.Status}=missing,
+    )::Vector{Dict{String,Any}}
 
-A helper function to assist in making (very) simple events files with some default settings for switches.
+A helper function to assist in making rudamentary events data structure with some default settings for switches.
 
-- `case_file::String` is the input case file (dss)
-- `events_file::String` is the ouput events file (json)
+- `eng::Dict{String,<:Any}` is the input case data structure
 - `custom_events` is a Vector of *events* that will be applied **after** the automatic generation of events based off of the `default` kwargs
 - `default_switch_state::SwitchState` (default: `CLOSED`) is the toggle for the default state to apply to every switch
 - `default_switch_dispatchable::Dispatchable` (default: `YES`) is the toggle for the default dispatchability (controllability) of every switch
+- `default_switch_status::Status` (default: `missing`) is the toggle for the default status (whether the switch appears in the model at all or not) of every switch. If `missing` will default to the status given by the model.
 """
-function build_events_file(case_file::String, events_file::String; custom_events::Vector{Dict{String,Any}}=Dict{String,Any}[], default_switch_state::PMD.SwitchState=PMD.CLOSED, default_switch_dispatchable::PMD.Dispatchable=PMD.YES, default_switch_status::Union{Missing,PMD.Status}=missing)
+function build_events(eng::Dict{String,<:Any}; custom_events::Vector{Dict{String,Any}}=Dict{String,Any}[], default_switch_state::PMD.SwitchState=PMD.CLOSED, default_switch_dispatchable::PMD.Dispatchable=PMD.YES, default_switch_status::Union{Missing,PMD.Status}=missing)::Vector{Dict{String,Any}}
     events = Dict{String,Any}[]
-
-    eng = PMD.parse_file(case_file)
 
     for (s, switch) in get(eng, "switch", Dict())
         push!(
@@ -371,7 +379,105 @@ function build_events_file(case_file::String, events_file::String; custom_events
 
     append!(events, custom_events)
 
+    return events
+end
+
+
+"""
+    build_events(
+        eng::Dict{String,<:Any},
+        custom_events::Vector{Dict{String,Any}}=Dict{String,Any}[],
+        default_switch_state::String,
+        default_switch_dispatchable::Bool,
+        default_switch_status::Int
+    )::Vector{Dict{String,Any}}
+
+A helper function to assist in making rudamentary events data structures with some default settings for switches from a network case `eng`. This version uses the alternative data types from the schema (non-strings).
+
+- `eng::Dict{String,<:Any}` is the input case file (dss)
+- `custom_events` is a Vector of *events* that will be applied **after** the automatic generation of events based off of the `default` kwargs
+- `default_switch_state::String` (default: `closed`) is the toggle for the default state to apply to every switch
+- `default_switch_dispatchable::Bool` (default: `true`) is the toggle for the default dispatchability (controllability) of every switch
+- `default_switch_status::Int` (default: `1`) is the toggle for the default status (whether the switch appears in the model at all or not) of every switch
+"""
+function build_events(eng::Dict{String,<:Any}; custom_events::Vector{Dict{String,Any}}=Dict{String,Any}[], default_switch_state::String="closed", default_switch_dispatchable::Bool=true, default_switch_status::Union{Missing,Int}=missing)::Vector{Dict{String,Any}}
+    converted_custom_events = Dict{String,Any}[]
+
+    for event in custom_events
+        converted_event = Dict{String,Any}()
+
+        if get(event, "event_type", "switch") == "switch"
+            for (k,v) in event
+                converted_event[k] = v
+                if k == "event_data"
+                    for (_k,_v) in v
+                        converted_event[k][_k] = _v
+                        if _k == "state" && !isa(_v, PMD.SwitchState)
+                            converted_event[k][_k] = lowercase(_v) == "closed" ? PMD.CLOSED : PMD.OPEN
+                        elseif _k == "status" && !isa(_v, PMD.Status)
+                            converted_event[k][_k] = PMD.Status(_v)
+                        elseif _k == "dispatchable" && !isa(_v, PMD.Dispatchable)
+                            converted_event[k][_k] = PMD.Dispatchable(Int(_v))
+                        end
+                    end
+                end
+            end
+            push!(converted_custom_events, converted_event)
+        else
+            # nothing to do
+            push!(converted_custom_events, event)
+        end
+    end
+
+    return build_events(
+        eng;
+        custom_events=converted_custom_events,
+        default_switch_state=lowercase(default_switch_state)=="closed" ? PMD.CLOSED : PMD.OPEN,
+        default_switch_dispatchable=PMD.Dispatchable(Int(default_switch_dispatchable)),
+        default_switch_status=ismissing(default_switch_status) ? default_switch_status : PMD.Status(default_switch_status)
+    )
+end
+
+
+"""
+    build_events_file(case_file::String, io::IO; kwargs...)
+
+A helper function to save a rudamentary events data structure to `io` from a network case at path `case_file`.
+
+See [`build_events`](@ref build_events) for keyword options.
+"""
+build_events_file(case_file::String, io::IO; kwargs...) = JSON.print(io, build_events(case_file; kwargs...))
+
+
+"""
+    build_events_file(eng::Dict{String,<:Any}, io::IO; kwargs...)
+
+A helper function to save a rudamentary events data structure to `io` from a network case `eng`.
+
+See [`build_events`](@ref build_events) for keyword options.
+"""
+build_events_file(eng::Dict{String,<:Any}, io::IO; kwargs...) = JSON.print(io, build_events(eng; kwargs...))
+
+
+"""
+    build_events_file(case_file::String, events_file::String)
+
+A helper function to build a rudamentary `events_file` from a network case at path `case_file`.
+
+See [`build_events`](@ref build_events) for keyword options.
+"""
+build_events_file(case_file::String, events_file::String) = build_events_file(PMD.parse_file(case_file), events_file)
+
+
+"""
+    build_events_file(eng::Dict{String,<:Any}, events_file::String; kwargs...)
+
+A helper function to build a rudamentary `events_file` from a network case `eng`.
+
+See [`build_events`](@ref build_events) for keyword options.
+"""
+function build_events_file(eng::Dict{String,<:Any}, events_file::String; kwargs...)
     open(events_file, "w") do io
-        JSON.print(io, events)
+        build_events_file(eng, io; kwargs...)
     end
 end
