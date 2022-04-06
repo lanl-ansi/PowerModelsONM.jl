@@ -38,6 +38,7 @@ pages = [
         "Beginners Guide" => "tutorials/Beginners Guide.md",
     ],
     "API Reference" => [
+        "Base functions" => "reference/base.md",
         "Data Handling" => "reference/data.md",
         "Main Entrypoint" => "reference/entrypoint.md",
         "Internal Functions" => "reference/internal.md",
@@ -45,7 +46,8 @@ pages = [
         "Logging" => "reference/logging.md",
         "Optimization Problems" => "reference/prob.md",
         "Solution Statistics" => "reference/stats.md",
-        "Variables and Constraints" => "reference/variable_constraint.md"
+        "Variables and Constraints" => "reference/variable_constraint.md",
+        "Types" => "reference/types.md",
     ],
     "Developer Docs" => [
         "Contributing Guide" => "developer/contributing.md",
@@ -59,9 +61,9 @@ try
     path_of_jsonschema2md = "jsonschema2md"
     try
         jsonschema2md_version = chomp(read(`$(path_of_jsonschema2md) --version`, String))
-        @assert "6.0.3" == jsonschema2md_version
+        @assert "7.0.0" == jsonschema2md_version
     catch
-        install_jsonschema2md_status = chomp(read(`$(NodeJS.npm_cmd()) install -g @adobe/jsonschema2md`, String))
+        install_jsonschema2md_status = chomp(read(`$(NodeJS.npm_cmd()) install -g @adobe/jsonschema2md@7.0.0`, String))
         path_of_jsonschema2md = split(split(install_jsonschema2md_status, "\n")[1], " -> ")[1]
     end
 
@@ -94,7 +96,7 @@ try
     end
 
     schema_docs = "Schema Documentation" => [
-        titlecase(join(split(bn, "_"), " ")) => "schemas/$(bn).md" for bn in schema_basenames
+        string(bn) => "schemas/$(bn).md" for bn in schema_basenames
     ]
     push!(pages, schema_docs)
 catch e
@@ -103,7 +105,7 @@ end
 
 # build documents
 makedocs(
-    modules = [PowerModelsONM],
+    # modules = [PowerModelsONM, PowerModelsONM.PowerModelsDistribution, PowerModelsONM.InfrastructureModels],
     format = format,
     strict=false,
     sitename = "PowerModelsONM",
@@ -113,15 +115,16 @@ makedocs(
 
 # Insert HTML rendered from Pluto.jl into tutorial stubs as iframes
 if !_FAST
+    @info "rendering pluto notebooks for static documentation"
     ss = Pluto.ServerSession()
     client = Pluto.ClientSession(Symbol("client", rand(UInt16)), nothing)
     ss.connected_clients[client.id] = client
     for file in readdir("examples", join=true)
         if endswith(file, ".jl")
-            nb = Pluto.load_notebook_nobackup(file)
-            client.connected_notebook = nb
-            Pluto.update_run!(ss, nb, nb.cells)
-            html = Pluto.generate_html(nb)
+            nb = Pluto.load_notebook_nobackup(file);
+            client.connected_notebook = nb;
+            Pluto.update_run!(ss, nb, nb.cells);
+            html = Pluto.generate_html(nb; binder_url_js="undefined");
 
             fileout = "docs/build/tutorials/$(basename(file)).html"
             open(fileout, "w") do io

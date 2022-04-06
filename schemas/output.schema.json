@@ -154,62 +154,62 @@
       "format": "date-time"
     },
     "Simulation time steps": {
-      "$ref": "./output.timesteps.schema.json"
+      "$ref": "./output-timesteps.schema.json"
     },
     "Load served": {
-      "$ref": "./output.load_served.schema.json"
+      "$ref": "./output-load_served.schema.json"
     },
     "Generator profiles": {
-      "$ref": "./output.generator_profiles.schema.json"
+      "$ref": "./output-generator_profiles.schema.json"
     },
     "Voltages": {
-      "$ref": "./output.voltages.schema.json"
+      "$ref": "./output-voltages.schema.json"
     },
     "Storage SOC (%)": {
-      "$ref": "./output.storage_soc.schema.json"
+      "$ref": "./output-storage_soc.schema.json"
     },
     "Device action timeline": {
-      "$ref": "./output.device_action_timeline.schema.json"
+      "$ref": "./output-device_action_timeline.schema.json"
     },
     "Powerflow output": {
-      "$ref": "./output.powerflow.schema.json"
+      "$ref": "./output-powerflow.schema.json"
     },
     "Additional statistics": {
-      "$ref": "./output.additional_statistics.schema.json"
+      "$ref": "./output-additional_statistics.schema.json"
     },
     "Events": {
-      "$ref": "./input.events.schema.json"
+      "$ref": "./input-events.schema.json"
     },
     "Runtime arguments": {
-      "$ref": "./input.runtime_arguments.schema.json"
+      "$ref": "./input-runtime_arguments.schema.json"
     },
     "Fault currents": {
-      "$ref": "./output.fault_currents.schema.json"
+      "$ref": "./output-fault_currents.schema.json"
     },
     "Small signal stable": {
-      "$ref": "./output.small_signal.schema.json"
+      "$ref": "./output-small_signal.schema.json"
     },
     "Switch changes": {
-      "$ref": "./output.switch_changes.schema.json"
+      "$ref": "./output-switch_changes.schema.json"
     },
     "Optimal switching metadata": {
       "description": "Results (not the solutions) from the optimal switching alogrithm, including information about the solver, solve time, mip_gap, etc. If opt-switch-algorithm=global is used, there will only be a single dict",
       "type": "array",
       "items": {
-        "$ref": "./output.optimization_metadata.json"
+        "$ref": "./output-optimization_metadata.schema.json"
       }
     },
     "Optimal dispatch metadata": {
-      "$ref": "./output.optimization_metadata.json"
+      "$ref": "./output-optimization_metadata.schema.json"
     },
     "Fault studies metadata": {
-      "$ref": "./output.fault_study_metadata.schema.json"
+      "$ref": "./output-fault_study_metadata.schema.json"
     },
     "System metadata": {
-      "$ref": "./output.system_metadata.schema.json"
+      "$ref": "./output-system_metadata.schema.json"
     },
     "Protection settings": {
-      "$ref": "./output.protection.schema.json"
+      "$ref": "./output-protection.schema.json"
     }
   },
   "required": [

@@ -1,5 +1,5 @@
 {
-  "title": "optimization_results_metadata",
+  "title": "optimization_metadata",
   "type": "object",
   "description": "Information about the optimization results",
   "properties": {

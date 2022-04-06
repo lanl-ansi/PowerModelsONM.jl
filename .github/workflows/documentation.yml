@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: '16.x'
       - name: Install @adobe/jsonschema2md
-        run: npm install -g @adobe/jsonschema2md
+        run: npm install -g @adobe/jsonschema2md@7.0.0
       - uses: julia-actions/julia-docdeploy@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

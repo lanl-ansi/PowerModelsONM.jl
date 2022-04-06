@@ -4,6 +4,10 @@
 
 - none
 
+## v2.1.2
+
+- Fixed documentation build process
+
 ## v2.1.1
 
 - Fixed bug in recursive merge for `build_settings_file`

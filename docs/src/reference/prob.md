@@ -6,6 +6,7 @@
 optimize_switches
 solve_mc_osw_mld_mi
 solve_mn_mc_osw_mld_mi
+build_mn_mc_opf_oltc_capc
 ```
 
 ## Optimal Dispatch

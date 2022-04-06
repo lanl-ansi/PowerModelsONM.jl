@@ -18,6 +18,10 @@ Order = [:function]
 Pages = ["data.jl"]
 ```
 
+```@docs
+count_faults
+```
+
 ## Solution Handling
 
 ```@autodocs

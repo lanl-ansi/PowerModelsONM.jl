@@ -6,7 +6,8 @@
 Modules = [PowerModelsONM]
 Private = false
 Order = [:function]
-Pages = ["variable.jl"]
+Pages = ["variable.jl", "form/acp.jl", "form/acr.jl", "form/apo.jl", "form/bf_mx_lin.jl", "form/shared.jl"]
+Filter = t -> startswith(string(t), "variable_")
 ```
 
 ## Constraints
@@ -15,7 +16,8 @@ Pages = ["variable.jl"]
 Modules = [PowerModelsONM]
 Private = false
 Order = [:function]
-Pages = ["constraint_template.jl", "constraint.jl", "form/shared.jl"]
+Pages = ["constraint_template.jl", "constraint.jl", "form/acp.jl", "form/acr.jl", "form/apo.jl", "form/bf_mx_lin.jl", "form/shared.jl"]
+Filter = t -> startswith(string(t), "constraint_")
 ```
 
 ## Objectives

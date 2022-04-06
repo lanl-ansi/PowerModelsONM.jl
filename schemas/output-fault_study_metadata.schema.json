@@ -15,7 +15,7 @@
             "description": "Fault study with fault type of",
             "patternProperties": {
               "^\\d+$": {
-                "$ref": "./output.optimization_metadata.json"
+                "$ref": "./output-optimization_metadata.schema.json"
               }
             }
           }

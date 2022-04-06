@@ -26,37 +26,37 @@
   ],
   "properties": {
     "settings": {
-      "$ref": "./settings/input.settings.settings.schema.json"
+      "$ref": "./settings/input-settings-settings.schema.json"
     },
     "generator": {
-      "$ref": "./settings/input.settings.generator.schema.json"
+      "$ref": "./settings/input-settings-generator.schema.json"
     },
     "solar": {
-      "$ref": "./settings/input.settings.solar.schema.json"
+      "$ref": "./settings/input-settings-solar.schema.json"
     },
     "voltage_source": {
-      "$ref": "./settings/input.settings.voltage_source.json"
+      "$ref": "./output-optimization_metadata.schema.json"
     },
     "storage": {
-      "$ref": "./settings/input.settings.storage.schema.json"
+      "$ref": "./settings/input-settings-storage.schema.json"
     },
     "bus": {
-      "$ref": "./settings/input.settings.bus.schema.json"
+      "$ref": "./settings/input-settings-bus.schema.json"
     },
     "load": {
-      "$ref": "./settings/input.settings.load.schema.json"
+      "$ref": "./settings/input-settings-load.schema.json"
     },
     "shunt": {
-      "$ref": "./settings/input.settings.shunt.schema.json"
+      "$ref": "./settings/input-settings-shunt.schema.json"
     },
     "line": {
-      "$ref": "./settings/input.settings.line.schema.json"
+      "$ref": "./settings/input-settings-line.schema.json"
     },
     "switch": {
-      "$ref": "./settings/input.settings.switch.schema.json"
+      "$ref": "./settings/input-settings-switch.schema.json"
     },
     "transformer": {
-      "$ref": "./settings/input.settings.transformer.schema.json"
+      "$ref": "./settings/input-settings-transformer.schema.json"
     },
     "max_switch_actions": {
       "type": ["array", "number"],
