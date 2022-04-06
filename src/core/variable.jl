@@ -193,20 +193,25 @@ end
     variable_inverter_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, relax::Bool=false, report::Bool=true)
 
 Variables for indicating whether a DER (storage or gen) is in grid-forming mode (1) or grid-following mode (0), binary is `relax=false`.
-Variables will appear in solution if `report=true`
+Variables will appear in solution if `report=true`. If "inverter"==GRID_FOLLOWING on the device, the inverter variable will be a constant.
 """
 function variable_inverter_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, relax::Bool=false, report::Bool=true)
-    z_inverter = var(pm, nw)[:z_inverter] = Dict{Tuple{Symbol,Int},JuMP.VariableRef}()
+    z_inverter = var(pm, nw)[:z_inverter] = Dict{Tuple{Symbol,Int},Union{JuMP.VariableRef,Int}}()
     for t in [:storage, :gen]
         for i in ids(pm, nw, t)
-            var(pm, nw, :z_inverter)[(t,i)] = JuMP.@variable(
-                pm.model,
-                base_name="$(nw)_$(t)_z_inverter",
-                binary=!relax,
-                lower_bound=0,
-                upper_bound=1,
-                start=1
-            )
+            if get(ref(pm, nw, t, i), "inverter", GRID_FORMING) == GRID_FORMING
+                var(pm, nw, :z_inverter)[(t,i)] = JuMP.@variable(
+                    pm.model,
+                    base_name="$(nw)_$(t)_z_inverter",
+                    binary=!relax,
+                    lower_bound=0,
+                    upper_bound=1,
+                    start=PMD.comp_start_value(ref(pm, nw, t, i), "inverter_start", get(ref(pm, nw, t, i), "inverter", Int(GRID_FORMING))),
+                )
+            else
+                # GRID_FOLLOWING only
+                var(pm, nw, :z_inverter)[(t,i)] = Int(ref(pm, nw, t, i, "inverter"))
+            end
         end
     end
 

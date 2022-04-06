@@ -69,6 +69,10 @@
         "cost_pg_model": {
           "type": "integer",
           "description": "Cost model type, 1 = piecewise-linear, 2 = polynomial"
+        },
+        "inverter": {
+          "type": "string",
+          "enum": ["GRID_FOLLOWING", "GRID_FORMING"]
         }
       }
     }
