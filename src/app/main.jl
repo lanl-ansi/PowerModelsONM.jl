@@ -23,9 +23,7 @@ The main ONM Algorithm, performs the following steps:
 - [`initialize_output!`](@ref initialize_output!)
 - [`sanitize_args!`](@ref sanitize_args!)
 - [`setup_logging!`](@ref setup_logging!)
-- [`parse_network`](@ref parse_network!)
-- [`parse_events!`](@ref parse_events!)
-- [`parse_settings!`](@ref parse_settings!)
+- [`prepare_data!`](@ref prepare_data!)
 - [`build_solver_instances!`](@ref build_solver_instances!)
 - [`optimize_switches!`](@ref optimize_switches!)
 - [`optimize_dispatch!`](@ref optimize_dispatch!)
@@ -44,11 +42,7 @@ function entrypoint(args::Dict{String,<:Any})::Dict{String,Any}
 
     setup_logging!(args)
 
-    parse_network!(args)
-
-    parse_settings!(args)
-
-    parse_events!(args)
+    prepare_data!(args)
 
     build_solver_instances!(args)
 
@@ -81,6 +75,27 @@ function entrypoint(args::Dict{String,<:Any})::Dict{String,Any}
     if get(args, "debug", false)
         write_json("debug_onm_$(Dates.format(Dates.now(), "yyyy-mm-dd--HH-MM-SS")).json", args; indent=get(args, "pretty-print", false) ? 2 : missing)
     end
+
+    return args
+end
+
+
+"""
+    prepare_data!(args::Dict{String,<:Any})::Dict{String,Any}
+
+Performs the data preparation actions
+
+- [`parse_network`](@ref parse_network!)
+- [`parse_events!`](@ref parse_events!)
+- [`parse_settings!`](@ref parse_settings!)
+
+"""
+function prepare_data!(args::Dict{String,<:Any})::Dict{String,Any}
+    parse_network!(args)
+
+    parse_settings!(args)
+
+    parse_events!(args)
 
     return args
 end
