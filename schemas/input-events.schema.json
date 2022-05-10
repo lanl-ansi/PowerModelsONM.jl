@@ -49,10 +49,7 @@
     ]
   },
   "title": "Events",
-  "x-tags": [
-    "input",
-    "output"
-  ],
+  "x-tags": ["input", "output"],
   "examples": [
     [
       {
@@ -74,11 +71,7 @@
     "description": "Event definition",
     "properties": {
       "timestep": {
-        "type": [
-          "string",
-          "integer",
-          "number"
-        ],
+        "type": ["string", "integer", "number"],
         "minLength": 1,
         "pattern": "^\\d+\\.*\\d*",
         "example": "1.0",
@@ -87,10 +80,7 @@
       "event_type": {
         "type": "string",
         "minLength": 1,
-        "enum": [
-          "fault",
-          "switch"
-        ],
+        "enum": ["fault", "switch"],
         "example": "switch",
         "description": "The type of event (switch or fault)"
       },
@@ -115,43 +105,18 @@
               "state": {
                 "type": "string",
                 "description": "What is the state of the switch, \"open\" or \"closed\"? Only used if \"event_type\" is \"switch\".",
-                "enum": [
-                  "open",
-                  "closed",
-                  "OPEN",
-                  "CLOSED"
-                ],
+                "enum": ["open", "closed", "OPEN", "CLOSED"],
                 "example": "open"
               },
               "dispatchable": {
-                "type": [
-                  "boolean",
-                  "string"
-                ],
+                "type": ["boolean", "string"],
                 "description": "Is the affected object dispatchable? (i.e., can be opened or closed), default is false",
                 "default": false,
-                "enum": [
-                  "YES",
-                  "NO",
-                  "yes",
-                  "no",
-                  true,
-                  false
-                ]
+                "enum": ["YES", "NO", "yes", "no", true, false]
               },
               "status": {
-                "type": [
-                  "integer",
-                  "string"
-                ],
-                "enum": [
-                  0,
-                  1,
-                  "DISABLED",
-                  "ENABLED",
-                  "enabled",
-                  "disabled"
-                ],
+                "type": ["integer", "string"],
+                "enum": [0, 1, "DISABLED", "ENABLED", "enabled", "disabled"],
                 "example": 1,
                 "description": "Status of the object, if 0, completely outaged from the model. Default 1.",
                 "default": 1
@@ -176,11 +141,6 @@
         "type": "object"
       }
     },
-    "required": [
-      "timestep",
-      "event_type",
-      "affected_asset",
-      "event_data"
-    ]
+    "required": ["timestep", "event_type", "affected_asset", "event_data"]
   }
 }
