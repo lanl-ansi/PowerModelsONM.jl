@@ -60,10 +60,10 @@ function solve_onm_model(
         ],
         ref_extensions=Function[
             ref_add_load_blocks!,
-            ref_add_max_switch_actions!,
+            ref_add_options!,
             ref_extensions...
         ],
-        eng2math_passthrough=recursive_merge(_eng2math_passthrough_default, eng2math_passthrough),
+        eng2math_passthrough=recursive_merge_including_vectors(_eng2math_passthrough_default, eng2math_passthrough),
         kwargs...
     )
 end

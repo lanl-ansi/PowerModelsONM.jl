@@ -123,22 +123,16 @@ end
 
 
 """
-    _ref_add_max_switch_actions!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
-
-Ref extension to add max_switch_actions to ref, and set to Inf if option is missing, for a single time step
 """
-function _ref_add_max_switch_actions!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
-    ref[:max_switch_actions] = get(data, "max_switch_actions", Inf)
+function ref_add_options!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
+    PMD.apply_pmd!(_ref_add_options!, ref, data; apply_to_subnetworks=true)
 end
 
 
 """
-    ref_add_max_switch_actions!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
-
-Ref extension to add max_switch_actions to ref, and set to Inf if option is missing, for all time steps
 """
-function ref_add_max_switch_actions!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
-    PMD.apply_pmd!(_ref_add_max_switch_actions!, ref, data; apply_to_subnetworks=true)
+function _ref_add_options!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
+    ref[:options] = recursive_merge(build_default_settings()["options"], get(data, "options", Dict{String,Any}()))
 end
 
 
