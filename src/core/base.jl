@@ -132,19 +132,19 @@ function _IM.relaxation_product(m::JuMP.Model, x::Real, y::JuMP.VariableRef, z::
 end
 
 "recursive dictionary merge, similar to update data"
-recursive_merge(x::AbstractDict...) = merge(recursive_merge, x...)
+recursive_merge_including_vectors(x::AbstractDict...) = merge(recursive_merge_including_vectors, x...)
 
 "recursive vector merge, similar to update data"
-recursive_merge(x::AbstractVector...) = cat(x...; dims=1)
+recursive_merge_including_vectors(x::AbstractVector...) = cat(x...; dims=1)
 
 "recursive other merge"
-recursive_merge(x...) = x[end]
+recursive_merge_including_vectors(x...) = x[end]
 
 "recursive dictionary merge, similar to update data, with vectors getting overwritten instead of appended"
-recursive_merge_no_vecs(x::AbstractDict...) = merge(recursive_merge_no_vecs, x...)
+recursive_merge(x::AbstractDict...) = merge(recursive_merge, x...)
 
 "recursive other merge, with vectors getting overwritten instead of appended"
-recursive_merge_no_vecs(x...) = x[end]
+recursive_merge(x...) = x[end]
 
 """
     recursive_merge_timesteps(x::T, y::U)::promote_type(T,U) where {T<: AbstractVector,U<: AbstractVector}
@@ -156,7 +156,7 @@ function recursive_merge_timesteps(x::T, y::U)::promote_type(T, U) where {T<:Abs
         @assert length(x) == length(y) "cannot combine vectors of different lengths"
         new = promote_type(T, U)()
         for (_x, _y) in zip(x, y)
-            push!(new, recursive_merge(_x, _y))
+            push!(new, recursive_merge_including_vectors(_x, _y))
         end
         return new
     else
