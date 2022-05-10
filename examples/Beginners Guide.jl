@@ -32,7 +32,7 @@ data_dir = joinpath(dirname(pathof(PowerModelsONM)), "..", "test", "data")
 begin
 
 setup_logging!(Dict{String,Any}("verbose"=>true))
-	
+
 md"""
 ## How to use PowerModelsONM
 
@@ -122,7 +122,7 @@ md"""
 
 There are many things that cannot be easily represented in the DSS specification, specifically relating to optimization bounds, which is not the use case for OpenDSS. To support specifying these extra types of settings, we have created a settings JSON Schema.
 
-In this example, we load some settings that set the maximum allowed switching actions at each timestep (`"max_switch_actions"`), how much time has elapsed during each timestep (`"time_elapsed"`, in hours), and a cold-load pickup factor (`"clpu_factor"`) for each load.
+In this example, we load some settings that set the maximum allowed switching actions at each timestep (`"switch_close_actions_ub"`), how much time has elapsed during each timestep (`"time_elapsed"`, in hours), and a cold-load pickup factor (`"clpu_factor"`) for each load.
 """
 
 # ╔═╡ e686d58d-50ea-4789-93e7-5f3c41ee53ad
@@ -143,7 +143,7 @@ begin
 		"max-switch-actions" => 1
 	)
 	settings_w_dep_args = deepcopy(settings)
-	PowerModelsONM._convert_depreciated_runtime_args!(dep_runtime_args, settings_w_dep_args, base_network, length(network_events["nw"]))
+	PowerModelsONM._convert_deprecated_runtime_args!(dep_runtime_args, settings_w_dep_args, base_network, length(network_events["nw"]))
 
 	network_events_settings = apply_settings(network_events, settings_w_dep_args)
 end
@@ -151,7 +151,7 @@ end
 
 # ╔═╡ 70b6075c-b548-44d2-b301-9621023e06e0
 md"""
-It should be noted that in the above block we did a slight trick using some depreciated runtime arguments to quickly create a better settings. In the future, additional helper functions will be added to assist users in applying some of these common settings
+It should be noted that in the above block we did a slight trick using some deprecated runtime arguments to quickly create a better settings. In the future, additional helper functions will be added to assist users in applying some of these common settings
 """
 
 # ╔═╡ 438b71e6-aca2-49b4-ab15-e747d335f331
