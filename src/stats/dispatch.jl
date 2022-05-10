@@ -171,11 +171,11 @@ function get_timestep_inverter_states!(args::Dict{String,<:Any})::Vector{Dict{St
 
     _powerflow_outputs = Dict{String,Any}[]
     powerflow_outputs = get(args["output_data"], "Powerflow output", Dict{String,Any}())
-    if !isempty(powerflow_outputs) && length(powerflow_outputs) == length(states)
+    if !isempty(powerflow_outputs) && !isempty(states) && length(powerflow_outputs) == length(states)
         for (pfo, state) in zip(powerflow_outputs, states)
-            push!(_powerflow_outputs, recursive_merge(pfo, state))
+            push!(_powerflow_outputs, recursive_merge_including_vectors(pfo, state))
         end
-    elseif !isempty(powerflow_outputs) && length(powerflow_outputs) != length(states)
+    elseif !isempty(powerflow_outputs) && !isempty(states) && length(powerflow_outputs) != length(states)
         @error "size of inverter states timeline and powerflow timeline are different"
     else
         _powerflow_outputs = states
