@@ -75,27 +75,13 @@ Helper function to convert JSON data types to native data types (Enums) in event
 function _convert_event_data_types!(events::Vector{<:Dict{String,<:Any}})::Vector{Dict{String,Any}}
     for event in events
         for (k,v) in event["event_data"]
-            if k == "dispatchable"
-                if isa(v, Bool) || isa(v, Real)
-                    event["event_data"][k] = PMD.Dispatchable(Int(v))
-                elseif isa(v, String)
-                    event["event_data"][k] = lowercase(v) == "yes" ? PMD.YES : PMD.NO
-                else
-                    @error "type of $k in event_data is no recognized"
-                end
-            end
-
-            if k == "state"
-                event["event_data"][k] = Dict("open" => PMD.OPEN, "closed" => PMD.CLOSED)[lowercase(string(v))]
-            end
-
-            if k == "status"
-                if isa(v, Real)
-                    event["event_data"][k] = PMD.Status(Int(v))
-                elseif isa(v, String)
-                    event["event_data"][k] = lowercase(v) == "enabled" ? PMD.ENABLED : PMD.DISABLED
-                else
-                    @error "type of $k in event_data is no recognized"
+            if k ∈ ["state", "dispatchable", "status"]
+                if isa(v, String)
+                    event["event_data"][k] = getproperty(PMD, Symbol(uppercase(v)))
+                elseif isa(v, Int)
+                    event["event_data"][k] = getproperty(PMD, k == "state" ? :SwitchState : Symbol(titlecase(k)))(v)
+                elseif isa(v, Bool)
+                    event["event_data"][k] = getproperty(PMD, k == "state" ? :SwitchState : Symbol(titlecase(k)))(Int(v))
                 end
             end
         end
