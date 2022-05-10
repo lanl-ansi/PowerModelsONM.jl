@@ -110,6 +110,7 @@ function get_protection_network_model(base_eng::Dict{String,<:Any})
                 "name" => id,
                 "phases" => obj["terminals"],
                 "nphases" => length(obj["terminals"]),
+                "status" => Int(obj["status"]),
             ))
         end
     end
@@ -124,6 +125,7 @@ function get_protection_network_model(base_eng::Dict{String,<:Any})
                 "t_connections" => obj["t_connections"],
                 "nphases" => length(obj["f_connections"]),
                 "switch" => type == "switch",
+                "status" => Int(obj["status"]),
             ))
         end
     end
@@ -139,6 +141,7 @@ function get_protection_network_model(base_eng::Dict{String,<:Any})
                 "nwindings" => length(obj["bus"]),
                 "nphases" => length(first(obj["connections"])),
                 "configuration" => string.(obj["configuration"]),
+                "status" => Int(obj["status"]),
             ))
         end
     end
@@ -151,6 +154,7 @@ function get_protection_network_model(base_eng::Dict{String,<:Any})
                 "bus" => obj["bus"],
                 "connections" => obj["connections"],
                 "nphases" => length(obj["connections"]),
+                "status" => Int(obj["status"]),
             ))
         end
     end
