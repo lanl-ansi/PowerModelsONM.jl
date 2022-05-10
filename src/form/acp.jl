@@ -29,8 +29,8 @@ function constraint_mc_switch_state_voltage_open_closed(pm::PMD.AbstractUnbalanc
     vmin = max.(fill(0.0, length(f_vmax)), f_vmin, t_vmin)
     vmax = min.(fill(2.0, length(f_vmax)), f_vmax, t_vmax)
 
-    angmin = get(ref(pm, nw, :switch, i), "angmin", fill(-5.0, length(f_connections)))
-    angmax = get(ref(pm, nw, :switch, i), "angmax", fill( 5.0, length(f_connections)))
+    angmin = get(ref(pm, nw, :switch, i), "angmin", deg2rad.(fill(-5.0, length(f_connections))))
+    angmax = get(ref(pm, nw, :switch, i), "angmax", deg2rad.(fill( 5.0, length(f_connections))))
 
     state = var(pm, nw, :switch_state, i)
 
