@@ -8,12 +8,12 @@ function get_timestep_microgrid_networks(output::String, network::Dict{String,<:
 
     actions = get(output, "Device action timestep", [])
 
-    switch_config = Dict{String,PowerModelsDistribution.SwitchState}[]
+    switch_config = Dict{String,PMD.SwitchState}[]
 
     for timestep in actions
-        _switch_config = Dict{String,PowerModelsDistribution.SwitchState}()
+        _switch_config = Dict{String,PMD.SwitchState}()
         for (id, state) in get(timestep, "Switch configurations", Dict())
-            _switch_config[id] = Dict("closed"=>PowerModelsDistribution.CLOSED, "open"=>PowerModelsDistribution.OPEN)[lowercase(state)]
+            _switch_config[id] = Dict("closed"=>PMD.CLOSED, "open"=>PMD.OPEN)[lowercase(state)]
         end
         push!(switch_config, _switch_config)
     end
