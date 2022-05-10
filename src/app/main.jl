@@ -64,9 +64,7 @@ function entrypoint(args::Dict{String,<:Any})::Dict{String,Any}
 
     analyze_results!(args)
 
-    if !validate_output(args["output_data"])
-        @warn "Output data structure failed to validate against its schema"
-    end
+    !validate_output(args["output_data"]) && @warn "Output data structure failed to validate against its schema:\n$(evaluate_output(args["output_data"]))"
 
     if !isempty(get(args, "output", ""))
         write_json(args["output"], args["output_data"]; indent=get(args, "pretty-print", false) ? 2 : missing)
