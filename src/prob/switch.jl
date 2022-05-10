@@ -7,12 +7,18 @@ using [`optimize_switches`]
 Uses LPUBFDiagPowerModel (LinDist3Flow), and therefore requires `args["solvers"]["misocp_solver"]` to be specified
 """
 function optimize_switches!(args::Dict{String,<:Any})::Dict{String,Any}
+    prob_opts = get(get(args["network"], "options", Dict()), "problem", Dict())
+    solver = get(prob_opts, "operations-solver", "mip_solver")
+    formulation = _get_formulation(get(prob_opts, "operations-formulation", PMD.LPUBFDiagPowerModel))
+    algorithm = get(prob_opts, "operations-algorithm", "global")
+    problem_type = get(prob_opts, "operations-problem-type", "block")
+
     args["optimal_switching_results"] = optimize_switches(
         args["network"],
-        args["solvers"][get(args, "opt-switch-solver", "misocp_solver")];
-        formulation=_get_formulation(get(args, "opt-switch-formulation", "lindistflow")),
-        algorithm=get(args, "opt-switch-algorithm", "global"),
-        problem=get(args, "opt-switch-problem", "block")
+        args["solvers"][solver];
+        formulation=formulation,
+        algorithm=algorithm,
+        problem=problem_type
     )
 end
 

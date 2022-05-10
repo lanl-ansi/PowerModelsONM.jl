@@ -1,0 +1,229 @@
+{
+  "title": "input.settings.options.schema",
+  "type": "object",
+  "description": "",
+  "properties": {
+    "data": {
+      "type": "object",
+      "properties": {
+        "time-elapsed": {
+          "type": ["number", "array"],
+          "items": {
+            "type": "number"
+          }
+        },
+        "switch-close-actions-ub": {
+          "type": ["number", "array", "null"],
+          "default": null,
+          "items": {
+            "type": ["number", "null"]
+          }
+        },
+        "fix-small-numbers": {
+          "type": "boolean",
+          "default": false
+        },
+        "time-elapsed-scale": {
+          "type": "number",
+          "default": 1
+        }
+      }
+    },
+    "variables": {
+      "type": "object",
+      "properties": {
+        "relax-integer-variables": {
+          "type": "boolean",
+          "default": false
+        },
+        "unbound-voltage": {
+          "type": "boolean",
+          "default": false
+        },
+        "unbound-line-power": {
+          "type": "boolean",
+          "default": false
+        },
+        "unbound-line-current": {
+          "type": "boolean",
+          "default": false
+        },
+        "unbound-switch-power": {
+          "type": "boolean",
+          "default": false
+        },
+        "unbound-transformer-power": {
+          "type": "boolean",
+          "default": false
+        },
+        "unbound-generation-power": {
+          "type": "boolean",
+          "default": false
+        },
+        "unbound-storage-power": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "properties": {
+        "disable-grid-forming-inverter-constraint": {
+          "type": "boolean",
+          "default": false
+        },
+        "disable-block-isolation-constraint": {
+          "type": "boolean",
+          "default": false
+        },
+        "disable-radiality-constraint": {
+          "type": "boolean",
+          "default": false
+        },
+        "disable-microgrid-networking": {
+          "type": "boolean",
+          "default": false
+        },
+        "disable-current-limit-constraints": {
+          "type": "boolean",
+          "default": false
+        },
+        "disable-thermal-limit-constraints": {
+          "type": "boolean",
+          "default": false
+        },
+        "disable-switch-close-action-limit": {
+          "type": "boolean",
+          "default": false
+        },
+        "disable-storage-unbalance-constraint": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "objective": {
+      "type": "object",
+      "properties": {
+        "disable-switch-state-change-cost": {
+          "type": "boolean",
+          "default": false
+        },
+        "enable-switch-state-open-cost": {
+          "type": "boolean",
+          "default": false
+        },
+        "disable-generation-dispatch-cost": {
+          "type": "boolean",
+          "default": false
+        },
+        "disable-storage-discharge-cost": {
+          "type": "boolean",
+          "default": false
+        },
+        "disable-load-block-weight-cost": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "problem": {
+      "type": "object",
+      "properties": {
+        "operations-algorithm": {
+          "type": "string",
+          "enum": ["rolling horizon", "complete horizon"],
+          "default": "complete horizon"
+        },
+        "operations-formulation": {
+          "type": "string",
+          "enum": [
+            "lindistflow",
+            "transportation",
+            "acp",
+            "acr",
+            "nfa",
+            "lpubfdiag",
+            "LPUBFDiagPowerModel",
+            "ACPUPowerModel",
+            "ACRUPowerModel",
+            "NFAUPowerModel"
+          ],
+          "default": "LPUBFDiagPowerModel"
+        },
+        "operations-problem-type": {
+          "type": "string",
+          "enum": ["block", "traditional"],
+          "default": "block"
+        },
+        "operations-solver": {
+          "type": "string",
+          "enum": ["minlp_solver", "mip_solver", "misocp_solver", "nlp_solver"],
+          "default": "mip_solver"
+        },
+        "dispatch-formulation": {
+          "type": "string",
+          "enum": [
+            "nfa",
+            "lindistflow",
+            "acp",
+            "acr",
+            "ivr",
+            "transportation",
+            "lpubfdiag",
+            "NFAUPowerModel",
+            "LPUBFDiagPowerModel",
+            "ACRUPowerModel",
+            "ACPUPowerModel",
+            "IVRUPowerModel"
+          ],
+          "default": "LPUBFDiagPowerModel"
+        },
+        "dispatch-solver": {
+          "type": "string",
+          "enum": ["mip_solver", "misocp_solver", "minlp_solver", "nlp_solver"],
+          "default": "nlp_solver"
+        },
+        "concurrent-fault-studies": {
+          "type": "boolean",
+          "default": true
+        },
+        "concurrent-stability-studies": {
+          "type": "boolean",
+          "default": true
+        },
+        "skip": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "faults",
+              "stability",
+              "switching",
+              "dispatch",
+              "protection"
+            ]
+          }
+        }
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "properties": {
+        "pretty-print": {
+          "type": "boolean",
+          "default": true
+        },
+        "sparse-fault-studies": {
+          "type": "boolean",
+          "default": true
+        },
+        "debug-output": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    }
+  }
+}

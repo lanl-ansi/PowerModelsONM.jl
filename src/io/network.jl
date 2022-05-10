@@ -8,8 +8,7 @@ data structure under `args["base_network"]`
 function parse_network!(args::Dict{String,<:Any})::Dict{String,Any}
     if isa(args["network"], String)
         args["base_network"], args["network"] = parse_network(
-            args["network"];
-            fix_small_numbers=get(args, "fix-small-numbers", false)
+            args["network"]
         )
     end
 
@@ -25,7 +24,7 @@ end
 Parses network file given by runtime arguments into its base network, i.e., not expanded into a multinetwork,
 and multinetwork, which is the multinetwork `ENGINEERING` representation of the network.
 """
-function parse_network(network_file::String; fix_small_numbers::Bool=false)::Tuple{Dict{String,Any},Dict{String,Any}}
+function parse_network(network_file::String)::Tuple{Dict{String,Any},Dict{String,Any}}
     eng = PMD.parse_file(
         network_file;
         dss2eng_extensions=[
@@ -37,19 +36,13 @@ function parse_network(network_file::String; fix_small_numbers::Bool=false)::Tup
         import_all=true
     )
 
-    if fix_small_numbers
-        PMD.adjust_small_line_impedances!(eng; min_impedance_val=1e-1)
-        PMD.adjust_small_line_admittances!(eng; min_admittance_val=1e-1)
-        PMD.adjust_small_line_lengths!(eng; min_length_val=10.0)
-    end
-
     # TODO: add more elegant cost model adjustments
     for (id,obj) in get(eng, "solar", Dict())
         eng["solar"][id]["cost_pg_model"] = 2
         eng["solar"][id]["cost_pg_parameters"] = [0.0, 0.0]
     end
 
-    mn_eng = PMD.make_multinetwork(eng)
+    mn_eng = make_multinetwork(eng)
 
     return eng, mn_eng
 end
@@ -219,4 +212,29 @@ function get_timestep_bus_types(optimal_dispatch_solution::Dict{String,<:Any}, n
     end
 
     return timesteps
+end
+
+
+"""
+"""
+function make_multinetwork(eng::Dict{String,<:Any}; global_keys::Set{String}=Set{String}(), time_elapsed::Union{Real,Vector{<:Real},Missing}=missing, kwargs...)
+    mn_eng = PMD.make_multinetwork(eng; global_keys=union(global_keys, Set{String}(["options", "solvers"])), time_elapsed=ismissing(time_elapsed) ? get(eng, "time_elapsed", missing) : time_elapsed, kwargs...)
+
+    switch_close_actions_ub = get(get(get(mn_eng, "options", Dict()), "data", Dict()), "switch-close-actions-ub", missing)
+    if !ismissing(switch_close_actions_ub)
+        set_switch_close_actions_ub!(mn_eng, switch_close_actions_ub)
+    end
+
+    return mn_eng
+end
+
+
+"""
+"""
+function set_switch_close_actions_ub!(mn_eng::Dict{String,<:Any}, switch_close_actions_ub::Union{Vector{<:Real},Real})
+    @assert PMD.ismultinetwork(mn_eng)
+
+    for n in sort(parse.(Int,collect(keys(mn_eng["nw"]))))
+        mn_eng["nw"]["$n"]["switch_close_actions_ub"] = isa(switch_close_actions_ub, Vector) ? switch_close_actions_ub[n] : switch_close_actions_ub
+    end
 end

@@ -1,29 +1,22 @@
 """
     optimize_dispatch!(
         args::Dict{String,<:Any};
-        update_network_data::Bool=false,
-        solver::String=get(args, "opt-disp-solver", "nlp_solver")
+        solver::Union{Missing,String}=missing
     )::Dict{String,Any}
 
 Solves optimal dispatch problem in-place, for use in [`entrypoint`](@ref entrypoint), using [`optimize_dispatch`](@ref optimize_dispatch).
 If you are using this to optimize after running [`optimize_switches!`](@ref optimize_switches!), this assumes that the correct
 switch states from those results have already been propagated into `args["network"]`
 
-If `update_network_data` (default: false) the results of the optimization will be automatically merged into
-`args["network"]`.
 
 `solver` (default: `"nlp_solver"`) specifies which solver to use for the OPF problem from `args["solvers"]`
 """
-function optimize_dispatch!(args::Dict{String,<:Any}; update_network_data::Bool=false, solver::String=get(args, "opt-disp-solver", "nlp_solver"))::Dict{String,Any}
-    args["opt-disp-formulation"] = _get_formulation(get(args, "opt-disp-formulation", "lindistflow"))
+function optimize_dispatch!(args::Dict{String,<:Any}; solver::Union{Missing,String}=missing)::Dict{String,Any}
+    prob_opts = get(get(args["network"], "options", Dict()), "problem", Dict())
+    solver = ismissing(solver) ? get(prob_opts, "dispatch-solver", "nlp_solver") : solver
+    formulation = _get_formulation(get(prob_opts, "dispatch-formulation", PMD.LPUBFDiagPowerModel))
 
-    if update_network_data
-        args["network"] = apply_switch_solutions!(args["network"], get(args, "optimal_switching_results", Dict{String,Any}()))
-    end
-
-    args["optimal_dispatch_result"] = optimize_dispatch(args["network"], args["opt-disp-formulation"], args["solvers"][solver]; switching_solutions=get(args, "optimal_switching_results", missing))
-
-    update_network_data && recursive_merge(args["network"], get(args["optimal_dispatch_result"], "solution", Dict{String, Any}()))
+    args["optimal_dispatch_result"] = optimize_dispatch(args["network"], formulation, args["solvers"][solver]; switching_solutions=get(args, "optimal_switching_results", missing))
 
     return args["optimal_dispatch_result"]
 end

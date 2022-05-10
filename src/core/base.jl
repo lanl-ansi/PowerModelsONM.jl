@@ -163,3 +163,42 @@ function recursive_merge_timesteps(x::T, y::U)::promote_type(T, U) where {T<:Abs
         return y
     end
 end
+
+
+"""
+"""
+function set_dict_value!(a::Dict, key::String, value::Any)
+    a[key] = value
+end
+
+
+"""
+"""
+function set_dict_value!(a::T, path::Tuple{Vararg{String}}, value::Any) where T <: Dict
+    if !haskey(a, first(path))
+        a[first(path)] = T()
+    end
+
+    new_path = length(path) == 2 ? path[2] : path[2:end]
+
+    set_dict_value!(a[first(path)], new_path, value)
+end
+
+
+"""
+"""
+function convert(value::Any, path::Tuple{Vararg{String}}=tuple())
+    if haskey(settings_conversions, path)
+        value = settings_conversions[path](value)
+    end
+
+    if isa(value, String) && startswith(value, ":")
+        value = Symbol(value[2:end])
+    end
+
+    if isa(value, Vector) && all(isa.(value, String)) && all(startswith.(value,":"))
+        value = Symbol[Symbol(v[2:end]) for v in value]
+    end
+
+    return value
+end

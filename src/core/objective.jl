@@ -53,13 +53,15 @@ function objective_min_shed_load_block_rolling_horizon(pm::AbstractUnbalancedPow
         end
     end
 
+    obj_opts = Dict(n=>ref(pm, n, :options, "objective") for n in nw_ids(pm))
+
     JuMP.@objective(pm.model, Min,
         sum(
-            sum( ref(pm, n, :block_weights, i) * (1-var(pm, n, :z_block, i)) for (i,block) in nw_ref[:blocks])
+            sum( ref(pm, n, :block_weights, i) * (1 - Int(obj_opts[n]["disable-load-block-weight-cost"])) * (1-var(pm, n, :z_block, i)) for (i,block) in nw_ref[:blocks])
             + sum( ref(pm, n, :switch_scores, l)*(1-var(pm, n, :switch_state, l)) for l in ids(pm, n, :switch_dispatchable) )
-            + sum( Int(!get(ref(pm, n), :disable_switch_penalty, false)) * sum(var(pm, n, :delta_sw_state, l)) for l in ids(pm, n, :switch_dispatchable)) / n_dispatchable_switches[n]
-            + sum( strg["energy_rating"] - var(pm, n, :se, i) for (i,strg) in nw_ref[:storage]) / total_energy_ub
-            + sum( sum(get(gen,  "cost", [0.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [0.0, 0.0])[1] for c in  gen["connections"]) for (i,gen) in nw_ref[:gen]) / total_energy_ub
+            + sum( Int(!obj_opts[n]["disable-switch-state-change-cost"]) * sum(var(pm, n, :delta_sw_state, l)) for l in ids(pm, n, :switch_dispatchable)) / n_dispatchable_switches[n]
+            + sum( Int(!obj_opts[n]["disable-storage-discharge-cost"]) * (strg["energy_rating"] - var(pm, n, :se, i)) for (i,strg) in nw_ref[:storage]) / total_energy_ub
+            + sum( Int(!obj_opts[n]["disable-generation-dispatch-cost"]) * sum(get(gen,  "cost", [0.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [0.0, 0.0])[1] for c in  gen["connections"]) for (i,gen) in nw_ref[:gen]) / total_energy_ub
         for (n, nw_ref) in nws(pm))
     )
 end
@@ -127,13 +129,15 @@ function objective_min_shed_load_traditional_rolling_horizon(pm::AbstractUnbalan
         end
     end
 
+    obj_opts = Dict(n=>ref(pm, n, :options, "objective") for n in nw_ids(pm))
+
     JuMP.@objective(pm.model, Min,
         sum(
-            sum( load_weights[n][i] * (1-var(pm, n, :z_demand, i)) for i in ids(pm, n, :load))
+            sum( load_weights[n][i] * (1 - Int(obj_opts[n]["disable-load-block-weight-cost"])) * (1-var(pm, n, :z_demand, i)) for i in ids(pm, n, :load))
             + sum( ref(pm, n, :switch_scores, l)*(1-var(pm, n, :switch_state, l)) for l in ids(pm, n, :switch_dispatchable) )
-            + sum( Int(!get(ref(pm, n), :disable_switch_penalty, false)) * sum(var(pm, n, :delta_sw_state, l)) for l in ids(pm, n, :switch_dispatchable)) / n_dispatchable_switches[n]
-            + sum( strg["energy_rating"] - var(pm, n, :se, i) for (i,strg) in nw_ref[:storage]) / total_energy_ub
-            + sum( sum(get(gen,  "cost", [0.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [0.0, 0.0])[1] for c in  gen["connections"]) for (i,gen) in nw_ref[:gen]) / total_energy_ub
+            + sum( Int(!obj_opts[n]["disable-switch-state-change-cost"]) * sum(var(pm, n, :delta_sw_state, l)) for l in ids(pm, n, :switch_dispatchable)) / n_dispatchable_switches[n]
+            + sum( Int(!obj_opts[n]["disable-storage-discharge-cost"]) * (strg["energy_rating"] - var(pm, n, :se, i)) for (i,strg) in nw_ref[:storage]) / total_energy_ub
+            + sum( Int(!obj_opts[n]["disable-generation-dispatch-cost"]) * sum(get(gen,  "cost", [0.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [0.0, 0.0])[1] for c in  gen["connections"]) for (i,gen) in nw_ref[:gen]) / total_energy_ub
         for (n, nw_ref) in nws(pm))
     )
 end
@@ -145,7 +149,7 @@ end
 Minimum block load shed objective for rolling horizon problem. Note that the difference between this and
 [`objective_min_shed_load_block_rolling_horizon`](@ref objective_min_shed_load_block_rolling_horizon) is that the
 sum over the switches in line 2 of the objective is optional, as determined by user inputs in the model, i.e.,
-`apply_switch_scores` (default: false), and `disable_switch_penalty` (default: false).
+`enable_switch_state_open_cost` (default: false), and `disable-switch-state-change-cost` (default: false).
 
 ```math
 \begin{align*}
@@ -195,13 +199,15 @@ function objective_min_shed_load_block(pm::AbstractUnbalancedPowerModel)
         end
     end
 
+    obj_opts = Dict(n=>ref(pm, n, :options, "objective") for n in nw_ids(pm))
+
     JuMP.@objective(pm.model, Min,
         sum(
-            sum( ref(pm, n, :block_weights, i) * (1-var(pm, n, :z_block, i)) for (i,block) in nw_ref[:blocks])
-            + sum( Int(get(ref(pm, n), :apply_switch_scores, false)) * ref(pm, n, :switch_scores, l)*(1-var(pm, n, :switch_state, l)) for l in ids(pm, n, :switch_dispatchable) )
-            + sum( Int(!get(ref(pm, n), :disable_switch_penalty, false)) * sum(var(pm, n, :delta_sw_state, l)) for l in ids(pm, n, :switch_dispatchable)) / n_dispatchable_switches[n]
-            + sum( strg["energy_rating"] - var(pm, n, :se, i) for (i,strg) in nw_ref[:storage]) / total_energy_ub
-            + sum( sum(get(gen,  "cost", [0.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [0.0, 0.0])[1] for c in  gen["connections"]) for (i,gen) in nw_ref[:gen]) / total_energy_ub
+            sum( ref(pm, n, :block_weights, i) * (1 - Int(obj_opts[n]["disable-load-block-weight-cost"])) * (1-var(pm, n, :z_block, i)) for (i,block) in nw_ref[:blocks])
+            + sum( Int(obj_opts[n]["enable-switch-state-open-cost"]) * ref(pm, n, :switch_scores, l)*(1-var(pm, n, :switch_state, l)) for l in ids(pm, n, :switch_dispatchable) )
+            + sum( Int(!obj_opts[n]["disable-switch-state-change-cost"]) * sum(var(pm, n, :delta_sw_state, l)) for l in ids(pm, n, :switch_dispatchable)) / n_dispatchable_switches[n]
+            + sum( Int(!obj_opts[n]["disable-storage-discharge-cost"]) * (strg["energy_rating"] - var(pm, n, :se, i)) for (i,strg) in nw_ref[:storage]) / total_energy_ub
+            + sum( Int(!obj_opts[n]["disable-generation-dispatch-cost"]) * sum(get(gen,  "cost", [0.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [0.0, 0.0])[1] for c in  gen["connections"]) for (i,gen) in nw_ref[:gen]) / total_energy_ub
         for (n, nw_ref) in nws(pm))
     )
 end
@@ -213,7 +219,7 @@ end
 Minimum block load shed objective for rolling horizon problem. Note that the difference between this and
 [`objective_min_shed_load_traditional_rolling_horizon`](@ref objective_min_shed_load_traditional_rolling_horizon) is that the
 sum over the switches in line 2 of the objective is optional, as determined by user inputs in the model, i.e.,
-`apply_switch_scores` (default: false), and `disable_switch_penalty` (default: false).
+`enable_switch_state_open_cost` (default: false), and `disable-switch-state-change-cost` (default: false).
 
 ```math
 \begin{align*}
@@ -270,13 +276,15 @@ function objective_min_shed_load_traditional(pm::AbstractUnbalancedPowerModel)
         end
     end
 
+    obj_opts = Dict(n=>ref(pm, n, :options, "objective") for n in nw_ids(pm))
+
     JuMP.@objective(pm.model, Min,
         sum(
-            sum( load_weights[n][i] * (1-var(pm, n, :z_demand, i)) for i in ids(pm, n, :load))
-            + sum( Int(get(ref(pm, n), :apply_switch_scores, false)) * ref(pm, n, :switch_scores, l)*(1-var(pm, n, :switch_state, l)) for l in ids(pm, n, :switch_dispatchable) )
-            + sum( Int(!get(ref(pm, n), :disable_switch_penalty, false)) * sum(var(pm, n, :delta_sw_state, l)) for l in ids(pm, n, :switch_dispatchable)) / n_dispatchable_switches[n]
-            + sum( strg["energy_rating"] - var(pm, n, :se, i) for (i,strg) in nw_ref[:storage]) / total_energy_ub
-            + sum( sum(get(gen,  "cost", [0.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [0.0, 0.0])[1] for c in  gen["connections"]) for (i,gen) in nw_ref[:gen]) / total_energy_ub
+            sum( load_weights[n][i] * (1 - Int(obj_opts[n]["disable-load-block-weight-cost"])) * (1-var(pm, n, :z_demand, i)) for i in ids(pm, n, :load))
+            + sum( Int(obj_opts[n]["enable-switch-state-open-cost"]) * ref(pm, n, :switch_scores, l)*(1-var(pm, n, :switch_state, l)) for l in ids(pm, n, :switch_dispatchable) )
+            + sum( Int(!obj_opts[n]["disable-switch-state-change-cost"]) * sum(var(pm, n, :delta_sw_state, l)) for l in ids(pm, n, :switch_dispatchable)) / n_dispatchable_switches[n]
+            + sum( Int(!obj_opts[n]["disable-storage-discharge-cost"]) * (strg["energy_rating"] - var(pm, n, :se, i)) for (i,strg) in nw_ref[:storage]) / total_energy_ub
+            + sum( Int(!obj_opts[n]["disable-generation-dispatch-cost"]) * sum(get(gen,  "cost", [0.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [0.0, 0.0])[1] for c in  gen["connections"]) for (i,gen) in nw_ref[:gen]) / total_energy_ub
         for (n, nw_ref) in nws(pm))
     )
 end

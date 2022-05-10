@@ -15,7 +15,7 @@
   "x-tags": ["input"],
   "examples": [
     {
-      "max_switch_actions": [1, 1, 1],
+      "switch_close_actions_ub": [1, 1, 1],
       "time_elapsed": [0.1667, 0.1667, 0.1667],
       "load": {
         "671": {
@@ -35,7 +35,7 @@
       "$ref": "./settings/input-settings-solar.schema.json"
     },
     "voltage_source": {
-      "$ref": "./output-optimization_metadata.schema.json"
+      "$ref": "./settings/input-settings-voltage_source.schema.json"
     },
     "storage": {
       "$ref": "./settings/input-settings-storage.schema.json"
@@ -58,63 +58,96 @@
     "transformer": {
       "$ref": "./settings/input-settings-transformer.schema.json"
     },
+    "options": {
+      "$ref": "./settings/input-settings-options.schema.json"
+    },
+    "solvers": {
+      "$ref": "./settings/input-settings-solvers.schema.json"
+    },
     "max_switch_actions": {
-      "type": ["array", "number"],
-      "description": "The maximum allowed switching actions per timestep (or at each timestep, if an array)",
+      "type": ["array", "integer", "null"],
+      "description": "deprecated: options/data/switch-close-actions-ub",
+      "deprecated": true,
       "items": {
-        "type": "number"
+        "type": ["integer", "null"]
       }
     },
     "disable_networking": {
-      "type": ["boolean"],
-      "description": "Disables microgrid networking"
+      "type": "boolean",
+      "description": "deprecated: options/constraints/disable-microgrid-networking",
+      "default": false,
+      "deprecated": true
     },
     "disable_radial_constraint": {
-      "type": ["boolean"],
-      "description": "Disables radiality constraints"
+      "type": "boolean",
+      "description": "deprecated: options/constraints/disable-radiality-constraint",
+      "default": false,
+      "deprecated": true
     },
     "disable_isolation_constraint": {
-      "type": ["boolean"],
-      "description": "Disables block isolation constraint"
+      "type": "boolean",
+      "description": "deprecated: options/constraints/disable-block-isolation-constraint",
+      "default": false,
+      "deprecated": true
     },
     "disable_inverter_constraint": {
-      "type": ["boolean"],
-      "description": "Disables constraint that enforces only one grid-forming inverter per connected component (might cause issues with Cbc)"
+      "type": "boolean",
+      "default": false,
+      "deprecated": true,
+      "description": "deprecated: options/constraints/disable-grid-forming-inverter-constraint"
     },
     "disable_switch_penalty": {
-      "type": ["boolean"],
-      "description": "apply penalty to switching in objective"
+      "type": "boolean",
+      "description": "deprecated: options/objective/disable-switch-state-change-cost",
+      "deprecated": true
     },
     "apply_switch_scores": {
-      "type": ["boolean"],
-      "description": "apply weight to switches in objective"
+      "type": "boolean",
+      "description": "deprecated: options/objective/enable-switch-state-open-cost",
+      "deprecated": true
     },
     "disable_presolver": {
-      "type": ["boolean"],
-      "description": "disables presolvers on included solvers that support it (Gurobi, KNITRO)",
-      "default": false
+      "type": "boolean",
+      "description": "deprecated: {solvers/HiGHS/presolve,solvers/Gurobi/Presolve,solvers/KNITRO/presolve}",
+      "default": false,
+      "deprecated": true
     },
     "time_elapsed": {
       "type": ["array", "number"],
-      "description": "The time elapsed, in hours for each timestep, or individually after each timestep if an array",
+      "description": "deprecated: options/data/time-elapsed",
+      "deprecated": true,
       "items": {
         "type": "number"
       }
     },
     "nlp_solver_tol": {
       "type": "number",
-      "description": "The tolerance of the nlp solver"
+      "deprecated": true,
+      "description": "deprecated: {solvers/Ipopt/tol,solvers/KNITRO/feas}"
     },
     "mip_solver_tol": {
       "type": "number",
-      "description": "The tolerance of the mip solver"
+      "description": "deprecated: {solvers/HiGHS/primal_feasibility_tolerance,solvers/HiGHS/dual_feasibility_tolerance,solvers/Gurobi/FeasibilityTol}",
+      "deprecated": true
     },
     "mip_solver_gap": {
       "type": "number",
       "exclusiveMinimum": 0,
       "default": 0.05,
       "format": "float",
-      "description": "MIP Gap for MIP/MISOCP solvers"
+      "description": "deprecated: {solvers/HiGHS/mip_rel_gap,solvers/Gurobi/MIPGap}",
+      "deprecated": true
+    },
+    "microgrids": {
+      "type": "object",
+      "patternProperties": {
+        "^.+$": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     }
   }
 }

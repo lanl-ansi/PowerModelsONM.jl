@@ -24,37 +24,44 @@ Multinetwork load shedding problem for Branch Flow model
 """
 function build_mn_traditional_mld(pm::PMD.AbstractUBFModels)
     for n in nw_ids(pm)
-        variable_inverter_indicator(pm; nw=n, relax=false)
+        var_opts = ref(pm, n, :options, "variables")
+        con_opts = ref(pm, n, :options, "constraints")
 
-        variable_bus_voltage_indicator(pm; nw=n, relax=false)
-        PMD.variable_mc_bus_voltage_on_off(pm; nw=n)
+        !con_opts["disable-grid-forming-inverter-constraint"] && variable_inverter_indicator(pm; nw=n, relax=var_opts["relax-integer-variables"])
 
-        PMD.variable_mc_branch_current(pm; nw=n)
-        PMD.variable_mc_branch_power(pm; nw=n)
+        variable_bus_voltage_indicator(pm; nw=n, relax=var_opts["relax-integer-variables"])
+        PMD.variable_mc_bus_voltage_on_off(pm; nw=n, bounded=!var_opts["unbound-voltage"])
 
-        PMD.variable_mc_switch_power(pm; nw=n)
-        variable_switch_state(pm; nw=n, relax=false)
+        PMD.variable_mc_branch_current(pm; nw=n, bounded=!var_opts["unbound-line-current"])
+        PMD.variable_mc_branch_power(pm; nw=n, bounded=!var_opts["unbound-line-power"])
 
-        PMD.variable_mc_transformer_power(pm; nw=n)
+        PMD.variable_mc_switch_power(pm; nw=n, bounded=!var_opts["unbound-switch-power"])
+        variable_switch_state(pm; nw=n, relax=var_opts["relax-integer-variables"])
+
+        PMD.variable_mc_transformer_power(pm; nw=n, bounded=!var_opts["unbound-transformer-power"])
         PMD.variable_mc_oltc_transformer_tap(pm; nw=n)
 
-        variable_generator_indicator(pm; nw=n, relax=false)
-        PMD.variable_mc_generator_power_on_off(pm; nw=n)
+        variable_generator_indicator(pm; nw=n, relax=var_opts["relax-integer-variables"])
+        PMD.variable_mc_generator_power_on_off(pm; nw=n, bounded=!var_opts["unbound-generation-power"])
 
-        variable_storage_indicator(pm; nw=n, relax=false)
-        variable_mc_storage_power_mi_on_off(pm; nw=n, relax=false)
+        variable_storage_indicator(pm; nw=n, relax=var_opts["relax-integer-variables"])
+        variable_mc_storage_power_mi_on_off(pm; nw=n, relax=var_opts["relax-integer-variables"], bounded=!var_opts["unbound-storage-power"])
 
-        variable_load_indicator(pm; nw=n, relax=false)
+        variable_load_indicator(pm; nw=n, relax=var_opts["relax-integer-variables"])
         PMD.variable_mc_load_power(pm; nw=n)
 
-        PMD.variable_mc_capcontrol(pm; nw=n, relax=false)
+        PMD.variable_mc_capcontrol(pm; nw=n, relax=var_opts["relax-integer-variables"])
 
         PMD.constraint_mc_model_current(pm; nw=n)
 
-        !get(ref(pm, n), :disable_inverter_constraint, false) && constraint_grid_forming_inverter_per_cc(pm; nw=n, relax=false)
+        !con_opts["disable-grid-forming-inverter-constraint"] && constraint_grid_forming_inverter_per_cc(pm; nw=n, relax=var_opts["relax-integer-variables"])
 
         for i in ids(pm, n, :bus)
-            constraint_mc_inverter_theta_ref(pm, i; nw=n)
+            if con_opts["disable-grid-forming-inverter-constraint"]
+                PMD.constraint_mc_theta_ref(pm, i; nw=n)
+            else
+                constraint_mc_inverter_theta_ref(pm, i; nw=n)
+            end
         end
 
         constraint_mc_bus_voltage_traditional_on_off(pm; nw=n)
@@ -75,8 +82,8 @@ function build_mn_traditional_mld(pm::PMD.AbstractUBFModels)
             constraint_storage_complementarity_mi_traditional_on_off(pm, i; nw=n)
             constraint_mc_storage_traditional_on_off(pm, i; nw=n)
             constraint_mc_storage_losses_traditional_on_off(pm, i; nw=n)
-            PMD.constraint_mc_storage_thermal_limit(pm, i; nw=n)
-            constraint_mc_storage_phase_unbalance_grid_following(pm, i; nw=n)
+            !con_opts["disable-thermal-limit-constraints"] && PMD.constraint_mc_storage_thermal_limit(pm, i; nw=n)
+            !con_opts["disable-storage-unbalance-constraint"] && constraint_mc_storage_phase_unbalance_grid_following(pm, i; nw=n)
         end
 
         for i in ids(pm, n, :branch)
@@ -84,21 +91,21 @@ function build_mn_traditional_mld(pm::PMD.AbstractUBFModels)
             PMD.constraint_mc_model_voltage_magnitude_difference(pm, i; nw=n)
             PMD.constraint_mc_voltage_angle_difference(pm, i; nw=n)
 
-            PMD.constraint_mc_thermal_limit_from(pm, i; nw=n)
-            PMD.constraint_mc_thermal_limit_to(pm, i; nw=n)
+            !con_opts["disable-thermal-limit-constraints"] && PMD.constraint_mc_thermal_limit_from(pm, i; nw=n)
+            !con_opts["disable-thermal-limit-constraints"] && PMD.constraint_mc_thermal_limit_to(pm, i; nw=n)
 
-            PMD.constraint_mc_ampacity_from(pm, i; nw=n)
-            PMD.constraint_mc_ampacity_to(pm, i; nw=n)
+            !con_opts["disable-current-limit-constraints"] && PMD.constraint_mc_ampacity_from(pm, i; nw=n)
+            !con_opts["disable-current-limit-constraints"] && PMD.constraint_mc_ampacity_to(pm, i; nw=n)
         end
 
-        get(ref(pm, n), :disable_networking, false) && constraint_disable_networking(pm; nw=n, relax=false)
-        !get(ref(pm, n), :disable_radial_constraint, false) && constraint_radial_topology(pm; nw=n, relax=false)
-        !get(ref(pm, n), :disable_isolation_constraint, false) && constraint_isolate_block_traditional(pm; nw=n)
+        con_opts["disable-microgrid-networking"] && constraint_disable_networking(pm; nw=n, relax=var_opts["relax-integer-variables"])
+        !con_opts["disable-radiality-constraint"] && constraint_radial_topology(pm; nw=n, relax=var_opts["relax-integer-variables"])
+        !con_opts["disable-block-isolation-constraint"] && constraint_isolate_block_traditional(pm; nw=n)
         for i in ids(pm, n, :switch)
             constraint_mc_switch_state_open_close(pm, i; nw=n)
 
-            PMD.constraint_mc_switch_thermal_limit(pm, i; nw=n)
-            PMD.constraint_mc_switch_ampacity(pm, i; nw=n)
+            !con_opts["disable-thermal-limit-constraints"] && PMD.constraint_mc_switch_thermal_limit(pm, i; nw=n)
+            !con_opts["disable-current-limit-constraints"] && PMD.constraint_mc_switch_ampacity(pm, i; nw=n)
         end
 
         for i in ids(pm, n, :transformer)
@@ -114,10 +121,10 @@ function build_mn_traditional_mld(pm::PMD.AbstractUBFModels)
         PMD.constraint_storage_state(pm, i; nw=n_1)
     end
 
-    constraint_switch_close_action_limit(pm; nw=n_1)
+    !ref(pm, n_1, :options, "constraints")["disable-switch-close-action-limit"] && constraint_switch_close_action_limit(pm; nw=n_1)
 
     for n_2 in network_ids[2:end]
-        constraint_switch_close_action_limit(pm, n_1, n_2)
+        !ref(pm, n_2, :options, "constraints")["disable-switch-close-action-limit"] && constraint_switch_close_action_limit(pm, n_1, n_2)
 
         for i in ids(pm, :storage; nw=n_2)
             PMD.constraint_storage_state(pm, i, n_1, n_2)
@@ -137,36 +144,43 @@ Multinetwork load shedding problem for Bus Injection model
 """
 function build_mn_traditional_mld(pm::PMD.AbstractUnbalancedPowerModel)
     for n in nw_ids(pm)
-        variable_inverter_indicator(pm; nw=n, relax=false)
+        var_opts = ref(pm, n, :options, "variables")
+        con_opts = ref(pm, n, :options, "constraints")
 
-        variable_bus_voltage_indicator(pm; nw=n, relax=false)
-        PMD.variable_mc_bus_voltage_on_off(pm; nw=n)
+        !con_opts["disable-grid-forming-inverter-constraint"] && variable_inverter_indicator(pm; nw=n, relax=var_opts["relax-integer-variables"])
 
-        PMD.variable_mc_branch_power(pm; nw=n)
+        variable_bus_voltage_indicator(pm; nw=n, relax=var_opts["relax-integer-variables"])
+        PMD.variable_mc_bus_voltage_on_off(pm; nw=n, bounded=!var_opts["unbound-voltage"])
 
-        PMD.variable_mc_switch_power(pm; nw=n)
-        variable_switch_state(pm; nw=n, relax=false)
+        PMD.variable_mc_branch_power(pm; nw=n, bounded=!var_opts["unbound-line-power"])
 
-        PMD.variable_mc_transformer_power(pm; nw=n)
+        PMD.variable_mc_switch_power(pm; nw=n, bounded=!var_opts["unbound-switch-power"])
+        variable_switch_state(pm; nw=n, relax=var_opts["relax-integer-variables"])
+
+        PMD.variable_mc_transformer_power(pm; nw=n, bounded=!var_opts["unbound-transformer-power"])
         PMD.variable_mc_oltc_transformer_tap(pm; nw=n)
 
-        variable_generator_indicator(pm; nw=n, relax=false)
-        PMD.variable_mc_generator_power_on_off(pm; nw=n)
+        variable_generator_indicator(pm; nw=n, relax=var_opts["relax-integer-variables"])
+        PMD.variable_mc_generator_power_on_off(pm; nw=n, bounded=!var_opts["unbound-generation-power"])
 
-        variable_storage_indicator(pm; nw=n, relax=false)
-        variable_mc_storage_power_mi_on_off(pm; nw=n, relax=false)
+        variable_storage_indicator(pm; nw=n, relax=var_opts["relax-integer-variables"])
+        variable_mc_storage_power_mi_on_off(pm; nw=n, relax=var_opts["relax-integer-variables"], bounded=!var_opts["unbound-storage-power"])
 
-        variable_load_indicator(pm; nw=n, relax=false)
+        variable_load_indicator(pm; nw=n, relax=var_opts["relax-integer-variables"])
         PMD.variable_mc_load_power(pm; nw=n)
 
-        PMD.variable_mc_capcontrol(pm; nw=n, relax=false)
+        PMD.variable_mc_capcontrol(pm; nw=n, relax=var_opts["relax-integer-variables"])
 
         PMD.constraint_mc_model_voltage(pm; nw=n)
 
-        !get(ref(pm, n), :disable_inverter_constraint, false) && constraint_grid_forming_inverter_per_cc(pm; nw=n, relax=false)
+        !con_opts["disable-grid-forming-inverter-constraint"] && constraint_grid_forming_inverter_per_cc(pm; nw=n, relax=var_opts["relax-integer-variables"])
 
         for i in ids(pm, n, :bus)
-            constraint_mc_inverter_theta_ref(pm, i; nw=n)
+            if con_opts["disable-grid-forming-inverter-constraint"]
+                PMD.constraint_mc_theta_ref(pm, i; nw=n)
+            else
+                constraint_mc_inverter_theta_ref(pm, i; nw=n)
+            end
         end
 
         constraint_mc_bus_voltage_traditional_on_off(pm; nw=n)
@@ -187,8 +201,8 @@ function build_mn_traditional_mld(pm::PMD.AbstractUnbalancedPowerModel)
             constraint_storage_complementarity_mi_traditional_on_off(pm, i; nw=n)
             constraint_mc_storage_traditional_on_off(pm, i; nw=n)
             constraint_mc_storage_losses_traditional_on_off(pm, i; nw=n)
-            PMD.constraint_mc_storage_thermal_limit(pm, i; nw=n)
-            constraint_mc_storage_phase_unbalance_grid_following(pm, i; nw=n)
+            !con_opts["disable-thermal-limit-constraints"] && PMD.constraint_mc_storage_thermal_limit(pm, i; nw=n)
+            !con_opts["disable-storage-unbalance-constraint"] && constraint_mc_storage_phase_unbalance_grid_following(pm, i; nw=n)
         end
 
         for i in ids(pm, n, :branch)
@@ -196,21 +210,21 @@ function build_mn_traditional_mld(pm::PMD.AbstractUnbalancedPowerModel)
             PMD.constraint_mc_ohms_yt_to(pm, i; nw=n)
             PMD.constraint_mc_voltage_angle_difference(pm, i; nw=n)
 
-            PMD.constraint_mc_thermal_limit_from(pm, i; nw=n)
-            PMD.constraint_mc_thermal_limit_to(pm, i; nw=n)
+            !con_opts["disable-thermal-limit-constraints"] && PMD.constraint_mc_thermal_limit_from(pm, i; nw=n)
+            !con_opts["disable-thermal-limit-constraints"] && PMD.constraint_mc_thermal_limit_to(pm, i; nw=n)
 
-            PMD.constraint_mc_ampacity_from(pm, i; nw=n)
-            PMD.constraint_mc_ampacity_to(pm, i; nw=n)
+            !con_opts["disable-current-limit-constraints"] && PMD.constraint_mc_ampacity_from(pm, i; nw=n)
+            !con_opts["disable-current-limit-constraints"] && PMD.constraint_mc_ampacity_to(pm, i; nw=n)
         end
 
-        get(ref(pm, n), :disable_networking, false) && constraint_disable_networking(pm; nw=n, relax=false)
-        !get(ref(pm, n), :disable_radial_constraint, false) && constraint_radial_topology(pm; nw=n, relax=false)
-        !get(ref(pm, n), :disable_isolation_constraint, false) && constraint_isolate_block_traditional(pm; nw=n)
+        con_opts["disable-microgrid-networking"] && constraint_disable_networking(pm; nw=n, relax=var_opts["relax-integer-variables"])
+        !con_opts["disable-radiality-constraint"] && constraint_radial_topology(pm; nw=n, relax=var_opts["relax-integer-variables"])
+        !con_opts["disable-block-isolation-constraint"] && constraint_isolate_block_traditional(pm; nw=n)
         for i in ids(pm, n, :switch)
             constraint_mc_switch_state_open_close(pm, i; nw=n)
 
-            PMD.constraint_mc_switch_thermal_limit(pm, i; nw=n)
-            PMD.constraint_mc_switch_ampacity(pm, i; nw=n)
+            !con_opts["disable-thermal-limit-constraints"] && PMD.constraint_mc_switch_thermal_limit(pm, i; nw=n)
+            !con_opts["disable-current-limit-constraints"] && PMD.constraint_mc_switch_ampacity(pm, i; nw=n)
         end
 
         for i in ids(pm, n, :transformer)
@@ -226,10 +240,10 @@ function build_mn_traditional_mld(pm::PMD.AbstractUnbalancedPowerModel)
         PMD.constraint_storage_state(pm, i; nw=n_1)
     end
 
-    constraint_switch_close_action_limit(pm; nw=n_1)
+    !ref(pm, n_1, :options, "constraints")["disable-switch-close-action-limit"] && constraint_switch_close_action_limit(pm; nw=n_1)
 
     for n_2 in network_ids[2:end]
-        constraint_switch_close_action_limit(pm, n_1, n_2)
+        !ref(pm, n_2, :options, "constraints")["disable-switch-close-action-limit"] && constraint_switch_close_action_limit(pm, n_1, n_2)
 
         for i in ids(pm, :storage; nw=n_2)
             PMD.constraint_storage_state(pm, i, n_1, n_2)
@@ -267,37 +281,44 @@ end
 Single-network load shedding problem for Branch Flow model
 """
 function build_traditional_mld(pm::PMD.AbstractUBFModels)
-    variable_inverter_indicator(pm; relax=false)
+    var_opts = ref(pm, :options, "variables")
+    con_opts = ref(pm, :options, "constraints")
 
-    variable_bus_voltage_indicator(pm; relax=false)
-    PMD.variable_mc_bus_voltage_on_off(pm)
+    !con_opts["disable-grid-forming-inverter-constraint"] && variable_inverter_indicator(pm; relax=var_opts["relax-integer-variables"])
 
-    PMD.variable_mc_branch_current(pm)
-    PMD.variable_mc_branch_power(pm)
+    variable_bus_voltage_indicator(pm; relax=var_opts["relax-integer-variables"])
+    PMD.variable_mc_bus_voltage_on_off(pm; bounded=!var_opts["unbound-voltage"])
 
-    PMD.variable_mc_switch_power(pm)
-    variable_switch_state(pm; relax=false)
+    PMD.variable_mc_branch_current(pm; bounded=!var_opts["unbound-line-current"])
+    PMD.variable_mc_branch_power(pm; bounded=!var_opts["unbound-line-power"])
 
-    PMD.variable_mc_transformer_power(pm)
+    PMD.variable_mc_switch_power(pm; bounded=!var_opts["unbound-switch-power"])
+    variable_switch_state(pm; relax=var_opts["relax-integer-variables"])
+
+    PMD.variable_mc_transformer_power(pm; bounded=!var_opts["unbound-transformer-power"])
     PMD.variable_mc_oltc_transformer_tap(pm)
 
-    variable_generator_indicator(pm; relax=false)
-    PMD.variable_mc_generator_power_on_off(pm)
+    variable_generator_indicator(pm; relax=var_opts["relax-integer-variables"])
+    PMD.variable_mc_generator_power_on_off(pm; bounded=!var_opts["unbound-generation-power"])
 
-    variable_storage_indicator(pm; relax=false)
-    variable_mc_storage_power_mi_on_off(pm; relax=false)
+    variable_storage_indicator(pm; relax=var_opts["relax-integer-variables"])
+    variable_mc_storage_power_mi_on_off(pm; relax=var_opts["relax-integer-variables"], bounded=!var_opts["unbound-storage-power"])
 
-    variable_load_indicator(pm; relax=false)
+    variable_load_indicator(pm; relax=var_opts["relax-integer-variables"])
     PMD.variable_mc_load_power(pm)
 
-    PMD.variable_mc_capcontrol(pm; relax=false)
+    PMD.variable_mc_capcontrol(pm; relax=var_opts["relax-integer-variables"])
 
     PMD.constraint_mc_model_current(pm)
 
-    !get(ref(pm), :disable_inverter_constraint, false) && constraint_grid_forming_inverter_per_cc(pm; relax=false)
+    !con_opts["disable-grid-forming-inverter-constraint"] && constraint_grid_forming_inverter_per_cc(pm; relax=var_opts["relax-integer-variables"])
 
     for i in ids(pm, :bus)
-        constraint_mc_inverter_theta_ref(pm, i)
+        if con_opts["disable-grid-forming-inverter-constraint"]
+            PMD.constraint_mc_theta_ref(pm, i)
+        else
+            constraint_mc_inverter_theta_ref(pm, i)
+        end
     end
 
     constraint_mc_bus_voltage_traditional_on_off(pm)
@@ -319,8 +340,8 @@ function build_traditional_mld(pm::PMD.AbstractUBFModels)
         constraint_storage_complementarity_mi_traditional_on_off(pm, i)
         constraint_mc_storage_traditional_on_off(pm, i)
         constraint_mc_storage_losses_traditional_on_off(pm, i)
-        PMD.constraint_mc_storage_thermal_limit(pm, i)
-        constraint_mc_storage_phase_unbalance_grid_following(pm, i)
+        !con_opts["disable-thermal-limit-constraints"] && PMD.constraint_mc_storage_thermal_limit(pm, i)
+        !con_opts["disable-storage-unbalance-constraint"] && constraint_mc_storage_phase_unbalance_grid_following(pm, i)
     end
 
     for i in ids(pm, :branch)
@@ -328,22 +349,22 @@ function build_traditional_mld(pm::PMD.AbstractUBFModels)
         PMD.constraint_mc_model_voltage_magnitude_difference(pm, i)
         PMD.constraint_mc_voltage_angle_difference(pm, i)
 
-        PMD.constraint_mc_thermal_limit_from(pm, i)
-        PMD.constraint_mc_thermal_limit_to(pm, i)
+        !con_opts["disable-thermal-limit-constraints"] && PMD.constraint_mc_thermal_limit_from(pm, i)
+        !con_opts["disable-thermal-limit-constraints"] && PMD.constraint_mc_thermal_limit_to(pm, i)
 
-        PMD.constraint_mc_ampacity_from(pm, i)
-        PMD.constraint_mc_ampacity_to(pm, i)
+        !con_opts["disable-current-limit-constraints"] && PMD.constraint_mc_ampacity_from(pm, i)
+        !con_opts["disable-current-limit-constraints"] && PMD.constraint_mc_ampacity_to(pm, i)
     end
 
-    constraint_switch_close_action_limit(pm)
-    get(ref(pm), :disable_networking, false) && constraint_disable_networking(pm; relax=false)
-    !get(ref(pm), :disable_radial_constraint, false) && constraint_radial_topology(pm; relax=false)
-    !get(ref(pm), :disable_isolation_constraint, false) && constraint_isolate_block_traditional(pm)
+    !con_opts["disable-switch-close-action-limit"] && constraint_switch_close_action_limit(pm)
+    con_opts["disable-microgrid-networking"] && constraint_disable_networking(pm; relax=var_opts["relax-integer-variables"])
+    !con_opts["disable-radiality-constraint"] && constraint_radial_topology(pm; relax=var_opts["relax-integer-variables"])
+    !con_opts["disable-block-isolation-constraint"] && constraint_isolate_block_traditional(pm)
     for i in ids(pm, :switch)
         constraint_mc_switch_state_open_close(pm, i)
 
-        PMD.constraint_mc_switch_thermal_limit(pm, i)
-        PMD.constraint_mc_switch_ampacity(pm, i)
+        !con_opts["disable-thermal-limit-constraints"] && PMD.constraint_mc_switch_thermal_limit(pm, i)
+        !con_opts["disable-current-limit-constraints"] && PMD.constraint_mc_switch_ampacity(pm, i)
     end
 
     for i in ids(pm, :transformer)
@@ -360,36 +381,43 @@ end
 Single-network load shedding problem for Bus Injection model
 """
 function build_traditional_mld(pm::PMD.AbstractUnbalancedPowerModel)
-    variable_inverter_indicator(pm; relax=false)
+    var_opts = ref(pm, :options, "variables")
+    con_opts = ref(pm, :options, "constraints")
 
-    variable_bus_voltage_indicator(pm; relax=false)
-    PMD.variable_mc_bus_voltage_on_off(pm)
+    !con_opts["disable-grid-forming-inverter-constraint"] && variable_inverter_indicator(pm; relax=var_opts["relax-integer-variables"])
 
-    PMD.variable_mc_branch_power(pm)
+    variable_bus_voltage_indicator(pm; relax=var_opts["relax-integer-variables"])
+    PMD.variable_mc_bus_voltage_on_off(pm; bounded=!var_opts["unbound-voltage"])
 
-    PMD.variable_mc_switch_power(pm)
-    variable_switch_state(pm; relax=false)
+    PMD.variable_mc_branch_power(pm; bounded=!var_opts["unbound-line-power"])
 
-    PMD.variable_mc_transformer_power(pm)
+    PMD.variable_mc_switch_power(pm; bounded=!var_opts["unbound-switch-power"])
+    variable_switch_state(pm; relax=var_opts["relax-integer-variables"])
+
+    PMD.variable_mc_transformer_power(pm; bounded=!var_opts["unbound-transformer-power"])
     PMD.variable_mc_oltc_transformer_tap(pm)
 
-    variable_generator_indicator(pm; relax=false)
-    PMD.variable_mc_generator_power_on_off(pm)
+    variable_generator_indicator(pm; relax=var_opts["relax-integer-variables"])
+    PMD.variable_mc_generator_power_on_off(pm; bounded=!var_opts["unbound-generation-power"])
 
-    variable_storage_indicator(pm; relax=false)
-    variable_mc_storage_power_mi_on_off(pm; relax=false)
+    variable_storage_indicator(pm; relax=var_opts["relax-integer-variables"])
+    variable_mc_storage_power_mi_on_off(pm; relax=var_opts["relax-integer-variables"], bounded=!var_opts["unbound-storage-power"])
 
-    variable_load_indicator(pm; relax=false)
+    variable_load_indicator(pm; relax=var_opts["relax-integer-variables"])
     PMD.variable_mc_load_power(pm)
 
-    PMD.variable_mc_capcontrol(pm; relax=false)
+    PMD.variable_mc_capcontrol(pm; relax=var_opts["relax-integer-variables"])
 
     PMD.constraint_mc_model_voltage(pm)
 
-    !get(ref(pm), :disable_inverter_constraint, false) && constraint_grid_forming_inverter_per_cc(pm; relax=false)
+    !con_opts["disable-grid-forming-inverter-constraint"] && constraint_grid_forming_inverter_per_cc(pm; relax=var_opts["relax-integer-variables"])
 
     for i in ids(pm, :bus)
-        constraint_mc_inverter_theta_ref(pm, i)
+        if con_opts["disable-grid-forming-inverter-constraint"]
+            PMD.constraint_mc_theta_ref(pm, i)
+        else
+            constraint_mc_inverter_theta_ref(pm, i)
+        end
     end
 
     constraint_mc_bus_voltage_traditional_on_off(pm)
@@ -411,8 +439,8 @@ function build_traditional_mld(pm::PMD.AbstractUnbalancedPowerModel)
         constraint_storage_complementarity_mi_traditional_on_off(pm, i)
         constraint_mc_storage_traditional_on_off(pm, i)
         constraint_mc_storage_losses_traditional_on_off(pm, i)
-        PMD.constraint_mc_storage_thermal_limit(pm, i)
-        constraint_mc_storage_phase_unbalance_grid_following(pm, i)
+        !con_opts["disable-thermal-limit-constraints"] && PMD.constraint_mc_storage_thermal_limit(pm, i)
+        !con_opts["disable-storage-unbalance-constraint"] && constraint_mc_storage_phase_unbalance_grid_following(pm, i)
     end
 
     for i in ids(pm, :branch)
@@ -420,22 +448,22 @@ function build_traditional_mld(pm::PMD.AbstractUnbalancedPowerModel)
         PMD.constraint_mc_ohms_yt_to(pm, i)
         PMD.constraint_mc_voltage_angle_difference(pm, i)
 
-        PMD.constraint_mc_thermal_limit_from(pm, i)
-        PMD.constraint_mc_thermal_limit_to(pm, i)
+        !con_opts["disable-thermal-limit-constraints"] && PMD.constraint_mc_thermal_limit_from(pm, i)
+        !con_opts["disable-thermal-limit-constraints"] && PMD.constraint_mc_thermal_limit_to(pm, i)
 
-        PMD.constraint_mc_ampacity_from(pm, i)
-        PMD.constraint_mc_ampacity_to(pm, i)
+        !con_opts["disable-current-limit-constraints"] && PMD.constraint_mc_ampacity_from(pm, i)
+        !con_opts["disable-current-limit-constraints"] && PMD.constraint_mc_ampacity_to(pm, i)
     end
 
-    constraint_switch_close_action_limit(pm)
-    get(ref(pm), :disable_networking, false) && constraint_disable_networking(pm; relax=false)
-    !get(ref(pm), :disable_radial_constraint, false) && constraint_radial_topology(pm; relax=false)
-    !get(ref(pm), :disable_isolation_constraint, false) && constraint_isolate_block_traditional(pm)
+    !con_opts["disable-switch-close-action-limit"] && constraint_switch_close_action_limit(pm)
+    con_opts["disable-microgrid-networking"] && constraint_disable_networking(pm; relax=var_opts["relax-integer-variables"])
+    !con_opts["disable-radiality-constraint"] && constraint_radial_topology(pm; relax=var_opts["relax-integer-variables"])
+    !con_opts["disable-block-isolation-constraint"] && constraint_isolate_block_traditional(pm)
     for i in ids(pm, :switch)
         constraint_mc_switch_state_open_close(pm, i)
 
-        PMD.constraint_mc_switch_thermal_limit(pm, i)
-        PMD.constraint_mc_switch_ampacity(pm, i)
+        !con_opts["disable-thermal-limit-constraints"] && PMD.constraint_mc_switch_thermal_limit(pm, i)
+        !con_opts["disable-current-limit-constraints"] && PMD.constraint_mc_switch_ampacity(pm, i)
     end
 
     for i in ids(pm, :transformer)

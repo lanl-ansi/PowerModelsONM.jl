@@ -1,7 +1,7 @@
 @doc raw"""
     constraint_switch_close_action_limit(pm::AbstractUnbalancedPowerModel, nw::Int)
 
-Constraint for maximum allowed switch close actions in a single time step, as defined by `ref(pm, nw, :max_switch_actions)`
+Constraint for maximum allowed switch close actions in a single time step, as defined by `ref(pm, nw, :switch_close_actions_ub)`
 
 ```math
 \begin{align}
@@ -14,18 +14,18 @@ s.t. & \\
 ```
 """
 function constraint_switch_close_action_limit(pm::AbstractUnbalancedPowerModel, nw::Int)
-    max_switch_actions = ref(pm, nw, :max_switch_actions)
+    switch_close_actions_ub = ref(pm, nw, :switch_close_actions_ub)
 
-    Δᵞs = Dict(l => JuMP.@variable(pm.model, base_name="$(nw)_delta_switch_state_$(l)", start=0) for l in ids(pm, nw, :switch_dispatchable))
-    for (s, Δᵞ) in Δᵞs
-        γ = var(pm, nw, :switch_state, s)
-        γ₀ = JuMP.start_value(γ)
-        JuMP.@constraint(pm.model, Δᵞ >=  γ * (1 - γ₀))
-        JuMP.@constraint(pm.model, Δᵞ >= -γ * (1 - γ₀))
-    end
+    if switch_close_actions_ub < Inf
+        Δᵞs = Dict(l => JuMP.@variable(pm.model, base_name="$(nw)_delta_switch_state_$(l)", start=0) for l in ids(pm, nw, :switch_dispatchable))
+        for (s, Δᵞ) in Δᵞs
+            γ = var(pm, nw, :switch_state, s)
+            γ₀ = JuMP.start_value(γ)
+            JuMP.@constraint(pm.model, Δᵞ >=  γ * (1 - γ₀))
+            JuMP.@constraint(pm.model, Δᵞ >= -γ * (1 - γ₀))
+        end
 
-    if max_switch_actions < Inf
-        JuMP.@constraint(pm.model, sum(Δᵞ for (l, Δᵞ) in Δᵞs) <= max_switch_actions)
+        JuMP.@constraint(pm.model, sum(Δᵞ for (l, Δᵞ) in Δᵞs) <= switch_close_actions_ub)
     end
 end
 
@@ -33,7 +33,7 @@ end
 @doc raw"""
     constraint_switch_close_action_limit(pm::AbstractUnbalancedPowerModel, nw_1::Int, nw_2::Int)
 
-Constraint for maximum allowed switch close actions between time steps, as defined by `ref(pm, nw, :max_switch_actions)`
+Constraint for maximum allowed switch close actions between time steps, as defined by `ref(pm, nw, :switch_close_actions_ub)`
 
 ```math
 \begin{align}
@@ -52,25 +52,25 @@ s.t.  & \\
 ```
 """
 function constraint_switch_close_action_limit(pm::AbstractUnbalancedPowerModel, nw_1::Int, nw_2::Int)
-    max_switch_actions = ref(pm, nw_2, :max_switch_actions)
+    switch_close_actions_ub = ref(pm, nw_2, :switch_close_actions_ub)
 
-    Δᵞs = Dict(l => JuMP.@variable(pm.model, base_name="$(nw_2)_delta_switch_state_$(l)", start=0) for l in ids(pm, nw_2, :switch_dispatchable))
-    for (l, Δᵞ) in Δᵞs
-        γᵗ¹ = var(pm, nw_1, :switch_state, l)
-        γᵗ² = var(pm, nw_2, :switch_state, l)
+    if switch_close_actions_ub < Inf
+        Δᵞs = Dict(l => JuMP.@variable(pm.model, base_name="$(nw_2)_delta_switch_state_$(l)", start=0) for l in ids(pm, nw_2, :switch_dispatchable))
+        for (l, Δᵞ) in Δᵞs
+            γᵗ¹ = var(pm, nw_1, :switch_state, l)
+            γᵗ² = var(pm, nw_2, :switch_state, l)
 
-        γᵗ¹ᵗ² = JuMP.@variable(pm.model, base_name="$(nw_1)_$(nw_2)_delta_switch_state_$(l)")
-        JuMP.@constraint(pm.model, γᵗ¹ᵗ² >= 0)
-        JuMP.@constraint(pm.model, γᵗ¹ᵗ² >= γᵗ² + γᵗ¹ - 1)
-        JuMP.@constraint(pm.model, γᵗ¹ᵗ² <= γᵗ²)
-        JuMP.@constraint(pm.model, γᵗ¹ᵗ² <= γᵗ¹)
+            γᵗ¹ᵗ² = JuMP.@variable(pm.model, base_name="$(nw_1)_$(nw_2)_delta_switch_state_$(l)")
+            JuMP.@constraint(pm.model, γᵗ¹ᵗ² >= 0)
+            JuMP.@constraint(pm.model, γᵗ¹ᵗ² >= γᵗ² + γᵗ¹ - 1)
+            JuMP.@constraint(pm.model, γᵗ¹ᵗ² <= γᵗ²)
+            JuMP.@constraint(pm.model, γᵗ¹ᵗ² <= γᵗ¹)
 
-        JuMP.@constraint(pm.model, Δᵞ >=  γᵗ² - γᵗ¹ᵗ²)
-        JuMP.@constraint(pm.model, Δᵞ >= -γᵗ² + γᵗ¹ᵗ²)
-    end
+            JuMP.@constraint(pm.model, Δᵞ >=  γᵗ² - γᵗ¹ᵗ²)
+            JuMP.@constraint(pm.model, Δᵞ >= -γᵗ² + γᵗ¹ᵗ²)
+        end
 
-    if max_switch_actions < Inf
-        JuMP.@constraint(pm.model, sum(Δᵞ for (l, Δᵞ) in Δᵞs) <= max_switch_actions)
+        JuMP.@constraint(pm.model, sum(Δᵞ for (l, Δᵞ) in Δᵞs) <= switch_close_actions_ub)
     end
 end
 

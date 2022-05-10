@@ -199,14 +199,14 @@ function variable_inverter_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=n
     z_inverter = var(pm, nw)[:z_inverter] = Dict{Tuple{Symbol,Int},Union{JuMP.VariableRef,Int}}()
     for t in [:storage, :gen]
         for i in ids(pm, nw, t)
-            if get(ref(pm, nw, t, i), "inverter", GRID_FORMING) == GRID_FORMING
+            if Int(get(ref(pm, nw, t, i), "inverter", GRID_FORMING)) == 1
                 var(pm, nw, :z_inverter)[(t,i)] = JuMP.@variable(
                     pm.model,
                     base_name="$(nw)_$(t)_z_inverter",
                     binary=!relax,
                     lower_bound=0,
                     upper_bound=1,
-                    start=PMD.comp_start_value(ref(pm, nw, t, i), "inverter_start", get(ref(pm, nw, t, i), "inverter", Int(GRID_FORMING))),
+                    start=PMD.comp_start_value(ref(pm, nw, t, i), "inverter_start", Int(get(ref(pm, nw, t, i), "inverter", GRID_FORMING))),
                 )
             else
                 # GRID_FOLLOWING only

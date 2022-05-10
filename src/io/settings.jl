@@ -1,3 +1,10 @@
+settings_conversions = Dict{Tuple{Vararg{String}},Function}(
+    ("solvers","HiGHS","presolve") => x->x ? "off" : "choose",
+    ("solvers","Gurobi","Presolve") => x->Int(!x),
+    ("solvers","KNITRO","presolve") => x->Int(!x),
+)
+
+
 """
     parse_settings!(
         args::Dict{String,<:Any};
@@ -7,7 +14,7 @@
 
 Parses settings file specifed in runtime arguments in-place
 
-Will attempt to convert depreciated runtime arguments to appropriate network settings
+Will attempt to convert deprecated runtime arguments to appropriate network settings
 data structure.
 
 ## Validation
@@ -17,60 +24,181 @@ If `validate=true` (default), the parsed data structure will be validated agains
 function parse_settings!(args::Dict{String,<:Any}; apply::Bool=true, validate::Bool=true)::Dict{String,Any}
     if !isempty(get(args, "settings", ""))
         if isa(args["settings"], String)
-            args["settings"] = parse_settings(args["settings"]; validate=validate)
+            settings = parse_settings(args["settings"]; validate=validate)
+
+            # Handle deprecated command line arguments
+            correct_deprecated_settings!(settings)
+            correct_deprecated_runtime_args!(args, settings)
+
+            args["settings"] = settings
         end
     else
-        args["settings"] = Dict{String,Any}()
+        args["settings"] = build_default_settings()
     end
 
-    # Handle depreciated command line arguments
-    _convert_depreciated_runtime_args!(args, args["settings"], args["base_network"], length(args["network"]["nw"]))
-
-    apply && apply_settings!(args)
+    apply && isa(get(args, "network", ""), Dict) && apply_settings!(args)
 
     return args["settings"]
 end
 
 
 """
-    _convert_depreciated_runtime_args!(
+"""
+function correct_settings!(settings)
+    correct_json_import!(settings)
+    correct_deprecated_settings!(settings)
+
+    return settings
+end
+
+
+"""
+"""
+function build_default_settings()::Dict{String,Any}
+    settings_schema = load_schema(joinpath(dirname(pathof(PowerModelsONM)), "..", "schemas/input-settings.schema.json"))
+
+    settings = init_settings_default!(Dict{String,Any}(), settings_schema.data)
+
+    return filter(x->!isempty(x.second),correct_json_import!(settings))
+end
+
+
+"""
+"""
+function init_settings_default!(settings::T, schema::T)::T where T <: Dict{String,Any}
+    if haskey(schema, "properties")
+        for (prop_name,props) in schema["properties"]
+            if !get(props, "deprecated", false)
+                if isa(props, Dict) && haskey(props, "properties")
+                    settings[prop_name] = Dict{String,Any}()
+                    init_settings_default!(settings[prop_name], props)
+                elseif isa(props, Dict) && haskey(props, "\$ref")
+                    settings[prop_name] = Dict{String,Any}()
+                    init_settings_default!(settings[prop_name], props["\$ref"])
+                else
+                    if haskey(props, "default")
+                        settings[prop_name] = props["default"]
+                    end
+                end
+            end
+        end
+    end
+
+    return settings
+end
+
+
+"""
+"""
+function get_deprecated_properties(schema::JSONSchema.Schema)::Dict{String,Any}
+    get_deprecated_properties(schema.data)
+end
+
+
+"""
+"""
+function get_deprecated_properties(schema::T; deprecated_properties::Union{T,Missing}=missing)::T where T <: Dict{String,Any}
+    if ismissing(deprecated_properties)
+        deprecated_properties = T()
+    end
+
+    for (prop_name, prop) in get(schema, "properties", T())
+        if get(prop, "deprecated", false)
+            deprecated_properties[prop_name] = []
+            rmatch = match(r"deprecated:\s*{*([\w\/\_\-\,]+)}*", get(prop,"description",""))
+            if rmatch !== nothing
+                paths = [string.(split(item, "/")) for item in split(rmatch.captures[1],",")]
+                for path in paths
+                    new_path = []
+                    for segment in path
+                        if segment == "missing"
+                            segment = missing
+                        end
+                        push!(new_path, segment)
+                    end
+                    push!(deprecated_properties[prop_name], Tuple(new_path))
+                end
+            end
+        elseif haskey(prop, "\$ref")
+            _dps = get_deprecated_properties(prop["\$ref"])
+            if !isempty(_dps)
+                deprecated_properties[prop_name] = _dps
+            end
+        elseif haskey(prop, "properties")
+            _dps = get_deprecated_properties(prop)
+            if !isempty(_dps)
+                deprecated_properties[prop_name] = _dps
+            end
+        end
+    end
+
+    return deprecated_properties
+end
+
+
+"""
+"""
+function correct_deprecated_properties!(orig_properties::T, new_properties::T, deprecated_properties::T)::Tuple{T,T} where T <: Dict{String,Any}
+    for prop in keys(filter(x->x.first∈keys(deprecated_properties),orig_properties))
+        new_properties[prop] = pop!(orig_properties, prop)
+    end
+    correct_deprecated_properties!(new_properties, deprecated_properties)
+
+    return orig_properties, new_properties
+end
+
+
+"""
+"""
+function correct_deprecated_properties!(properties::T, deprecated_properties::T)::T where T <: Dict{String,Any}
+    for prop in keys(filter(x->x.first∈keys(deprecated_properties),properties))
+        paths = deprecated_properties[prop]
+
+        if isa(paths, Dict)
+            correct_deprecated_properties!(properties[prop], paths)
+        else
+            v = pop!(properties, prop)
+            for path in paths
+                if !ismissing(path)
+                    set_dict_value!(properties, path, convert(v,path))
+                end
+            end
+        end
+    end
+
+    return properties
+end
+
+
+"""
+"""
+function correct_deprecated_settings!(settings::T)::T where T <: Dict{String,Any}
+    settings_schema = load_schema(joinpath(dirname(pathof(PowerModelsONM)), "..", "schemas/input-settings.schema.json"))
+
+    deprecated_settings = get_deprecated_properties(settings_schema)
+
+    settings = correct_deprecated_properties!(settings, deprecated_settings)
+
+    return settings
+end
+
+
+"""
+    convert_deprecated_runtime_args!(
         runtime_args::Dict{String,<:Any},
         settings::Dict{String,<:Any},
         base_network::Dict{String,<:Any},
         timesteps::Int
     )::Tuple{Dict{String,Any},Dict{String,Any}}
 
-Helper function to convert depreciated runtime arguments to their appropriate network settings structure
+Helper function to convert deprecated runtime arguments to their appropriate network settings structure
 """
-function _convert_depreciated_runtime_args!(runtime_args::Dict{String,<:Any}, settings::Dict{String,<:Any}, base_network::Dict{String,<:Any}, timesteps::Int)::Tuple{Dict{String,Any},Dict{String,Any}}
-    haskey(runtime_args, "voltage-lower-bound") && _convert_voltage_bound_to_settings!(settings, base_network, "vm_lb", pop!(runtime_args, "voltage-lower-bound"))
-    haskey(runtime_args, "voltage-upper-bound") && _convert_voltage_bound_to_settings!(settings, base_network, "vm_ub", pop!(runtime_args, "voltage-upper-bound"))
-    haskey(runtime_args, "voltage-angle-difference") && _convert_to_settings!(settings, base_network, "line", "vad_lb", -runtime_args["voltage-angle-difference"])
-    haskey(runtime_args, "voltage-angle-difference") && _convert_to_settings!(settings, base_network, "line", "vad_ub",  pop!(runtime_args, "voltage-angle-difference"))
-    haskey(runtime_args, "clpu-factor") && _convert_to_settings!(settings, base_network, "load", "clpu_factor", pop!(runtime_args, "clpu-factor"); multiphase=false)
+function correct_deprecated_runtime_args!(runtime_args::T, settings::T)::Tuple{T,T} where T <: Dict{String,Any}
+    rt_args_schema = load_schema(joinpath(dirname(pathof(PowerModelsONM)), "..", "schemas/input-runtime_arguments.schema.json"))
 
-    for k in [
-        "disable-networking",
-        "disable-switch-penalty",
-        "apply-switch-scores",
-        "disable-radial-constraint",
-        "disable-isolation-constraint",
-        "max-switch-actions",
-        "disable-inverter-constraint",
-        "disable-presolver"
-    ]
-        if haskey(runtime_args, k)
-            settings[replace(k, "-"=>"_")] = pop!(runtime_args, k)
-        end
-    end
+    deprecated_args = get_deprecated_properties(rt_args_schema)
 
-    if haskey(runtime_args, "timestep-hours")
-        settings["time_elapsed"] = fill(pop!(runtime_args, "timestep-hours"), timesteps)
-    end
-
-    if haskey(runtime_args, "solver-tolerance")
-        settings["nlp_solver_tol"] = pop!(runtime_args, "solver-tolerance")
-    end
+    runtime_args, settings = correct_deprecated_properties!(runtime_args, settings, deprecated_args)
 
     return runtime_args, settings
 end
@@ -80,6 +208,7 @@ end
     parse_settings(
         settings_file::String;
         validate::Bool=true
+        correct::Bool=true
     )::Dict{String,Any}
 
 Parses network settings JSON file.
@@ -88,16 +217,16 @@ Parses network settings JSON file.
 
 If `validate=true` (default), the parsed data structure will be validated against the latest [Settings Schema](@ref Settings-Schema).
 """
-function parse_settings(settings_file::String; validate::Bool=true)::Dict{String,Any}
-    settings = JSON.parsefile(settings_file)
+function parse_settings(settings_file::String; validate::Bool=true, correct::Bool=true)::Dict{String,Any}
+    user_settings = JSON.parsefile(settings_file)
 
-    if validate && !validate_settings(settings)
-        error("'settings' file could not be validated")
+    if validate && !validate_settings(user_settings)
+        error("'settings' file could not be validated:\n$(evaluate_settings(user_settings))")
     end
 
-    PMD.correct_json_import!(settings)
+    correct && correct_settings!(user_settings)
 
-    return settings
+    return recursive_merge(build_default_settings(), user_settings)
 end
 
 
@@ -107,7 +236,8 @@ end
 Applies settings to the network.
 """
 function apply_settings!(args::Dict{String,Any})::Dict{String,Any}
-    args["network"] = apply_settings(args["network"], get(args, "settings", Dict()))
+    args["base_network"] = apply_settings(args["base_network"], get(args, "settings", Dict()))
+    args["network"] = make_multinetwork(args["base_network"])
 end
 
 
@@ -117,131 +247,65 @@ end
         settings::Dict{String,<:Any}
     )::Dict{String,Any}
 
-Applies `settings` to multinetwork `network`
+Applies `settings` to single-network `network`
 """
-function apply_settings(network::Dict{String,<:Any}, settings::Dict{String,<:Any})::Dict{String,Any}
-    mn_data = deepcopy(network)
+function apply_settings(network::T, settings::T)::T where T <: Dict{String,Any}
+    @assert !PMD.ismultinetwork(network)
 
-    for (s, setting) in settings
-        if s in PMD.pmd_eng_asset_types
-            _apply_to_network!(mn_data, s, setting)
-        elseif s == "time_elapsed"
-            PMD.set_time_elapsed!(mn_data, setting)
-        elseif s == "max_switch_actions"
-            for n in sort([parse(Int, i) for i in keys(mn_data["nw"])])
-                if n == 0 && isa(setting, Vector) && length(setting) == 1
-                    mn_data["nw"]["$n"][s] = isa(setting, Vector) ? setting[1] : setting
-                else
-                    mn_data["nw"]["$n"][s] = isa(setting, Vector) ? setting[n] : setting
-                end
-            end
-        elseif s ∈ [
-            "disable_networking",
-            "disable_switch_penalty",
-            "apply_switch_scores",
-            "disable_radial_constraint",
-            "disable_isolation_constraint",
-            "disable_inverter_constraint",
-            "disable_presolver",
-        ]
-            for (_,nw) in mn_data["nw"]
-                nw[s] = setting
-            end
-        elseif s == "settings"
-            for n in sort([parse(Int, i) for i in keys(mn_data["nw"])])
-                for (k,v) in setting
-                    if isa(v, Dict)
-                        merge!(mn_data["nw"]["$n"]["settings"][k], v)
-                    else
-                        mn_data["nw"]["$n"]["settings"][k] = v
-                    end
-                end
-            end
-        end
+    eng = recursive_merge(deepcopy(network), settings)
+
+    if get(get(get(eng, "options", T()), "data", T()), "fix-small-numbers", false)
+        PMD.adjust_small_line_impedances!(eng; min_impedance_val=1e-1)
+        PMD.adjust_small_line_admittances!(eng; min_admittance_val=1e-1)
+        PMD.adjust_small_line_lengths!(eng; min_length_val=10.0)
     end
 
-    mn_data
+    if !ismissing(get(get(get(eng, "options", T()), "data", T()), "time-elapsed", missing))
+        eng["time_elapsed"] = eng["options"]["data"]["time-elapsed"]
+    end
+
+    eng["time_elapsed"] = get(eng, "time_elapsed", 1.0) * get(get(get(eng, "options", T()), "data", T()), "time-elapsed-scale", 1.0)
+
+    eng["switch_close_actions_ub"] = get(get(get(eng, "options", T()), "data", T()), "switch-close-actions-ub", Inf)
+
+    if !ismissing(get(get(get(eng, "options", T()), "outputs", T()), "log-level", missing))
+        set_log_level!(Symbol(titlecase(settings["options"]["outputs"]["log-level"])))
+    end
+
+    return eng
 end
 
 
 """
-    _convert_to_settings!(
-        settings::Dict{String,<:Any},
-        base_network::Dict{String,<:Any},
-        asset_type::String,
-        property::String,
-        value::Any; multiphase::Bool=true
-    )
-
-Helper function to convert depreciated global settings, e.g., voltage-lower-bound, to the proper way to specify settings.
 """
-function _convert_to_settings!(settings::Dict{String,<:Any}, base_network::Dict{String,<:Any}, asset_type::String, property::String, value::Any; multiphase::Bool=true)
-    if haskey(base_network, asset_type)
-        if !haskey(settings, asset_type)
-            settings[asset_type] = Dict{String,Any}()
+set_option!(args, option, value) = set_option!(args, missing, option, value)
+
+
+"""
+"""
+function set_option!(args::Dict{String,<:Any}, category::Union{Missing,String}, option::String, value::Any)
+    if haskey(args, "base_network") && haskey(args, "network")
+        for k in ["base_network", "network"]
+            set_option!(args[k], category, option, value)
         end
-
-        for (id, asset) in base_network[asset_type]
-            if !haskey(settings[asset_type], id)
-                settings[asset_type][id] = Dict{String,Any}()
+    elseif haskey(args, "data_model")
+        if !haskey(args, "options")
+            args["options"] = Dict{String,Any}()
+        end
+        if ismissing(category)
+            args["options"][option] = value
+        else
+            if !haskey(args["options"], category)
+                args["options"][category] = Dict{String,Any}()
             end
-
-            nphases = asset_type == "bus" ? length(asset["terminals"]) : asset_type in PMD._eng_edge_elements ? asset_type == "transformer" && haskey(asset, "bus") ? length(asset["connections"][1]) : length(asset["f_connections"]) : length(asset["connections"])
-
-            settings[asset_type][id][property] = multiphase ? fill(value, nphases) : value
+            args["options"][category][option] = value
         end
     end
 end
 
 
 """
-    _convert_voltage_bound_to_settings!(
-        settings::Dict{String,<:Any},
-        base_network::Dict{String,<:Any},
-        bound_name::String,
-        bound_value::Real
-    )
-
-Helper function to convert voltage bounds to the proper settings format.
 """
-function _convert_voltage_bound_to_settings!(settings::Dict{String,<:Any}, base_network::Dict{String,<:Any}, bound_name::String, bound_value::Real)
-    if !haskey(settings, "bus")
-        settings["bus"] = Dict{String,Any}()
-    end
-
-    bus_vbase, line_vbase = PMD.calc_voltage_bases(base_network, base_network["settings"]["vbases_default"])
-    for (id,bus) in get(base_network, "bus", Dict())
-        if !haskey(settings["bus"], id)
-            settings["bus"][id] = Dict{String,Any}()
-        end
-
-        settings["bus"][id][bound_name] = fill(bound_value * bus_vbase[id], length(bus["terminals"]))
-    end
-end
-
-
-"""
-    _apply_to_network!(
-        network::Dict{String,<:Any},
-        type::String,
-        data::Dict{String,<:Any}
-    )
-
-Helper function that applies settings to the network objects of `type`.
-"""
-function _apply_to_network!(network::Dict{String,<:Any}, type::String, data::Dict{String,<:Any})
-    for (_,nw) in network["nw"]
-        if haskey(nw, type)
-            for (id, _data) in data
-                if haskey(nw[type], id)
-                    merge!(nw[type][id], _data)
-                end
-            end
-        end
-    end
-end
-
-
 build_settings(network_file::String; kwargs...) = build_settings(PMD.parse_file(network_file; transformations=[PMD.apply_kron_reduction!]); kwargs...)
 
 
@@ -313,7 +377,7 @@ Helper function to build a settings file (json) for use with ONM. If properties 
 """
 function build_settings(
     eng::Dict{String,<:Any};
-    max_switch_actions::Union{Missing,Int,Vector{Int}},
+    max_switch_actions::Union{Missing,Int,Vector{Int}}=missing,
     vm_lb_pu::Union{Missing,Real}=missing,
     vm_ub_pu::Union{Missing,Real}=missing,
     vad_deg::Union{Missing,Real}=missing,
@@ -333,6 +397,7 @@ function build_settings(
     disable_inverter_constraint::Bool=false,
     storage_phase_unbalance_factor::Union{Missing,Real}=missing,
     disable_presolver::Bool=false,
+    correct::Bool=true,
     )::Dict{String,Any}
     n_steps = !haskey(eng, "time_series") ? 1 : length(first(eng["time_series"]).second["values"])
 
@@ -351,6 +416,8 @@ function build_settings(
         "nlp_solver_tol" => nlp_solver_tol,
         "mip_solver_tol" => mip_solver_tol,
     )
+
+    settings = recursive_merge(build_default_settings(), settings)
 
     if !ismissing(time_elapsed)
         if !isa(time_elapsed, Vector)
@@ -472,7 +539,11 @@ function build_settings(
         end
     end
 
-    settings = recursive_merge_no_vecs(settings, custom_settings)
+    settings = recursive_merge(settings, custom_settings)
+
+    correct && correct_settings!(settings)
+
+    return settings
 end
 
 
@@ -504,26 +575,7 @@ end
     build_settings_file(
         network_file::String,
         settings_file::String="settings.json";
-        max_switch_actions::Union{Missing,Int,Vector{Int}},
-        vm_lb_pu::Union{Missing,Real}=missing,
-        vm_ub_pu::Union{Missing,Real}=missing,
-        vad_deg::Union{Missing,Real}=missing,
-        line_limit_mult::Real=1.0,
-        sbase_default::Union{Missing,Real}=missing,
-        time_elapsed::Union{Missing,Real,Vector{Real}}=missing,
-        autogen_microgrid_ids::Bool=true,
-        custom_settings::Dict{String,<:Any}=Dict{String,Any}(),
-        mip_solver_gap::Real=0.05,
-        nlp_solver_tol::Real=1e-4,
-        mip_solver_tol::Real=1e-4,
-        clpu_factor::Union{Missing,Real}=missing,
-        disable_switch_penalty::Bool=false,
-        apply_switch_scores::Bool=false,
-        disable_radial_constraint::Bool=false,
-        disable_isolation_constraint::Bool=false,
-        disable_inverter_constraint::Bool=false,
-        storage_phase_unbalance_factor::Union{Missing,Real}=missing,
-        disable_presolver::Bool=false,
+        kwargs...
     )
 
 Helper function to write a settings structure to an `io` for use with ONM from a network data
@@ -534,7 +586,7 @@ See [`build_settings`](@ref build_settings) for explanation of keyword options.
 function build_settings_file(
     eng::Dict{String,<:Any},
     io::IO;
-    max_switch_actions::Union{Missing,Int,Vector{Int}},
+    max_switch_actions::Union{Missing,Int,Vector{Int}}=missing,
     vm_lb_pu::Union{Missing,Real}=missing,
     vm_ub_pu::Union{Missing,Real}=missing,
     vad_deg::Union{Missing,Real}=missing,

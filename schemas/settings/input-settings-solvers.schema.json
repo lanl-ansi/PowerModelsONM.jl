@@ -1,0 +1,184 @@
+{
+  "title": "input.settings.solvers.schema",
+  "type": "object",
+  "description": "Solver options",
+  "properties": {
+    "HiGHS": {
+      "type": "object",
+      "properties": {
+        "output_flag": {
+          "type": "boolean",
+          "default": false
+        },
+        "presolve": {
+          "type": "string",
+          "default": "choose",
+          "enum": ["on", "off", "choose"]
+        },
+        "primal_feasibility_tolerance": {
+          "type": "number",
+          "default": 0.000001
+        },
+        "dual_feasibility_tolerance": {
+          "type": "number",
+          "default": 0.000001
+        },
+        "mip_feasibility_tolerance": {
+          "type": "number",
+          "default": 0.0001
+        },
+        "mip_rel_gap": {
+          "type": "number",
+          "default": 0.0001
+        },
+        "small_matrix_value": {
+          "type": "number",
+          "default": 1e-12
+        },
+        "allow_unbounded_or_infeasible": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "Ipopt": {
+      "type": "object",
+      "properties": {
+        "tol": {
+          "type": "number",
+          "default": 0.000001
+        },
+        "mumps_mem_percent": {
+          "type": "number",
+          "default": 200
+        },
+        "mu_strategy": {
+          "type": "string",
+          "default": "adaptive",
+          "enum": ["adaptive", "monotone"]
+        },
+        "print_level": {
+          "type": "integer",
+          "default": 0
+        }
+      }
+    },
+    "Juniper": {
+      "type": "object",
+      "properties": {
+        "branch_strategy": {
+          "type": "string",
+          "default": ":MostInfeasible",
+          "enum": [
+            ":MostInfeasible",
+            ":PseudoCost",
+            ":StrongPseuoCost",
+            ":Reliability"
+          ]
+        },
+        "log_levels": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["Table", "Info", "Options"]
+          }
+        },
+        "mip_gap": {
+          "type": "number",
+          "default": 0.0001
+        },
+        "traverse_strategy": {
+          "type": "string",
+          "enum": [":DFS", ":BFS", ":DBFS"],
+          "default": ":DFS"
+        }
+      }
+    },
+    "Gurobi": {
+      "type": "object",
+      "properties": {
+        "OutputFlag": {
+          "type": "integer",
+          "default": 0
+        },
+        "GURO_PAR_DUMP": {
+          "type": "integer",
+          "default": 0
+        },
+        "MIPGap": {
+          "type": "number",
+          "default": 0.0001
+        },
+        "FeasibilityTol": {
+          "type": "number",
+          "default": 0.000001
+        },
+        "Quad": {
+          "type": "integer",
+          "default": 1
+        },
+        "NumericFocus": {
+          "type": "integer",
+          "default": 3
+        },
+        "MIPFocus": {
+          "type": "integer",
+          "default": 2
+        },
+        "DualReductions": {
+          "type": "integer",
+          "default": 0,
+          "minimum": -1,
+          "maximum": 1
+        },
+        "Presolve": {
+          "type": "integer",
+          "default": -1,
+          "minimum": -1,
+          "maximum": 2
+        }
+      }
+    },
+    "KNITRO": {
+      "type": "object",
+      "properties": {
+        "outlev": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "maximum": 6
+        },
+        "mip_outlevel": {
+          "type": "integer",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 3
+        },
+        "opttol": {
+          "type": "number",
+          "default": 0.0001
+        },
+        "feastol": {
+          "type": "number",
+          "default": 0.000001
+        },
+        "algorithm": {
+          "type": "integer",
+          "default": 3
+        },
+        "presolve": {
+          "type": "integer",
+          "default": 0
+        }
+      }
+    },
+    "useGurobi": {
+      "type": "boolean",
+      "default": false
+    },
+    "useKNITRO": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}
