@@ -3,7 +3,8 @@
         "network" => "../test/data/ieee13_feeder.dss",
         "settings" => "../test/data/ieee13_settings.json",
         "inverters" => "../test/data/ieee13_inverters.json",
-        "skip" => ["dispatch", "switching", "faults"]
+        "skip" => ["dispatch", "switching", "faults"],
+        "quiet" => true,
     )
 
     entrypoint(args)

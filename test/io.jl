@@ -1,5 +1,5 @@
 @testset "test io functions" begin
-    base_network, network  = parse_network("../test/data/ieee13_feeder.dss")
+    base_network, network  = parse_network("../test/data/ieee13_feeder.dss");
 
     @testset "test network parsing" begin
         @test PMD.ismultinetwork(network)
@@ -36,39 +36,48 @@
     @testset "test settings parsing" begin
         settings = parse_settings("../test/data/ieee13_settings.json")
 
-        _network = apply_settings(network, settings)
+        _network = make_multinetwork(apply_settings(base_network, settings))
         @test all(all(l["clpu_factor"] == 2.0 for l in values(nw["load"])) for nw in values(_network["nw"]))
-        @test all(nw["max_switch_actions"] == 1 for nw in values(_network["nw"]))
+        @test all(nw["switch_close_actions_ub"] == 1 for nw in values(_network["nw"]))
         @test all(nw["time_elapsed"] == 1.0 for nw in values(_network["nw"]))
     end
 
     @testset "test runtime args to settings conversion" begin
         args = Dict{String,Any}(
-            "solver-tolerance" => 1e-4,
-            "max-switch-actions" => 1,
-            "timestep-hours" => 0.1667,
-            "voltage-lower-bound" => 0.9,
-            "voltage-upper-bound" => 1.1,
-            "voltage-angle-difference" => 5.0,
-            "clpu-factor" => 2.0,
+            "nlp_solver_tol" => 1e-4,
+            "mip_solver_tol" => 1e-4,
+            "mip_solver_gap" => 0.01,
+            "max_switch_actions" => 1,
+            "time_elapsed" => 0.1667,
+            "disable_presolver" => true,
+            "disable_networking" => true,
+            "disable_radial_constraint" => true,
+            "disable_isolation_constraint" => true,
+            "disable_inverter_constraint" => true,
+            "disable_switch_penalty" => true,
+            "apply_switch_scores" => true,
         )
         orig_keys = collect(keys(args))
 
-        args, settings = PowerModelsONM._convert_depreciated_runtime_args!(args, Dict{String,Any}(), base_network, length(network["nw"]))
+        settings = correct_settings!(args)
 
         @test all(!haskey(args, k) for k in orig_keys)
-        @test settings["nlp_solver_tol"] == 1e-4
 
-        _network = apply_settings(network, settings)
-        @test all(all(l["clpu_factor"] == 2.0 for l in values(nw["load"])) for nw in values(_network["nw"]))
-        @test all(nw["max_switch_actions"] == 1 for nw in values(_network["nw"]))
+        @test settings["solvers"]["Ipopt"]["tol"] == 1e-4
+        @test settings["solvers"]["HiGHS"]["primal_feasibility_tolerance"] == 1e-4
+        @test settings["solvers"]["HiGHS"]["mip_rel_gap"] == 0.01
+        @test settings["options"]["data"]["time-elapsed"] == 0.1667
+        @test settings["options"]["data"]["switch-close-actions-ub"] == 1
+        @test settings["options"]["constraints"]["disable-microgrid-networking"]
+        @test settings["options"]["constraints"]["disable-radiality-constraint"]
+        @test settings["options"]["constraints"]["disable-block-isolation-constraint"]
+        @test settings["options"]["constraints"]["disable-grid-forming-inverter-constraint"]
+        @test settings["options"]["objective"]["disable-switch-state-change-cost"]
+        @test settings["options"]["objective"]["enable-switch-state-open-cost"]
+
+        _network = make_multinetwork(apply_settings(base_network, settings))
+        @test all(nw["switch_close_actions_ub"] == 1 for nw in values(_network["nw"]))
         @test all(nw["time_elapsed"] == 0.1667 for nw in values(_network["nw"]))
-
-        bus_vbase, line_vbase = PMD.calc_voltage_bases(base_network, base_network["settings"]["vbases_default"])
-        @test all(all(isapprox.(bus["vm_lb"], 0.9 * bus_vbase[id])) for (id,bus) in settings["bus"])
-        @test all(all(isapprox.(bus["vm_ub"], 1.1 * bus_vbase[id])) for (id,bus) in settings["bus"])
-
-        @test all(all(line["vad_lb"] .== -5.0) && all(line["vad_ub"] .== 5.0) for (_,line) in settings["line"])
     end
 
     @testset "test inverters parsing" begin
@@ -102,7 +111,7 @@
             ),
         )
 
-        settings = PowerModelsONM.build_settings(
+        settings = build_settings(
             "../test/data/ieee13_feeder.dss";
             clpu_factor=2.0,
             max_switch_actions=1,
@@ -124,5 +133,11 @@
         local_settings = parse_settings("../test/data/ieee13_settings.json")
 
         @test settings == local_settings
+
+        for (k,v) in settings
+            if v != local_settings[k]
+                @warn k v local_settings[k]
+            end
+        end
     end
 end
