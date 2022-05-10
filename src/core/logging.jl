@@ -15,20 +15,30 @@ end
 
 
 """
+    _make_filtered_logger(mods::Vector{Tuple{<:Module,Logging.LogLevel}})
+
+Helper function to create the filtered logger for PMD
+"""
+function _make_filtered_logger(mods_levels::Vector{Tuple{<:Module,Logging.LogLevel}})
+    LoggingExtras.EarlyFilteredLogger(_LOGGER) do log
+        if any(log._module == mod && log.level < level for (mod,level) in mods_levels)
+            return false
+        else
+            return true
+        end
+    end
+end
+
+
+"""
     setup_logging!(args::Dict{String,<:Any})
 
 Configures logging based on runtime arguments, for use inside [`entrypoint`](@ref entrypoint)
 """
 function setup_logging!(args::Dict{String,<:Any})
-    if get(args, "quiet", false)
-        set_log_level!(:Error)
-    elseif get(args, "verbose", false)
-        set_log_level!(:Info)
-    elseif get(args, "debug", false)
-        set_log_level!(:Debug)
-    else
-        set_log_level!(:Warn)
-    end
+    log_level = get(args, "log-level", "warn")
+
+    set_log_level!(Symbol(titlecase(log_level)))
 end
 
 
@@ -38,21 +48,30 @@ end
 Configures logging based `level`, `:Error`, `:Warn`, `:Info`, or `:Debug`
 """
 function set_log_level!(level::Symbol)
-    mods = [PowerModelsDistribution, PowerModelsProtection, PowerModelsStability, Juniper, JSONSchema]
     if level == :Error
         loglevel = Logging.Error
-        push!(mods, PowerModelsONM)
         _IM.silence()
     elseif level == :Info
         loglevel = Logging.Info
+        _IM.logger_config!("info")
     elseif level == :Debug
         loglevel = Logging.Debug
+        _IM.logger_config!("debug")
     else
-        loglevel = Logging.Error
-        _IM.silence()
+        loglevel = Logging.Warn
+        _IM.logger_config!("warn")
     end
 
-    Logging.global_logger(_make_filtered_logger(mods, loglevel))
+    mods = [
+        (PowerModelsONM, loglevel),
+        (PowerModelsDistribution, loglevel),
+        (PowerModelsProtection, loglevel),
+        (PowerModelsStability, loglevel),
+        (Juniper, loglevel),
+        (JSONSchema, Logging.Warn)
+    ]
+
+    Logging.global_logger(_make_filtered_logger(mods))
 end
 
 
