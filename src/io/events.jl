@@ -329,23 +329,36 @@ build_events(case_file::String; kwargs...)::Vector{Dict{String,Any}} = build_eve
 
 """
     build_events(
-        eng::Dict{String,<:Any},
+        eng::Dict{String,<:Any};
         custom_events::Vector{Dict{String,Any}}=Dict{String,Any}[],
-        default_switch_state::PMD.SwitchState=PMD.CLOSED,
-        default_switch_dispatchable::PMD.Dispatchable=PMD.YES,
-        default_switch_status::Union{Misssing,PMD.Status}=missing,
+        default_switch_state::Union{PMD.SwitchState,String}=PMD.CLOSED,
+        default_switch_dispatchable::Union{PMD.Dispatchable,Bool}=PMD.YES,
+        default_switch_status::Union{Missing,PMD.Status,Int}=missing
     )::Vector{Dict{String,Any}}
 
 A helper function to assist in making rudamentary events data structure with some default settings for switches.
 
 - `eng::Dict{String,<:Any}` is the input case data structure
 - `custom_events` is a Vector of *events* that will be applied **after** the automatic generation of events based off of the `default` kwargs
-- `default_switch_state::SwitchState` (default: `CLOSED`) is the toggle for the default state to apply to every switch
-- `default_switch_dispatchable::Dispatchable` (default: `YES`) is the toggle for the default dispatchability (controllability) of every switch
-- `default_switch_status::Status` (default: `missing`) is the toggle for the default status (whether the switch appears in the model at all or not) of every switch. If `missing` will default to the status given by the model.
+- `default_switch_state::Union{PMD.SwitchState,String}` (default: `CLOSED`) is the toggle for the default state to apply to every switch
+- `default_switch_dispatchable::Union{PMD.Dispatchable,Bool}` (default: `YES`) is the toggle for the default dispatchability (controllability) of every switch
+- `default_switch_status::Union{Missing,PMD.Status,Int}` (default: `missing`) is the toggle for the default status (whether the switch appears in the model at all or not) of every switch. If `missing` will default to the status given by the model.
 """
-function build_events(eng::Dict{String,<:Any}; custom_events::Vector{Dict{String,Any}}=Dict{String,Any}[], default_switch_state::PMD.SwitchState=PMD.CLOSED, default_switch_dispatchable::PMD.Dispatchable=PMD.YES, default_switch_status::Union{Missing,PMD.Status}=missing)::Vector{Dict{String,Any}}
+function build_events(
+    eng::Dict{String,<:Any};
+    custom_events::Vector{Dict{String,Any}}=Dict{String,Any}[],
+    default_switch_state::Union{PMD.SwitchState,String}=PMD.CLOSED,
+    default_switch_dispatchable::Union{PMD.Dispatchable,Bool}=PMD.YES,
+    default_switch_status::Union{Missing,PMD.Status,Int}=missing
+    )::Vector{Dict{String,Any}}
+
+    @assert !PMD.ismultinetwork(eng) "this function cannot utilize multinetwork data"
+
     events = Dict{String,Any}[]
+
+    default_switch_state = isa(default_switch_state, String) ? getproperty(PMD, Symbol(uppercase(default_switch_state))) : default_switch_state
+    default_switch_dispatchable = isa(default_switch_dispatchable, Bool) ? PMD.Dispatchable(Int(default_switch_dispatchable)) : default_switch_dispatchable
+    default_switch_status = isa(default_switch_status, Int) ? PMD.Status(default_switch_status) : default_switch_status
 
     for (s, switch) in get(eng, "switch", Dict())
         push!(
@@ -363,32 +376,7 @@ function build_events(eng::Dict{String,<:Any}; custom_events::Vector{Dict{String
         )
     end
 
-    append!(events, custom_events)
-
-    return events
-end
-
-
-"""
-    build_events(
-        eng::Dict{String,<:Any},
-        custom_events::Vector{Dict{String,Any}}=Dict{String,Any}[],
-        default_switch_state::String,
-        default_switch_dispatchable::Bool,
-        default_switch_status::Int
-    )::Vector{Dict{String,Any}}
-
-A helper function to assist in making rudamentary events data structures with some default settings for switches from a network case `eng`. This version uses the alternative data types from the schema (non-strings).
-
-- `eng::Dict{String,<:Any}` is the input case file (dss)
-- `custom_events` is a Vector of *events* that will be applied **after** the automatic generation of events based off of the `default` kwargs
-- `default_switch_state::String` (default: `closed`) is the toggle for the default state to apply to every switch
-- `default_switch_dispatchable::Bool` (default: `true`) is the toggle for the default dispatchability (controllability) of every switch
-- `default_switch_status::Int` (default: `1`) is the toggle for the default status (whether the switch appears in the model at all or not) of every switch
-"""
-function build_events(eng::Dict{String,<:Any}; custom_events::Vector{Dict{String,Any}}=Dict{String,Any}[], default_switch_state::String="closed", default_switch_dispatchable::Bool=true, default_switch_status::Union{Missing,Int}=missing)::Vector{Dict{String,Any}}
     converted_custom_events = Dict{String,Any}[]
-
     for event in custom_events
         converted_event = Dict{String,Any}()
 
@@ -415,13 +403,9 @@ function build_events(eng::Dict{String,<:Any}; custom_events::Vector{Dict{String
         end
     end
 
-    return build_events(
-        eng;
-        custom_events=converted_custom_events,
-        default_switch_state=lowercase(default_switch_state)=="closed" ? PMD.CLOSED : PMD.OPEN,
-        default_switch_dispatchable=PMD.Dispatchable(Int(default_switch_dispatchable)),
-        default_switch_status=ismissing(default_switch_status) ? default_switch_status : PMD.Status(default_switch_status)
-    )
+    append!(events, converted_custom_events)
+
+    return events
 end
 
 
@@ -446,13 +430,13 @@ build_events_file(eng::Dict{String,<:Any}, io::IO; kwargs...) = JSON.print(io, b
 
 
 """
-    build_events_file(case_file::String, events_file::String)
+    build_events_file(case_file::String, events_file::String; kwargs...)
 
 A helper function to build a rudamentary `events_file` from a network case at path `case_file`.
 
 See [`build_events`](@ref build_events) for keyword options.
 """
-build_events_file(case_file::String, events_file::String) = build_events_file(PMD.parse_file(case_file), events_file)
+build_events_file(case_file::String, events_file::String; kwargs...) = build_events_file(PMD.parse_file(case_file), events_file; kwargs...)
 
 
 """
