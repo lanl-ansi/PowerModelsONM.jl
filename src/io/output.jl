@@ -1,57 +1,76 @@
 """
+"""
+const _json_schema_type_conversions = Dict{Union{Missing,String},Type}(
+    "string"=>String,
+    "array"=>Vector,
+    "integer"=>Int,
+    "number"=>Real,
+    "boolean"=>Bool,
+    missing=>Any,
+    "object"=>Dict{String,Any},
+    "null"=>Union{Real,Nothing,Missing}, # Inf,NaN,missing
+)
+
+
+"""
+"""
+function _recursive_initialize_output_from_schema!(output::Dict{String,<:Any}, schema_properties::Dict{String,<:Any})
+    for (prop_name,prop) in schema_properties
+        if haskey(prop, "\$ref")
+            _prop = prop["\$ref"]
+        else
+            _prop = prop
+        end
+
+        if get(_prop, "type", "") == "object"
+            output[prop_name] = Dict{String,Any}()
+            _recursive_initialize_output_from_schema!(output[prop_name], get(_prop, "properties", Dict{String,Any}()))
+        elseif get(_prop, "type", "") == "array"
+            if haskey(_prop["items"], "\$ref")
+                raw_subtype = get(_prop["items"]["\$ref"], "type", missing)
+            else
+                raw_subtype = get(_prop["items"], "type", missing)
+            end
+
+            if isa(raw_subtype, Vector)
+                subtype = Union{[_json_schema_type_conversions[t] for t in raw_subtype]...}
+            else
+                subtype = _json_schema_type_conversions[raw_subtype]
+            end
+
+            if subtype == Vector
+                raw_subsubtype = get(_prop["items"]["items"], "type", missing)
+                if isa(raw_subsubtype, Vector)
+                    subsubtype = Union{[_json_schema_type_conversions[t] for t in raw_subsubtype]...}
+                else
+                    subsubtype = _json_schema_type_conversions[raw_subsubtype]
+                end
+                output[prop_name] = Vector{subtype{subsubtype}}([])
+            else
+                output[prop_name] = Vector{subtype}([])
+            end
+        elseif get(_prop, "readOnly", false)
+            output[prop_name] = @eval $(Meta.parse(_prop["default"]))
+        end
+    end
+    return output
+end
+
+
+"""
     initialize_output(args::Dict{String,<:Any})::Dict{String,Any}
 
 Initializes the empty data structure for "output_data"
 """
-function initialize_output(args::Dict{String,<:Any})::Dict{String,Any}
-    _deepcopy_args!(args)
+function initialize_output(raw_args::Dict{String,<:Any})::Dict{String,Any}
+    output_schema = load_schema(joinpath(dirname(pathof(PowerModelsONM)), "..", "schemas/output.schema.json"))
 
-    Dict{String,Any}(
-        "Runtime arguments" => deepcopy(args["raw_args"]),
-        "Simulation time steps" => Any[],
-        "Load served" => Dict{String,Any}(
-            "Feeder load (%)" => Real[],
-            "Microgrid load (%)" => Real[],
-            "Bonus load via microgrid (%)" => Real[],
-        ),
-        "Generator profiles" => Dict{String,Any}(
-            "Grid mix (kW)" => Real[],
-            "Solar DG (kW)" => Real[],
-            "Energy storage (kW)" => Real[],
-            "Diesel DG (kW)" => Real[],
-        ),
-        "Voltages" => Dict{String,Any}(
-            "Min voltage (p.u.)" => Real[],
-            "Mean voltage (p.u.)" => Real[],
-            "Max voltage (p.u.)" => Real[],
-        ),
-        "Storage SOC (%)" => Real[],
-        "Device action timeline" => Dict{String,Any}[],
-        "Powerflow output" => Dict{String,Any}[],
-        "Additional statistics" => Dict{String,Any}(),
-        "Events" => Dict{String,Any}[],
-        "Fault currents" => Dict{String,Any}[],
-        "Small signal stable" => Bool[],
-        "Runtime timestamp" => "$(Dates.now())",
-        "Optimal switching metadata" => Dict{String,Any}[],
-        "Optimal dispatch metadata" => Dict{String,Any}(),
-        "Fault studies metadata" => Dict{String,Any}[],
-        "System metadata" => Dict{String,Any}(
-            "platform" => string(Sys.MACHINE),
-            "cpu_info" => string(first(Sys.cpu_info()).model),
-            "physical_cores" => Hwloc.num_physical_cores(),
-            "logical_processors" => Hwloc.num_virtual_cores(),
-            "system_memory" => round(Int, Sys.total_memory() / 2^20 / 1024),
-            "julia_max_threads" => Threads.nthreads(),
-            "julia_max_procs" => Distributed.nprocs(),
-            "julia_version" => string(Base.VERSION),
-        ),
-        "Protection settings" => Dict{String,Any}(
-            "network_model" => Dict{String,Vector{Dict{String,Any}}}(),
-            "bus_types" => Vector{Dict{String,String}}(),
-            "settings" => Vector{Vector{Dict{String,Any}}}(), # TODO
-        ),
-    )
+    output = Dict{String,Any}()
+    output = _recursive_initialize_output_from_schema!(output, get(output_schema.data, "properties", Dict{String,Any}()))
+
+    output["Runtime arguments"] = deepcopy(raw_args)
+
+    return output
 end
 
 
@@ -81,7 +100,7 @@ end
 Initializes the output data strucutre inside of the args dict at "output_data"
 """
 function initialize_output!(args::Dict{String,<:Any})::Dict{String,Any}
-    args["output_data"] = initialize_output(args)
+    args["output_data"] = initialize_output(get(args, "raw_args", deepcopy(args)))
 end
 
 
