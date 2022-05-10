@@ -18,6 +18,10 @@ if get(args, "gurobi", false) || get(args, "use-gurobi", false)
     @everywhere import Gurobi
 end
 
+if get(args, "knitro", false)
+    @everywhere import KNITRO
+end
+
 @everywhere import PowerModelsONM
 
 if isinteractive() == false
