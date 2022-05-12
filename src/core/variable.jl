@@ -216,7 +216,7 @@ function variable_inverter_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=n
     end
 
     if report
-        _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :storage, :inverter, [i for ((t,i),_) in var(pm, nw, :z_inverter) if t == :storage], Dict{Int,JuMP.VariableRef}(i => v for ((t,i),v) in filter(x->x.first[1]==:storage, z_inverter)))
-        _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :gen, :inverter, [i for ((t,i),_) in var(pm, nw, :z_inverter) if t == :gen], Dict{Int,JuMP.VariableRef}(i => v for ((t,i),v) in filter(x->x.first[1]==:gen, z_inverter)))
+        _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :storage, :inverter, [i for ((t,i),_) in var(pm, nw, :z_inverter) if t == :storage], Dict{Int,Union{JuMP.VariableRef,Int}}(i => v for ((t,i),v) in filter(x->x.first[1]==:storage, z_inverter)))
+        _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :gen, :inverter, [i for ((t,i),_) in var(pm, nw, :z_inverter) if t == :gen], Dict{Int,Union{JuMP.VariableRef,Int}}(i => v for ((t,i),v) in filter(x->x.first[1]==:gen, z_inverter)))
     end
 end
