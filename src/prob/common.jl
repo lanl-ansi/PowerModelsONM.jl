@@ -66,6 +66,45 @@ end
 
 
 """
+    instantiate_onm_model(
+        data::Union{Dict{String,<:Any}, String},
+        model_type::Type,
+        model_builder::Function;
+        eng2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
+        ref_extensions::Vector{Function}=Function[],
+        multinetwork::Bool=false,
+        kwargs...
+    )
+
+ONM-specific version of PowerModelsDistribution.instantiate_mc_model
+"""
+function instantiate_onm_model(
+    data::Union{Dict{String,<:Any}, String},
+    model_type::Type,
+    model_builder::Function;
+    eng2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
+    ref_extensions::Vector{Function}=Function[],
+    multinetwork::Bool=false,
+    kwargs...)
+
+    return PMD.instantiate_mc_model(
+        data,
+        model_type,
+        model_builder;
+        multinetwork=multinetwork,
+        ref_extensions=Function[
+            ref_add_load_blocks!,
+            ref_add_options!,
+            ref_extensions...
+        ],
+        eng2math_passthrough=recursive_merge_including_vectors(_eng2math_passthrough_default, eng2math_passthrough),
+        global_keys=Set{String}(["options","solvers"]),
+        kwargs...
+    )
+end
+
+
+"""
     build_solver_instances!(args::Dict{String,<:Any})::Dict{String,JuMP.MOI.OptimizerWithAttributes}
 
 Creates the Optimizers in-place (within the args dict data structure), for use inside [`entrypoint`](@ref entrypoint),
