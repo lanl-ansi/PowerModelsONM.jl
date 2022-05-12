@@ -36,6 +36,9 @@ function parse_network(network_file::String)::Tuple{Dict{String,Any},Dict{String
         import_all=true
     )
 
+    # Add default switch_close_actions_ub
+    eng["switch_close_actions_ub"] = Inf
+
     # TODO: add more elegant cost model adjustments
     for (id,obj) in get(eng, "solar", Dict())
         eng["solar"][id]["cost_pg_model"] = 2
