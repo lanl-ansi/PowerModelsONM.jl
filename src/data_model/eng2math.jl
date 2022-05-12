@@ -14,7 +14,7 @@ const _eng2math_passthrough_default = Dict{String,Vector{String}}(
 
 
 "default global_keys passthrough"
-const _global_keys_default = Set{String}(["options", "solvers"])
+const _default_global_keys = Set{String}(["options", "solvers"])
 
 
 """
@@ -25,7 +25,7 @@ ONM-specific version of `PowerModelsDistribution.transform_data_model` that incl
 function transform_data_model(eng::T; global_keys::Set{String}=Set{String}(), eng2math_passthrough::Dict{String,<:Vector{<:String}}=Dict{String,Vector{String}}(), kwargs...)::T where T <: Dict{String,Any}
     PMD.transform_data_model(
         eng;
-        global_keys=union(_global_keys_default, global_keys),
+        global_keys=union(_default_global_keys, global_keys),
         eng2math_passthrough=recursive_merge_including_vectors(_eng2math_passthrough_default, eng2math_passthrough),
     )
 end
