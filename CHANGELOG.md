@@ -6,6 +6,7 @@
 
 ## v3.0.0
 
+- Added `dss` settings schema for easier adding of inverter property by source id, e.g., "vsource.source", etc.
 - Added `constraint_disable_networking` based on coloring model to enabled microgrids to expand but not network
 - Updated events schema to allow for typical string values for certain switch fields
 - Added disable-networking option to CLI for future implementation of feature

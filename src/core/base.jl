@@ -202,3 +202,20 @@ function convert(value::Any, path::Tuple{Vararg{String}}=tuple())
 
     return value
 end
+
+
+"""
+    Base.parse(::Type{T}, status::String)::T where T <: PMD.Status
+
+Parses a string from dss property 'enabled' into PMD.Status
+"""
+function Base.parse(::Type{T}, status::String)::T where T <: PMD.Status
+    if status ∈ ["y", "yes", "true"]
+        return PMD.ENABLED
+    elseif status ∈ ["n", "no", "false"]
+        return PMD.DISABLED
+    end
+
+    @warn "enabled code '$status' not recognized, defaulting to ENABLED"
+    return PMD.ENABLED
+end

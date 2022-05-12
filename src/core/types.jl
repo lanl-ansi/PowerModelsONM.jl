@@ -39,3 +39,20 @@ _get_formulation(form::Type)::Type = form
 @enum Inverter GRID_FOLLOWING GRID_FORMING
 @doc "Inverter acting as grid-following" GRID_FOLLOWING
 @doc "Inverter acting as grid-forming" GRID_FORMING
+
+
+"""
+    Base.parse(::Type{T}, inverter::String)::T where T <: Inverter
+
+Parses the 'inverter' property from dss settings schema into an Inverter enum
+"""
+function Base.parse(::Type{T}, inverter::String)::T where T <: Inverter
+    if inverter ∈ ["GRID_FORMING", "grid_forming", "gfm"]
+        return GRID_FORMING
+    elseif inverter ∈ ["GRID_FOLLOWING", "grid_following", "gfl"]
+        return GRID_FOLLOWING
+    end
+
+    @warn "inverter code '$inverter' not recognized, defaulting to GRID_FORMING"
+    return GRID_FORMING
+end

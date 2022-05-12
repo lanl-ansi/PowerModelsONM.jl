@@ -40,6 +40,13 @@
         @test all(all(l["clpu_factor"] == 2.0 for l in values(nw["load"])) for nw in values(_network["nw"]))
         @test all(nw["switch_close_actions_ub"] == 1 for nw in values(_network["nw"]))
         @test all(nw["time_elapsed"] == 1.0 for nw in values(_network["nw"]))
+
+        @test all(nw["generator"]["675"]["inverter"] == GRID_FORMING for nw in values(_network["nw"]))
+        @test all(nw["solar"]["pv_mg1a"]["inverter"] == GRID_FORMING for nw in values(_network["nw"]))
+        @test all(nw["solar"]["pv_mg1b"]["inverter"] == GRID_FORMING for nw in values(_network["nw"]))
+        @test all(nw["storage"]["battery_mg1a"]["inverter"] == GRID_FORMING for nw in values(_network["nw"]))
+        @test all(nw["storage"]["battery_mg1b"]["inverter"] == GRID_FORMING for nw in values(_network["nw"]))
+        @test all(nw["storage"]["battery_mg1c"]["inverter"] == GRID_FORMING for nw in values(_network["nw"]))
     end
 
     @testset "test runtime args to settings conversion" begin
@@ -109,6 +116,14 @@
                     "reg1" => Dict{String,Any}( "sm_ub" => 25000.0 ),
                     "sub" => Dict{String,Any}( "sm_ub" => 25000.0 ),
             ),
+            "dss" => Dict{String,Any}(
+                "Generator.675" => Dict{String,Any}("inverter" => "GRID_FORMING"),
+                "PVSystem.PV_mg1a" => Dict{String,Any}("inverter" => "gfm"),
+                "PVSystem.PV_mg1b" => Dict{String,Any}("inverter" => "gfm"),
+                "Storage.Battery_mg1a" => Dict{String,Any}("inverter" => "GRID_FORMING"),
+                "Storage.Battery_mg1b" => Dict{String,Any}("inverter" => "gfm"),
+                "Storage.Battery_mg1c" => Dict{String,Any}("inverter" => "grid_forming")
+            ),
         )
 
         settings = build_settings(
@@ -134,10 +149,11 @@
 
         @test settings == local_settings
 
-        for (k,v) in settings
-            if v != local_settings[k]
-                @warn k v local_settings[k]
-            end
-        end
+        # for debugging this test
+        # for (k,v) in settings
+        #     if v != local_settings[k]
+        #         @warn k v local_settings[k]
+        #     end
+        # end
     end
 end

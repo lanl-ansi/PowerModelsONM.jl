@@ -64,6 +64,9 @@
     "solvers": {
       "$ref": "./settings/input-settings-solvers.schema.json"
     },
+    "dss": {
+      "$ref": "./settings/input-settings-dss.schema.json"
+    },
     "max_switch_actions": {
       "type": ["array", "integer", "null"],
       "description": "deprecated: options/data/switch-close-actions-ub",
@@ -137,17 +140,6 @@
       "format": "float",
       "description": "deprecated: {solvers/HiGHS/mip_rel_gap,solvers/Gurobi/MIPGap}",
       "deprecated": true
-    },
-    "microgrids": {
-      "type": "object",
-      "patternProperties": {
-        "^.+$": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      }
     }
   }
 }

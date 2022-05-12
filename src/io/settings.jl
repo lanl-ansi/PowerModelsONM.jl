@@ -252,7 +252,7 @@ Applies `settings` to single-network `network`
 function apply_settings(network::T, settings::T)::T where T <: Dict{String,Any}
     @assert !PMD.ismultinetwork(network)
 
-    eng = recursive_merge(deepcopy(network), settings)
+    eng = recursive_merge(recursive_merge(deepcopy(network), filter(x->x.first!="dss",settings)), parse_dss_settings(get(settings, "dss", Dict{String,Any}()), network))
 
     if get(get(get(eng, "options", T()), "data", T()), "fix-small-numbers", false)
         PMD.adjust_small_line_impedances!(eng; min_impedance_val=1e-1)
@@ -633,4 +633,44 @@ function build_settings_file(
     )
 
     JSON.print(io, settings)
+end
+
+
+"""
+    parse_dss_settings(dss_settings::T, eng::T)::T where T <: Dict{String,Any}
+
+Parses the dss settings schema into a ENGINEERING-compatible settings structure
+"""
+function parse_dss_settings(dss_settings::T, eng::T)::T where T <: Dict{String,Any}
+    settings = T()
+
+    source_id_map = Dict{String,Tuple{String,String}}(
+        obj["source_id"] => (obj_type,obj_id) for obj_type in PMD.pmd_eng_asset_types for (obj_id,obj) in get(eng,obj_type,Dict()) if haskey(obj,"source_id")
+    )
+
+    for (source_id,obj) in dss_settings
+        if haskey(source_id_map, lowercase(source_id))
+            (eng_obj_type,eng_obj_id) = source_id_map[lowercase(source_id)]
+        else
+            @warn "cannot find dss object '$(lowercase(source_id))' in the data model, skipping"
+            continue
+        end
+
+        if !haskey(settings, eng_obj_type)
+            settings[eng_obj_type] = Dict{String,Any}()
+        end
+        if !haskey(settings[eng_obj_type],eng_obj_id)
+            settings[eng_obj_type][eng_obj_id] = Dict{String,Any}()
+        end
+
+        if haskey(obj, "enabled")
+            settings[eng_obj_type][eng_obj_id]["status"] = parse(PMD.Status, lowercase(obj["enabled"]))
+        end
+
+        if haskey(obj, "inverter")
+            settings[eng_obj_type][eng_obj_id]["inverter"] = parse(Inverter, lowercase(obj["inverter"]))
+        end
+    end
+
+    return settings
 end

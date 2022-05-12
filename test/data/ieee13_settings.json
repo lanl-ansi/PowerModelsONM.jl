@@ -75,6 +75,14 @@
     "source": { "qg_lb": [0.0, 0.0, 0.0], "pg_lb": [0.0, 0.0, 0.0] }
   },
   "disable_isolation_constraint": false,
+  "dss": {
+    "Generator.675": { "inverter": "GRID_FORMING" },
+    "PVSystem.PV_mg1a": { "inverter": "gfm" },
+    "PVSystem.PV_mg1b": { "inverter": "gfm" },
+    "Storage.Battery_mg1a": { "inverter": "GRID_FORMING" },
+    "Storage.Battery_mg1b": { "inverter": "gfm" },
+    "Storage.Battery_mg1c": { "inverter": "grid_forming" }
+  },
   "bus": {
     "800aux": {
       "vm_ub": [2.641954831811728, 2.641954831811728, 2.641954831811728],
