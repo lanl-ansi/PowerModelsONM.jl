@@ -1,17 +1,16 @@
-"default eng2math passthrough"
-const _eng2math_passthrough_default = Dict{String,Vector{String}}(
-    "root"=>String[
-        "options",
-        "switch_close_actions_ub",
-    ],
-    "load"=>String["priority"],
-    "bus"=>String["microgrid_id"],
-    "generator"=>String["inverter"],
-    "solar"=>String["inverter"],
-    "storage"=>String["phase_unbalance_ub", "inverter"],
-    "voltage_source"=>["inverter"],
-)
+"default ref_extension functions"
+const _default_ref_extensions = Function[
+    ref_add_load_blocks!,
+    ref_add_options!,
+]
 
+"default solution_processor functions"
+const _default_solution_processors = Function[
+    PMD.sol_data_model!,
+    solution_reference_buses!,
+    solution_statuses!,
+    solution_inverter!,
+]
 
 """
     solve_onm_model(
@@ -38,6 +37,7 @@ function solve_onm_model(
     eng2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
     ref_extensions::Vector{Function}=Function[],
     multinetwork::Bool=false,
+    global_keys::Set{String}=Set{String}(),
     kwargs...)::Dict{String,Any}
 
     return PMD.solve_mc_model(
@@ -47,19 +47,15 @@ function solve_onm_model(
         model_builder;
         multinetwork=multinetwork,
         solution_processors=Function[
-            PMD.sol_data_model!,
-            solution_reference_buses!,
-            solution_statuses!,
-            solution_inverter!,
+            _default_solution_processors...,
             solution_processors...
         ],
         ref_extensions=Function[
-            ref_add_load_blocks!,
-            ref_add_options!,
+            _default_ref_extensions...,
             ref_extensions...
         ],
         eng2math_passthrough=recursive_merge_including_vectors(_eng2math_passthrough_default, eng2math_passthrough),
-        global_keys=Set{String}(["options","solvers"]),
+        global_keys=union(_default_global_keys,global_keys),
         kwargs...
     )
 end
@@ -85,6 +81,7 @@ function instantiate_onm_model(
     eng2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
     ref_extensions::Vector{Function}=Function[],
     multinetwork::Bool=false,
+    global_keys::Set{String}=Set{String}(),
     kwargs...)
 
     return PMD.instantiate_mc_model(
@@ -93,12 +90,11 @@ function instantiate_onm_model(
         model_builder;
         multinetwork=multinetwork,
         ref_extensions=Function[
-            ref_add_load_blocks!,
-            ref_add_options!,
+            _default_ref_extensions...,
             ref_extensions...
         ],
         eng2math_passthrough=recursive_merge_including_vectors(_eng2math_passthrough_default, eng2math_passthrough),
-        global_keys=Set{String}(["options","solvers"]),
+        global_keys=union(_default_global_keys, global_keys),
         kwargs...
     )
 end

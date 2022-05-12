@@ -77,6 +77,7 @@ module PowerModelsONM
     include("core/solution.jl")
 
     include("data_model/checks.jl")
+    include("data_model/eng2math.jl")
 
     include("form/acp.jl")
     include("form/acr.jl")
