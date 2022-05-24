@@ -36,6 +36,7 @@ pages = [
     ],
     "Tutorials" => [
         "Beginners Guide" => "tutorials/Beginners Guide.md",
+        "Block MLD Basic Example" => "tutorials/Block MLD Basic Example.md",
     ],
     "API Reference" => [
         "Base functions" => "reference/base.md",
