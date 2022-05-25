@@ -580,8 +580,6 @@ end
 
 Helper function to write a settings structure to an `io` for use with ONM from a network data
 structure `eng::Dict{String,<:Any}`.
-
-See [`build_settings`](@ref build_settings) for explanation of keyword options.
 """
 function build_settings_file(
     eng::Dict{String,<:Any},

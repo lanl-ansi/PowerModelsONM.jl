@@ -1,6 +1,6 @@
 # ONM Workflow
 
-![ONM Workflow Diagram](../assets/onm_workflow-white.png)
+![ONM Workflow Diagram](../assets/onm_process_flow_v3.png)
 
 PowerModelsONM is designed to have a straightforward workflow for optimizing the operation and recovering of distribution feeders under contingencies.
 
@@ -45,7 +45,7 @@ This nonlinear AC OPF problem is a simple extension of the [AC-OPF problem conta
 
 ## Statistics
 
-After the optimizations have completed, ONM collects essential statistics for our default [output specification](@ref Outputs-Schema). These include:
+After the optimizations have completed, ONM collects essential statistics for our default [output specification](@ref Output-Schema). These include:
 
 - a device action timeline, which contains an ordered list of the switch settings and loads shed at each timestep,
 - a list of switch changes, _i.e._, switches whose state has changed from the previous timestep,

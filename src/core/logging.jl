@@ -33,7 +33,7 @@ end
 """
     setup_logging!(args::Dict{String,<:Any})
 
-Configures logging based on runtime arguments, for use inside [`entrypoint`](@ref entrypoint)
+Configures logging based on runtime arguments
 """
 function setup_logging!(args::Dict{String,<:Any})
     log_level = get(args, "log-level", "warn")

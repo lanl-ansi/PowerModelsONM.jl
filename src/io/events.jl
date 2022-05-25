@@ -321,8 +321,6 @@ end
     build_events(case_file::String; kwargs...)::Vector{Dict{String,Any}}
 
 A helper function to assist in making rudamentary events data structure with some default settings for switches from a network case at path `case_file`.
-
-See [`build_events`](@ref build_events) for keyword options.
 """
 build_events(case_file::String; kwargs...)::Vector{Dict{String,Any}} = build_events(PMD.parse_file(case_file); kwargs...)
 
@@ -413,8 +411,6 @@ end
     build_events_file(case_file::String, io::IO; kwargs...)
 
 A helper function to save a rudamentary events data structure to `io` from a network case at path `case_file`.
-
-See [`build_events`](@ref build_events) for keyword options.
 """
 build_events_file(case_file::String, io::IO; kwargs...) = JSON.print(io, build_events(case_file; kwargs...))
 
@@ -423,8 +419,6 @@ build_events_file(case_file::String, io::IO; kwargs...) = JSON.print(io, build_e
     build_events_file(eng::Dict{String,<:Any}, io::IO; kwargs...)
 
 A helper function to save a rudamentary events data structure to `io` from a network case `eng`.
-
-See [`build_events`](@ref build_events) for keyword options.
 """
 build_events_file(eng::Dict{String,<:Any}, io::IO; kwargs...) = JSON.print(io, build_events(eng; kwargs...))
 
@@ -433,8 +427,6 @@ build_events_file(eng::Dict{String,<:Any}, io::IO; kwargs...) = JSON.print(io, b
     build_events_file(case_file::String, events_file::String; kwargs...)
 
 A helper function to build a rudamentary `events_file` from a network case at path `case_file`.
-
-See [`build_events`](@ref build_events) for keyword options.
 """
 build_events_file(case_file::String, events_file::String; kwargs...) = build_events_file(PMD.parse_file(case_file), events_file; kwargs...)
 
@@ -443,8 +435,6 @@ build_events_file(case_file::String, events_file::String; kwargs...) = build_eve
     build_events_file(eng::Dict{String,<:Any}, events_file::String; kwargs...)
 
 A helper function to build a rudamentary `events_file` from a network case `eng`.
-
-See [`build_events`](@ref build_events) for keyword options.
 """
 function build_events_file(eng::Dict{String,<:Any}, events_file::String; kwargs...)
     open(events_file, "w") do io

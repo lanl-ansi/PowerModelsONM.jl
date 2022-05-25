@@ -8,7 +8,6 @@ solve_block_mld
 solve_mn_block_mld
 solve_traditional_mld
 solve_mn_traditional_mld
-solve_mn_opf
 ```
 
 ## Optimal Dispatch
