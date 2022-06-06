@@ -657,16 +657,17 @@ function parse_dss_settings(dss_settings::T, eng::T)::T where T <: Dict{String,A
         if !haskey(settings, eng_obj_type)
             settings[eng_obj_type] = Dict{String,Any}()
         end
+
         if !haskey(settings[eng_obj_type],eng_obj_id)
             settings[eng_obj_type][eng_obj_id] = Dict{String,Any}()
         end
 
-        if haskey(obj, "enabled") && !isa(obj["enabled"], PMD.Status) && isa(obj["enabled"], String)
-            settings[eng_obj_type][eng_obj_id]["status"] = parse(PMD.Status, lowercase(obj["enabled"]))
+        if haskey(obj, "enabled")
+            settings[eng_obj_type][eng_obj_id]["status"] = parse(PMD.Status, obj["enabled"])
         end
 
-        if haskey(obj, "inverter") && !isa(obj["inverter"], Inverter) && isa(obj["inverter"], String)
-            settings[eng_obj_type][eng_obj_id]["inverter"] = parse(Inverter, lowercase(obj["inverter"]))
+        if haskey(obj, "inverter")
+            settings[eng_obj_type][eng_obj_id]["inverter"] = parse(Inverter, obj["inverter"])
         end
     end
 

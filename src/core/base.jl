@@ -210,12 +210,17 @@ end
 Parses a string from dss property 'enabled' into PMD.Status
 """
 function Base.parse(::Type{T}, status::String)::T where T <: PMD.Status
-    if status ∈ ["y", "yes", "true"]
+    if lowercase(status) ∈ ["y", "yes", "true"]
         return PMD.ENABLED
-    elseif status ∈ ["n", "no", "false"]
+    elseif lowercase(status) ∈ ["n", "no", "false"]
         return PMD.DISABLED
     end
 
     @warn "enabled code '$status' not recognized, defaulting to ENABLED"
     return PMD.ENABLED
 end
+
+
+Base.parse(::Type{PMD.Status}, status::PMD.Status)::PMD.Status = status
+Base.parse(::Type{PMD.Status}, status::Bool)::PMD.Status = PMD.Status(Int(status))
+Base.parse(::Type{PMD.Status}, status::Int)::PMD.Status = PMD.Status(status)
