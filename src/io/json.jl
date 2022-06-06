@@ -16,8 +16,8 @@ function correct_json_import!(data::Dict{String,<:Any})
             correct_json_import!(v)
         else
             PMD._fix_enums!(data, k, data[k])
-            _fix_enums!(data, k, data[k])
-            PowerModelsONM._fix_symbols!(data, k, v)
+            PowerModelsONM._fix_enums!(data, k, data[k])
+            PowerModelsONM._fix_symbols!(data, k, data[k])
             PMD._fix_arrays!(data, k, data[k])
             PMD._fix_nulls!(data, k, data[k])
         end
