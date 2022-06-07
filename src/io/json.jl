@@ -38,3 +38,6 @@ end
 function _fix_symbols!(obj, prop, val)
     obj[prop] = convert(val)
 end
+
+
+JSON.lower(p::Symbol) = ":$(p)"
