@@ -22,10 +22,6 @@
         "fix-small-numbers": {
           "type": "boolean",
           "default": false
-        },
-        "time-elapsed-scale": {
-          "type": "number",
-          "default": 1
         }
       }
     },
@@ -123,6 +119,10 @@
           "default": false
         },
         "disable-load-block-weight-cost": {
+          "type": "boolean",
+          "default": false
+        },
+        "disable-load-block-shed-cost": {
           "type": "boolean",
           "default": false
         }

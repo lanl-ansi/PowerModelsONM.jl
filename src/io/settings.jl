@@ -264,8 +264,6 @@ function apply_settings(network::T, settings::T)::T where T <: Dict{String,Any}
         eng["time_elapsed"] = eng["options"]["data"]["time-elapsed"]
     end
 
-    eng["time_elapsed"] = get(eng, "time_elapsed", 1.0) * get(get(get(eng, "options", T()), "data", T()), "time-elapsed-scale", 1.0)
-
     eng["switch_close_actions_ub"] = get(get(get(eng, "options", T()), "data", T()), "switch-close-actions-ub", Inf)
 
     if !ismissing(get(get(get(eng, "options", T()), "outputs", T()), "log-level", missing))
