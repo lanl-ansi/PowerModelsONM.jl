@@ -10,6 +10,7 @@ const _default_solution_processors = Function[
     solution_reference_buses!,
     solution_statuses!,
     solution_inverter!,
+    PowerModelsONM.solution_blocks!,
 ]
 
 """

@@ -190,3 +190,80 @@ function _solution_inverter!(data::Dict{String,<:Any}, sol::Dict{String,<:Any})
         end
     end
 end
+
+
+"""
+    solution_blocks!(pm::AbstractUnbalancedPowerModel, sol::Dict{String,Any})
+
+Adds block ids (as generated in the ref), and microgrid_ids to the solution
+"""
+function solution_blocks!(pm::AbstractUnbalancedPowerModel, sol::Dict{String,Any})
+    PMD.apply_pmd!(PowerModelsONM._solution_blocks!, sol, pm.ref; apply_to_subnetworks=true)
+end
+
+
+"""
+    _solution_statuses!(sol::Dict{String,<:Any}, ref::Dict{Symbol,<:Any})
+
+Adds block ids (as generated in the `ref`), and microgrid_ids to the solution
+"""
+function _solution_blocks!(sol::Dict{String,<:Any}, ref::Dict{Symbol,<:Any})
+    for (id, block) in ref[:blocks]
+        for bus_id in block
+            sol["bus"]["$bus_id"]["block_id"] = id
+            if id in keys(ref[:microgrid_blocks])
+                sol["bus"]["$bus_id"]["microgrid_id"] = ref[:microgrid_blocks][id]
+            end
+        end
+    end
+
+    for t in [:load, :gen, :storage]
+        for (id,_) in ref[t]
+            block_id = ref[Symbol("$(t)_block_map")][id]
+            sol[string(t)]["$id"]["block_id"] = block_id
+            if block_id in keys(ref[:microgrid_blocks])
+                sol[string(t)]["$id"]["microgrid_id"] = ref[:microgrid_blocks][block_id]
+            end
+        end
+    end
+end
+
+
+"""
+    PowerModelsDistribution.apply_pmd!(func!::Function, data::Dict{String,<:Any}, ref::Dict{Symbol,<:Any}; apply_to_subnetworks::Bool=true, kwargs...)
+
+Version of `apply_pmd!` that supports `ref::Dict{Symbol,<:Any}`
+"""
+function PMD.apply_pmd!(func!::Function, data::Dict{String,<:Any}, ref::Dict{Symbol,<:Any}; apply_to_subnetworks::Bool=true, kwargs...)
+    data_it = _IM.ismultiinfrastructure(data) ? data["it"][PMD.pmd_it_name] : data
+    ref_it = _IM.ismultiinfrastructure(ref) ? ref[:it][PMD.pmd_it_sym] : ref
+
+    if PMD.ismultinetwork(data_it) && apply_to_subnetworks
+        @assert PMD.ismultinetwork(ref_it)
+        for (nw, nw_data) in data_it["nw"]
+            func!(nw_data, ref_it[:nw][parse(Int, nw)]; kwargs...)
+        end
+    else
+        func!(data_it, ref_it; kwargs...)
+    end
+end
+
+
+"""
+    InfrastructureModels.ismultiinfrastructure(ref::Dict{Symbol,<:Any})
+
+version of `ismultiinfrastructure` that works on `ref::Dict{Symbol,<:Any}`
+"""
+function _IM.ismultiinfrastructure(ref::Dict{Symbol,<:Any})
+    haskey(ref, :it)
+end
+
+
+"""
+    PowerModelsDistribution.ismultinetwork(ref::Dict{Symbol,<:Any})
+
+Version of `ismultinetwork` that works on `ref::Dict{Symbol,<:Any}`
+"""
+function PMD.ismultinetwork(ref::Dict{Symbol,<:Any})
+    haskey(ref, :nw)
+end
