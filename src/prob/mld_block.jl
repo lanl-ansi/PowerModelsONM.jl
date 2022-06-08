@@ -64,7 +64,7 @@ function build_mn_block_mld(pm::PMD.AbstractUBFModels)
         constraint_mc_bus_voltage_block_on_off(pm; nw=n)
 
         for i in ids(pm, n, :gen)
-            constraint_mc_generator_power_block_on_off(pm, i; nw=n)
+            !var_opts["unbound-generation-power"] && constraint_mc_generator_power_block_on_off(pm, i; nw=n)
         end
 
         for i in ids(pm, n, :load)
@@ -183,7 +183,7 @@ function build_mn_block_mld(pm::AbstractUnbalancedPowerModel)
         constraint_mc_bus_voltage_block_on_off(pm; nw=n)
 
         for i in ids(pm, n, :gen)
-            constraint_mc_generator_power_block_on_off(pm, i; nw=n)
+            !var_opts["unbound-generation-power"] && constraint_mc_generator_power_block_on_off(pm, i; nw=n)
         end
 
         for i in ids(pm, n, :load)
@@ -318,7 +318,7 @@ function build_block_mld(pm::PMD.AbstractUBFModels)
     constraint_mc_bus_voltage_block_on_off(pm)
 
     for i in ids(pm, :gen)
-        constraint_mc_generator_power_block_on_off(pm, i)
+        !var_opts["unbound-generation-power"] && constraint_mc_generator_power_block_on_off(pm, i)
     end
 
     for i in ids(pm, :load)
@@ -414,7 +414,7 @@ function build_block_mld(pm::AbstractUnbalancedPowerModel)
     constraint_mc_bus_voltage_block_on_off(pm)
 
     for i in ids(pm, :gen)
-        constraint_mc_generator_power_block_on_off(pm, i)
+        !var_opts["unbound-generation-power"] && constraint_mc_generator_power_block_on_off(pm, i)
     end
 
     for i in ids(pm, :load)
