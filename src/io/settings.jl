@@ -1,6 +1,6 @@
 settings_conversions = Dict{Tuple{Vararg{String}},Function}(
     ("solvers","HiGHS","presolve") => x->x ? "off" : "choose",
-    ("solvers","Gurobi","Presolve") => x->Int(!x),
+    ("solvers","Gurobi","Presolve") => x->x ? 0 : -1,
     ("solvers","KNITRO","presolve") => x->Int(!x),
 )
 
