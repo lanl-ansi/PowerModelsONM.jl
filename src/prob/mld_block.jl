@@ -79,7 +79,7 @@ function build_mn_block_mld(pm::PMD.AbstractUBFModels)
             constraint_storage_complementarity_mi_block_on_off(pm, i; nw=n)
             constraint_mc_storage_block_on_off(pm, i; nw=n)
             constraint_mc_storage_losses_block_on_off(pm, i; nw=n)
-            !con_opts["disable-thermal-limit-constraints"] && PMD.constraint_mc_storage_thermal_limit(pm, i; nw=n)
+            !con_opts["disable-thermal-limit-constraints"] && !var_opts["unbound-storage-power"] && PMD.constraint_mc_storage_thermal_limit(pm, i; nw=n)
             !con_opts["disable-storage-unbalance-constraint"] && constraint_mc_storage_phase_unbalance_grid_following(pm, i; nw=n)
         end
 
@@ -198,7 +198,7 @@ function build_mn_block_mld(pm::AbstractUnbalancedPowerModel)
             constraint_storage_complementarity_mi_block_on_off(pm, i; nw=n)
             constraint_mc_storage_block_on_off(pm, i; nw=n)
             constraint_mc_storage_losses_block_on_off(pm, i; nw=n)
-            !con_opts["disable-thermal-limit-constraints"] && PMD.constraint_mc_storage_thermal_limit(pm, i; nw=n)
+            !con_opts["disable-thermal-limit-constraints"] && !var_opts["unbound-storage-power"] && PMD.constraint_mc_storage_thermal_limit(pm, i; nw=n)
             !con_opts["disable-storage-unbalance-constraint"] && constraint_mc_storage_phase_unbalance_grid_following(pm, i; nw=n)
         end
 
@@ -334,7 +334,7 @@ function build_block_mld(pm::PMD.AbstractUBFModels)
         constraint_storage_complementarity_mi_block_on_off(pm, i)
         constraint_mc_storage_block_on_off(pm, i)
         constraint_mc_storage_losses_block_on_off(pm, i)
-        !con_opts["disable-thermal-limit-constraints"] && PMD.constraint_mc_storage_thermal_limit(pm, i)
+        !con_opts["disable-thermal-limit-constraints"] && !var_opts["unbound-storage-power"] && PMD.constraint_mc_storage_thermal_limit(pm, i)
         !con_opts["disable-storage-unbalance-constraint"] && constraint_mc_storage_phase_unbalance_grid_following(pm, i)
     end
 
@@ -430,7 +430,7 @@ function build_block_mld(pm::AbstractUnbalancedPowerModel)
         constraint_storage_complementarity_mi_block_on_off(pm, i)
         constraint_mc_storage_block_on_off(pm, i)
         constraint_mc_storage_losses_block_on_off(pm, i)
-        !con_opts["disable-thermal-limit-constraints"] && PMD.constraint_mc_storage_thermal_limit(pm, i)
+        !con_opts["disable-thermal-limit-constraints"] && !var_opts["unbound-storage-power"] && PMD.constraint_mc_storage_thermal_limit(pm, i)
         !con_opts["disable-storage-unbalance-constraint"] && constraint_mc_storage_phase_unbalance_grid_following(pm, i)
     end
 
