@@ -96,6 +96,10 @@
         "disable-storage-unbalance-constraint": {
           "type": "boolean",
           "default": false
+        },
+        "disable-microgrid-expansion": {
+          "type": "boolean",
+          "default": false
         }
       }
     },

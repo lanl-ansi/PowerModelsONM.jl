@@ -39,6 +39,12 @@ Variables for non-dispatchable switches will be constants, rather than `Variable
 solution if `report=true`.
 """
 function variable_switch_state(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, report::Bool=true, relax::Bool=false)
+    if ref(pm, nw, :options, "constraints")["disable-microgrid-expansion"]
+        dispatchable_switches = [i for (i,sw) in ref(pm, nw, :switch) if !isempty(get(ref(pm, nw, :bus, sw["f_bus"]), "microgrid_id", "")) && !isempty(get(ref(pm, nw, :bus, sw["t_bus"]), "microgrid_id", "")) && ref(pm, nw, :bus, sw["f_bus"], "microgrid_id") == ref(pm, nw, :bus, sw["t_bus"], "microgrid_id")]
+    else
+        dispatchable_switches = collect(ids(pm, nw, :switch_dispatchable))
+    end
+
     state = var(pm, nw)[:switch_state] = Dict{Int,Any}(
         l => JuMP.@variable(
             pm.model,
@@ -47,18 +53,17 @@ function variable_switch_state(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_d
             lower_bound=0,
             upper_bound=1,
             start=PMD.comp_start_value(ref(pm, nw, :switch, l), "state_start", get(ref(pm, nw, :switch, l), "state", 1))
-        ) for l in ids(pm, nw, :switch_dispatchable)
+        ) for l in dispatchable_switches
     )
 
     # create variables (constants) for 'fixed' (non-dispatchable) switches
-    dispatchable_switches = collect(ids(pm, nw, :switch_dispatchable))
     fixed_switches = [i for i in ids(pm, nw, :switch) if i ∉ dispatchable_switches]
 
     for i in fixed_switches
         var(pm, nw, :switch_state)[i] = ref(pm, nw, :switch, i, "state")
     end
 
-    report && _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :switch, :state, ids(pm, nw, :switch_dispatchable), state)
+    report && _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :switch, :state, dispatchable_switches, state)
     report && _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :switch, :state, fixed_switches, Dict{Int,Any}(i => var(pm, nw, :switch_state, i) for i in fixed_switches))
 end
 
