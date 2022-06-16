@@ -10,7 +10,7 @@ function optimize_switches!(args::Dict{String,<:Any})::Dict{String,Any}
     prob_opts = get(get(args["network"], "options", Dict()), "problem", Dict())
     solver = get(prob_opts, "operations-solver", "mip_solver")
     formulation = _get_formulation(get(prob_opts, "operations-formulation", PMD.LPUBFDiagPowerModel))
-    algorithm = get(prob_opts, "operations-algorithm", "global")
+    algorithm = get(prob_opts, "operations-algorithm", "full-lookahead")
     problem_type = get(prob_opts, "operations-problem-type", "block")
 
     args["optimal_switching_results"] = optimize_switches(
@@ -28,19 +28,19 @@ end
         network::Dict{String,<:Any},
         solver;
         formulation::Type=PMD.LPUBFDiagPowerModel,
-        algorithm::String="global"
+        algorithm::String="full-lookahead"
     )::Dict{String,Any}
 
-- `algorithm::String`, if `"iterative"`, iterates over all subnetworks in a multinetwork data structure `network`, in order,
+- `algorithm::String`, if `"rolling-horizon"`, iterates over all subnetworks in a multinetwork data structure `network`, in order,
   and solves the optimal switching / MLD problem sequentially, updating the next timestep with the new switch configurations
-  and storage energies from the solved timestep. Otherwise, if `"global"`, will solve all time steps in a single optimization
-  problem (default: `"global"`)
+  and storage energies from the solved timestep. Otherwise, if `"full-lookahead"`, will solve all time steps in a single optimization
+  problem (default: `"full-lookahead"`)
 """
-function optimize_switches(network::Dict{String,<:Any}, solver; formulation::Type=PMD.LPUBFDiagPowerModel, algorithm::String="global", problem::String="block")::Dict{String,Any}
+function optimize_switches(network::Dict{String,<:Any}, solver; formulation::Type=PMD.LPUBFDiagPowerModel, algorithm::String="full-lookahead", problem::String="block")::Dict{String,Any}
     results = Dict{String,Any}()
 
     @info "running $(algorithm)-$(problem) optimal switching algorithm with $(formulation)"
-    if algorithm == "global"
+    if algorithm == "full-lookahead"
         prob = problem=="traditional" ? solve_mn_traditional_mld : solve_mn_block_mld
         _results = prob(
             network,
@@ -50,7 +50,7 @@ function optimize_switches(network::Dict{String,<:Any}, solver; formulation::Typ
 
         opt_results = filter(x->x.first!="solution", _results)
         results = Dict{String,Any}(n => merge(Dict{String,Any}("solution"=>nw), opt_results) for (n,nw) in get(get(_results, "solution", Dict{String,Any}()), "nw", Dict{String,Any}()))
-    elseif algorithm == "iterative"
+    elseif algorithm == "rolling-horizon"
         mn_data = _prepare_optimal_switching_data(network)
 
         ns = sort([parse(Int, i) for i in keys(mn_data["nw"])])

@@ -137,8 +137,8 @@
       "properties": {
         "operations-algorithm": {
           "type": "string",
-          "enum": ["rolling horizon", "complete horizon"],
-          "default": "complete horizon"
+          "enum": ["rolling-horizon", "full-lookahead"],
+          "default": "full-lookahead"
         },
         "operations-formulation": {
           "type": "string",

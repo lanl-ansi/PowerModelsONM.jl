@@ -106,23 +106,23 @@ Retrieves the switching optimization results metadata from the optimal switching
 and applies it in-place to args, for use with [`entrypoint`](@ref entrypoint)
 """
 function get_timestep_switch_optimization_metadata!(args::Dict{String,<:Any})::Vector{Dict{String,Any}}
-    args["output_data"]["Optimal switching metadata"] = get_timestep_switch_optimization_metadata(get(args, "optimal_switching_results", Dict{String,Any}()); opt_switch_algorithm=get(args, "opt-switch-algorithm", "global"))
+    args["output_data"]["Optimal switching metadata"] = get_timestep_switch_optimization_metadata(get(args, "optimal_switching_results", Dict{String,Any}()); opt_switch_algorithm=get(args, "opt-switch-algorithm", "full-lookahead"))
 end
 
 
 """
     get_timestep_switch_optimization_metadata(
         optimal_switching_results::Dict{String,Any};
-        opt_switch_algorithm::String="global"
+        opt_switch_algorithm::String="full-lookahead"
     )::Vector{Dict{String,Any}}
 
 Gets the metadata from the optimal switching results for each timestep, returning a list of `Dicts`
-(if `opt_switch_algorithm="iterative`), or a list with a single `Dict` (if `opt_switch_algorithm="global"`).
+(if `opt_switch_algorithm="iterative`), or a list with a single `Dict` (if `opt_switch_algorithm="full-lookahead"`).
 """
-function get_timestep_switch_optimization_metadata(optimal_switching_results::Dict{String,Any}; opt_switch_algorithm::String="global")::Vector{Dict{String,Any}}
+function get_timestep_switch_optimization_metadata(optimal_switching_results::Dict{String,Any}; opt_switch_algorithm::String="full-lookahead")::Vector{Dict{String,Any}}
     results_metadata = Dict{String,Any}[]
 
-    if opt_switch_algorithm == "global" && !isempty(optimal_switching_results)
+    if opt_switch_algorithm == "full-lookahead" && !isempty(optimal_switching_results)
         push!(results_metadata, filter(x->x.first!="solution", first(optimal_switching_results).second))
     else
         ns = sort([parse(Int, n) for n in keys(optimal_switching_results)])
