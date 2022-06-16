@@ -277,30 +277,48 @@ end
 
 
 """
-"""
-set_option!(args, option, value) = set_option!(args, missing, option, value)
+    set_settings_property!(settings::Dict{String,<:Any}, path::Tuple{Vararg{String}}, value::Any)
 
-
+Helper function to set a property in a `settings` at `path` to `value`
 """
-"""
-function set_option!(args::Dict{String,<:Any}, category::Union{Missing,String}, option::String, value::Any)
-    if haskey(args, "base_network") && haskey(args, "network")
-        for k in ["base_network", "network"]
-            set_option!(args[k], category, option, value)
+function set_settings_property!(settings::Dict{String,<:Any}, path::Tuple{Vararg{String}}, value::Any)
+    if length(path) > 1
+        if !haskey(settings, path[1])
+            settings[path[1]] = Dict{String,Any}()
         end
-    elseif haskey(args, "data_model")
-        if !haskey(args, "options")
-            args["options"] = Dict{String,Any}()
-        end
-        if ismissing(category)
-            args["options"][option] = value
-        else
-            if !haskey(args["options"], category)
-                args["options"][category] = Dict{String,Any}()
-            end
-            args["options"][category][option] = value
-        end
+        set_settings_property!(settings[path[1]], path[2:end], value)
+    else
+        settings[path[1]] = value
     end
+end
+
+
+"""
+    set_option!(args::Dict{String,<:Any}, path::Tuple{Vararg{String}}, value::Any)
+
+Helper function to set an option at `path` to `value` and then regenerate the multinetwork data.
+"""
+function set_option!(args::Dict{String,<:Any}, path::Tuple{Vararg{String}}, value::Any)
+    set_settings_property!(args, ("settings", path...), value)
+
+    apply_settings!(args)
+    apply_events!(args)
+end
+
+
+"""
+    set_options!(args, options::Dict{Tuple{Vararg{String}},<:Any})
+
+Helper function to set multiple options at `path` to `value` and then regenerate the multinetwork data,
+where the paths are the keys of the `options` input dictionary.
+"""
+function set_options!(args, options::Dict{Tuple{Vararg{String}},<:Any})
+    for (path,value) in options
+        set_settings_property!(args, ("settings", path...), value)
+    end
+
+    apply_settings!(args)
+    apply_events!(args)
 end
 
 
