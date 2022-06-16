@@ -52,13 +52,11 @@
     },
     "gurobi": {
       "type": "boolean",
-      "default": false,
       "deprecated": true,
       "description": "deprecated: solvers/useGurobi"
     },
     "knitro": {
       "type": "boolean",
-      "default": false,
       "description": "deprecated: solvers/useKNITRO",
       "deprecated": true
     },
@@ -78,19 +76,16 @@
     },
     "quiet": {
       "type": "boolean",
-      "default": false,
       "description": "missing",
       "deprecated": true
     },
     "verbose": {
       "type": "boolean",
-      "default": false,
       "description": "missing",
       "deprecated": true
     },
     "debug": {
       "type": "boolean",
-      "default": false,
       "deprecated": true,
       "description": "missing"
     },
@@ -107,7 +102,6 @@
     "opt-switch-formulation": {
       "type": "string",
       "enum": ["lindistflow", "nfa", "fbs", "fot"],
-      "default": "lindistflow",
       "deprecated": true,
       "description": "deprecated: options/problem/operations-formulation"
     },
@@ -115,13 +109,11 @@
       "type": "string",
       "description": "deprecated: options/problem/operations-algorithm",
       "enum": ["iterative", "global"],
-      "default": "global",
       "deprecated": true
     },
     "opt-switch-solver": {
       "type": "string",
       "enum": ["misocp_solver", "nlp_solver", "minlp_solver", "mip_solver"],
-      "default": "mip_solver",
       "deprecated": true,
       "description": "deprecated: options/problem/operations-solver"
     },
@@ -129,20 +121,17 @@
       "type": "string",
       "enum": ["traditional", "block"],
       "deprecated": true,
-      "description": "deprecated: options/problem/operations-problem-type",
-      "default": "block"
+      "description": "deprecated: options/problem/operations-problem-type"
     },
     "opt-disp-formulation": {
       "type": "string",
       "enum": ["acp", "acr", "lindistflow", "nfa", "fbs", "fot"],
       "description": "deprecated: options/problem/dispatch-formulation",
-      "deprecated": true,
-      "default": "lindistflow"
+      "deprecated": true
     },
     "opt-disp-algorithm": {
       "type": "string",
       "enum": ["opf", "mld", "oltc"],
-      "default": "opf",
       "deprecated": true,
       "description": "deprecated: missing"
     },
@@ -150,54 +139,45 @@
       "type": "string",
       "enum": ["nlp_solver", "misocp_solver", "minlp_solver", "mip_solver"],
       "description": "deprecated: options/problem/dispatch-solver",
-      "default": "nlp_solver",
       "deprecated": true
     },
     "fix-small-numbers": {
       "type": "boolean",
       "description": "deprecated: options/data/fix-small-numbers",
-      "deprecated": true,
-      "default": false
+      "deprecated": true
     },
     "disable-switch-penalty": {
       "type": "boolean",
       "description": "deprecated: options/objective/disable-switch-state-change-cost",
-      "default": false,
       "deprecated": true
     },
     "apply-switch-scores": {
       "type": "boolean",
       "description": "deprecated: options/objective/enable-switch-state-open-cost",
-      "default": false,
       "deprecated": true
     },
     "disable-radial-constraint": {
       "type": "boolean",
-      "default": false,
       "deprecated": true,
       "description": "deprecated: options/constraints/disable-radiality-constraint"
     },
     "disable-isolation-constraint": {
       "type": "boolean",
       "description": "deprecated: options/constraints/disable-block-isolation-constraint",
-      "default": false,
       "deprecated": true
     },
     "disable-inverter-constraint": {
       "type": "boolean",
       "description": "deprecated: options/constraints/disable-grid-forming-inverter-constraint",
-      "default": false,
       "deprecated": true
     },
     "disable-networking": {
       "type": "boolean",
-      "default": false,
       "deprecated": true,
       "description": "deprecated: options/constraints/disable-microgrid-networking"
     },
     "disable-presolver": {
       "type": "boolean",
-      "default": false,
       "deprecated": true,
       "description": "deprecated: {solvers/HiGHS/presolve,solvers/Gurobi/Presolve,solvers/KNITRO/presolve}"
     }

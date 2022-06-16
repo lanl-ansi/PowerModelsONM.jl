@@ -78,24 +78,20 @@
     "disable_networking": {
       "type": "boolean",
       "description": "deprecated: options/constraints/disable-microgrid-networking",
-      "default": false,
       "deprecated": true
     },
     "disable_radial_constraint": {
       "type": "boolean",
       "description": "deprecated: options/constraints/disable-radiality-constraint",
-      "default": false,
       "deprecated": true
     },
     "disable_isolation_constraint": {
       "type": "boolean",
       "description": "deprecated: options/constraints/disable-block-isolation-constraint",
-      "default": false,
       "deprecated": true
     },
     "disable_inverter_constraint": {
       "type": "boolean",
-      "default": false,
       "deprecated": true,
       "description": "deprecated: options/constraints/disable-grid-forming-inverter-constraint"
     },
@@ -112,7 +108,6 @@
     "disable_presolver": {
       "type": "boolean",
       "description": "deprecated: {solvers/HiGHS/presolve,solvers/Gurobi/Presolve,solvers/KNITRO/presolve}",
-      "default": false,
       "deprecated": true
     },
     "time_elapsed": {
@@ -136,7 +131,6 @@
     "mip_solver_gap": {
       "type": "number",
       "exclusiveMinimum": 0,
-      "default": 0.05,
       "format": "float",
       "description": "deprecated: {solvers/HiGHS/mip_rel_gap,solvers/Gurobi/MIPGap}",
       "deprecated": true
