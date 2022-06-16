@@ -255,6 +255,7 @@ function apply_settings(network::T, settings::T)::T where T <: Dict{String,Any}
     eng = recursive_merge(recursive_merge(deepcopy(network), filter(x->x.first!="dss",settings)), parse_dss_settings(get(settings, "dss", Dict{String,Any}()), network))
 
     if get(get(get(eng, "options", T()), "data", T()), "fix-small-numbers", false)
+        @info "fix-small-numbers algorithm applied"
         PMD.adjust_small_line_impedances!(eng; min_impedance_val=1e-1)
         PMD.adjust_small_line_admittances!(eng; min_admittance_val=1e-1)
         PMD.adjust_small_line_lengths!(eng; min_length_val=10.0)
