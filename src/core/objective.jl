@@ -323,10 +323,12 @@ function objective_mc_min_storage_utilization(pm::AbstractUnbalancedPowerModel)
     total_energy_ub = total_energy_ub <= 1.0 ? 1.0 : total_energy_ub
     total_pmax = total_pmax <= 1.0 ? 1.0 : total_pmax
 
+    obj_opts = Dict(n=>ref(pm, n, :options, "objective") for n in nw_ids(pm))
+
     JuMP.@objective(pm.model, Min,
         sum(
-            sum( strg["energy_rating"] - var(pm, n, :se, i) for (i,strg) in nw_ref[:storage]) / total_energy_ub
-            + sum( sum(get(gen,  "cost", [0.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [0.0, 0.0])[1] for c in  gen["connections"]) for (i,gen) in nw_ref[:gen]) / total_energy_ub
+              sum( Int(!obj_opts[n]["disable-storage-discharge-cost"]) * (strg["energy_rating"] - var(pm, n, :se, i)) for (i,strg) in nw_ref[:storage]) / total_energy_ub
+            + sum( Int(!obj_opts[n]["disable-generation-dispatch-cost"]) * sum(get(gen,  "cost", [0.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [0.0, 0.0])[1] for c in  gen["connections"]) for (i,gen) in nw_ref[:gen]) / total_energy_ub
         for (n, nw_ref) in nws(pm))
     )
 end
