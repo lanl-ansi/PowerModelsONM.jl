@@ -2,6 +2,7 @@ settings_conversions = Dict{Tuple{Vararg{String}},Function}(
     ("solvers","HiGHS","presolve") => x->x ? "off" : "choose",
     ("solvers","Gurobi","Presolve") => x->x ? 0 : -1,
     ("solvers","KNITRO","presolve") => x->Int(!x),
+    ("options","problem","operations-algorithm") => x->x∈["complete horizon", "global"] ? "full-lookahead" : x∈["rolling horizon", "iterative"] ? "rolling-horizon" : x,
 )
 
 
