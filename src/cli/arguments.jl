@@ -88,7 +88,12 @@ function sanitize_args!(args::Dict{String,<:Any})::Dict{String,Any}
     _deepcopy_args!(args)
 
     runtime_args_schema = load_schema(joinpath(dirname(pathof(PowerModelsONM)), "..", "schemas/input-runtime_arguments.schema.json"))
-    deprecated_args = Dict(prop_name=>Dict("description"=>get(prop, "description", ""),"default"=>get(prop,"default",missing)) for (prop_name,prop) in runtime_args_schema.data["properties"] if get(prop, "deprecated", false))
+    deprecated_args = Dict(
+        prop_name=>Dict(
+            "description"=>get(prop, "description", ""),
+            "default"=>get(prop,"default",get(prop,"type","")=="boolean" ? false : missing)
+        ) for (prop_name,prop) in runtime_args_schema.data["properties"] if get(prop, "deprecated", false)
+    )
 
     if get(args, "quiet", false)
         args["log-level"] = "error"
@@ -107,9 +112,13 @@ function sanitize_args!(args::Dict{String,<:Any})::Dict{String,Any}
         end
     end
 
-    for (arg,v) in args
-        if arg ∈ keys(deprecated_args) && v != deprecated_args[arg]["default"]
-            @warn "'$arg' is deprecated: use settings.json @ '$(strip(split(deprecated_args[arg]["description"],":")[end]))'"
+    for (arg,v) in collect(args)
+        if arg ∈ keys(deprecated_args)
+            if !ismissing(deprecated_args[arg]["default"]) && v == deprecated_args[arg]["default"]
+                delete!(args, arg)
+            else
+                @warn "'$arg' is deprecated: use settings.json @ '$(strip(split(deprecated_args[arg]["description"],":")[end]))'"
+            end
         end
     end
 
