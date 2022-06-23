@@ -35,8 +35,40 @@ html"""
 </style>
 """
 
+# ╔═╡ bdfca444-f5f0-413f-8a47-8346de453d12
+md"""# JuMP Model by Hand - MLD-Block
+
+This notebook is intended to illustrate how one would build the JuMP model for a MLD problem of the "block" type (i.e., `build_block_mld(pm::AbstractUBFModels)`) with the LinDist3Flow (i.e., `LPUBFDiagPowerModel`) formulation. 
+
+## Outline
+
+### Environment Setup
+
+This is based on PowerModelsONM.jl#v3.0-rc, which is not yet released, and therefore requires manual setup of the environment using Pkg, overriding the built-in package management in Pluto notebooks.
+
+### Solver
+
+This notebook uses the [HiGHS solver](https://github.com/jump-dev/HiGHS.jl).
+
+### Data Model
+
+This notebook uses a modified IEEE-13 case that is [included in PowerModelsONM.jl](https://github.com/lanl-ansi/PowerModelsONM.jl/blob/v3.0-rc/test/data/ieee13_feeder.dss).
+
+What is loaded here is the single-network, **not** multinetwork (i.e., time-series) version of the feeder.
+
+There are two bounds that need to be included for the problem being defined in this notebook, voltage bounds on buses, which are applied via the function `apply_voltage_bounds!`, and a switch close-action upper bound.
+
+### JuMP Model
+
+Next we build two versions of the JuMP model. The first is one built using the included PowerModelsONM.jl functions: specifically, `instantiate_onm_model`. The second JuMP model is the one we build by hand, avoiding multiple dispatch, so as to make it explicit each variable and constraint that is contained in the model.
+
+### Model comparison
+
+At the end we do a quick comparison of the two models, and look at their solutions to ensure that they are equivalent.
+"""
+
 # ╔═╡ 3b579de0-8d2a-4e94-8daf-0d3833a90ab4
-md"# Environment"
+md"## Environment Setup"
 
 # ╔═╡ ad36afcf-6a7e-4913-b15a-5f19ba383b27
 begin
@@ -52,7 +84,7 @@ end
 onm_path = joinpath(dirname(pathof(ONM)), "..")
 
 # ╔═╡ b41082c7-87f1-42e3-8c20-4d6cddc79375
-md"# Solver Instance"
+md"## Solver Instance Setup"
 
 # ╔═╡ 7b252a89-19e4-43ba-b795-24299074753e
 solver = JuMP.optimizer_with_attributes(
@@ -67,49 +99,50 @@ solver = JuMP.optimizer_with_attributes(
 )
 
 # ╔═╡ d7dbea25-f1b1-4823-982b-0d5aa9d6ea26
-md"# Data model"
+md"""## Data Model Setup
 
-# ╔═╡ 17479642-b80e-4082-99a2-61811a917e5f
-md"## IEEE13 test feeder (included in ONM)"
+This notebook uses the modified IEEE13 disitribution feeder case that is included in PowerModelsONM.jl
+
+This uses the `parse_file` function included in PowerModelsDistribution.jl, which is a dependency of PowerModelsONM.jl.
+"""
 
 # ╔═╡ cc2aba3c-a412-4c20-8635-2cdcf369d2c8
 eng = PMD.parse_file(joinpath(onm_path, "test/data/ieee13_feeder.dss"))
 
 # ╔═╡ e66a945e-f437-4ed6-9702-1daf3bccc958
-md"### Set max actions"
+md"""### Set max actions
+
+In order to run the block-mld problem in ONM, an upper bound for the number of switch closing-actions is required. In this case, because the network data is **not** multinetwork, we will set the upper bound to `Inf`, but typically one would want to apply a per-timestep limit to see a progression of switching actions.
+"""
 
 # ╔═╡ 88beadb3-e87b-46e4-8aec-826324cd6112
 eng["switch_close_actions_ub"] = Inf
 
 # ╔═╡ 588344bb-6f8b-463e-896d-725ceb167cb4
-md"### Apply voltage bounds"
+md"""### Apply voltage bounds
+
+For several of the linearizations of constraints, finite voltage bounds are required. Here we can apply voltage bounds using PowerModelsDistribution.jl's `apply_voltage_bounds!` function, which will apply per-unit bounds of `0.9 <= vm <= 1.1` by default, though those can be altered in the function call.
+"""
 
 # ╔═╡ 8f41758a-5523-487d-9a5b-712ffec668ee
 PMD.apply_voltage_bounds!(eng)
 
-# ╔═╡ 52867723-336e-460d-a1a6-a7993778b3e9
-md"# JuMP Model as built directly by ONM"
-
-# ╔═╡ d9cd6181-cd1d-48f9-b610-f3b2dea1c640
-orig_model = ONM.instantiate_onm_model(eng, PMD.LPUBFDiagPowerModel, ONM.build_block_mld).model
-
-# ╔═╡ 8c545f8e-22b3-4f53-a02d-5473bc9e1a3a
-md"## Solve original model"
-
-# ╔═╡ cfd8e9d3-1bb0-42a2-920d-5e343609c237
-JuMP.set_optimizer(orig_model, solver)
-
-# ╔═╡ 6dd1b166-1a00-4e89-b46f-9621bf35982f
-JuMP.optimize!(orig_model)
-
 # ╔═╡ b9582cb1-0f92-42ef-88b8-fb7e98ff6c3b
-md"# Convert ENGINEERING to MATHEMATICAL Model"
+md"""### Convert ENGINEERING to MATHEMATICAL Model
+
+To build a JuMP model, we require the `MATHEMATICAL` representation of the network model, which is normally performed automatically by PowerModelsDistribution, but here we need to do it manually using `transform_data_model`. 
+
+The ONM version of this function used below includes several augmentations required to pass along extra data parameters that are not contained in the base PowerModelsDistribution data models.
+"""
 
 # ╔═╡ 6fa5d4f4-997d-4340-bdc5-1b2801815351
 math = ONM.transform_data_model(eng)
 
 # ╔═╡ ebe9dc84-f289-4ae4-bd26-6071106d6a28
-md"# Build ref structure"
+md"""### Build ref structure
+
+When building the JuMP model, we heavily utilitize a `ref` data structure, which creates several helper data structures that make iterating through the data easier. Again, normally this structure is created automatically, but to manually build a JuMP model we need to build it manually. Also, normally there are top-level keys that are not necessary for the building of this non-multi-infrastructure, non-multinetwork data model, so we have abstracted them out.
+"""
 
 # ╔═╡ e096d427-0916-40be-8f05-444e8f37b410
 ref = IM.build_ref(
@@ -122,16 +155,27 @@ ref = IM.build_ref(
 
 
 # ╔═╡ e6496923-ee2b-46a0-9d81-624197d3cb02
-md"# Instantiate Empty JuMP Model"
+md"""## JuMP Model by Hand
+
+In this Section, we will actually build the JuMP Model by hand.
+
+First we need to create an empty JuMP Model.
+"""
 
 # ╔═╡ afc66e0a-8aed-4d1a-9cf9-15f537b57b95
 model = JuMP.Model()
 
 # ╔═╡ 0590de28-76c6-485a-ae8e-bf76c0c9d924
-md"# Add Variables"
+md"""### Variables
+
+This section will add all the variables necessary for the block-mld problem, in the same order that variables are created in `build_block_mld`.
+"""
 
 # ╔═╡ 379efc70-7458-41f5-a8d4-dcdf59fc9a6e
-md"## Block variables"
+md"""#### Block variables
+
+These variables are used to represent the "status", i.e., whether they are energized or not, of each of the possible load-blocks.
+"""
 
 # ╔═╡ c19ed861-e91c-44e6-b0be-e4b56629481c
 # variable_block_indicator
@@ -145,7 +189,10 @@ z_block = JuMP.@variable(
 )
 
 # ╔═╡ 4269aa45-2c4c-4be5-8776-d25b39e5fe90
-md"## Inverter variables"
+md"""#### Inverter variables
+
+These variables are used to represent whether an "inverter" object, i.e., generator, solar PV, energy storage, etc., are Grid Forming (`1`) or Grid Following (`0`).
+"""
 
 # ╔═╡ 962476bf-fa55-484d-b9f6-fc09d1d891ee
 # variable_inverter_indicator
@@ -160,7 +207,12 @@ z_inverter = Dict(
 )
 
 # ╔═╡ 1480b91d-fcbb-46c1-9a47-c4daa99731a2
-md"## Bus variables"
+md"""#### Bus voltage variables
+
+These variables are used to represent the squared voltage magnitudes `w` for each terminal on each bus. 
+
+By default, voltage magnitudes have a lower bound of `0.0` to avoid infeasibilities, since this is an on-off problem. There are constraints applied later that enforce lower-bounds based on `z_block`.
+"""
 
 # ╔═╡ 04eea7b8-ff6c-4650-b01e-31301257ded4
 # variable_mc_bus_voltage_on_off -> variable_mc_bus_voltage_magnitude_sqr_on_off
@@ -173,6 +225,9 @@ w = Dict(
 	) for (i,bus) in ref[:bus]
 )
 
+# ╔═╡ 05312fc9-b125-42e8-a9bd-7129f63ddc9a
+md"As noted above, we do require finite upper bounds on voltage magnitudes"
+
 # ╔═╡ 91014d35-e30b-4af7-9324-3cde48242342
 # w bounds
 for (i,bus) in ref[:bus]
@@ -182,7 +237,12 @@ for (i,bus) in ref[:bus]
 end
 
 # ╔═╡ 3277219e-589d-47db-9374-e6712a4a40c4
-md"## Branch variables"
+md"""#### Branch variables
+
+`variable_mc_branch_power`
+
+These variables represent the real and reactive powers on the from- and to-sides of each of the branches, for each from- and to-connection on that branch.
+"""
 
 # ╔═╡ ac115a18-ce73-436a-800e-a83b27c6cee7
 branch_connections = Dict((l,i,j) => connections for (bus,entry) in ref[:bus_arcs_conns_branch] for ((l,i,j), connections) in entry)
@@ -246,9 +306,13 @@ for (l,i,j) in ref[:arcs_branch]
 end
 
 # ╔═╡ 080a174a-c63b-4284-a06d-1031fda7e3a9
-md"""## Switch variables
+md"""#### Switch variables
 
 `variable_mc_switch_power`
+
+These variables represent the from- and to-side real and reactive powers on switches for each from- and to-side connection on the switch.
+
+Because switches are modeled as zero-length objects, the from- and to-side powers are equivalent, and therefore an explicit type erasure is necessary.
 """
 
 # ╔═╡ 3177e943-c635-493a-9be6-c2ade040c447
@@ -379,9 +443,11 @@ for i in [i for i in keys(ref[:switch]) if !(i in keys(ref[:switch_dispatchable]
 end
 
 # ╔═╡ 44fe57a1-edce-45c7-9a8b-40857bddc285
-md"""## Transformer variables
+md"""#### Transformer variables
 
 `variable_mc_transformer_power`
+
+These variables represent the from- and to-side real and reactive powers for transformers for each from- and to-side connection.
 """
 
 # ╔═╡ 06523a91-4665-4e31-b6e2-732cbfd0e0e4
@@ -453,6 +519,12 @@ for arc in ref[:arcs_transformer_from]
 	end
 end
 
+# ╔═╡ 17002ccb-16c2-449c-849a-70f090fea5e6
+md"""
+`variable_mc_oltc_tansformer_tap`
+
+The following variables represent the tap ratio of the transformer for each non-fixed-tap connection on the transformer"""
+
 # ╔═╡ fdb80bf1-8c88-474e-935c-9e7c230b5b72
 p_oltc_ids = [id for (id,trans) in ref[:transformer] if !all(trans["tm_fix"])]
 
@@ -474,9 +546,13 @@ for tr_id in p_oltc_ids, p in 1:length(ref[:transformer][tr_id]["f_connections"]
 end
 
 # ╔═╡ 9d51b315-b501-4140-af02-b645f04ec7a7
-md"""## Generator variables
+md"""#### Generator variables
 
 `variable_mc_generator_power_on_off`
+
+The following variables represent the real and reactive powers for each connection of generator objects.
+
+Because these are "on-off" variables, the bounds need to at least include `0.0`
 """
 
 # ╔═╡ dabecbec-8cd0-48f7-8a13-0bdecd45eb85
@@ -493,7 +569,7 @@ pg = Dict(
 # pg bounds
 for (i,gen) in ref[:gen]
 	for (idx,c) in enumerate(gen["connections"])
-		isfinite(gen["pmin"][idx]) && JuMP.set_lower_bound(pg[i][c], gen["pmin"][idx])
+		isfinite(gen["pmin"][idx]) && JuMP.set_lower_bound(pg[i][c], min(0.0, gen["pmin"][idx]))
 		isfinite(gen["pmax"][idx]) && JuMP.set_upper_bound(pg[i][c], gen["pmax"][idx])
 	end
 end
@@ -512,15 +588,23 @@ qg = Dict(
 # qg bounds
 for (i,gen) in ref[:gen]
 	for (idx,c) in enumerate(gen["connections"])
-		isfinite(gen["qmin"][idx]) && JuMP.set_lower_bound(qg[i][c], gen["qmin"][idx])
+		isfinite(gen["qmin"][idx]) && JuMP.set_lower_bound(qg[i][c], min(0.0, gen["qmin"][idx]))
 		isfinite(gen["qmax"][idx]) && JuMP.set_upper_bound(qg[i][c], gen["qmax"][idx])
 	end
 end
 
 # ╔═╡ e10f9a86-74f1-4dfb-87c9-fcd920e23c27
-md"""## Storage variables
+md"""#### Storage variables
 
 `variable_mc_storage_power_mi_on_off`
+
+These variables represent all of the variables that are required to model storage objects, including:
+
+- real and reactive power variables
+- imaginary power control variables
+- stored energy
+- charging and discharging variables
+- indicator variables for charging and discharging
 """
 
 # ╔═╡ efc78626-3a50-4c7d-8a7d-ba2b67df57e3
@@ -656,9 +740,21 @@ sd_on = JuMP.@variable(model,
 )
 
 # ╔═╡ eb1af86d-a40c-411d-a211-d7a43386bf44
-md"""## Load variables
+md"""#### Load variables
 
 `variable_mc_load_power`
+
+This initializes some power variables for loads. At this point, only variables for certain types of loads are required, and otherwise the load variables are largely created by the load constraints that are applied later on.
+
+The types of loads that need to be created ahead of time are:
+
+- Complex power matrix variables for delta loads
+- Complex current matrix variables for delta loads
+- Real and reactive power variables for wye loads that require cone constraints (e.g., constant current loads)
+
+We also want to create the empty variable dictionaries so that we can populate them with the constraints later.
+
+It should be noted that there are two variables for loads, `pd/qd_bus` and `pd/qd`. The `_bus` variables are related to the non-`_bus` variables depending on the type of connection of the load. See [PowerModelsDistribution documentation](https://lanl-ansi.github.io/PowerModelsDistribution.jl/stable/manual/load-model.html) for details.
 """
 
 # ╔═╡ ace2c946-7984-4c17-bedb-06dccd6e8a36
@@ -727,9 +823,16 @@ begin
 end
 
 # ╔═╡ 80c50ee0-fb55-4c2c-86dd-434524d1a5e7
-md"""## Capacitor variables
+md"""#### Capacitor variables
 
 `variable_mc_capcontrol`
+
+This model includes the ability to support capacitor controls (i.e., CapControl objects in DSS).
+
+These variables represent
+
+- indicator variables for the capacitor (shunt) objects
+- reactive power variables for the capacitor (shunt) objects
 """
 
 # ╔═╡ dc4d7b85-c968-4271-9e44-f80b90e4d6af
@@ -754,10 +857,16 @@ qc = Dict(
 )
 
 # ╔═╡ cae714ed-ac90-454f-b2ec-e3bb13a71056
-md"# Add constraints"
+md"""### Constraints
+
+In this section we add our constraints
+"""
 
 # ╔═╡ 47f8d8f4-c6e3-4f78-93d3-c5bb4938a754
-md"## Inverter constraint"
+md"""#### Inverter constraint
+
+This constraint requires that there be only one Grid Forming inverter (`z_inverter=1`) for any given connected-component.
+"""
 
 # ╔═╡ 378f45ee-2e0e-428b-962f-fd686bc5d063
 # constraint_grid_forming_inverter_per_cc
@@ -814,7 +923,13 @@ begin
 end
 
 # ╔═╡ 4bfb96ae-2087-41a8-b9b0-3f4b346992a2
-md"## Bus constraints"
+md"""#### Bus constraints
+
+There are two contraints on buses:
+
+- a constraint that enforces that a bus connected to a grid-forming inverter is a slack bus
+- an "on-off" constraint that enforces that bus voltage is zero if the load block is not energized (`z_block=0`)
+"""
 
 # ╔═╡ b7a30f17-1f3b-497a-ab1c-bc9ce1ac6e56
 # constraint_mc_inverter_theta_ref
@@ -842,7 +957,10 @@ for (i,bus) in ref[:bus]
 end
 
 # ╔═╡ 8e564c5e-8c0e-4001-abaa-bf9575d41089
-md"## Generator constraints"
+md"""#### Generator constraints
+
+Generators need "on-off" constraints that enforce that a generator is "off" if the load block containing it is not energized (`z_block=0`)
+"""
 
 # ╔═╡ 05b0aad1-a41b-4fe7-8b76-70848f71d9d2
 # constraint_mc_generator_power_block_on_off
@@ -857,7 +975,10 @@ for (i,gen) in ref[:gen]
 end
 
 # ╔═╡ 074845c0-f5ae-4a7c-bf94-3fcade5fdab8
-md"## Load constraints"
+md"""#### Load constraints
+
+The following creates the load power constraints for the different supported load configurations (wye or delta) and types (constant power, constant impedance, and constant current).
+"""
 
 # ╔═╡ 8be57ed0-0c7e-40d5-b780-28eb9f9c2490
 # constraint_mc_load_power
@@ -927,7 +1048,12 @@ for (load_id,load) in ref[:load]
 end
 
 # ╔═╡ 068a66eb-35ef-45ff-8448-75fe67eec38f
-md"## Power balance constraints"
+md"""#### Power balance constraints
+
+The following models the power balance constraints, i.e., enforces that power-in and power-out of every bus are balanced.
+
+This constraint can shed load, using the introduction of `z_block` to the power balance equations, and can also control capacitors.
+"""
 
 # ╔═╡ e32ada08-9f79-47b9-bfef-eaf5f8bbc058
 "PMD native version requires too much information, this is a simplified function"
@@ -1020,7 +1146,17 @@ for (i,bus) in ref[:bus]
 end
 
 # ╔═╡ 5e7470f6-2bb5-49fb-93d7-1b8c8e402526
-md"## Storage constraints"
+md"""#### Storage constraints
+
+The follow models the constraints necessary to model storage, including:
+
+- the storage "state", i.e., how much energy is remaining in the storage after the time-elapsed
+- the "on-off" constraint that controls whether the storage is charging or discharging (it can only be one or another)
+- the power "on-off" constraints, that ensure that the storage is off if the load block is not energized (`z_block=0`)
+- the storage losses, which connects the powers to the charging/discharging variables
+- the thermal limit constraints
+- a storage balance constraint, which ensures that the powers outputted from the storage are within some bound of each other, if the storage is in grid following mode
+"""
 
 # ╔═╡ 8c44ebe8-a2e9-4480-b1d8-b3c19350c029
 for (i,strg) in ref[:storage]
@@ -1138,7 +1274,10 @@ for (i,strg) in ref[:storage]
 end
 
 # ╔═╡ 20d08693-413b-4a52-9f54-d8f25b492b50
-md"## Branch constraints"
+md"""#### Branch constraints
+
+The following constraints model the losses, voltage differences, and limits (ampacity) across branches.
+"""
 
 # ╔═╡ f2d2375d-2ca2-4e97-87f2-5adbf250d152
 for (i,branch) in ref[:branch]
@@ -1284,7 +1423,16 @@ for (i,branch) in ref[:branch]
 end
 
 # ╔═╡ 978048ae-170a-4b83-8dee-1715350e75cc
-md"## Switch constraints"
+md"""#### Switch constraints
+
+The following constraints model general constraints on topology, and the powers and voltages on either side of the switch, dependent on the state of the switch (i.e., open or closed), including:
+
+- a switch close-action limit, which limits the maximum number of switch closures allowed, but allows for unlimited switch opening actions to allow for load shedding if necessary
+- a radiality constraint, which requires that the topology be a spanning forest, i.e., that each connected component have radial topology (no cycles)
+- a constraint that "isolates" load blocks, which prevents switches from being closed if one load block is shed but the other is not
+- a constraint that enforces zero power flow across a switch if the switch is open, and inside the power limits otherwise
+- a constraint that enforaces that voltages be equal on either side of a switch if the switch is closed, and unpinned otherwise
+"""
 
 # ╔═╡ 23d0f743-d7be-400a-9972-4337ae1bffff
 # constraint_switch_close_action_limit
@@ -1483,7 +1631,10 @@ for (i,switch) in ref[:switch]
 end
 
 # ╔═╡ 9b7446d5-0751-4df6-b716-e8d5f85848a8
-md"## Transformer Constraints"
+md"""#### Transformer Constraints
+
+The following constraints model wye and delta connected transformers, including the capability to adjust the tap variables for voltage stability.
+"""
 
 # ╔═╡ 0bad7fc4-0a8d-46e7-b126-91b3542fed42
 for (i,transformer) in ref[:transformer]
@@ -1589,7 +1740,17 @@ for (i,transformer) in ref[:transformer]
 end
 
 # ╔═╡ 6df404eb-d816-4ae4-ae3f-a39505f79669
-md"# Add Objective"
+md"""### Objective
+
+Below is the objective function used for the block-mld problem, which includes terms for 
+
+- minimizing the amount of load shed
+- minimizing the number of switches left open
+- minimizing the number of switches changing from one state to another
+- maximizing the amount of stored energy at the end of the elapsed time
+- minimizing the cost of generation
+
+"""
 
 # ╔═╡ 5c04b2c2-e83b-4289-b439-2e016a20678e
 begin
@@ -1625,13 +1786,27 @@ begin
 end
 
 # ╔═╡ a78fb463-0ffe-41db-a48b-63a4ae9ff3f7
-md"# Model comparison"
+md"""## Model comparison
 
-# ╔═╡ 6757d7f4-a7ec-41c0-b157-002722db58f7
-md"## ONM Model"
+In this section we compare the models and their solutions, to see if they are equivalent.
+"""
 
-# ╔═╡ 0d61cce8-fb1a-447f-bfbe-0b2512f3ea1d
-orig_model
+# ╔═╡ 52867723-336e-460d-a1a6-a7993778b3e9
+md"""### JuMP Model as built automatically by ONM
+
+Here, we build the JuMP model using the built-in ONM tools. Specifically, we use the `instantiate_onm_model` function, to build the block-mld problem `build_block_mld`, using the LinDist3Flow formulation `LPUBFDiagPowerModel`.
+
+We are doing this so that we can compare the automatically built model against the manually built one.
+"""
+
+# ╔═╡ d9cd6181-cd1d-48f9-b610-f3b2dea1c640
+orig_model = ONM.instantiate_onm_model(eng, PMD.LPUBFDiagPowerModel, ONM.build_block_mld).model
+
+# ╔═╡ bc4e4a20-2584-4706-a4d7-ad0d9de43351
+md"""#### Save automatic model to disk for comparison
+
+If it is desired to look at the model in a file, to more directly compare it to another model, change `false` to `true`.
+"""
 
 # ╔═╡ 9ffd1f23-f82c-45b5-9a69-9fde7e296cf1
 if false
@@ -1641,13 +1816,19 @@ if false
 end
 
 # ╔═╡ 61e70040-9fc4-4681-a25f-d144a857aabd
-md"## Manual Model"
+md"""### Manual Model
+
+Below is a summary of the JuMP model that was built by-hand above.
+"""
 
 # ╔═╡ efcd69c1-6ea2-4524-a053-bfb40fb01dda
 model
 
 # ╔═╡ 4938609f-ce32-4798-bfc8-c6ca205e1209
-md"## Save manual model to disk for comparison"
+md"""#### Save manual model to disk for comparison
+
+If it is desired to look at the model in a file, to more directly compare it to another model, change `false` to `true`.
+"""
 
 # ╔═╡ ba60b4e3-fcdc-4efc-994b-1872a8f58703
 if false
@@ -1655,6 +1836,16 @@ if false
 	JuMP.MOI.copy_to(new_dest, model)
 	JuMP.MOI.write_to_file(new_dest, "new_model.mof.json")
 end
+
+# ╔═╡ 8c545f8e-22b3-4f53-a02d-5473bc9e1a3a
+md"""### Solve original model
+"""
+
+# ╔═╡ cfd8e9d3-1bb0-42a2-920d-5e343609c237
+JuMP.set_optimizer(orig_model, solver)
+
+# ╔═╡ 6dd1b166-1a00-4e89-b46f-9621bf35982f
+JuMP.optimize!(orig_model)
 
 # ╔═╡ 25970a05-5503-455c-9b56-d0147702371c
 md"### Solve Manual Model"
@@ -1667,46 +1858,42 @@ JuMP.optimize!(model)
 
 # ╔═╡ Cell order:
 # ╟─bbe09ba9-63fb-4b33-ae27-eb05cb9fd936
-# ╠═3b579de0-8d2a-4e94-8daf-0d3833a90ab4
+# ╟─bdfca444-f5f0-413f-8a47-8346de453d12
+# ╟─3b579de0-8d2a-4e94-8daf-0d3833a90ab4
 # ╠═14e4d41e-e5bd-11ec-3723-9daa31787999
 # ╠═f00a9624-13f6-4fcd-a673-bcb2eed06340
 # ╠═ad36afcf-6a7e-4913-b15a-5f19ba383b27
 # ╠═4de82775-e012-44a5-a440-d7f54792d284
-# ╠═b41082c7-87f1-42e3-8c20-4d6cddc79375
+# ╟─b41082c7-87f1-42e3-8c20-4d6cddc79375
 # ╠═7b252a89-19e4-43ba-b795-24299074753e
-# ╠═d7dbea25-f1b1-4823-982b-0d5aa9d6ea26
-# ╠═17479642-b80e-4082-99a2-61811a917e5f
+# ╟─d7dbea25-f1b1-4823-982b-0d5aa9d6ea26
 # ╠═cc2aba3c-a412-4c20-8635-2cdcf369d2c8
-# ╠═e66a945e-f437-4ed6-9702-1daf3bccc958
+# ╟─e66a945e-f437-4ed6-9702-1daf3bccc958
 # ╠═88beadb3-e87b-46e4-8aec-826324cd6112
-# ╠═588344bb-6f8b-463e-896d-725ceb167cb4
+# ╟─588344bb-6f8b-463e-896d-725ceb167cb4
 # ╠═8f41758a-5523-487d-9a5b-712ffec668ee
-# ╠═52867723-336e-460d-a1a6-a7993778b3e9
-# ╠═d9cd6181-cd1d-48f9-b610-f3b2dea1c640
-# ╠═8c545f8e-22b3-4f53-a02d-5473bc9e1a3a
-# ╠═cfd8e9d3-1bb0-42a2-920d-5e343609c237
-# ╠═6dd1b166-1a00-4e89-b46f-9621bf35982f
-# ╠═b9582cb1-0f92-42ef-88b8-fb7e98ff6c3b
+# ╟─b9582cb1-0f92-42ef-88b8-fb7e98ff6c3b
 # ╠═6fa5d4f4-997d-4340-bdc5-1b2801815351
-# ╠═ebe9dc84-f289-4ae4-bd26-6071106d6a28
+# ╟─ebe9dc84-f289-4ae4-bd26-6071106d6a28
 # ╠═e096d427-0916-40be-8f05-444e8f37b410
-# ╠═e6496923-ee2b-46a0-9d81-624197d3cb02
+# ╟─e6496923-ee2b-46a0-9d81-624197d3cb02
 # ╠═afc66e0a-8aed-4d1a-9cf9-15f537b57b95
-# ╠═0590de28-76c6-485a-ae8e-bf76c0c9d924
-# ╠═379efc70-7458-41f5-a8d4-dcdf59fc9a6e
+# ╟─0590de28-76c6-485a-ae8e-bf76c0c9d924
+# ╟─379efc70-7458-41f5-a8d4-dcdf59fc9a6e
 # ╠═c19ed861-e91c-44e6-b0be-e4b56629481c
-# ╠═4269aa45-2c4c-4be5-8776-d25b39e5fe90
+# ╟─4269aa45-2c4c-4be5-8776-d25b39e5fe90
 # ╠═962476bf-fa55-484d-b9f6-fc09d1d891ee
-# ╠═1480b91d-fcbb-46c1-9a47-c4daa99731a2
+# ╟─1480b91d-fcbb-46c1-9a47-c4daa99731a2
 # ╠═04eea7b8-ff6c-4650-b01e-31301257ded4
+# ╟─05312fc9-b125-42e8-a9bd-7129f63ddc9a
 # ╠═91014d35-e30b-4af7-9324-3cde48242342
-# ╠═3277219e-589d-47db-9374-e6712a4a40c4
+# ╟─3277219e-589d-47db-9374-e6712a4a40c4
 # ╠═ac115a18-ce73-436a-800e-a83b27c6cee7
 # ╠═bca9289f-bf4f-4ec2-af5f-373b70b4e614
 # ╠═beb258c4-97da-4044-b8d1-abc695e8a910
 # ╠═e00d2fdc-a416-4259-b29e-b5608897da9b
 # ╠═855a0057-610a-4274-86bb-95ceef674257
-# ╠═080a174a-c63b-4284-a06d-1031fda7e3a9
+# ╟─080a174a-c63b-4284-a06d-1031fda7e3a9
 # ╠═3177e943-c635-493a-9be6-c2ade040c447
 # ╠═5e0f7d2d-d6f9-40d9-b3a4-4404c2c66950
 # ╠═6c8163e3-5a18-4561-a9f4-834e42657f7d
@@ -1716,21 +1903,22 @@ JuMP.optimize!(model)
 # ╠═5e538b33-20ae-4520-92ec-efc01494ffcc
 # ╠═44b283ee-e28c-473d-922f-8f1b8f982f10
 # ╠═e910ae7a-680e-44a5-a35d-cabe2dfa50d0
-# ╠═44fe57a1-edce-45c7-9a8b-40857bddc285
+# ╟─44fe57a1-edce-45c7-9a8b-40857bddc285
 # ╠═06523a91-4665-4e31-b6e2-732cbfd0e0e4
 # ╠═867253fa-32ee-4ab4-bc42-3f4c2f0e5fa4
 # ╠═6e61aac8-5a50-47a7-a150-6557a47e2d3b
 # ╠═a675e62f-c55e-4d70-85d8-83b5845cd063
 # ╠═732df933-40ca-409c-9d88-bb80ea6d21b0
+# ╟─17002ccb-16c2-449c-849a-70f090fea5e6
 # ╠═fdb80bf1-8c88-474e-935c-9e7c230b5b72
 # ╠═9de1c3d1-fb60-42e2-8d53-111842337458
 # ╠═7cf6b40c-f89b-44bc-847d-a06a92d86098
-# ╠═9d51b315-b501-4140-af02-b645f04ec7a7
+# ╟─9d51b315-b501-4140-af02-b645f04ec7a7
 # ╠═dabecbec-8cd0-48f7-8a13-0bdecd45eb85
 # ╠═c0764ed0-4b2c-4bf5-98db-9b7349560530
 # ╠═733cb346-2d08-4c35-8596-946b31ecc7e9
 # ╠═466f22aa-52ff-442f-be00-f4f32e24a173
-# ╠═e10f9a86-74f1-4dfb-87c9-fcd920e23c27
+# ╟─e10f9a86-74f1-4dfb-87c9-fcd920e23c27
 # ╠═efc78626-3a50-4c7d-8a7d-ba2b67df57e3
 # ╠═e841b4d8-1e8e-4fd9-b805-4ee0c6359df5
 # ╠═de4839e1-5ac0-415d-8928-e4a9a358deae
@@ -1745,49 +1933,53 @@ JuMP.optimize!(model)
 # ╠═70850ada-165a-4e0d-942a-9dc311add0a6
 # ╠═d226e83d-b405-4dd3-9697-471bdbff97a2
 # ╠═050f3e9f-62e9-445d-8c95-9f0419c01c0e
-# ╠═eb1af86d-a40c-411d-a211-d7a43386bf44
+# ╟─eb1af86d-a40c-411d-a211-d7a43386bf44
 # ╠═ace2c946-7984-4c17-bedb-06dccd6e8a36
 # ╠═8386d993-ffcc-4c6a-a91b-247f8c97a2ff
 # ╠═b5408b8a-eff4-4d42-9ba7-707a40d92956
 # ╠═b7a7e78a-8f0f-4f47-9f37-8ecf3ddc4972
 # ╠═86d65cab-d073-4e77-bc0f-3d7e135dcbf8
-# ╠═80c50ee0-fb55-4c2c-86dd-434524d1a5e7
+# ╟─80c50ee0-fb55-4c2c-86dd-434524d1a5e7
 # ╠═dc4d7b85-c968-4271-9e44-f80b90e4d6af
 # ╠═dfafbbcd-9465-4a78-867b-25703b5157ba
-# ╠═cae714ed-ac90-454f-b2ec-e3bb13a71056
-# ╠═47f8d8f4-c6e3-4f78-93d3-c5bb4938a754
+# ╟─cae714ed-ac90-454f-b2ec-e3bb13a71056
+# ╟─47f8d8f4-c6e3-4f78-93d3-c5bb4938a754
 # ╠═378f45ee-2e0e-428b-962f-fd686bc5d063
-# ╠═4bfb96ae-2087-41a8-b9b0-3f4b346992a2
+# ╟─4bfb96ae-2087-41a8-b9b0-3f4b346992a2
 # ╠═b7a30f17-1f3b-497a-ab1c-bc9ce1ac6e56
 # ╠═d1136370-9fc2-47c6-a773-d4dc7901db83
-# ╠═8e564c5e-8c0e-4001-abaa-bf9575d41089
+# ╟─8e564c5e-8c0e-4001-abaa-bf9575d41089
 # ╠═05b0aad1-a41b-4fe7-8b76-70848f71d9d2
-# ╠═074845c0-f5ae-4a7c-bf94-3fcade5fdab8
+# ╟─074845c0-f5ae-4a7c-bf94-3fcade5fdab8
 # ╠═8be57ed0-0c7e-40d5-b780-28eb9f9c2490
-# ╠═068a66eb-35ef-45ff-8448-75fe67eec38f
+# ╟─068a66eb-35ef-45ff-8448-75fe67eec38f
 # ╠═e32ada08-9f79-47b9-bfef-eaf5f8bbc058
 # ╠═d6c7baee-8c8e-4cd9-ba35-06edad733e91
-# ╠═5e7470f6-2bb5-49fb-93d7-1b8c8e402526
+# ╟─5e7470f6-2bb5-49fb-93d7-1b8c8e402526
 # ╠═8c44ebe8-a2e9-4480-b1d8-b3c19350c029
-# ╠═20d08693-413b-4a52-9f54-d8f25b492b50
+# ╟─20d08693-413b-4a52-9f54-d8f25b492b50
 # ╠═f2d2375d-2ca2-4e97-87f2-5adbf250d152
-# ╠═978048ae-170a-4b83-8dee-1715350e75cc
+# ╟─978048ae-170a-4b83-8dee-1715350e75cc
 # ╠═23d0f743-d7be-400a-9972-4337ae1bffff
 # ╠═a63763bf-1f87-400e-b4cd-b112c9a0cd64
 # ╠═9d6af6e9-435a-43e6-980a-0658a4b449a1
 # ╠═1e1b3303-1508-4acb-8dd0-3cf0c64d0a78
-# ╠═9b7446d5-0751-4df6-b716-e8d5f85848a8
+# ╟─9b7446d5-0751-4df6-b716-e8d5f85848a8
 # ╠═0bad7fc4-0a8d-46e7-b126-91b3542fed42
-# ╠═6df404eb-d816-4ae4-ae3f-a39505f79669
+# ╟─6df404eb-d816-4ae4-ae3f-a39505f79669
 # ╠═5c04b2c2-e83b-4289-b439-2e016a20678e
-# ╠═a78fb463-0ffe-41db-a48b-63a4ae9ff3f7
-# ╠═6757d7f4-a7ec-41c0-b157-002722db58f7
-# ╠═0d61cce8-fb1a-447f-bfbe-0b2512f3ea1d
+# ╟─a78fb463-0ffe-41db-a48b-63a4ae9ff3f7
+# ╟─52867723-336e-460d-a1a6-a7993778b3e9
+# ╠═d9cd6181-cd1d-48f9-b610-f3b2dea1c640
+# ╟─bc4e4a20-2584-4706-a4d7-ad0d9de43351
 # ╠═9ffd1f23-f82c-45b5-9a69-9fde7e296cf1
-# ╠═61e70040-9fc4-4681-a25f-d144a857aabd
+# ╟─61e70040-9fc4-4681-a25f-d144a857aabd
 # ╠═efcd69c1-6ea2-4524-a053-bfb40fb01dda
-# ╠═4938609f-ce32-4798-bfc8-c6ca205e1209
+# ╟─4938609f-ce32-4798-bfc8-c6ca205e1209
 # ╠═ba60b4e3-fcdc-4efc-994b-1872a8f58703
-# ╠═25970a05-5503-455c-9b56-d0147702371c
+# ╟─8c545f8e-22b3-4f53-a02d-5473bc9e1a3a
+# ╠═cfd8e9d3-1bb0-42a2-920d-5e343609c237
+# ╠═6dd1b166-1a00-4e89-b46f-9621bf35982f
+# ╟─25970a05-5503-455c-9b56-d0147702371c
 # ╠═b758be56-9ed0-4474-8361-73b3d2de89af
 # ╠═5084a4ed-1638-4d77-91e4-5d77788ce0fe
