@@ -1,0 +1,111 @@
+[
+  {
+    "affected_asset": "line.671692",
+    "event_type": "switch",
+    "timestep": 1,
+    "event_data": {
+      "dispatchable": false,
+      "state": "open",
+      "status": 1
+    }
+  },
+  {
+    "affected_asset": "line.671700",
+    "event_type": "switch",
+    "timestep": 1,
+    "event_data": {
+      "dispatchable": "NO",
+      "state": "OPEN",
+      "status": "ENABLED"
+    }
+  },
+  {
+    "affected_asset": "line.701702",
+    "event_type": "switch",
+    "timestep": 1,
+    "event_data": {
+      "dispatchable": "NO",
+      "state": "OPEN",
+      "status": "ENABLED"
+    }
+  },
+  {
+    "affected_asset": "line.703800",
+    "event_type": "switch",
+    "timestep": 1,
+    "event_data": {
+      "dispatchable": "NO",
+      "state": "OPEN",
+      "status": "ENABLED"
+    }
+  },
+  {
+    "affected_asset": "line.800801",
+    "event_type": "switch",
+    "timestep": 1,
+    "event_data": {
+      "dispatchable": "NO",
+      "state": "OPEN",
+      "status": "ENABLED"
+    }
+  },
+  {
+    "affected_asset": "line.801675",
+    "event_type": "switch",
+    "timestep": 1,
+    "event_data": {
+      "dispatchable": "NO",
+      "state": "OPEN",
+      "status": "ENABLED"
+    }
+  },
+
+  {
+    "affected_asset": "line.671700",
+    "event_type": "switch",
+    "timestep": 2,
+    "event_data": {
+      "dispatchable": "YES"
+    }
+  },
+  {
+    "affected_asset": "line.701702",
+    "event_type": "switch",
+    "timestep": 2,
+    "event_data": {
+      "dispatchable": "YES"
+    }
+  },
+  {
+    "affected_asset": "line.703800",
+    "event_type": "switch",
+    "timestep": 2,
+    "event_data": {
+      "dispatchable": "YES"
+    }
+  },
+  {
+    "affected_asset": "line.671692",
+    "event_type": "switch",
+    "timestep": 2,
+    "event_data": {
+      "dispatchable": "YES"
+    }
+  },
+  {
+    "affected_asset": "line.800801",
+    "event_type": "switch",
+    "timestep": 2,
+    "event_data": {
+      "dispatchable": "YES"
+    }
+  },
+  {
+    "affected_asset": "line.801675",
+    "event_type": "switch",
+    "timestep": 2,
+    "event_data": {
+      "dispatchable": "YES"
+    }
+  }
+]
