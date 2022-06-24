@@ -166,6 +166,9 @@ end
 
 
 """
+    set_dict_value!(a::Dict, key::String, value::Any)
+
+Helper function to assist in setting nested Dict values
 """
 function set_dict_value!(a::Dict, key::String, value::Any)
     a[key] = value
@@ -173,6 +176,9 @@ end
 
 
 """
+    set_dict_value!(a::T, path::Tuple{Vararg{String}}, value::Any) where T <: Dict
+
+Helper function to assist in setting nested Dict values
 """
 function set_dict_value!(a::T, path::Tuple{Vararg{String}}, value::Any) where T <: Dict
     if !haskey(a, first(path))
@@ -186,6 +192,9 @@ end
 
 
 """
+    convert(value::Any, path::Tuple{Vararg{String}}=tuple())
+
+Helper function to assist in converting deprecated settings to their correct types / values
 """
 function convert(value::Any, path::Tuple{Vararg{String}}=tuple())
     if haskey(settings_conversions, path)

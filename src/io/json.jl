@@ -9,6 +9,10 @@ end
 
 
 """
+    correct_json_import!(data::Dict{String,<:Any})
+
+Helper function to assist in converting to correct Julia data types when importing
+JSON files, like settings or events.
 """
 function correct_json_import!(data::Dict{String,<:Any})
     for (k, v) in data
@@ -40,4 +44,5 @@ function _fix_symbols!(obj, prop, val)
 end
 
 
+"Helper to ensure that Symbols get exported as strings prefaced with a ':'"
 JSON.lower(p::Symbol) = ":$(p)"

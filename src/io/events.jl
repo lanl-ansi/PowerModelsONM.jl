@@ -301,7 +301,15 @@ function _find_nw_id_from_timestep(network::Dict{String,<:Any}, timestep::Union{
 end
 
 
-"helper function to find the next timestep following a fault given its duration in ms"
+"""
+    _find_next_nw_id_from_fault_duration(
+        network::Dict{String,<:Any},
+        nw_id::String,
+        duration::Real
+    )::Union{String,Missing}
+
+Helper function to find the next timestep following a fault given its duration in ms
+"""
 function _find_next_nw_id_from_fault_duration(network::Dict{String,<:Any}, nw_id::String, duration::Real)::Union{String,Missing}
     current_timestep = network["mn_lookup"][nw_id]
     mn_lookup_reverse = Dict{Any,String}(v => k for (k,v) in network["mn_lookup"])

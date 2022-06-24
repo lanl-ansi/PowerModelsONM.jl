@@ -1,5 +1,4 @@
-"""
-"""
+"Lookup for JSON to Julia type conversions"
 const _json_schema_type_conversions = Dict{Union{Missing,String},Type}(
     "string"=>String,
     "array"=>Vector,
@@ -13,6 +12,9 @@ const _json_schema_type_conversions = Dict{Union{Missing,String},Type}(
 
 
 """
+    _recursive_initialize_output_from_schema!(output::Dict{String,<:Any}, schema_properties::Dict{String,<:Any})
+
+Helper function to initialize the output data structure from the output schema
 """
 function _recursive_initialize_output_from_schema!(output::Dict{String,<:Any}, schema_properties::Dict{String,<:Any})
     for (prop_name,prop) in schema_properties

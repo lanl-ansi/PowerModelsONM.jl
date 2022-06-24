@@ -1,4 +1,5 @@
-settings_conversions = Dict{Tuple{Vararg{String}},Function}(
+"Lookup for deprecated settings conversions that are not 1-to-1"
+const settings_conversions = Dict{Tuple{Vararg{String}},Function}(
     ("solvers","HiGHS","presolve") => x->x ? "off" : "choose",
     ("solvers","Gurobi","Presolve") => x->x ? 0 : -1,
     ("solvers","KNITRO","presolve") => x->Int(!x),
@@ -44,8 +45,11 @@ end
 
 
 """
+    correct_settings!(settings::Dict{Strinig,<:Any})
+
+Helper function to correct deprecated settings and convert JSON types to Julia types
 """
-function correct_settings!(settings)
+function correct_settings!(settings::Dict{String,<:Any})::Dict{String,Any}
     correct_json_import!(settings)
     correct_deprecated_settings!(settings)
 
@@ -54,6 +58,9 @@ end
 
 
 """
+    build_default_settings()::Dict{String,Any}
+
+Builds a set of default settings from the settings schema
 """
 function build_default_settings()::Dict{String,Any}
     settings_schema = load_schema(joinpath(dirname(pathof(PowerModelsONM)), "..", "schemas/input-settings.schema.json"))
@@ -65,6 +72,9 @@ end
 
 
 """
+    init_settings_default!(settings::T, schema::T)::T where T <: Dict{String,Any}
+
+Helper function to walk through the settings schema to initalize the default set of settings.
 """
 function init_settings_default!(settings::T, schema::T)::T where T <: Dict{String,Any}
     if haskey(schema, "properties")
@@ -90,6 +100,9 @@ end
 
 
 """
+    get_deprecated_properties(schema::JSONSchema.Schema)::Dict{String,Any}
+
+Walks through the settings schema to collect the deprecated properities
 """
 function get_deprecated_properties(schema::JSONSchema.Schema)::Dict{String,Any}
     get_deprecated_properties(schema.data)
@@ -97,6 +110,9 @@ end
 
 
 """
+    get_deprecated_properties(schema::T; deprecated_properties::Union{T,Missing}=missing)::T where T <: Dict{String,Any}
+
+Recursive function to walk through a schema to discover the deprecated properties
 """
 function get_deprecated_properties(schema::T; deprecated_properties::Union{T,Missing}=missing)::T where T <: Dict{String,Any}
     if ismissing(deprecated_properties)
@@ -138,6 +154,9 @@ end
 
 
 """
+    correct_deprecated_properties!(orig_properties::T, new_properties::T, deprecated_properties::T)::Tuple{T,T} where T <: Dict{String,Any}
+
+Helper function for correcting properties that have been deprecated in `orig_properties` into `new_properties`
 """
 function correct_deprecated_properties!(orig_properties::T, new_properties::T, deprecated_properties::T)::Tuple{T,T} where T <: Dict{String,Any}
     for prop in keys(filter(x->x.first∈keys(deprecated_properties),orig_properties))
@@ -150,6 +169,9 @@ end
 
 
 """
+    correct_deprecated_properties!(properties::T, deprecated_properties::T)::T where T <: Dict{String,Any}
+
+Helper function for correcting properties that have been deprecated in `properties`
 """
 function correct_deprecated_properties!(properties::T, deprecated_properties::T)::T where T <: Dict{String,Any}
     for prop in keys(filter(x->x.first∈keys(deprecated_properties),properties))
@@ -172,6 +194,9 @@ end
 
 
 """
+    correct_deprecated_settings!(settings::T)::T where T <: Dict{String,Any}
+
+Helper function for correcting deprecated properties in `settings`
 """
 function correct_deprecated_settings!(settings::T)::T where T <: Dict{String,Any}
     settings_schema = load_schema(joinpath(dirname(pathof(PowerModelsONM)), "..", "schemas/input-settings.schema.json"))

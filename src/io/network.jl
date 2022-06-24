@@ -223,6 +223,9 @@ end
 
 
 """
+    make_multinetwork(eng::Dict{String,<:Any}; global_keys::Set{String}=Set{String}(), time_elapsed::Union{Real,Vector{<:Real},Missing}=missing, kwargs...)
+
+ONM-specific version of make_multinetwork that adds in switch_close_actions_ub
 """
 function make_multinetwork(eng::Dict{String,<:Any}; global_keys::Set{String}=Set{String}(), time_elapsed::Union{Real,Vector{<:Real},Missing}=missing, kwargs...)
     mn_eng = PMD.make_multinetwork(eng; global_keys=union(global_keys, Set{String}(["options", "solvers"])), time_elapsed=ismissing(time_elapsed) ? get(eng, "time_elapsed", missing) : time_elapsed, kwargs...)
@@ -237,6 +240,9 @@ end
 
 
 """
+    set_switch_close_actions_ub!(mn_eng::Dict{String,<:Any}, switch_close_actions_ub::Union{Vector{<:Real},Real})
+
+Helper function to populate switch_close_actions_ub per timestep in a multinetwork data structure.
 """
 function set_switch_close_actions_ub!(mn_eng::Dict{String,<:Any}, switch_close_actions_ub::Union{Vector{<:Real},Real})
     @assert PMD.ismultinetwork(mn_eng)

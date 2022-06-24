@@ -123,6 +123,9 @@ end
 
 
 """
+    ref_add_options!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
+
+Ref extension to add options to ref for all time steps
 """
 function ref_add_options!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
     PMD.apply_pmd!(_ref_add_options!, ref, data; apply_to_subnetworks=true)
@@ -130,6 +133,9 @@ end
 
 
 """
+    _ref_add_options!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
+
+Ref extension to add options to ref for all time steps
 """
 function _ref_add_options!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
     ref[:options] = recursive_merge(build_default_settings()["options"], get(data, "options", Dict{String,Any}()))

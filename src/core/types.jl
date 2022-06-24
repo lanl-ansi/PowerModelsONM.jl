@@ -57,7 +57,7 @@ function Base.parse(::Type{T}, inverter::String)::T where T <: Inverter
     return GRID_FORMING
 end
 
-
+"Parses different options for Inverter enums in the settings schema"
 Base.parse(::Type{Inverter}, inverter::Inverter)::Inverter = inverter
 Base.parse(::Type{Inverter}, status::Bool)::Inverter = Inverter(Int(status))
 Base.parse(::Type{Inverter}, status::Int)::Inverter = Inverter(status)
