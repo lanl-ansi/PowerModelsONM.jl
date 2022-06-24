@@ -15,7 +15,8 @@ module PowerModelsONM
     const _IM = InfrastructureModels
 
     import PowerModelsDistribution
-    import PowerModelsDistribution: ref, var, con, sol, ids, nw_ids, nw_id_default, nws, AbstractUnbalancedPowerModel
+    import PowerModelsDistribution: ref, var, con, sol, ids, nw_ids, nw_id_default, nws
+    import PowerModelsDistribution: AbstractUnbalancedPowerModel, ACRUPowerModel, ACPUPowerModel, IVRUPowerModel, LPUBFDiagPowerModel, LinDist3FlowPowerModel, NFAUPowerModel, FOTRUPowerModel, FOTPUPowerModel
     const PMD = PowerModelsDistribution
 
     import PowerModelsProtection

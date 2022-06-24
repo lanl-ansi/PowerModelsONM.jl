@@ -220,7 +220,12 @@ function Base.parse(::Type{T}, status::String)::T where T <: PMD.Status
     return PMD.ENABLED
 end
 
-
+"Parses different options for Status enums in the events schema"
 Base.parse(::Type{PMD.Status}, status::PMD.Status)::PMD.Status = status
 Base.parse(::Type{PMD.Status}, status::Bool)::PMD.Status = PMD.Status(Int(status))
 Base.parse(::Type{PMD.Status}, status::Int)::PMD.Status = PMD.Status(status)
+
+"Parses formulation strings from the settings schema into AbstractUnbalancedPowerModels"
+function Base.parse(::Type{PMD.AbstractUnbalancedPowerModel}, form::String)::PMD.AbstractUnbalancedPowerModel
+    return _get_formulation(form)
+end

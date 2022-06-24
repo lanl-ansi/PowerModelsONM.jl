@@ -12,5 +12,7 @@ for sym in names(@__MODULE__, all=true)
 end
 
 # explicitly export some PMD exports
-export nw_id_default, ref, var, ids, nws, nw_ids, con, sol, optimizer_with_attributes, AbstractUnbalancedPowerModel
+export nw_id_default, ref, var, ids, nws, nw_ids, con, sol, optimizer_with_attributes
 
+# explicitly export the PMD PowerModels used in this package
+export AbstractUnbalancedPowerModel, ACRUPowerModel, ACPUPowerModel, IVRUPowerModel, LPUBFDiagPowerModel, LinDist3FlowPowerModel, NFAUPowerModel, FOTRUPowerModel, FOTPUPowerModel
