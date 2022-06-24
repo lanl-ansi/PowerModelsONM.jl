@@ -6,17 +6,27 @@
     "You may not use this file except in compliance with the License. You may obtain a copy",
     "of the License at https://github.com/lanl-ansi/PowerModelsONM.jl/blob/main/LICENSE.md"
   ],
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schemas/settings",
   "type": "object",
   "title": "Settings",
   "additionalProperties": false,
   "description": "Network settings to apply to the base network (_i.e._, all multinetwork timesteps, not a specific one), such as bus voltage bounds, load priorities, cold load pickup, and global settings such as maximum switch actions per timestep and time elapsed per time step.\n\n Additional properties on each object are allowed, but the object types are restricted to those in the ONM model.",
-  "x-tags": ["input"],
+  "x-tags": [
+    "input"
+  ],
   "examples": [
     {
-      "switch_close_actions_ub": [1, 1, 1],
-      "time_elapsed": [0.1667, 0.1667, 0.1667],
+      "switch_close_actions_ub": [
+        1,
+        1,
+        1
+      ],
+      "time_elapsed": [
+        0.1667,
+        0.1667,
+        0.1667
+      ],
       "load": {
         "671": {
           "clpu_factor": 2
@@ -68,30 +78,41 @@
       "$ref": "./settings/input-settings-dss.schema.json"
     },
     "max_switch_actions": {
-      "type": ["array", "integer", "null"],
+      "type": [
+        "array",
+        "integer",
+        "null"
+      ],
       "description": "deprecated: options/data/switch-close-actions-ub",
       "deprecated": true,
       "items": {
-        "type": ["integer", "null"]
+        "type": [
+          "integer",
+          "null"
+        ]
       }
     },
     "disable_networking": {
       "type": "boolean",
       "description": "deprecated: options/constraints/disable-microgrid-networking",
+      "default": false,
       "deprecated": true
     },
     "disable_radial_constraint": {
       "type": "boolean",
       "description": "deprecated: options/constraints/disable-radiality-constraint",
+      "default": false,
       "deprecated": true
     },
     "disable_isolation_constraint": {
       "type": "boolean",
       "description": "deprecated: options/constraints/disable-block-isolation-constraint",
+      "default": false,
       "deprecated": true
     },
     "disable_inverter_constraint": {
       "type": "boolean",
+      "default": false,
       "deprecated": true,
       "description": "deprecated: options/constraints/disable-grid-forming-inverter-constraint"
     },
@@ -108,10 +129,14 @@
     "disable_presolver": {
       "type": "boolean",
       "description": "deprecated: {solvers/HiGHS/presolve,solvers/Gurobi/Presolve,solvers/KNITRO/presolve}",
+      "default": false,
       "deprecated": true
     },
     "time_elapsed": {
-      "type": ["array", "number"],
+      "type": [
+        "array",
+        "number"
+      ],
       "description": "deprecated: options/data/time-elapsed",
       "deprecated": true,
       "items": {
@@ -121,7 +146,7 @@
     "nlp_solver_tol": {
       "type": "number",
       "deprecated": true,
-      "description": "deprecated: {solvers/Ipopt/tol,solvers/KNITRO/feastol}"
+      "description": "deprecated: {solvers/Ipopt/tol,solvers/KNITRO/feas}"
     },
     "mip_solver_tol": {
       "type": "number",
@@ -131,9 +156,9 @@
     "mip_solver_gap": {
       "type": "number",
       "exclusiveMinimum": 0,
+      "default": 0.05,
       "format": "float",
       "description": "deprecated: {solvers/HiGHS/mip_rel_gap,solvers/Gurobi/MIPGap}",
       "deprecated": true
-    }
-  }
+    }  }
 }

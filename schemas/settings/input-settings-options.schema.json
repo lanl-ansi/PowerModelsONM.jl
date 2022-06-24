@@ -29,34 +29,42 @@
       "type": "object",
       "properties": {
         "relax-integer-variables": {
+          "description": "Flag to relax an integer (binary) variables to be continuous",
           "type": "boolean",
           "default": false
         },
         "unbound-voltage": {
+          "description": "Flag to disable the upper bounds on voltage. Voltage magnitudes will still have a lower bound of 0.0",
           "type": "boolean",
           "default": false
         },
         "unbound-line-power": {
+          "description": "Flag to disable bounds on line (branch) power variables",
           "type": "boolean",
           "default": false
         },
         "unbound-line-current": {
+          "description": "Flag to disable bounds on line (branch) current variables",
           "type": "boolean",
           "default": false
         },
         "unbound-switch-power": {
+          "description": "Flag to disable bounds on switch power variables",
           "type": "boolean",
           "default": false
         },
         "unbound-transformer-power": {
+          "description": "Flag to disable bounds on transformer power variables",
           "type": "boolean",
           "default": false
         },
         "unbound-generation-power": {
+          "description": "Flag to disable bounds on gen (generator, solar, voltage_source) power variables",
           "type": "boolean",
           "default": false
         },
         "unbound-storage-power": {
+          "description": "Flag to disable bounds on storage variables, including power, charge, discharge, and energy",
           "type": "boolean",
           "default": false
         }
@@ -66,38 +74,52 @@
       "type": "object",
       "properties": {
         "disable-grid-forming-inverter-constraint": {
+          "description": "Flag to disable the grid-forming inverter constraint, which enforces that there be exactly one grid-forming inverter in each energized connected component",
           "type": "boolean",
           "default": false
         },
         "disable-block-isolation-constraint": {
+          "description": "Flag to disable the block isolation constraint, which requires that switches between load blocks of differing status be open",
           "type": "boolean",
           "default": false
         },
         "disable-radiality-constraint": {
+          "description": "Flag to disable the radiality constraint, which requires that each energized connected component be radial in its topology (no cycles)",
           "type": "boolean",
           "default": false
         },
         "disable-microgrid-networking": {
+          "description": "Flag to disable microgrid networking. When enabled, microgrids are allowed to expand (pick up load), but may not network with one another",
           "type": "boolean",
           "default": false
         },
         "disable-current-limit-constraints": {
+          "description": "Flag to disable current limit constraints (ampacity) on lines and switches",
           "type": "boolean",
           "default": false
         },
         "disable-thermal-limit-constraints": {
+          "description": "Flag to disable thermal limit constraints (power) on lines, switches, and energy storage",
           "type": "boolean",
           "default": false
         },
         "disable-switch-close-action-limit": {
+          "description": "Flag to disable the switch close-action limit, which limits the number of closing actions that may occur in a timestep",
           "type": "boolean",
           "default": false
         },
         "disable-storage-unbalance-constraint": {
+          "description": "Flag to disable the storage unbalance constraint, which requires that grid-following storage devices output power within some factor of one another",
           "type": "boolean",
           "default": false
         },
         "disable-microgrid-expansion": {
+          "description": "Flag to disable microgrid expansion. When enabled, would prevent microgrids from growing any larger, but not prevent switching actions within the boundary of a microgrid",
+          "type": "boolean",
+          "default": false
+        },
+        "enable-strictly-increasing-restoration-constraint": {
+          "description": "Flag to enable a constraint that requires that load restoration be strictly increasing, that is, load blocks once energized cannot be de-energized in a later timestep",
           "type": "boolean",
           "default": false
         }
@@ -107,26 +129,32 @@
       "type": "object",
       "properties": {
         "disable-switch-state-change-cost": {
+          "description": "Flag to disable the cost term in the objective function related to change of state in switches (open-close, close-open)",
           "type": "boolean",
           "default": false
         },
         "enable-switch-state-open-cost": {
+          "description": "Flag to enable the cost term that adds a cost for open switches based on how much load is between them and some source of energy",
           "type": "boolean",
           "default": false
         },
         "disable-generation-dispatch-cost": {
+          "description": "Flag to disable the generation cost term",
           "type": "boolean",
           "default": false
         },
         "disable-storage-discharge-cost": {
+          "description": "Flag to disable the storage discharge cost term, which adds a penalty for storage that is not completely charged to its upper bound",
           "type": "boolean",
           "default": false
         },
         "disable-load-block-weight-cost": {
+          "description": "Flag to disable the weight terms on the load-block cost term (i.e., make the cost of every shed load block be equal)",
           "type": "boolean",
           "default": false
         },
         "disable-load-block-shed-cost": {
+          "description": "Flag to disable the cost of not energizing load blocks",
           "type": "boolean",
           "default": false
         }
@@ -136,11 +164,13 @@
       "type": "object",
       "properties": {
         "operations-algorithm": {
+          "description": "Choice for operations optimization algorithm, 'rolling-horizon' or 'full-lookahead'",
           "type": "string",
           "enum": ["rolling-horizon", "full-lookahead"],
           "default": "full-lookahead"
         },
         "operations-formulation": {
+          "description": "Choice for operations optimization formulation",
           "type": "string",
           "enum": [
             "lindistflow",
@@ -157,16 +187,19 @@
           "default": "LPUBFDiagPowerModel"
         },
         "operations-problem-type": {
+          "description": "Choice for operations optimization problem type, 'block' or 'traditional'",
           "type": "string",
           "enum": ["block", "traditional"],
           "default": "block"
         },
         "operations-solver": {
+          "description": "Choice for operations optimization solver",
           "type": "string",
           "enum": ["minlp_solver", "mip_solver", "misocp_solver", "nlp_solver"],
           "default": "mip_solver"
         },
         "dispatch-formulation": {
+          "description": "Choice for dispatch optimizatioin formulation",
           "type": "string",
           "enum": [
             "nfa",
@@ -185,19 +218,23 @@
           "default": "LPUBFDiagPowerModel"
         },
         "dispatch-solver": {
+          "description": "Choice for dispatch optimization solver",
           "type": "string",
           "enum": ["mip_solver", "misocp_solver", "minlp_solver", "nlp_solver"],
           "default": "nlp_solver"
         },
         "concurrent-fault-studies": {
+          "description": "Flag to run the fault studies concurrently (in parallel, using Distributed)",
           "type": "boolean",
           "default": true
         },
         "concurrent-stability-studies": {
+          "description": "Flag to run the stability studies concurrently (in parallel, using Distributed)",
           "type": "boolean",
           "default": true
         },
         "skip": {
+          "description": "List of optimizations or studies to skip, when running using `entrypoint` function",
           "type": "array",
           "items": {
             "type": "string",
@@ -216,14 +253,17 @@
       "type": "object",
       "properties": {
         "pretty-print": {
+          "description": "Flag to enable 'pretty printing' of JSON output",
           "type": "boolean",
           "default": true
         },
         "sparse-fault-studies": {
+          "description": "Flag to disable the create of sparse fault studies (if no faults are specified, one of every type will be applied at every bus",
           "type": "boolean",
           "default": true
         },
         "debug-output": {
+          "description": "Flag to enable debugging outputs (the full data structure), when used with entrypoint",
           "type": "boolean",
           "default": false
         }

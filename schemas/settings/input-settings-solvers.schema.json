@@ -4,6 +4,7 @@
   "description": "Solver options",
   "properties": {
     "HiGHS": {
+      "description": "These are the options used for the HiGHS optimization solver. The options below are a set of sane defaults for this solver, but users are not restricted to these options, and may use any valid options for this solver",
       "type": "object",
       "properties": {
         "output_flag": {
@@ -42,6 +43,7 @@
       }
     },
     "Ipopt": {
+      "description": "These are the options used for the Ipopt optimization solver. The options below are a set of sane defaults for this solver, but users are not restricted to these options, and may use any valid options for this solver",
       "type": "object",
       "properties": {
         "tol": {
@@ -64,6 +66,7 @@
       }
     },
     "Juniper": {
+      "description": "These are the options used for the Juniper optimization solver. The options below are a set of sane defaults for this solver, but users are not restricted to these options, and may use any valid options for this solver",
       "type": "object",
       "properties": {
         "branch_strategy": {
@@ -95,6 +98,7 @@
       }
     },
     "Gurobi": {
+      "description": "These are the options used for the Gurobi optimization solver. The options below are a set of sane defaults for this solver, but users are not restricted to these options, and may use any valid options for this solver",
       "type": "object",
       "properties": {
         "OutputFlag": {
@@ -140,6 +144,7 @@
       }
     },
     "KNITRO": {
+      "description": "These are the options used for the KNITRO optimization solver. The options below are a set of sane defaults for this solver, but users are not restricted to these options, and may use any valid options for this solver",
       "type": "object",
       "properties": {
         "outlev": {
@@ -173,10 +178,12 @@
       }
     },
     "useGurobi": {
+      "description": "Flag to enable the usage of the Gurobi commercial solver",
       "type": "boolean",
       "default": false
     },
     "useKNITRO": {
+      "description": "Flag to enable the usage of the KNITRO commercial solver",
       "type": "boolean",
       "default": false
     }
