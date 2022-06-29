@@ -39,7 +39,6 @@ module PowerModelsONM
     # Logging Tools
     import Logging
     import LoggingExtras
-    import ProgressMeter: @showprogress
 
     # Hardware statistics
     import Hwloc
