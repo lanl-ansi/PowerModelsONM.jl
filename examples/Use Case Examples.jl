@@ -206,10 +206,10 @@ result_rad_enabled = ONM.optimize_switches(
 )
 
 # ╔═╡ f6aba3cc-4cbb-42bb-bfb2-a8bfb89090f2
-md"Next, to obtain the results for the case where radiality is not enforced, we need to set the option 'options/constraints/disable-radiality-constraint' to false, which we can do with the `set_option!` helper function which will return the multinetwork data structure."
+md"Next, to obtain the results for the case where radiality is not enforced, we need to set the option 'options/constraints/disable-radiality-constraint' to false, which we can do with the `set_setting!` helper function which will return the multinetwork data structure."
 
 # ╔═╡ 02098b72-8d5c-46c3-b0b5-cfcbb4bcdead
-ieee13_mn_rad_disabled = ONM.set_option!(
+ieee13_mn_rad_disabled = ONM.set_setting!(
 	deepcopy(ieee13_data),
 	("options","constraints","disable-radiality-constraint"),
 	true
