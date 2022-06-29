@@ -235,6 +235,6 @@ Base.parse(::Type{PMD.Status}, status::Bool)::PMD.Status = PMD.Status(Int(status
 Base.parse(::Type{PMD.Status}, status::Int)::PMD.Status = PMD.Status(status)
 
 "Parses formulation strings from the settings schema into AbstractUnbalancedPowerModels"
-function Base.parse(::Type{PMD.AbstractUnbalancedPowerModel}, form::String)::PMD.AbstractUnbalancedPowerModel
+function Base.parse(::Type{PMD.AbstractUnbalancedPowerModel}, form::String)::Type
     return _get_formulation(form)
 end
