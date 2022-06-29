@@ -54,7 +54,7 @@ function entrypoint(args::Dict{String,<:Any})::Dict{String,Any}
         optimize_dispatch!(args)
     end
 
-    if !("stability" in get(args, "skip", String[]))
+    if !("stability" in get(args, "skip", String[])) && haskey(args, "inverters") && !isempty(args["inverters"])
         run_stability_analysis!(args)
     end
 
