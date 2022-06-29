@@ -47,6 +47,7 @@ module PowerModelsONM
 
     # Network Graphs
     import Graphs
+    import EzXML
 
     # Import Tools
     import Requires: @require
@@ -88,6 +89,7 @@ module PowerModelsONM
 
     include("io/events.jl")
     include("io/faults.jl")
+    include("io/graphml.jl")
     include("io/inverters.jl")
     include("io/json.jl")
     include("io/network.jl")

@@ -39,6 +39,7 @@ pages = [
         "The ONM Workflow" => "manual/onm_workflow.md",
         "Optimal Switch / Load shed Mathematical Model" => "manual/mld_model.md",
         "Optimal Dispatch Mathematical Model" => "manual/opf_model.md",
+        "Exporting with GraphML" => "manual/graphml_export.md",
     ],
     "Tutorials" => [
         "Beginners Guide" => "tutorials/Beginners Guide.md",
@@ -47,6 +48,7 @@ pages = [
     "API Reference" => [
         "Base functions" => "reference/base.md",
         "Data Handling" => "reference/data.md",
+        "GraphML Functions" => "reference/graphml.md",
         "Main Entrypoint" => "reference/entrypoint.md",
         "Internal Functions" => "reference/internal.md",
         "IO Functions" => "reference/io.md",
@@ -66,7 +68,6 @@ pages = [
 
 # build documents
 makedocs(
-    # modules = [PowerModelsONM, PowerModelsONM.PowerModelsDistribution, PowerModelsONM.InfrastructureModels],
     format = format,
     strict=false,
     sitename = "PowerModelsONM",
