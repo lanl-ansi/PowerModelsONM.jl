@@ -20,11 +20,11 @@ Read the introductory tutorial [Introduction to PowerModelsONM](@ref Introductio
 
 The following is a high-level overview of how our documetation is structured. There are three primary sections:
 
-- The __Manual__ contains detailed documentation for certain aspects of PowerModelsONM, such as
+- The **Manual** contains detailed documentation for certain aspects of PowerModelsONM, such as
 
-- __Tutorials__ contains working examples of how to use PowerModelsONM. Start here if you are new to PowerModelsONM.
+- **Tutorials** contains working examples of how to use PowerModelsONM. Start here if you are new to PowerModelsONM.
 
-- The __API Reference__ contains a complete list of the functions you can use in PowerModelsONM. Look here if you want to know how to use a particular function.
+- The **API Reference** contains a complete list of the functions you can use in PowerModelsONM. Look here if you want to know how to use a particular function.
 
 ## PowerModelsONM Analyses Packages
 

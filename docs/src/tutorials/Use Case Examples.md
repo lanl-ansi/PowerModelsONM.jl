@@ -1,10 +1,10 @@
-# Introduction to PowerModelsONM
+# ONM Use Cases
 
 This is a stub for an interactive Pluto.jl tutorial contained in [examples](https://github.com/lanl-ansi/PowerModelsONM.jl/tree/main/examples).
 
 During documentation build time, this tutorial will be automatically converted to HTML, but will lose its interactivity.
 
-To experience the full interactivity of this notebook please install Pluto.jl, and open [this file](https://github.com/lanl-ansi/PowerModelsONM.jl/tree/main/examples/Beginners%20Guide.jl)
+To experience the full interactivity of this notebook please install Pluto.jl, and open [this file](https://github.com/lanl-ansi/PowerModelsONM.jl/tree/main/examples/Use%20Case%20Examples.jl)
 
 ## Installing and running Pluto.jl
 

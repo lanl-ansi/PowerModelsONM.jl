@@ -3,7 +3,7 @@
 From Julia, PowerModelsONM is installed using the built-in package manager:
 
 ```julia
-pkg> add PowerModelsONM
+]add PowerModelsONM
 ```
 
 or equivalently,
@@ -44,4 +44,4 @@ export GRB_LICENSE_FILE="$HOME/.gurobi/gurobi.lic"
 export GUROBI_HOME="/Library/gurobi910/mac64"
 ```
 
-__BEFORE__ importing PowerModelsONM with `using PowerModelsONM`, you __must__ `import Gurobi`.
+**BEFORE** importing PowerModelsONM with `using PowerModelsONM`, you **must** `import Gurobi`.

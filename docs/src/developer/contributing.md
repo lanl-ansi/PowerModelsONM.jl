@@ -30,13 +30,13 @@ Every PR to PowerModelsONM should strive to meet the following guidelines.
 - Unit tests should be added. In the case where existing unit tests were altered, an explanation for the change must be included
 - Code should be rebased to the latest version of whatever branch the PR is aimed at (no merge conflicts!)
 
-# Versions
+## Versions
 
 PowerModelsONM follows the Semantic Versioning ([SemVer](https://semver.org/)) convention of `Major.minor.patch`, where `Major` indicates breaking changes, `minor` indicates non-breaking feature additions, and `patch` indicates non-breaking bugfixes.
 
 Currently, because `Major==0`, `minor` indicates breaking changes and `patch` indicates any non-breaking change, including both feature additions and bugfixes. Once PowerModelsONM reaches `v1.0.0`, we will adhere strictly to the SemVer convention.
 
-# Branch Management
+## Branch Management
 
 The main branch is a [protected](https://help.github.com/en/github/administering-a-repository/about-protected-branches) branch, meaning that its history will always be contiguous and can never be overwritten.
 

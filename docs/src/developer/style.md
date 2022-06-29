@@ -25,7 +25,7 @@ When specifying types, _i.e._ when specifying the type of a function argument, o
 
 - Prefer to use `Vector{T}` instead of `Array{T,1}`
 - Prefer to use `Matrix{T}` instead of `Array{T,2}`
-- Enums should __only__ be used in the `ENGINEERING` data model, never the `MATHEMATICAL` data model
+- Enums should **only** be used in the `ENGINEERING` data model, never the `MATHEMATICAL` data model
 - Enums must be added to the JSON parser when introduced
 
 ## Constants
@@ -53,7 +53,7 @@ Currently, all phase-aware functions use `mc`, but this is subject to change in 
 
 ## Formulation Styles
 
-- All new formulations should have __clear__ error messages when they do not support existing components. For example, if a formulation addition which is intended to work with OPF does not support delta-wye transformers, the `constraint_mc_transformer_power_dy`
+- All new formulations should have **clear** error messages when they do not support existing components. For example, if a formulation addition which is intended to work with OPF does not support delta-wye transformers, the `constraint_mc_transformer_power_dy`
 - Formulation `abstract type` and `mutable struct` must be specified in [CapitalizedWords](https://legacy.python.org/dev/peps/pep-0008/#descriptive-naming-styles), which is a subtype of [camelCase](https://en.wikipedia.org/wiki/Camel_case) with the first word also capitalized.
 
 ## Problem Specification Styles
@@ -69,7 +69,7 @@ In general, it is better to avoid metaprogramming patterns, like creating functi
 
 Markdown files should be properly formatted, particularly when including tables. Developers are encouraged to use [markdownlint](https://github.com/markdownlint/markdownlint) and a markdown formatter (such as in VSCode).
 
-# File Structure
+## File Structure
 
 It is important that new functions, variables, constraints, etc. all go into appropriate places in the code base so that future maintenance and debugging is easier. Pay attention to the current file structure and attempt to conform as best as possible to it. In general
 
@@ -85,10 +85,10 @@ It is important that new functions, variables, constraints, etc. all go into app
 - `examples` contains Pluto.jl notebooks with walkthroughs of PowerModelsONM for new users
 - `schemas` contains JSON Schemas for supported I/O file formats
 
-# Dependencies (Project.toml)
+## Dependencies (Project.toml)
 
 All new dependencies should be carefully considered before being added. It is important to keep the number of external dependencies low to avoid reliance on features that may not be maintained in the future. If possible, Julia Standard Library should be used, particularly in the case where reproducing the desired feature is trivial. There will be cases where it is not simple to duplicate a feature and subsequently maintain it within the package, so adding a dependency would be appropriate in such cases.
 
 All new dependencies are are ultimately approved should also include an entry under `[compat]` indicating the acceptable versions (Julia automerge requirement). This includes test-only dependencies that appear under `[extras]`
 
-The `Manifest.toml` __should not__ be included in the repo.
+The `Manifest.toml` **should not** be included in the repo.
