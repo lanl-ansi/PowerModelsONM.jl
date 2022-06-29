@@ -23,6 +23,7 @@ const _default_solution_processors = Function[
         eng2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
         ref_extensions::Vector{Function}=Function[],
         multinetwork::Bool=false,
+        global_keys::Set{String}=Set{String}(),
         kwargs...
     )::Dict{String,Any}
 
@@ -63,13 +64,14 @@ end
 
 
 """
-    instantiate_onm_model(
+instantiate_onm_model(
         data::Union{Dict{String,<:Any}, String},
         model_type::Type,
         model_builder::Function;
         eng2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
         ref_extensions::Vector{Function}=Function[],
         multinetwork::Bool=false,
+        global_keys::Set{String}=Set{String}(),
         kwargs...
     )
 
@@ -102,7 +104,7 @@ end
 
 
 """
-    build_solver_instances!(args::Dict{String,<:Any})::Dict{String,JuMP.MOI.OptimizerWithAttributes}
+    build_solver_instances!(args::Dict{String,<:Any})::Dict{String,Any}
 
 Creates the Optimizers in-place (within the args dict data structure), for use inside [`entrypoint`](@ref entrypoint),
 using [`build_solver_instances`](@ref build_solver_instances), assigning them to `args["solvers"]``
@@ -128,8 +130,8 @@ end
         mip_solver::Union{Missing,JuMP.MOI.OptimizerWithAttributes}=missing,
         minlp_solver::Union{Missing,JuMP.MOI.OptimizerWithAttributes}=missing,
         misocp_solver::Union{Missing,JuMP.MOI.OptimizerWithAttributes}=missing,
-        log_level::String="warn",
         solver_options::Dict{String,<:Any}=Dict{String,Any}(),
+        log_level::String="warn",
     )::Dict{String,Any}
 
 Returns solver instances as a Dict ready for use with JuMP Models, for NLP (`"nlp_solver"`), MIP (`"mip_solver"`), MINLP (`"minlp_solver"`), and (MI)SOC (`"misocp_solver"`) problems.

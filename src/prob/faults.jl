@@ -9,22 +9,22 @@ Runs fault studies using `args["faults"]`, if defined, and stores the results in
 `args["fault_stuides_results"]`, for use in [`entrypoint`](@ref entrypoint), using
 [`run_fault_studies`](@ref run_fault_studies)
 """
-function run_fault_studies!(args::Dict{String,<:Any}; validate::Bool=true, solver::String="nlp_solver")::Dict{String,Any}
+function run_fault_studies!(args::Dict{String,<:Any}; validate::Bool=true)::Dict{String,Any}
     if !isempty(get(args, "faults", ""))
         if isa(args["faults"], String)
             args["faults"] = parse_faults(args["faults"]; validate=validate)
         end
     else
-        args["faults"] = PowerModelsProtection.build_mc_fault_study(args["base_network"])
+        args["faults"] = PMP.build_mc_fault_study(args["base_network"])
     end
 
     args["fault_studies_results"] = run_fault_studies(
         args["network"],
-        args["solvers"][solver];
+        args["solvers"][get_setting(args, ("options", "problem", "fault-studies-solver"), "nlp_solver")];
         faults=args["faults"],
         switching_solutions=get(args, "optimal_switching_results", missing),
         dispatch_solution=get(args, "optimal_dispatch_result", missing),
-        distributed=get(args, "nprocs", 1) > 1
+        distributed=get_setting(args, ("options", "problem", "concurrent-fault-studies"), true)
     )
 end
 
@@ -49,7 +49,14 @@ Uses [`run_fault_study`](@ref run_fault_study) to solve the actual fault study.
 `solver` will determine which instantiated solver is used, `"nlp_solver"` or `"juniper_solver"`
 
 """
-function run_fault_studies(network::Dict{String,<:Any}, solver; faults::Dict{String,<:Any}=Dict{String,Any}(), switching_solutions::Union{Missing,Dict{String,<:Any}}=missing, dispatch_solution::Union{Missing,Dict{String,<:Any}}=missing, distributed::Bool=false)::Dict{String,Any}
+function run_fault_studies(
+    network::Dict{String,<:Any},
+    solver;
+    faults::Dict{String,<:Any}=Dict{String,Any}(),
+    switching_solutions::Union{Missing,Dict{String,<:Any}}=missing,
+    dispatch_solution::Union{Missing,Dict{String,<:Any}}=missing,
+    distributed::Bool=false
+    )::Dict{String,Any}
     mn_data = _prepare_fault_study_multinetwork_data(network, switching_solutions, dispatch_solution)
 
     switch_states = Dict{String,Dict{String,PMD.SwitchState}}(n => Dict{String,PMD.SwitchState}(s => sw["state"] for (s,sw) in get(nw, "switch", Dict())) for (n,nw) in get(mn_data, "nw", Dict()))
@@ -93,7 +100,7 @@ function run_fault_studies(network::Dict{String,<:Any}, solver; faults::Dict{Str
             end
         end
     else
-        _results = @showprogress pmap(ns; distributed=distributed) do n
+        _results = pmap(ns; distributed=distributed) do n
             _faults = filter(x->!(x.first in shedded_buses["$(n)"]), faults)
             if (n > 1 && switch_states["$(n)"] == switch_states["$(n-1)"]) || isempty(_faults)
                 # skip identical configurations or all faults missing
@@ -145,7 +152,11 @@ end
 
 Helper function that helps to prepare all of the subnetworks for use in `PowerModelsProtection.solve_mc_fault_study`
 """
-function _prepare_fault_study_multinetwork_data(network::Dict{String,<:Any}, switching_solutions::Union{Missing,Dict{String,<:Any}}=missing, dispatch_solution::Union{Missing,Dict{String,<:Any}}=missing)
+function _prepare_fault_study_multinetwork_data(
+    network::Dict{String,<:Any},
+    switching_solutions::Union{Missing,Dict{String,<:Any}}=missing,
+    dispatch_solution::Union{Missing,Dict{String,<:Any}}=missing
+    )::Dict{String,Any}
     data = _prepare_dispatch_data(network, switching_solutions)
 
     if !ismissing(dispatch_solution)

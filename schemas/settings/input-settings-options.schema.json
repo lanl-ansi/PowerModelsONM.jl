@@ -223,6 +223,24 @@
           "enum": ["mip_solver", "misocp_solver", "minlp_solver", "nlp_solver"],
           "default": "nlp_solver"
         },
+        "fault-studies-solver": {
+          "description": "Choice for fault studies optimization solver",
+          "type": "string",
+          "enum": ["nlp_solver"],
+          "default": "nlp_solver"
+        },
+        "stability-solver": {
+          "description": "Choice for stability analysis optimization solver",
+          "type": "string",
+          "enum": ["nlp_solver"],
+          "default": "nlp_solver"
+        },
+        "stability-formulation": {
+          "description": "Choice for stability analysis formulation",
+          "type": "string",
+          "enum": ["acp", "acr", "ACRUPowerModel", "ACPUPowerModel"],
+          "default": "ACRUPowerModel"
+        },
         "concurrent-fault-studies": {
           "description": "Flag to run the fault studies concurrently (in parallel, using Distributed)",
           "type": "boolean",

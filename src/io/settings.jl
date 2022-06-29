@@ -302,29 +302,63 @@ end
 
 
 """
-    set_settings_property!(settings::Dict{String,<:Any}, path::Tuple{Vararg{String}}, value::Any)
+    set_option!(network::Dict{String,<:Any}, path::Tuple{Vararg{String}}, value::Any)
 
-Helper function to set a property in a `settings` at `path` to `value`
+Helper function to set a property in a `network` data structure at `path` to `value`
 """
-function set_settings_property!(settings::Dict{String,<:Any}, path::Tuple{Vararg{String}}, value::Any)
-    if length(path) > 1
-        if !haskey(settings, path[1])
-            settings[path[1]] = Dict{String,Any}()
-        end
-        set_settings_property!(settings[path[1]], path[2:end], value)
+function set_option!(network::Dict{String,<:Any}, path::Tuple{Vararg{String}}, value::Any)
+    if ismultinetwork(network)
+        mn_data = network["nw"]
+        _set_property!(network, path, value)
     else
-        settings[path[1]] = value
+        mn_data = Dict{String,Any}("0" => network)
+    end
+
+    for (_, nw) in mn_data
+        _set_property!(nw, path, value)
+    end
+
+    return network
+end
+
+
+"""
+    _set_property!(data::Dict{String,<:Any}, path::Tuple{Vararg{String}}, value::Any)
+
+Helper function to set a property to value at an arbitrary nested path in a dictionary
+"""
+function _set_property!(data::Dict{String,<:Any}, path::Tuple{Vararg{String}}, value::Any)
+    if length(path) > 1
+        if !haskey(data, path[1])
+            data[path[1]] = Dict{String,Any}()
+        end
+        _set_property!(data[path[1]], path[2:end], value)
+    else
+        data[path[1]] = value
     end
 end
 
 
 """
-    set_option!(args::Dict{String,<:Any}, path::Tuple{Vararg{String}}, value::Any)
+    set_options!(settings::Dict{String,<:Any}, options::Dict{Tuple{Vararg{String}},<:Any})
 
-Helper function to set an option at `path` to `value` and then regenerate the multinetwork data.
+Helper function to set multiple properties in an `options` at path::Tuple{Vararg{String}} to value::Any.
+This does not rebuild the network data structure.
 """
-function set_option!(args::Dict{String,<:Any}, path::Tuple{Vararg{String}}, value::Any)
-    set_settings_property!(args, ("settings", path...), value)
+function set_options!(network::Dict{String,<:Any}, options::Dict{Tuple{Vararg{String}},<:Any})
+    for (path,value) in options
+        set_option!(network, path, value)
+    end
+end
+
+
+"""
+    set_setting!(args::Dict{String,<:Any}, path::Tuple{Vararg{String}}, value::Any)
+
+Helper function to set an option at `path` to `value` and then regenerate the multinetwork data from `args`.
+"""
+function set_setting!(args::Dict{String,<:Any}, path::Tuple{Vararg{String}}, value::Any)
+    _set_property!(args, ("settings", path...), value)
 
     apply_settings!(args)
     apply_events!(args)
@@ -332,18 +366,45 @@ end
 
 
 """
-    set_options!(args, options::Dict{Tuple{Vararg{String}},<:Any})
+    set_settings!(args, options::Dict{Tuple{Vararg{String}},<:Any})
 
-Helper function to set multiple options at `path` to `value` and then regenerate the multinetwork data,
+Helper function to set multiple options at `path` to `value` and then regenerate the multinetwork data from `args`,
 where the paths are the keys of the `options` input dictionary.
 """
-function set_options!(args, options::Dict{Tuple{Vararg{String}},<:Any})
+function set_settings!(args, options::Dict{Tuple{Vararg{String}},<:Any})
     for (path,value) in options
-        set_settings_property!(args, ("settings", path...), value)
+        _set_property!(args, ("settings", path...), value)
     end
 
     apply_settings!(args)
     apply_events!(args)
+end
+
+
+"""
+    get_option(network::Dict{String,<:Any}, path::Tuple{Vararg{String}}, default::Any=missing)::Any
+
+Helper function to get a property at an arbitrary nested path in a network dictionary, returning the
+default value if path does not exist.
+"""
+function get_option(network::Dict{String,<:Any}, path::Tuple{Vararg{String}}, default::Any=missing)::Any
+    if length(path) > 1
+        return get_option(get(network, path[1], Dict{String,Any}()), path[2:end])
+    else
+        return get(network, path[1], default)
+    end
+
+end
+
+
+"""
+    get_setting(args::Dict{String,Any}, path::Tuple{Vararg{String}}, default::Any=missing)::Any
+
+Helper function to get a property in settings at an arbitrary nested path in an `args` dictionary, returning the
+default value if path does not exist.
+"""
+function get_setting(args::Dict{String,Any}, path::Tuple{Vararg{String}}, default::Any=missing)::Any
+    return get_option(args, ("settings", path...), default)
 end
 
 
@@ -376,6 +437,8 @@ build_settings(network_file::String; kwargs...) = build_settings(PMD.parse_file(
         storage_phase_unbalance_factor::Union{Missing,Real}=missing,
         disable_presolver::Bool=false,
     )::Dict{String,Any}
+
+**Deprecated**: This function is deprecated in favor of [`build_settings_new`](build_settings_new)
 
 Helper function to build a settings file (json) for use with ONM. If properties are `missing` they will not be set.
 
@@ -697,3 +760,164 @@ function parse_dss_settings(dss_settings::T, eng::T)::T where T <: Dict{String,A
 
     return settings
 end
+
+
+"""
+    build_settings_new(
+        eng::Dict{String,<:Any};
+        raw_settings::Dict{String,<:Any}=Dict{String,Any}(),
+        switch_close_actions_ub::Union{Real}=missing,
+        timestep_hours::Union{Missing,Real}=missing,
+        vm_lb_pu::Union{Missing,Real}=missing,
+        vm_ub_pu::Union{Missing,Real}=missing,
+        vad_deg::Union{Missing,Real}=missing,
+        line_limit_multiplier::Real=1.0,
+        transformer_limit_multiplier::Real=1.0,
+        generate_microgrid_ids::Bool=true,
+        cold_load_pickup_factor::Union{Missing,Real}=missing,
+        storage_phase_unbalance_factor::Union{Missing,Real}=missing,
+        validate::Bool=true,
+    )::Dict{String,Any}
+
+New version of the `build_settings` function. A number of the flags have been moved to `raw_settings`, which should follow
+the format of the settings schema.
+"""
+function build_settings_new(
+    eng::Dict{String,<:Any};
+    raw_settings::Dict{String,<:Any}=Dict{String,Any}(),
+    switch_close_actions_ub::Union{Real}=missing,
+    timestep_hours::Union{Missing,Real}=missing,
+    vm_lb_pu::Union{Missing,Real}=missing,
+    vm_ub_pu::Union{Missing,Real}=missing,
+    vad_deg::Union{Missing,Real}=missing,
+    line_limit_multiplier::Real=1.0,
+    transformer_limit_multiplier::Real=1.0,
+    generate_microgrid_ids::Bool=true,
+    cold_load_pickup_factor::Union{Missing,Real}=missing,
+    storage_phase_unbalance_factor::Union{Missing,Real}=missing,
+    validate::Bool=true,
+    )::Dict{String,Any}
+    n_steps = !haskey(eng, "time_series") ? 1 : length(first(eng["time_series"]).second["values"])
+
+    settings = build_default_settings()
+
+    if !ismissing(timestep_hours)
+        if !isa(timestep_hours, Vector)
+            timestep_hours = fill(timestep_hours, n_steps)
+        end
+        _set_property!(settings, ("options", "data", "time-elapsed"), timestep_hours)
+    end
+
+    if !ismissing(switch_close_actions_ub)
+        if !isa(switch_close_actions_ub, Vector)
+            switch_close_actions_ub = fill(switch_close_actions_ub, n_steps)
+        end
+        _set_property!(settings, ("options", "data", "switch-close-actions-ub"), switch_close_actions_ub)
+    end
+
+    # Generate bus microgrid_ids
+    if generate_microgrid_ids
+        # merge in switch default settings
+        for (id, switch) in settings["switch"]
+            merge!(eng["switch"][id], switch)
+        end
+
+        # identify load blocks
+        blocks = PMD.identify_load_blocks(eng)
+
+        # build list of blocks with enabled generation
+        gen_blocks = [
+            bl for bl in blocks if (
+                any(g["bus"] in bl && g["status"] == PMD.ENABLED for (_,g) in get(eng, "storage", Dict())) ||
+                any(g["bus"] in bl && g["status"] == PMD.ENABLED for (_,g) in get(eng, "solar", Dict())) ||
+                any(g["bus"] in bl && g["status"] == PMD.ENABLED for (_,g) in get(eng, "generator", Dict()))
+            )
+        ]
+
+        # assign microgrid ids
+        for (i,b) in enumerate(gen_blocks)
+            for bus in b
+                eng["bus"][bus]["microgrid_id"] = "$i"
+            end
+        end
+    end
+
+    # Generate settings for buses
+    PMD.apply_voltage_bounds!(eng; vm_lb=vm_lb_pu, vm_ub=vm_ub_pu, exclude=String[vs["bus"] for (_,vs) in get(eng, "voltage_source", Dict())])
+    for (b, bus) in get(eng, "bus", Dict())
+        if !(b in String[vs["bus"] for (_,vs) in get(eng, "voltage_source", Dict())])
+            haskey(bus, "vm_lb") && _set_property!(settings, ("bus", b, "vm_lb"), bus["vm_lb"])
+            haskey(bus, "vm_ub") && _set_property!(settings, ("bus", b, "vm_ub"), bus["vm_ub"])
+            haskey(bus, "microgrid_id") && _set_property!(settings, ("bus", b, "microgrid_id"), bus["microgrid_id"])
+        end
+    end
+
+    # Generate settings for loads
+    if !ismissing(cold_load_pickup_factor)
+        for l in keys(get(eng, "load", Dict()))
+            _set_property!(settings, ("load", l, "clpu_factor"), cold_load_pickup_factor)
+        end
+    end
+
+    # Generate settings for lines
+    PMD.adjust_line_limits!(eng, line_limit_multiplier)
+    !ismissing(vad_deg) && PMD.apply_voltage_angle_difference_bounds!(eng, vad_deg)
+    for (l, line) in get(eng, "line", Dict())
+        haskey(line, "vad_lb") && _set_property!(settings, ("line", l, "vad_lb"), line["vad_lb"])
+        haskey(line, "vad_ub") && _set_property!(settings, ("line", l, "vad_ub"), line["vad_ub"])
+        haskey(line, "cm_ub") && _set_property!(settings, ("line", l, "cm_ub"), line["cm_ub"])
+    end
+
+    # Generate settings for switches
+    for (s, switch) in get(eng, "switch", Dict())
+        haskey(switch, "cm_ub") && _set_property!(settings, ("switch", s, "cm_ub"), switch["cm_ub"])
+    end
+
+    # Generate settings for transformers
+    PMD.adjust_transformer_limits!(eng, transformer_limit_multiplier)
+    for (t, transformer) in get(eng, "transformer", Dict())
+        haskey(transformer, "sm_ub") && _set_property!(transformer, ("transformer", t, "sm_ub"), transformer["sm_ub"])
+    end
+
+    if !ismissing(storage_phase_unbalance_factor)
+        for i in keys(get(eng, "storage", Dict()))
+            _set_property!(settings, ("storage", i, "phase_unbalance_factor"), storage_phase_unbalance_factor)
+        end
+    end
+
+    settings = recursive_merge(settings, raw_settings)
+
+    if validate && !validate_settings(settings)
+        error("settings cannot be validated against schema, check `raw_settings` input for errors: $(evaluate_settings(settings))")
+    end
+
+    return settings
+end
+
+
+"""
+    build_settings_new(eng::Dict{String,<:Any}, io::IO; kwargs...)
+
+Builds and writes settings to an `io::IO` from a network data set `eng::Dict{String,Any}`
+"""
+build_settings_new(eng::Dict{String,<:Any}, io::IO; kwargs...) = JSON.print(io, build_settings_new(eng; kwargs...), 2)
+
+
+"""
+    build_settings_new(eng::Dict{String,<:Any}, settings_file::String; kwargs...)
+
+Builds and writes settings to a `settings_file::String` from a network data set `eng::Dict{String,Any}`
+"""
+function build_settings_new(eng::Dict{String,<:Any}, settings_file::String; kwargs...)
+    open(settings_file, "w") do io
+        build_settings_new(eng, io; kwargs)
+    end
+end
+
+
+"""
+    build_settings_new(network_file::String, settings_file::String; kwargs...)
+
+Builds and writes settings to a `settings_file::String` from a network data set at `network_file::String`
+"""
+build_settings_new(network_file::String, settings_file::String; kwargs...) = build_settings_new(PMD.parse_file(network_file), settings_file; kwargs)

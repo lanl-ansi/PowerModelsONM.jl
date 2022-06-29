@@ -18,7 +18,7 @@ polar coordinates.
 
 `solver` (default: `"nlp_solver"`) specifies which solver in `args["solvers"]` to use for the stability analysis (NLP OPF)
 """
-function run_stability_analysis!(args::Dict{String,<:Any}; validate::Bool=true, formulation::Type=PMD.ACRUPowerModel, solver::String="nlp_solver")::Dict{String,Bool}
+function run_stability_analysis!(args::Dict{String,<:Any}; validate::Bool=true)::Dict{String,Bool}
     if !isempty(get(args, "inverters", ""))
         if isa(args["inverters"], String)
             args["inverters"] = parse_inverters(args["inverters"]; validate=validate)
@@ -31,7 +31,14 @@ function run_stability_analysis!(args::Dict{String,<:Any}; validate::Bool=true, 
         )
     end
 
-    args["stability_results"] = run_stability_analysis(args["network"], args["inverters"], args["solvers"][solver]; formulation=formulation, switching_solutions=get(args, "optimal_switching_results", missing), distributed=get(args, "nprcos", 1) > 1)
+    args["stability_results"] = run_stability_analysis(
+        args["network"],
+        args["inverters"],
+        args["solvers"][get_setting(args, ("options", "problem", "stability-solver"), "nlp_solver")];
+        formulation=parse(AbstractUnbalancedPowerModel, get_setting(args, ("options", "problem", "stability-formulation"))),
+        switching_solutions=get(args, "optimal_switching_results", missing),
+        distributed=get_setting(args, ("options","problem","concurrent-stability-studies"), true)
+    )
 end
 
 
@@ -55,7 +62,14 @@ polar coordinates.
 
 `solver` for stability analysis (NLP OPF)
 """
-function run_stability_analysis(network::Dict{String,<:Any}, inverters::Dict{String,<:Any}, solver; formulation::Type=PMD.ACRUPowerModel, switching_solutions::Union{Missing,Dict{String,<:Any}}=missing, distributed::Bool=false)::Dict{String,Bool}
+function run_stability_analysis(
+    network::Dict{String,<:Any},
+    inverters::Dict{String,<:Any},
+    solver;
+    formulation::Type=PMD.ACRUPowerModel,
+    switching_solutions::Union{Missing,Dict{String,<:Any}}=missing,
+    distributed::Bool=false
+    )::Dict{String,Bool}
     mn_data = _prepare_stability_multinetwork_data(network, inverters, switching_solutions)
 
     ns = sort([parse(Int, i) for i in keys(mn_data["nw"])])
@@ -65,7 +79,7 @@ function run_stability_analysis(network::Dict{String,<:Any}, inverters::Dict{Str
             push!(is_stable, run_stability_analysis(mn_data["nw"]["$n"], inverters["omega0"], inverters["rN"], solver; formulation=formulation))
         end
     else
-        is_stable = @showprogress pmap(ns; distributed=distributed) do n
+        is_stable = pmap(ns; distributed=distributed) do n
             run_stability_analysis(mn_data["nw"]["$n"], inverters["omega0"], inverters["rN"], solver; formulation=formulation)
         end
     end
@@ -112,7 +126,12 @@ end
 
 Helper function to prepare the multinetwork data for stability analysis (adds inverters, data_model).
 """
-function _prepare_stability_multinetwork_data(network::Dict{String,<:Any}, inverters::Dict{String,<:Any}, switching_solutions::Union{Missing,Dict{String,<:Any}}=missing, dispatch_solution::Union{Missing,Dict{String,<:Any}}=missing)::Dict{String,Any}
+function _prepare_stability_multinetwork_data(
+    network::Dict{String,<:Any},
+    inverters::Dict{String,<:Any},
+    switching_solutions::Union{Missing,Dict{String,<:Any}}=missing,
+    dispatch_solution::Union{Missing,Dict{String,<:Any}}=missing
+    )::Dict{String,Any}
     mn_data = _prepare_dispatch_data(network, switching_solutions)
 
     for (n, nw) in mn_data["nw"]

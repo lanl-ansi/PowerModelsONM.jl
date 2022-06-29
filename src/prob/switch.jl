@@ -7,18 +7,12 @@ using [`optimize_switches`]
 Uses LPUBFDiagPowerModel (LinDist3Flow), and therefore requires `args["solvers"]["misocp_solver"]` to be specified
 """
 function optimize_switches!(args::Dict{String,<:Any})::Dict{String,Any}
-    prob_opts = get(get(args["network"], "options", Dict()), "problem", Dict())
-    solver = get(prob_opts, "operations-solver", "mip_solver")
-    formulation = _get_formulation(get(prob_opts, "operations-formulation", PMD.LPUBFDiagPowerModel))
-    algorithm = get(prob_opts, "operations-algorithm", "full-lookahead")
-    problem_type = get(prob_opts, "operations-problem-type", "block")
-
     args["optimal_switching_results"] = optimize_switches(
         args["network"],
-        args["solvers"][solver];
-        formulation=formulation,
-        algorithm=algorithm,
-        problem=problem_type
+        args["solvers"][get_setting(args, ("options", "problem", "operations-solver"), "mip_solver")];
+        formulation=parse(AbstractUnbalancedPowerModel, (get_setting(args, ("options","problem","operations-formulation"), "LPUBFDiagPowerModel"))),
+        algorithm=get_setting(args, ("options", "problem", "operations-algorithm"), "full-lookahead"),
+        problem=get_setting(args, ("options", "problem", "operations-problem-type"), "block")
     )
 end
 
@@ -36,7 +30,13 @@ end
   and storage energies from the solved timestep. Otherwise, if `"full-lookahead"`, will solve all time steps in a single optimization
   problem (default: `"full-lookahead"`)
 """
-function optimize_switches(network::Dict{String,<:Any}, solver; formulation::Type=PMD.LPUBFDiagPowerModel, algorithm::String="full-lookahead", problem::String="block")::Dict{String,Any}
+function optimize_switches(
+    network::Dict{String,<:Any},
+    solver;
+    formulation::Type=PMD.LPUBFDiagPowerModel,
+    algorithm::String="full-lookahead",
+    problem::String="block"
+    )::Dict{String,Any}
     results = Dict{String,Any}()
 
     @info "running $(algorithm)-$(problem) optimal switching algorithm with $(formulation)"
@@ -54,7 +54,7 @@ function optimize_switches(network::Dict{String,<:Any}, solver; formulation::Typ
         mn_data = _prepare_optimal_switching_data(network)
 
         ns = sort([parse(Int, i) for i in keys(mn_data["nw"])])
-        @showprogress length(ns) "Running switch optimization (mld)... " for n in ns
+        for n in ns
             if haskey(results, "$(n-1)") && haskey(results["$(n-1)"], "solution")
                 _update_switch_settings!(mn_data["nw"]["$n"], results["$(n-1)"]["solution"])
                 _update_storage_capacity!(mn_data["nw"]["$n"], results["$(n-1)"]["solution"])
@@ -73,7 +73,8 @@ end
 """
     optimize_switches(
         subnetwork::Dict{String,<:Any},
-        prob::Function, solver;
+        prob::Function,
+        solver;
         formulation=PMD.LPUBFDiagPowerModel
     )::Dict{String,Any}
 
