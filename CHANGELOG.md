@@ -6,6 +6,25 @@
 
 ## v3.0.0
 
+- Added documentation for GraphML export
+- Updated process flow diagram for ONM
+- Added helper functions to set options and get options from the different data structures used by ONM
+- Explicitly exported a number of AbstractUnbalancedPowerModels from PowerModelsDistribution, for better user experience
+- Switched to `import LongName as LN` pattern
+- Updated `"iterative"` to `"rolling-horizon"` and `"global"` to `"full-lookahead"` (**breaking**)
+- Deprecated many runtime arguments in favor of settings schema
+- Updated default logger settings
+- Added `build_settings_new` functions to match updated schema
+- Refactored to use schemas directly to build Julia data structures, to make API maintanence easier
+- Added `prepare_data!` function to quickly build the multinetwork `network` data from `network`, `settings` and `events` files
+- Refactored settings functions to apply settings to base_network and then rebuild the multinetwork structure (**breaking**)
+- Refactored settings schemas to allow for more options for user control of different parts of the entrypoint function (**breaking**)
+- Added more documentation for new users to the examples folder, including use cases, basic usage of the Block-MLD problem, and how to build a JuMP model by hand
+- Added support for exporting network data as a graph in the GraphML format
+- Added EzXML as a dependency to support GraphML export
+- Removed ProgressMeter dependency
+- Added support for JuMP v1
+- Added `transform_data_model` specific to ONM
 - Added `instantiate_onm_model`, an ONM-specific version of `instantiate_mc_model` from PowerModelsDistribution
 - Added `dss` settings schema for easier adding of inverter property by source id, e.g., "vsource.source", etc.
 - Added `constraint_disable_networking` based on coloring model to enabled microgrids to expand but not network
@@ -38,7 +57,7 @@
 - Renamed problems, objective functions, and constraint functions to be more simple for users (**breaking**)
 - Added solution processor function `solution_statuses!` to assist in converting solution statuses to `Status` enums
 - Fixed `_prepare_dispatch_data` to account for new `traditional` mld problem type
-- Disabled *indicator* constraints (**breaking**)
+- Disabled _indicator_ constraints (**breaking**)
 - Fixed bug in `get_timestep_microgrid_networks`
 - Introduced `block` and `traditional` versions of constraints to account for different `z` indicator variables (**breaking**)
 - Renamed `constraint_switch_state_max_actions` to `constraint_switch_close_action_limit` to better reflect the nature of the constraint (**breaking**)
@@ -137,7 +156,7 @@
 - Added `mn_opf_oltc_capc` problem for dispatch step
 - Added `variable_mc_storage_indicator` due to overlap of `z_storage` with `z_block`
 - Added LinearAlgebra (stdlib) dependency
-- Fixed order of parsing in `entrypoint` (events should go *after* settings)
+- Fixed order of parsing in `entrypoint` (events should go _after_ settings)
 - Add support for `null` values in settings schema, and new objects / fields
 - Updated power variables to be `bounded=false` in the switching problem, and use ampacity constraints only instead
 - Updated `sbase_default` to `1e3` to avoid convergence issues
