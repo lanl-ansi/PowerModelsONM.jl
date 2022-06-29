@@ -11,16 +11,15 @@ module PowerModelsONM
     using Distributed: pmap
 
     # InfrastructureModels ecosystem
-    import InfrastructureModels
-    const _IM = InfrastructureModels
+    import InfrastructureModels as IM
+    import InfrastructureModels: ismultinetwork, ismultiinfrastructure
 
-    import PowerModelsDistribution
+    import PowerModelsDistribution as PMD
     import PowerModelsDistribution: ref, var, con, sol, ids, nw_ids, nw_id_default, nws
     import PowerModelsDistribution: AbstractUnbalancedPowerModel, ACRUPowerModel, ACPUPowerModel, IVRUPowerModel, LPUBFDiagPowerModel, LinDist3FlowPowerModel, NFAUPowerModel, FOTRUPowerModel, FOTPUPowerModel
-    const PMD = PowerModelsDistribution
 
-    import PowerModelsProtection
-    import PowerModelsStability
+    import PowerModelsProtection as PMP
+    import PowerModelsStability as PMS
 
     # Optimization Modeling
     import JuMP
@@ -53,10 +52,11 @@ module PowerModelsONM
     import Requires: @require
 
     function __init__()
-        global _LOGGER = Logging.ConsoleLogger(; meta_formatter=PowerModelsDistribution._pmd_metafmt)
+        global _LOGGER = Logging.ConsoleLogger(; meta_formatter=PMD._pmd_metafmt)
         global _DEFAULT_LOGGER = Logging.current_logger()
 
         Logging.global_logger(_LOGGER)
+        PowerModelsONM.set_log_level!(:Info)
 
         @require Gurobi="2e9cd046-0924-5485-92f1-d5272153d98b" begin
             global GRB_ENV = Gurobi.Env()

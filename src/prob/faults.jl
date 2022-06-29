@@ -76,7 +76,7 @@ function run_fault_studies(network::Dict{String,<:Any}, solver; faults::Dict{Str
     end
 
     if isempty(faults)
-        faults = PowerModelsProtection.build_mc_fault_study(first(network["nw"]).second)
+        faults = PMP.build_mc_fault_study(first(network["nw"]).second)
     end
 
     fault_studies_results = Dict{String,Any}()
@@ -132,7 +132,7 @@ to `subnetwork`, i.e., not a multinetwork, using a nonlinear `solver`.
 Requires the use of `PowerModelsDistribution.IVRUPowerModel`.
 """
 function run_fault_study(subnetwork::Dict{String,<:Any}, faults::Dict{String,<:Any}, solver)::Dict{String,Any}
-    PowerModelsProtection.solve_mc_fault_study(subnetwork, faults, solver)
+    PMP.solve_mc_fault_study(subnetwork, faults, solver)
 end
 
 

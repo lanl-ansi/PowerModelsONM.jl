@@ -88,8 +88,8 @@ function constraint_mc_power_balance_shed_block(pm::PMD.LPUBFDiagModel, nw::Int,
 
     for (l,conns) in bus_loads
         for c in conns
-            _IM.relaxation_product(pm.model, pd[l][c], z_block, pd_zblock[l][c])
-            _IM.relaxation_product(pm.model, qd[l][c], z_block, qd_zblock[l][c])
+            IM.relaxation_product(pm.model, pd[l][c], z_block, pd_zblock[l][c])
+            IM.relaxation_product(pm.model, qd[l][c], z_block, qd_zblock[l][c])
         end
     end
 
@@ -111,7 +111,7 @@ function constraint_mc_power_balance_shed_block(pm::PMD.LPUBFDiagModel, nw::Int,
                 cq_cap = var(pm, nw, :capacitor_reactive_power, sh)[t]
                 cap_state = var(pm, nw, :capacitor_state, sh)[t]
                 bs = LinearAlgebra.diag(ref(pm, nw, :shunt, sh, "bs"))[findfirst(isequal(t), sh_conns)]
-                w_lb, w_ub = _IM.variable_domain(w[t])
+                w_lb, w_ub = IM.variable_domain(w[t])
 
                 # tie to z_block
                 JuMP.@constraint(pm.model, cap_state <= z_block)
@@ -141,7 +141,7 @@ function constraint_mc_power_balance_shed_block(pm::PMD.LPUBFDiagModel, nw::Int,
     PMD.con(pm, nw, :lam_kcl_r)[i] = cstr_p
     PMD.con(pm, nw, :lam_kcl_i)[i] = cstr_q
 
-    if _IM.report_duals(pm)
+    if IM.report_duals(pm)
         sol(pm, nw, :bus, i)[:lam_kcl_r] = cstr_p
         sol(pm, nw, :bus, i)[:lam_kcl_i] = cstr_q
     end
@@ -199,8 +199,8 @@ function constraint_mc_power_balance_shed_traditional(pm::PMD.LPUBFDiagModel, nw
 
     for (l,conns) in bus_loads
         for c in conns
-            _IM.relaxation_product(pm.model, pd[l][c], z_demand[l], pd_zdemand[l][c])
-            _IM.relaxation_product(pm.model, qd[l][c], z_demand[l], qd_zdemand[l][c])
+            IM.relaxation_product(pm.model, pd[l][c], z_demand[l], pd_zdemand[l][c])
+            IM.relaxation_product(pm.model, qd[l][c], z_demand[l], qd_zdemand[l][c])
         end
     end
 
@@ -222,7 +222,7 @@ function constraint_mc_power_balance_shed_traditional(pm::PMD.LPUBFDiagModel, nw
                 cq_cap = var(pm, nw, :capacitor_reactive_power, sh)[t]
                 cap_state = var(pm, nw, :capacitor_state, sh)[t]
                 bs = PMD.diag(ref(pm, nw, :shunt, sh, "bs"))[findfirst(isequal(t), sh_conns)]
-                w_lb, w_ub = _IM.variable_domain(w[t])
+                w_lb, w_ub = IM.variable_domain(w[t])
 
                 # tie to z_voltage
                 JuMP.@constraint(pm.model, cap_state <= z_voltage)
@@ -252,7 +252,7 @@ function constraint_mc_power_balance_shed_traditional(pm::PMD.LPUBFDiagModel, nw
     PMD.con(pm, nw, :lam_kcl_r)[i] = cstr_p
     PMD.con(pm, nw, :lam_kcl_i)[i] = cstr_q
 
-    if _IM.report_duals(pm)
+    if IM.report_duals(pm)
         sol(pm, nw, :bus, i)[:lam_kcl_r] = cstr_p
         sol(pm, nw, :bus, i)[:lam_kcl_i] = cstr_q
     end
@@ -324,7 +324,7 @@ function constraint_mc_transformer_power_yy_block_on_off(pm::PMD.LPUBFDiagModel,
                 # # w_fr/1.1^2 ≤ w_to ≤ w_fr/0.9^2
                 # w_drop_z_block = JuMP.@variable(pm.model, base_name="$(nw)_w_drop_z_block_$(trans_id)_$(idx)")
 
-                # _IM.relaxation_product(pm.model, w_drop, z_block, w_drop_z_block; default_x_domain=(0.9^2, 1.1^2), default_y_domain=(0, 1))
+                # IM.relaxation_product(pm.model, w_drop, z_block, w_drop_z_block; default_x_domain=(0.9^2, 1.1^2), default_y_domain=(0, 1))
 
                 # w_fr_lb = JuMP.has_lower_bound(w_fr[fc]) && JuMP.lower_bound(w_fr[fc]) > 0 ? JuMP.lower_bound(w_fr[fc]) : 0.9^2
                 # w_fr_ub = JuMP.has_upper_bound(w_fr[fc]) && isfinite(JuMP.upper_bound(w_fr[fc])) ? JuMP.upper_bound(w_fr[fc]) : 1.1^2
@@ -394,7 +394,7 @@ function constraint_mc_transformer_power_yy_traditional_on_off(pm::PMD.LPUBFDiag
                 # # w_fr/1.1^2 ≤ w_to ≤ w_fr/0.9^2
                 # w_drop_z_block = JuMP.@variable(pm.model, base_name="$(nw)_w_drop_z_block_$(trans_id)_$(idx)")
 
-                # _IM.relaxation_product(pm.model, w_drop, z_block, w_drop_z_block; default_x_domain=(0.9^2, 1.1^2), default_y_domain=(0, 1))
+                # IM.relaxation_product(pm.model, w_drop, z_block, w_drop_z_block; default_x_domain=(0.9^2, 1.1^2), default_y_domain=(0, 1))
 
                 # w_fr_lb = JuMP.has_lower_bound(w_fr[fc]) && JuMP.lower_bound(w_fr[fc]) > 0 ? JuMP.lower_bound(w_fr[fc]) : 0.9^2
                 # w_fr_ub = JuMP.has_upper_bound(w_fr[fc]) && isfinite(JuMP.upper_bound(w_fr[fc])) ? JuMP.upper_bound(w_fr[fc]) : 1.1^2

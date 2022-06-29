@@ -86,10 +86,10 @@ end
 Runs stability analysis on a single subnetwork (not a multinetwork) using a nonlinear `solver`.
 """
 function run_stability_analysis(subnetwork::Dict{String,<:Any}, omega0::Real, rN::Int, solver; formulation::Type=PMD.ACPUPowerModel)::Bool
-    math_model = PowerModelsStability.transform_data_model(subnetwork)
-    opf_solution = PowerModelsStability.solve_mc_opf(math_model, formulation, solver; solution_processors=[PMD.sol_data_model!])
+    math_model = PMS.transform_data_model(subnetwork)
+    opf_solution = PMS.solve_mc_opf(math_model, formulation, solver; solution_processors=[PMD.sol_data_model!])
 
-    Atot = PowerModelsStability.PMS.get_global_stability_matrix(math_model, opf_solution, omega0, rN)
+    Atot = PMS.get_global_stability_matrix(math_model, opf_solution, omega0, rN)
     eigValList = LinearAlgebra.eigvals(Atot)
     statusTemp = true
     for eig in eigValList
@@ -124,7 +124,7 @@ function _prepare_stability_multinetwork_data(network::Dict{String,<:Any}, inver
                 push!(_inverters, _inv)
             end
         end
-        PowerModelsStability.add_inverters!(nw, merge(filter(x->x.first!="inverters", inverters), Dict{String,Any}("inverters" => _inverters)))
+        PMS.add_inverters!(nw, merge(filter(x->x.first!="inverters", inverters), Dict{String,Any}("inverters" => _inverters)))
     end
 
     return mn_data

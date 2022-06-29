@@ -5,7 +5,7 @@ JuMP.lower_bound(x::Number) = x
 JuMP.upper_bound(x::Number) = x
 
 "variable_domain helper function for constant values"
-_IM.variable_domain(var::Number) = (var, var)
+IM.variable_domain(var::Number) = (var, var)
 
 "has_lower_bound helper function for constant values"
 JuMP.has_lower_bound(x::Number) = true
@@ -52,12 +52,12 @@ JuMP.has_upper_bound(x::JuMP.AffExpr) = all(JuMP.has_upper_bound(k) for (k, _) i
 JuMP.is_binary(x::JuMP.AffExpr) = false
 
 """
-    _IM.variable_domain(var::JuMP.AffExpr)
+    IM.variable_domain(var::JuMP.AffExpr)
 
 Computes the valid domain of a given JuMP variable taking into account bounds
 and the varaible's implicit bounds (e.g., binary).
 """
-function _IM.variable_domain(var::JuMP.AffExpr)
+function IM.variable_domain(var::JuMP.AffExpr)
     lb = -Inf
     if JuMP.has_lower_bound(var)
         lb = JuMP.lower_bound(var)
@@ -78,7 +78,7 @@ function _IM.variable_domain(var::JuMP.AffExpr)
 end
 
 """
-    _IM.relaxation_product(m::JuMP.Model, x::JuMP.AffExpr, y::JuMP.VariableRef, z::JuMP.VariableRef;
+    IM.relaxation_product(m::JuMP.Model, x::JuMP.AffExpr, y::JuMP.VariableRef, z::JuMP.VariableRef;
         default_x_domain::Tuple{Real,Real}=(-Inf, Inf),
         default_y_domain::Tuple{Real,Real}=(-Inf, Inf)
     )
@@ -92,11 +92,11 @@ z <= JuMP.lower_bound(x)*y + JuMP.upper_bound(y)*x - JuMP.lower_bound(x)*JuMP.up
 z <= JuMP.upper_bound(x)*y + JuMP.lower_bound(y)*x - JuMP.upper_bound(x)*JuMP.lower_bound(y)
 ```
 """
-function _IM.relaxation_product(m::JuMP.Model, x::JuMP.AffExpr, y::JuMP.VariableRef, z::JuMP.VariableRef;
+function IM.relaxation_product(m::JuMP.Model, x::JuMP.AffExpr, y::JuMP.VariableRef, z::JuMP.VariableRef;
                                 default_x_domain::Tuple{Real,Real}=(-Inf, Inf),
                                 default_y_domain::Tuple{Real,Real}=(-Inf, Inf))
-    x_lb, x_ub = _IM.variable_domain(x)
-    y_lb, y_ub = _IM.variable_domain(y)
+    x_lb, x_ub = IM.variable_domain(x)
+    y_lb, y_ub = IM.variable_domain(y)
 
     x_lb = !isfinite(x_lb) ? default_x_domain[1] : x_lb
     x_ub = !isfinite(x_ub) ? default_x_domain[2] : x_ub
@@ -110,7 +110,7 @@ function _IM.relaxation_product(m::JuMP.Model, x::JuMP.AffExpr, y::JuMP.Variable
 end
 
 @doc raw"""
-    _IM.relaxation_product(m::JuMP.Model, x::Real, y::JuMP.VariableRef, z::JuMP.VariableRef)
+    IM.relaxation_product(m::JuMP.Model, x::Real, y::JuMP.VariableRef, z::JuMP.VariableRef)
 
 general relaxation of binlinear term (McCormick) for Constants and VariableRefs
 
@@ -121,9 +121,9 @@ z <= JuMP.lower_bound(x)*y + JuMP.upper_bound(y)*x - JuMP.lower_bound(x)*JuMP.up
 z <= JuMP.upper_bound(x)*y + JuMP.lower_bound(y)*x - JuMP.upper_bound(x)*JuMP.lower_bound(y)
 ```
 """
-function _IM.relaxation_product(m::JuMP.Model, x::Real, y::JuMP.VariableRef, z::JuMP.VariableRef)
-    x_lb, x_ub = _IM.variable_domain(x)
-    y_lb, y_ub = _IM.variable_domain(y)
+function IM.relaxation_product(m::JuMP.Model, x::Real, y::JuMP.VariableRef, z::JuMP.VariableRef)
+    x_lb, x_ub = IM.variable_domain(x)
+    y_lb, y_ub = IM.variable_domain(y)
 
     JuMP.@constraint(m, z >= x_lb * y + y_lb * x - x_lb * y_lb)
     JuMP.@constraint(m, z >= x_ub * y + y_ub * x - x_ub * y_ub)

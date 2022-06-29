@@ -57,7 +57,7 @@ end
 
 Version of `InfrastructureModels.build_result` that includes `"mip_gap"` in the results dictionary, if it exists.
 """
-function _IM.build_result(aim::AbstractUnbalancedPowerModel, solve_time; solution_processors=[])
+function IM.build_result(aim::AbstractUnbalancedPowerModel, solve_time; solution_processors=[])
     # try-catch is needed until solvers reliably support ResultCount()
     result_count = 1
     try
@@ -69,7 +69,7 @@ function _IM.build_result(aim::AbstractUnbalancedPowerModel, solve_time; solutio
     solution = Dict{String,Any}()
 
     if result_count > 0
-        solution = _IM.build_solution(aim, post_processors=solution_processors)
+        solution = IM.build_solution(aim, post_processors=solution_processors)
     else
        @warn "model has no results, solution cannot be built"
     end
@@ -79,8 +79,8 @@ function _IM.build_result(aim::AbstractUnbalancedPowerModel, solve_time; solutio
         "termination_status" => JuMP.termination_status(aim.model),
         "primal_status" => JuMP.primal_status(aim.model),
         "dual_status" => JuMP.dual_status(aim.model),
-        "objective" => _IM._guard_objective_value(aim.model),
-        "objective_lb" => _IM._guard_objective_bound(aim.model),
+        "objective" => IM._guard_objective_value(aim.model),
+        "objective_lb" => IM._guard_objective_bound(aim.model),
         "solve_time" => solve_time,
         "solution" => solution,
     )
@@ -235,8 +235,8 @@ end
 Version of `apply_pmd!` that supports `ref::Dict{Symbol,<:Any}`
 """
 function PMD.apply_pmd!(func!::Function, data::Dict{String,<:Any}, ref::Dict{Symbol,<:Any}; apply_to_subnetworks::Bool=true, kwargs...)
-    data_it = _IM.ismultiinfrastructure(data) ? data["it"][PMD.pmd_it_name] : data
-    ref_it = _IM.ismultiinfrastructure(ref) ? ref[:it][PMD.pmd_it_sym] : ref
+    data_it = IM.ismultiinfrastructure(data) ? data["it"][PMD.pmd_it_name] : data
+    ref_it = IM.ismultiinfrastructure(ref) ? ref[:it][PMD.pmd_it_sym] : ref
 
     if PMD.ismultinetwork(data_it) && apply_to_subnetworks
         @assert PMD.ismultinetwork(ref_it)
@@ -254,7 +254,7 @@ end
 
 version of `ismultiinfrastructure` that works on `ref::Dict{Symbol,<:Any}`
 """
-function _IM.ismultiinfrastructure(ref::Dict{Symbol,<:Any})
+function IM.ismultiinfrastructure(ref::Dict{Symbol,<:Any})
     haskey(ref, :it)
 end
 

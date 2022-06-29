@@ -28,8 +28,8 @@ function parse_network(network_file::String)::Tuple{Dict{String,Any},Dict{String
     eng = PMD.parse_file(
         network_file;
         dss2eng_extensions=[
-            PowerModelsProtection._dss2eng_solar_dynamics!,
-            PowerModelsProtection._dss2eng_gen_dynamics!,
+            PMP._dss2eng_solar_dynamics!,
+            PMP._dss2eng_gen_dynamics!,
             _dss2eng_protection!
         ],
         transformations=[PMD.apply_kron_reduction!],

@@ -50,23 +50,23 @@ Configures logging based `level`, `:Error`, `:Warn`, `:Info`, or `:Debug`
 function set_log_level!(level::Symbol)
     if level == :Error
         loglevel = Logging.Error
-        _IM.silence()
+        IM.silence()
     elseif level == :Info
         loglevel = Logging.Info
-        _IM.logger_config!("info")
+        IM.logger_config!("info")
     elseif level == :Debug
         loglevel = Logging.Debug
-        _IM.logger_config!("debug")
+        IM.logger_config!("debug")
     else
         loglevel = Logging.Warn
-        _IM.logger_config!("warn")
+        IM.logger_config!("warn")
     end
 
     mods = [
         (PowerModelsONM, loglevel),
-        (PowerModelsDistribution, loglevel),
-        (PowerModelsProtection, loglevel),
-        (PowerModelsStability, loglevel),
+        (PMD, loglevel),
+        (PMP, loglevel),
+        (PMS, loglevel),
         (Juniper, loglevel),
         (JSONSchema, Logging.Warn)
     ]

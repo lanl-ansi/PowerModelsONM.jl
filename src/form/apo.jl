@@ -109,7 +109,7 @@ function constraint_mc_power_balance_shed_block(pm::PMD.AbstractUnbalancedNFAMod
 
     for (l,conns) in bus_loads
         for c in conns
-            _IM.relaxation_product(pm.model, pd[l][c], z_block, pd_zblock[l][c])
+            IM.relaxation_product(pm.model, pd[l][c], z_block, pd_zblock[l][c])
         end
     end
 
@@ -131,7 +131,7 @@ function constraint_mc_power_balance_shed_block(pm::PMD.AbstractUnbalancedNFAMod
     con(pm, nw, :lam_kcl_r)[i] = cstr_p
     con(pm, nw, :lam_kcl_i)[i] = []
 
-    if _IM.report_duals(pm)
+    if IM.report_duals(pm)
         sol(pm, nw, :bus, i)[:lam_kcl_r] = cstr_p
         sol(pm, nw, :bus, i)[:lam_kcl_i] = []
     end
@@ -168,7 +168,7 @@ function constraint_mc_power_balance_shed_traditional(pm::PMD.AbstractUnbalanced
 
     for (l,conns) in bus_loads
         for c in conns
-            _IM.relaxation_product(pm.model, pd[l][c], z_demand[l], pd_zdemand[l][c])
+            IM.relaxation_product(pm.model, pd[l][c], z_demand[l], pd_zdemand[l][c])
         end
     end
 
@@ -190,7 +190,7 @@ function constraint_mc_power_balance_shed_traditional(pm::PMD.AbstractUnbalanced
     con(pm, nw, :lam_kcl_r)[i] = cstr_p
     con(pm, nw, :lam_kcl_i)[i] = []
 
-    if _IM.report_duals(pm)
+    if IM.report_duals(pm)
         sol(pm, nw, :bus, i)[:lam_kcl_r] = cstr_p
         sol(pm, nw, :bus, i)[:lam_kcl_i] = []
     end

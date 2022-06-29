@@ -18,11 +18,11 @@ function variable_block_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=nw_i
         start=1
     )
 
-    report && _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :bus,     :status, ids(pm, nw, :bus),     Dict{Int,Any}(i => var(pm, nw, :z_block, ref(pm, nw, :bus_block_map, i))     for i in ids(pm, nw, :bus)))
-    report && _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :load,    :status, ids(pm, nw, :load),    Dict{Int,Any}(i => var(pm, nw, :z_block, ref(pm, nw, :load_block_map, i))    for i in ids(pm, nw, :load)))
-    report && _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :shunt,   :status, ids(pm, nw, :shunt),   Dict{Int,Any}(i => var(pm, nw, :z_block, ref(pm, nw, :shunt_block_map, i))   for i in ids(pm, nw, :shunt)))
-    report && _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :gen,     :status, ids(pm, nw, :gen),     Dict{Int,Any}(i => var(pm, nw, :z_block, ref(pm, nw, :gen_block_map, i))     for i in ids(pm, nw, :gen)))
-    report && _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :storage, :status, ids(pm, nw, :storage), Dict{Int,Any}(i => var(pm, nw, :z_block, ref(pm, nw, :storage_block_map, i)) for i in ids(pm, nw, :storage)))
+    report && IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :bus,     :status, ids(pm, nw, :bus),     Dict{Int,Any}(i => var(pm, nw, :z_block, ref(pm, nw, :bus_block_map, i))     for i in ids(pm, nw, :bus)))
+    report && IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :load,    :status, ids(pm, nw, :load),    Dict{Int,Any}(i => var(pm, nw, :z_block, ref(pm, nw, :load_block_map, i))    for i in ids(pm, nw, :load)))
+    report && IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :shunt,   :status, ids(pm, nw, :shunt),   Dict{Int,Any}(i => var(pm, nw, :z_block, ref(pm, nw, :shunt_block_map, i))   for i in ids(pm, nw, :shunt)))
+    report && IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :gen,     :status, ids(pm, nw, :gen),     Dict{Int,Any}(i => var(pm, nw, :z_block, ref(pm, nw, :gen_block_map, i))     for i in ids(pm, nw, :gen)))
+    report && IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :storage, :status, ids(pm, nw, :storage), Dict{Int,Any}(i => var(pm, nw, :z_block, ref(pm, nw, :storage_block_map, i)) for i in ids(pm, nw, :storage)))
 end
 
 
@@ -63,8 +63,8 @@ function variable_switch_state(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_d
         var(pm, nw, :switch_state)[i] = ref(pm, nw, :switch, i, "state")
     end
 
-    report && _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :switch, :state, dispatchable_switches, state)
-    report && _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :switch, :state, fixed_switches, Dict{Int,Any}(i => var(pm, nw, :switch_state, i) for i in fixed_switches))
+    report && IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :switch, :state, dispatchable_switches, state)
+    report && IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :switch, :state, fixed_switches, Dict{Int,Any}(i => var(pm, nw, :switch_state, i) for i in fixed_switches))
 end
 
 
@@ -127,7 +127,7 @@ function variable_bus_voltage_indicator(pm::AbstractUnbalancedPowerModel; nw::In
         start=1
     )
 
-    report && _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :bus, :status, ids(pm, nw, :bus), z_voltage)
+    report && IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :bus, :status, ids(pm, nw, :bus), z_voltage)
 end
 
 
@@ -148,7 +148,7 @@ function variable_generator_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=
         start=1
     )
 
-    report && _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :gen, :status, ids(pm, nw, :gen), z_gen)
+    report && IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :gen, :status, ids(pm, nw, :gen), z_gen)
 end
 
 
@@ -169,7 +169,7 @@ function variable_storage_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=nw
         start=1
     )
 
-    report && _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :storage, :status, ids(pm, nw, :storage), z_storage)
+    report && IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :storage, :status, ids(pm, nw, :storage), z_storage)
 end
 
 
@@ -190,7 +190,7 @@ function variable_load_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id
         start=1
     )
 
-    report && _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :load, :status, ids(pm, nw, :load), z_demand)
+    report && IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :load, :status, ids(pm, nw, :load), z_demand)
 end
 
 
@@ -221,7 +221,7 @@ function variable_inverter_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=n
     end
 
     if report
-        _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :storage, :inverter, [i for ((t,i),_) in var(pm, nw, :z_inverter) if t == :storage], Dict{Int,Union{JuMP.VariableRef,Int}}(i => v for ((t,i),v) in filter(x->x.first[1]==:storage, z_inverter)))
-        _IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :gen, :inverter, [i for ((t,i),_) in var(pm, nw, :z_inverter) if t == :gen], Dict{Int,Union{JuMP.VariableRef,Int}}(i => v for ((t,i),v) in filter(x->x.first[1]==:gen, z_inverter)))
+        IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :storage, :inverter, [i for ((t,i),_) in var(pm, nw, :z_inverter) if t == :storage], Dict{Int,Union{JuMP.VariableRef,Int}}(i => v for ((t,i),v) in filter(x->x.first[1]==:storage, z_inverter)))
+        IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :gen, :inverter, [i for ((t,i),_) in var(pm, nw, :z_inverter) if t == :gen], Dict{Int,Union{JuMP.VariableRef,Int}}(i => v for ((t,i),v) in filter(x->x.first[1]==:gen, z_inverter)))
     end
 end
