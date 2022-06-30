@@ -15,7 +15,7 @@ function run_fault_studies!(args::Dict{String,<:Any}; validate::Bool=true)::Dict
             args["faults"] = parse_faults(args["faults"]; validate=validate)
         end
     else
-        args["faults"] = PMP.build_mc_fault_study(args["base_network"])
+        args["faults"] = PMP.build_mc_sparse_fault_study(args["base_network"])
     end
 
     args["fault_studies_results"] = run_fault_studies(
