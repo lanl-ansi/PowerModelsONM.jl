@@ -13,7 +13,7 @@ If `apply`, will apply the events to the multinetwork data structure.
 
 If `validate=true` (default), the parsed data structure will be validated against the latest [Events Schema](@ref Events-Schema).
 """
-function parse_events!(args::Dict{String,<:Any}; validate::Bool=true, apply::Bool=true)::Dict{String,Any}
+function parse_events!(args::Dict{String,<:Any}; validate::Bool=true, apply::Bool=true)::Union{Dict{String,Any},Vector{Dict{String,Any}}}
     if !isempty(get(args, "events", ""))
         if isa(args["events"], String)
             if isa(get(args, "network", ""), Dict)
@@ -24,7 +24,7 @@ function parse_events!(args::Dict{String,<:Any}; validate::Bool=true, apply::Boo
                 args["events"] = parse_events(args["events"])
             end
         elseif isa(args["events"], Vector) && isa(get(args, "network", ""), Dict)
-            parse_events(args["events"], args["network"])
+            args["events"] = parse_events(args["events"], args["network"])
         end
     else
         args["events"] = Dict{String,Any}()
@@ -34,7 +34,7 @@ function parse_events!(args::Dict{String,<:Any}; validate::Bool=true, apply::Boo
         if isa(get(args, "network", ""), Dict)
             apply_events!(args)
         else
-            error("cannot apply events, no multinetwork is loaded in 'network'")
+            @error("cannot apply events, no multinetwork is loaded in 'network'")
         end
     end
 
