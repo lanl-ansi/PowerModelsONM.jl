@@ -79,4 +79,13 @@
 
         @test isa(_args["events"], Dict{String,Any}) && isempty(_args["events"])
     end
+
+    @testset "test missing output_data" begin
+        _args = deepcopy(orig_args)
+        delete!(_args, output_data)
+
+        analyze_results!(_args)
+
+        @test haskey(_args, "output_data") && !isempty(_args, "output_data")
+    end
 end
