@@ -134,6 +134,7 @@ if !_FAST
     ss.connected_clients[client.id] = client
     for file in readdir("examples", join=true)
         if endswith(file, ".jl")
+            @info "rendering '$(file)' with pluto"
             nb = Pluto.load_notebook_nobackup(file);
             client.connected_notebook = nb;
             Pluto.update_run!(ss, nb, nb.cells);
