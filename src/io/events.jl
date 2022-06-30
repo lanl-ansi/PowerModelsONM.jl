@@ -141,7 +141,7 @@ function parse_events(raw_events::Vector{<:Dict{String,<:Any}}, mn_data::Dict{St
             end
         elseif event["event_type"] == "fault"
             switch_ids = _find_switch_ids_by_faulted_asset(mn_data["nw"][n], event["affected_asset"])
-            n_next = _find_next_nw_id_from_fault_duration(mn_data, n, event["event_data"]["duration"])
+            n_next = _find_next_nw_id_from_fault_duration(mn_data, n, event["event_data"]["duration_ms"])
 
             if !ismissing(n_next)
                 if !haskey(events, n_next)
@@ -251,7 +251,38 @@ end
 
 "helper function to find which switches need to be opened to isolate a fault on asset given by `source_id`"
 function _find_switch_ids_by_faulted_asset(network::Dict{String,<:Any}, source_id::String)::Vector{String}
-    # TODO algorithm for isolating faults (heuristic)
+    data = deepcopy(network)
+    data["data_model"] = PMD.ENGINEERING
+
+    blocks = Dict{Int,Set}(i => block for (i,block) in enumerate(PMD.calc_connected_components(data; type="load_blocks", check_enabled=true)))
+    bus2block_map = Dict(bus => block_id for (block_id,block) in blocks for bus in block)
+
+    source_id_map = Dict{String,Tuple{String,String}}(
+        obj["source_id"] => (obj_type,obj_id) for obj_type in PMD.pmd_eng_asset_types for (obj_id,obj) in get(data,obj_type,Dict()) if haskey(obj,"source_id")
+    )
+
+    (type,obj_id) = source_id_map[lowercase(source_id)]
+    obj = get(get(data, type, Dict()), obj_id, Dict())
+
+    affected_blocks = Set()
+    if type in PMD._eng_edge_elements
+        if type == "transformer" && haskey(obj, "bus")
+            affected_blocks = Set([bus2block_map[bus] for bus in obj["bus"]])
+        elseif haskey(obj, "f_bus") && haskey(obj, "t_bus")
+            affected_blocks = Set([bus2block_map[obj["f_bus"]], bus2block_map[obj["t_bus"]]])
+        end
+    elseif haskey(obj, "bus")
+        affected_blocks = Set([bus2block_map[obj["bus"]]])
+    end
+
+    affected_switches = String[]
+    for (s,switch) in get(network, "switch", Dict())
+        if bus2block_map[switch["f_bus"]] in affected_blocks || bus2block_map[switch["t_bus"]] in affected_blocks
+            push!(affected_switches, s)
+        end
+    end
+
+    return affected_switches
 end
 
 
@@ -315,7 +346,7 @@ function _find_next_nw_id_from_fault_duration(network::Dict{String,<:Any}, nw_id
     mn_lookup_reverse = Dict{Any,String}(v => k for (k,v) in network["mn_lookup"])
 
     timesteps = sort(collect(values(network["mn_lookup"])))
-    dist = timesteps .- current_timestep + (duration / 3.6e6)  # duration is in ms, timestep in hours
+    dist = timesteps .- (current_timestep .+ (duration / 3.6e6))  # duration is in ms, timestep in hours
     if all(dist .< 0)
         return missing
     else
@@ -399,6 +430,7 @@ function build_events(
                         elseif _k == "dispatchable" && !isa(_v, PMD.Dispatchable)
                             converted_event[k][_k] = PMD.Dispatchable(Int(_v))
                         end
+                        converted_event[k][_k] = string(converted_event[k][_k])
                     end
                 end
             end
