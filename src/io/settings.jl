@@ -776,7 +776,6 @@ end
         generate_microgrid_ids::Bool=true,
         cold_load_pickup_factor::Union{Missing,Real}=missing,
         storage_phase_unbalance_factor::Union{Missing,Real}=missing,
-        validate::Bool=true,
     )::Dict{String,Any}
 
 New version of the `build_settings` function. A number of the flags have been moved to `raw_settings`, which should follow
@@ -795,11 +794,11 @@ function build_settings_new(
     generate_microgrid_ids::Bool=true,
     cold_load_pickup_factor::Union{Missing,Real}=missing,
     storage_phase_unbalance_factor::Union{Missing,Real}=missing,
-    validate::Bool=true,
     )::Dict{String,Any}
     n_steps = !haskey(eng, "time_series") ? 1 : length(first(eng["time_series"]).second["values"])
 
     settings = build_default_settings()
+
 
     if !ismissing(timestep_hours)
         if !isa(timestep_hours, Vector)
@@ -818,8 +817,8 @@ function build_settings_new(
     # Generate bus microgrid_ids
     if generate_microgrid_ids
         # merge in switch default settings
-        for (id, switch) in settings["switch"]
-            merge!(eng["switch"][id], switch)
+        for (id, switch) in get(raw_settings, "switch", Dict())
+            eng["switch"][id] = merge(eng["switch"][id], deepcopy(switch))
         end
 
         # identify load blocks
@@ -887,10 +886,6 @@ function build_settings_new(
 
     settings = recursive_merge(settings, raw_settings)
 
-    if validate && !validate_settings(settings)
-        error("settings cannot be validated against schema, check `raw_settings` input for errors: $(evaluate_settings(settings))")
-    end
-
     return settings
 end
 
@@ -901,6 +896,14 @@ end
 Builds and writes settings to an `io::IO` from a network data set `eng::Dict{String,Any}`
 """
 build_settings_new(eng::Dict{String,<:Any}, io::IO; kwargs...) = JSON.print(io, build_settings_new(eng; kwargs...), 2)
+
+
+"""
+    build_settings_new(network_file::String; kwargs...)
+
+Builds settings from a network_file
+"""
+build_settings_new(network_file::String; kwargs...) = build_settings_new(parse_network(network_file)[1]; kwargs...)
 
 
 """
