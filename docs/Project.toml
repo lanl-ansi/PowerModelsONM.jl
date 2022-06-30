@@ -3,7 +3,6 @@ Conda = "8f4d0f93-b110-5947-807f-2305c1781a2d"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 Gumbo = "708ec375-b3d6-5a57-a7ce-8257bf98657a"
 Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781"
-PowerModelsONM = "25264005-a304-4053-a338-565045d392ac"
 PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
 
 [compat]
