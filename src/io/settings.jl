@@ -345,7 +345,7 @@ end
 Helper function to set multiple properties in an `options` at path::Tuple{Vararg{String}} to value::Any.
 This does not rebuild the network data structure.
 """
-function set_options!(network::Dict{String,<:Any}, options::Dict{Tuple{Vararg{String}},<:Any})
+function set_options!(network::Dict{String,<:Any}, options::Dict{<:Tuple{Vararg{String}},<:Any})
     for (path,value) in options
         set_option!(network, path, value)
     end
@@ -371,7 +371,7 @@ end
 Helper function to set multiple options at `path` to `value` and then regenerate the multinetwork data from `args`,
 where the paths are the keys of the `options` input dictionary.
 """
-function set_settings!(args, options::Dict{Tuple{Vararg{String}},<:Any})
+function set_settings!(args::Dict{String,<:Any}, options::Dict{<:Tuple{Vararg{String}},<:Any})
     for (path,value) in options
         _set_property!(args, ("settings", path...), value)
     end
@@ -920,4 +920,4 @@ end
 
 Builds and writes settings to a `settings_file::String` from a network data set at `network_file::String`
 """
-build_settings_new(network_file::String, settings_file::String; kwargs...) = build_settings_new(PMD.parse_file(network_file), settings_file; kwargs)
+build_settings_new(network_file::String, settings_file::String; kwargs...) = build_settings_new(parse_network(network_file)[1], settings_file; kwargs)
