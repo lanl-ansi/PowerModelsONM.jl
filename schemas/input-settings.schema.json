@@ -146,7 +146,7 @@
     "nlp_solver_tol": {
       "type": "number",
       "deprecated": true,
-      "description": "deprecated: {solvers/Ipopt/tol,solvers/KNITRO/feas}"
+      "description": "deprecated: {solvers/Ipopt/tol,solvers/KNITRO/feastol}"
     },
     "mip_solver_tol": {
       "type": "number",
