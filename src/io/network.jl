@@ -30,7 +30,11 @@ function parse_network(network_file::String)::Tuple{Dict{String,Any},Dict{String
         dss2eng_extensions=[
             PMP._dss2eng_solar_dynamics!,
             PMP._dss2eng_gen_dynamics!,
-            _dss2eng_protection!
+            PMP._dss2eng_curve!,
+            PMP._dss2eng_fuse!,
+            PMP._dss2eng_ct!,
+            PMP._dss2eng_relay!,
+            _dss2eng_protection_locations!
         ],
         transformations=[PMD.apply_kron_reduction!],
         import_all=true
@@ -59,16 +63,18 @@ end
 
 Extension function for converting opendss protection into protection objects for protection optimization.
 """
-function _dss2eng_protection!(eng::Dict{String,<:Any}, dss::Dict{String,<:Any})
+function _dss2eng_protection_locations!(eng::Dict{String,<:Any}, dss::Dict{String,<:Any})
     for type in ["relay", "recloser", "fuse"]
-        if !isempty(get(dss, type, Dict()))
+        if !isempty(get(dss, type, Dict())) && !haskey(eng, type)
             eng[type] = Dict{String,Any}()
         end
 
         for (id, dss_obj) in get(dss, type, Dict())
-            eng[type][id] = Dict{String,Any}(
-                "location" => dss_obj["monitoredobj"],
-            )
+            if !haskey(eng[type], id)
+                eng[type][id] = Dict{String,Any}()
+            end
+            eng[type][id]["location"] = dss_obj["monitoredobj"]
+            eng[type][id]["monitor_type"] = string(split(dss_obj["monitoredobj"], ".")[1])
         end
     end
 end
