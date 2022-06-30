@@ -5,9 +5,7 @@ Distributed.addprocs(3)
 @everywhere using PowerModelsONM
 
 import JSON
-import PowerModelsDistribution
-
-const PMD = PowerModelsDistribution
+import PowerModelsDistribution as PMD
 
 using Test
 

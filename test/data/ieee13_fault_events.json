@@ -1,0 +1,10 @@
+[
+  {
+    "timestep": 1,
+    "event_type": "fault",
+    "affected_asset": "Line.702703",
+    "event_data": {
+      "duration_ms": 100000000
+    }
+  }
+]

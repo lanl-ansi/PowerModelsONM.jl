@@ -62,4 +62,20 @@
         @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["675"]["vm"] ./ vbase["675"], [1.03, 1.08, 1.03]; atol=1e-2))
         @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["675"]["va"], [-5.03, -121.80, 116.66]; atol=1e0))
     end
+
+    @testset "test fix-small-numbers nfa opf" begin
+        args = deepcopy(orig_args)
+        prepare_data!(args)
+
+        set_settings!(args, Dict(
+            ("options","data","fix-small-numbers") => true,
+            ("options","problem","dispatch-formulation") => "nfa"
+        ))
+
+        build_solver_instances!(args)
+
+        result = optimize_dispatch!(args)
+
+        @test isapprox(result["objective"], 4.85; atol=1e-2)
+    end
 end

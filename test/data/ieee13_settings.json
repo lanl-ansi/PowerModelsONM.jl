@@ -1,4 +1,5 @@
 {
+  "time_elapsed": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
   "disable_inverter_constraint": false,
   "line": {
     "632670": {
