@@ -28,7 +28,9 @@ The following is a high-level overview of how our documetation is structured. Th
 
 ## PowerModelsONM Analyses Packages
 
-PowerModelsONM depends on several other PowerModels(...) packages from the InfrastructureModels ecosystem.
+PowerModelsONM depends on several other PowerModels(...) packages from the InfrastructureModels ecosystem. The packages in blue below are created and maintained by the core InfrastructureModels developer team, and the other packages are those that are built as extensions or rely on one of the core InfrastructureModels packages in some way.
+
+![InfrastructureModels Ecosystem](assets/infrastructuremodels_ecosystem.png)
 
 ### PowerModelsDistribution
 
