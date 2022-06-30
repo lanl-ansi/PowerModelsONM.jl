@@ -45,7 +45,7 @@ pages = [
         "Beginners Guide" => "tutorials/Beginners Guide.md",
         "Block MLD Basic Example" => "tutorials/Block MLD Basic Example.md",
         "JuMP Model by Hand - MLD-Block Example" => "tutorials/JuMP Model by Hand - MLD-Block.md",
-        "Use Case Examples" => "tutorials/Use Case Examples.md",
+        # "Use Case Examples" => "tutorials/Use Case Examples.md",
     ],
     "API Reference" => [
         "Base functions" => "reference/base.md",
