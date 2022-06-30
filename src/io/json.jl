@@ -23,6 +23,7 @@ function correct_json_import!(data::Dict{String,<:Any})
             PowerModelsONM._fix_enums!(data, k, data[k])
             PowerModelsONM._fix_symbols!(data, k, data[k])
             PMD._fix_arrays!(data, k, data[k])
+            PowerModelsONM._fix_nulls!(data, k, data[k])
             PMD._fix_nulls!(data, k, data[k])
         end
     end
@@ -42,6 +43,37 @@ end
 function _fix_symbols!(obj, prop, val)
     obj[prop] = convert(val)
 end
+
+
+"helper function to fix null values from json (usually Inf or NaN)"
+function _fix_nulls!(obj, prop, val)
+    if endswith(prop, "-ub")
+        fill_val = Inf
+    elseif endswith(prop, "-lb")
+        fill_val = -Inf
+    else
+        return
+    end
+
+    if isa(val, Matrix) && any(val .=== nothing)
+        @debug "a 'null' was encountered in the json import, making an assumption that null values in $prop = $fill_val"
+        valdtype = valtype(val)
+        if isa(valdtype, Union)
+            dtype = [getproperty(valdtype, n) for n in propertynames(valdtype) if getproperty(valdtype, n) != Nothing][end]
+        else
+            dtype = valdtype
+        end
+        val[val .=== nothing] .= fill_val
+        obj[prop] = Matrix{valtype(val) == Nothing ? typeof(fill_val) : valtype(val)}(val)
+    elseif isa(val, Vector) && any(v === nothing for v in val)
+        @debug "a 'null' was encountered in the json import, making an assumption that null values in $prop = $fill_val"
+        obj[prop] = Vector{valtype(val) == Nothing ? typeof(fill_val) : valtype(val)}([v === nothing ? fill_val : v for v in val])
+    elseif val === nothing
+        @debug "a 'null' was encountered in the json import, making an assumption that null values in $prop = $fill_val"
+        obj[prop] = fill_val
+    end
+end
+
 
 
 "Helper to ensure that Symbols get exported as strings prefaced with a ':'"
