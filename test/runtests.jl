@@ -19,6 +19,7 @@ silence!()
     # inputs
     include("io.jl")
     include("data.jl")
+    include("graphml.jl")
 
     # problems
     include("mld.jl")
