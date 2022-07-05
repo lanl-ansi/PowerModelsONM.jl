@@ -111,7 +111,7 @@ using [`build_solver_instances`](@ref build_solver_instances), assigning them to
 """
 function build_solver_instances!(args::Dict{String,<:Any})::Dict{String,Any}
     solver_opts = get(get(args, "network", Dict()), "solvers", Dict{String,Any}())
-    log_level = get(args, "log-level", "warn")
+    log_level = get_setting(args, ("options","outputs","log-level"), "warn")
 
     args["solvers"] = build_solver_instances(;
         nlp_solver = get(get(args, "solvers", Dict()), "nlp_solver", missing),
@@ -157,8 +157,10 @@ function build_solver_instances(;
             opts = get(solver_options, "KNITRO", Dict{String,Any}())
             if log_level == "debug"
                 opts["outlev"] = 3
+                opts["mip_outlevel"] = 3
             elseif log_level == "info"
                 opts["outlev"] = 2
+                opts["mip_outlevel"] = 2
             end
             nlp_solver = optimizer_with_attributes(
                 () -> KNITRO.Optimizer(;license_manager=KN_LMC),
@@ -209,8 +211,10 @@ function build_solver_instances(;
             opts = get(solver_options, "KNITRO", Dict{String,Any}())
             if log_level == "debug"
                 opts["outlev"] = 3
+                opts["mip_outlevel"] = 3
             elseif log_level == "info"
                 opts["outlev"] = 2
+                opts["mip_outlevel"] = 2
             end
             minlp_solver = optimizer_with_attributes(
                 () -> KNITRO.Optimizer(;license_manager=KN_LMC),
