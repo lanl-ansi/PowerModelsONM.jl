@@ -306,9 +306,9 @@
             "switch" => Dict{String,Any}(
                 "801675" => Dict{String,Any}(
                     "cm_ub" => [25.0, 25.0, 25.0],
-                    "state"=>"OPEN",
-                    "dispatchable"=>"YES",
-                    "status"=>"ENABLED"
+                    "state"=>OPEN,
+                    "dispatchable"=>YES,
+                    "status"=>ENABLED
                 ),
                 "800801" => Dict{String,Any}("cm_ub" => [25.0, 25.0, 25.0])
             ),
