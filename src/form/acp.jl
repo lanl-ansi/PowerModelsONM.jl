@@ -11,7 +11,7 @@ Linear switch power on/off constraint for ACPU form.
 \end{align}
 ```
 """
-function constraint_mc_switch_state_voltage_open_closed(pm::PMD.AbstractUnbalancedACPModel, nw::Int, i::Int, f_bus::Int, t_bus::Int, f_connections::Vector{Int}, t_connections::Vector{Int})
+function constraint_mc_switch_voltage_open_close(pm::PMD.AbstractUnbalancedACPModel, nw::Int, i::Int, f_bus::Int, t_bus::Int, f_connections::Vector{Int}, t_connections::Vector{Int})
     vm_fr = var(pm, nw, :vm, f_bus)
     vm_to = var(pm, nw, :vm, t_bus)
     va_fr = var(pm, nw, :va, f_bus)
