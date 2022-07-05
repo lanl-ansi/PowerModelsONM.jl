@@ -71,7 +71,7 @@
       "properties": {
         "branch_strategy": {
           "type": "string",
-          "default": ":MostInfeasible",
+          "default": ":StrongPseuoCost",
           "enum": [
             ":MostInfeasible",
             ":PseudoCost",
@@ -83,7 +83,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["Table", "Info", "Options"]
+            "enum": [":Table", ":Info", ":Options"]
           }
         },
         "mip_gap": {
@@ -93,7 +93,19 @@
         "traverse_strategy": {
           "type": "string",
           "enum": [":DFS", ":BFS", ":DBFS"],
-          "default": ":DFS"
+          "default": ":BFS"
+        },
+        "allow_almost_solved_integral": {
+          "type": "boolean",
+          "default": true
+        },
+        "allow_almost_solved": {
+          "type": "boolean",
+          "default": true
+        },
+        "atol": {
+          "type": "number",
+          "default": 0.000001
         }
       }
     },
