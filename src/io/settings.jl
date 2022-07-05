@@ -275,7 +275,7 @@ end
 
 Applies `settings` to single-network `network`
 """
-function apply_settings(network::T, settings::T)::T where T <: Dict{String,Any}
+function apply_settings(network::T, settings::T; multinetwork::Bool=true)::T where T <: Dict{String,Any}
     @assert !PMD.ismultinetwork(network)
 
     eng = recursive_merge(recursive_merge(deepcopy(network), filter(x->x.first!="dss",settings)), parse_dss_settings(get(settings, "dss", Dict{String,Any}()), network))
@@ -288,10 +288,10 @@ function apply_settings(network::T, settings::T)::T where T <: Dict{String,Any}
     end
 
     if !ismissing(get_option(eng, ("options","data","time-elapsed")))
-        eng["time_elapsed"] = eng["options"]["data"]["time-elapsed"]
+        eng["time_elapsed"] = multinetwork ? eng["options"]["data"]["time-elapsed"] : eng["options"]["data"]["time-elapsed"][1]
     end
 
-    eng["switch_close_actions_ub"] = get_option(eng, ("options","data","switch-close-actions-ub"), Inf)
+    eng["switch_close_actions_ub"] = multinetwork ? get_option(eng, ("options","data","switch-close-actions-ub"), Inf) : get_option(eng, ("options","data","switch-close-actions-ub"), Inf)[1]
 
     if !ismissing(get_option(eng, ("options","outputs","log-level")))
         set_log_level!(Symbol(titlecase(settings["options"]["outputs"]["log-level"])))
