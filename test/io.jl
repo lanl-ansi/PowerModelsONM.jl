@@ -234,7 +234,12 @@
     @testset "test build settings" begin
         custom_settings = Dict{String,Any}(
             "switch" => Dict{String,Any}(
-                "801675" => Dict{String,Any}("cm_ub" => [25.0, 25.0, 25.0]),
+                "801675" => Dict{String,Any}(
+                    "cm_ub" => [25.0, 25.0, 25.0],
+                    "state"=>"OPEN",
+                    "dispatchable"=>"YES",
+                    "status"=>"ENABLED"
+                ),
                 "800801" => Dict{String,Any}("cm_ub" => [25.0, 25.0, 25.0])
             ),
             "voltage_source" => Dict{String,Any}(
@@ -299,7 +304,12 @@
                 "sbase_default" => 1000.0,
             ),
             "switch" => Dict{String,Any}(
-                "801675" => Dict{String,Any}("cm_ub" => [25.0, 25.0, 25.0]),
+                "801675" => Dict{String,Any}(
+                    "cm_ub" => [25.0, 25.0, 25.0],
+                    "state"=>"OPEN",
+                    "dispatchable"=>"YES",
+                    "status"=>"ENABLED"
+                ),
                 "800801" => Dict{String,Any}("cm_ub" => [25.0, 25.0, 25.0])
             ),
             "voltage_source" => Dict{String,Any}(
@@ -340,6 +350,7 @@
                     "MIPGap" => 1e-4
                 ),
                 "Juniper" => Dict{String,Any}(
+                    "atol" => 1e-5,
                     "mip_gap" => 1e-4,
                 ),
                 "KNITRO" => Dict{String,Any}(

@@ -197,7 +197,12 @@
     "battery_mg1b": { "phase_unbalance_factor": 0.0 }
   },
   "switch": {
-    "801675": { "cm_ub": [25.0, 25.0, 25.0] },
+    "801675": {
+      "cm_ub": [25.0, 25.0, 25.0],
+      "state": "OPEN",
+      "status": "ENABLED",
+      "dispatchable": "YES"
+    },
     "671692": { "cm_ub": [null, null, null] },
     "671700": { "cm_ub": [null, null, null] },
     "703800": { "cm_ub": [null, null, null] },
