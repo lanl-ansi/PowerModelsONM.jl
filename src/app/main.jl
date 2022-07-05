@@ -46,19 +46,19 @@ function entrypoint(args::Dict{String,<:Any})::Dict{String,Any}
 
     build_solver_instances!(args)
 
-    if !("switching" in get(args, "skip", String[]))
+    if !("switching" in get_setting(args, ("options","problem","skip"), String[]))
         optimize_switches!(args)
     end
 
-    if !("dispatch" in get(args, "skip", String[]))
+    if !("dispatch" in get_setting(args, ("options","problem","skip"), String[]))
         optimize_dispatch!(args)
     end
 
-    if !("stability" in get(args, "skip", String[])) && haskey(args, "inverters") && !isempty(args["inverters"])
+    if !("stability" in get_setting(args, ("options","problem","skip"), String[])) && haskey(args, "inverters") && !isempty(args["inverters"])
         run_stability_analysis!(args)
     end
 
-    if !("faults" in get(args, "skip", String[]))
+    if !("faults" in get_setting(args, ("options","problem","skip"), String[]))
         run_fault_studies!(args)
     end
 
@@ -67,11 +67,11 @@ function entrypoint(args::Dict{String,<:Any})::Dict{String,Any}
     !validate_output(args["output_data"]) && @warn "Output data structure failed to validate against its schema:\n$(evaluate_output(args["output_data"]))"
 
     if !isempty(get(args, "output", ""))
-        write_json(args["output"], args["output_data"]; indent=get(args, "pretty-print", false) ? 2 : missing)
+        write_json(args["output"], args["output_data"]; indent=get_setting(args, ("options","outputs","pretty-print"), false) ? 2 : missing)
     end
 
-    if get(args, "debug", false)
-        write_json("debug_onm_$(Dates.format(Dates.now(), "yyyy-mm-dd--HH-MM-SS")).json", args; indent=get(args, "pretty-print", false) ? 2 : missing)
+    if get_setting(args, ("options","outputs","debug-output"),false)
+        write_json("debug_onm_$(Dates.format(Dates.now(), "yyyy-mm-dd--HH-MM-SS")).json", args; indent=get_setting(args, ("options","outputs","pretty-print"), false) ? 2 : missing)
     end
 
     return args

@@ -63,6 +63,7 @@
     "skip": {
       "type": "array",
       "uniqueItems": true,
+      "deprecated": true,
       "description": "deprecated: options/problem/skip",
       "items": {
         "type": "string",
@@ -71,8 +72,9 @@
     },
     "log-level": {
       "type": "string",
-      "enum": ["debug", "info", "warn", "error"],
-      "default": "warn"
+      "deprecated": true,
+      "description": "deprecated: options/outputs/log-level",
+      "enum": ["debug", "info", "warn", "error"]
     },
     "quiet": {
       "type": "boolean",

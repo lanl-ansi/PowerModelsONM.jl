@@ -280,20 +280,20 @@ function apply_settings(network::T, settings::T)::T where T <: Dict{String,Any}
 
     eng = recursive_merge(recursive_merge(deepcopy(network), filter(x->x.first!="dss",settings)), parse_dss_settings(get(settings, "dss", Dict{String,Any}()), network))
 
-    if get(get(get(eng, "options", T()), "data", T()), "fix-small-numbers", false)
+    if get_option(eng, ("options","data","fix-small-numbers"), false)
         @info "fix-small-numbers algorithm applied"
         PMD.adjust_small_line_impedances!(eng; min_impedance_val=1e-1)
         PMD.adjust_small_line_admittances!(eng; min_admittance_val=1e-1)
         PMD.adjust_small_line_lengths!(eng; min_length_val=10.0)
     end
 
-    if !ismissing(get(get(get(eng, "options", T()), "data", T()), "time-elapsed", missing))
+    if !ismissing(get_option(eng, ("options","data","time-elapsed")))
         eng["time_elapsed"] = eng["options"]["data"]["time-elapsed"]
     end
 
-    eng["switch_close_actions_ub"] = get(get(get(eng, "options", T()), "data", T()), "switch-close-actions-ub", Inf)
+    eng["switch_close_actions_ub"] = get_option(eng, ("options","data","switch-close-actions-ub"), Inf)
 
-    if !ismissing(get(get(get(eng, "options", T()), "outputs", T()), "log-level", missing))
+    if !ismissing(get_option(eng, ("options","outputs","log-level")))
         set_log_level!(Symbol(titlecase(settings["options"]["outputs"]["log-level"])))
     end
 

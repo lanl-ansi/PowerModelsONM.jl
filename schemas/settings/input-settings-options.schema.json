@@ -270,6 +270,12 @@
     "outputs": {
       "type": "object",
       "properties": {
+        "log-level": {
+          "description": "Setting to adjust the console log-level",
+          "type": "string",
+          "enum": ["debug", "info", "warn", "error"],
+          "default": "warn"
+        },
         "pretty-print": {
           "description": "Flag to enable 'pretty printing' of JSON output",
           "type": "boolean",
