@@ -24,7 +24,27 @@ end
 Parses network file given by runtime arguments into its base network, i.e., not expanded into a multinetwork,
 and multinetwork, which is the multinetwork `ENGINEERING` representation of the network.
 """
-function parse_network(network_file::String)::Tuple{Dict{String,Any},Dict{String,Any}}
+function parse_network(network_file::String; dss2eng_extensions=Function[], transformations=Function[], import_all=true, kwargs...)::Tuple{Dict{String,Any},Dict{String,Any}}
+    eng = parse_file(
+        network_file;
+        dss2eng_extensions=dss2eng_extensions,
+        transformations=transformations,
+        import_all=import_all,
+        kwargs...
+    )
+
+    mn_eng = make_multinetwork(eng)
+
+    return eng, mn_eng
+end
+
+
+"""
+    parse_file(network_file::String; dss2eng_extensions=Function[], transformations=Function[], import_all=true, kwargs...)
+
+ONM version of `PowerModelsDistribution.parse_file`, which includes some `dss2eng_extensions` and `transformations` by default
+"""
+function parse_file(network_file::String; dss2eng_extensions=Function[], transformations=Function[], import_all=true, kwargs...)
     eng = PMD.parse_file(
         network_file;
         dss2eng_extensions=[
@@ -34,10 +54,12 @@ function parse_network(network_file::String)::Tuple{Dict{String,Any},Dict{String
             PMP._dss2eng_fuse!,
             PMP._dss2eng_ct!,
             PMP._dss2eng_relay!,
-            _dss2eng_protection_locations!
+            _dss2eng_protection_locations!,
+            dss2eng_extensions...
         ],
-        transformations=[PMD.apply_kron_reduction!],
-        import_all=true
+        transformations=[PMD.apply_kron_reduction!, transformations...],
+        import_all=import_all,
+        kwargs...
     )
 
     # Add default switch_close_actions_ub
@@ -49,9 +71,7 @@ function parse_network(network_file::String)::Tuple{Dict{String,Any},Dict{String
         eng["solar"][id]["cost_pg_parameters"] = [0.0, 0.0]
     end
 
-    mn_eng = make_multinetwork(eng)
-
-    return eng, mn_eng
+    return eng
 end
 
 

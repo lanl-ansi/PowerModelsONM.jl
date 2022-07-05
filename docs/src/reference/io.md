@@ -3,6 +3,7 @@
 ## Parsers
 
 ```@docs
+parse_file
 parse_network
 parse_network!
 parse_events
@@ -38,4 +39,15 @@ get_timestep_bus_types!
 
 ```@docs
 write_json
+```
+
+## Getters and Setters
+
+```@docs
+get_option
+get_setting
+set_setting!
+set_settings!
+set_option!
+set_options!
 ```
