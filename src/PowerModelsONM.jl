@@ -16,7 +16,6 @@ module PowerModelsONM
 
     import PowerModelsDistribution as PMD
     import PowerModelsDistribution: ref, var, con, sol, ids, nw_ids, nw_id_default, nws
-    import PowerModelsDistribution: AbstractUnbalancedPowerModel, ACRUPowerModel, ACPUPowerModel, IVRUPowerModel, LPUBFDiagPowerModel, LinDist3FlowPowerModel, NFAUPowerModel, FOTRUPowerModel, FOTPUPowerModel
 
     import PowerModelsProtection as PMP
     import PowerModelsStability as PMS
