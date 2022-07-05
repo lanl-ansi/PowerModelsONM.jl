@@ -32,13 +32,27 @@ Throughout this tutorial, we will utilize data that is included in the PowerMode
 """
 
 # ╔═╡ 0641c9b7-4cb2-48a7-985a-fea34175a635
-data_dir = joinpath(dirname(pathof(PowerModelsONM)), "..", "test", "data")
+test_dir = joinpath(dirname(pathof(PowerModelsONM)), "../test/data")
+
+# ╔═╡ d7d6bf22-36ce-4765-b7d9-a4fd7ca41a47
+example_dir = joinpath(dirname(pathof(PowerModelsONM)), "../examples/data")
+
+# ╔═╡ f2deeb76-33c5-4d85-a032-60773e0ebf04
+ieee13_network_ex = joinpath(example_dir, "network.ieee13.dss")
+
+# ╔═╡ fe5b1f7c-f7d9-4451-9942-3e86fea61a35
+ieee13_settings_ex = joinpath(example_dir, "settings.ieee13.json")
+
+# ╔═╡ 0b2651db-d938-4737-b63a-7679a5750d9c
+ieee13_events_ex = joinpath(example_dir, "events.ieee13.json")
+
+# ╔═╡ d01b5080-eb75-4a7c-b026-fe1d3bfe996c
+ieee13_faults_test = joinpath(test_dir, "ieee13_faults.json")
+
+# ╔═╡ 0ece8e62-7ce7-4a74-b403-0477b23600c6
+ieee13_inverters_test = joinpath(test_dir, "ieee13_inverters.json")
 
 # ╔═╡ 626cc32c-99b1-4383-a346-16538af31963
-begin
-
-setup_logging!(Dict{String,Any}("verbose"=>true))
-
 md"""
 ## How to use PowerModelsONM
 
@@ -61,17 +75,25 @@ In particular, the workflow consists of sequential steps of
   - Powerflow outputs, which contains dispatch setpoints and bus voltage magnitudes
   - Small signal stability results
   - Fault analysis results
+"""
 
-### Inputs
+# ╔═╡ 51e6236d-f6eb-4dcf-9b03-1f9b04848ce7
+begin
+	open(joinpath(dirname(pathof(PowerModelsONM)), "../docs/src/assets/onm_process_flow_v4.png"), "r") do io
+		HTML(read(io, String))
+	end
+end
+
+# ╔═╡ 583c7e8f-4e2b-4a91-8edf-681e55b55bfd
+md"""### Inputs
 
 The first and foremost piece of data you will need is the network definition files in OpenDSS format. For more information on what is currently supported see [PowerModelsDistribution](https://github.com/lanl-ansi/PowerModelsDistribution.jl).
 
 Using `parse_network` will return a `network`, which is a "multinetwork" representation of the timeseries contained in the DSS specification, and `base_network`, which is the topological reality of the system, without the expansion into a multinetwork.
 """
-end
 
 # ╔═╡ 4891479c-9eb5-494e-ad1f-9bd52a171c57
-base_network, network = parse_network(joinpath(data_dir, "ieee13_feeder.dss"))
+base_network, network = parse_network(ieee13_network_ex)
 
 # ╔═╡ e1f1b7cf-d8ad-432d-ac98-95860e1ec65d
 md"""
@@ -95,7 +117,7 @@ In this example, we load some settings that have been found to fit the loaded da
 """
 
 # ╔═╡ e686d58d-50ea-4789-93e7-5f3c41ee53ad
-settings = parse_settings(joinpath(data_dir, "ieee13_settings.json"))
+settings = parse_settings(ieee13_settings_ex)
 
 # ╔═╡ 70b6075c-b548-44d2-b301-9621023e06e0
 md"""
@@ -139,7 +161,7 @@ In this example, we load a contingency where in timestep 1 a switching action is
 """
 
 # ╔═╡ e941118d-5b63-4886-bacd-82291f4c01c4
-raw_events = parse_events(joinpath(data_dir, "ieee13_events.json"))
+raw_events = parse_events(ieee13_events_ex)
 
 # ╔═╡ 353e797c-6155-4d7b-bb79-440d7b8f8ae2
 md"""
@@ -188,6 +210,21 @@ PowerModelsONM has several solvers built-in in case you don't want to create you
 - `"misocp_solver"`: Juniper
 
 """
+
+# ╔═╡ a8ce787f-6a2c-4c97-940c-8331fbda1f3c
+md"To create some solvers, it is useful to have some solver settings. The settings structure contains some reasonable defaults."
+
+# ╔═╡ 87959af2-47b2-484c-8396-98f87a4abc2b
+settings["solvers"]
+
+# ╔═╡ 7197dba8-4fb3-460b-8fe3-a0efc59a2d98
+md"In this case, the settings defaulted to using the Gurobi solver, which we should correct for this notebook"
+
+# ╔═╡ ad417629-caf6-4efd-8861-d7a40c58b53f
+settings["solvers"]["useGurobi"] = false
+
+# ╔═╡ a566fb16-6368-4edb-846c-0dc1917e15da
+md"Now, we build some solver instances with these settings"
 
 # ╔═╡ c733df10-79b1-4b72-8c74-fe1fabfead44
 solvers = build_solver_instances(; solver_options=settings["solvers"])
@@ -262,7 +299,7 @@ Here we use an example faults file from our unit tests.
 """
 
 # ╔═╡ 3a3da57c-4783-4e79-b19a-a50633419eb1
-faults = parse_faults(joinpath(data_dir, "ieee13_faults.json"))
+faults = parse_faults(ieee13_faults_test)
 
 # ╔═╡ 8ea1a7a5-b515-494b-86b8-584c8243d7f1
 md"""
@@ -284,7 +321,7 @@ For stability analysis, we need to define some inverter properties, which we hav
 """
 
 # ╔═╡ 8fb0fb4d-3b6c-4e76-907f-7d03d7ac0601
-inverters = parse_inverters(joinpath(data_dir, "ieee13_inverters.json"))
+inverters = parse_inverters(ieee13_inverters_test)
 
 # ╔═╡ 9bbf0909-218b-4ba8-bd49-93d839fd1c35
 md"""
@@ -316,7 +353,7 @@ and `get_timestep_switch_changes`, which is a list of switches whose `state` has
 """
 
 # ╔═╡ 21a22427-88c2-49d1-9d9c-a93be0cb1ebf
-get_timestep_switch_changes(network_settings_events_osw)
+get_timestep_switch_changes(network_settings_events, optimal_switching_results)
 
 # ╔═╡ 9b999688-6f02-49e6-8835-15d97a38095f
 md"""
@@ -399,14 +436,41 @@ Even if you use it from the Julia REPL, it can be very beneficial, because it wi
 
 # ╔═╡ 753c3b4c-861b-4787-b304-b4d3b1b84be0
 args = Dict{String,Any}(
-	"network" => joinpath(data_dir, "ieee13_feeder.dss"),
-	"events" => joinpath(data_dir, "ieee13_events.json"),
-	"settings" => joinpath(data_dir, "ieee13_settings.json"),
-	"inverters" => joinpath(data_dir, "ieee13_inverters.json"),
-	"faults" => joinpath(data_dir, "ieee13_faults.json"),
-	"opt-switch-algorithm" => "rolling-horizon",
-	"opt-switch-solver" => "mip_solver",
+	"network" => ieee13_network_ex,
+	"events" => ieee13_events_ex,
+	"settings" => ieee13_settings_ex,
+	"inverters" => ieee13_inverters_test,
+	"faults" => ieee13_faults_test,
 )
+
+# ╔═╡ 5c6e9ace-de55-4b45-84f8-876e7c04f664
+md"Normally, we would simply call `entrypoint(args)` at this point, but to ensure that this problem solves in reasonable time, we will adjust some settings first, which will require some additional steps."
+
+# ╔═╡ 1a68e9eb-1e37-4049-9480-74cb185c7531
+md"First, we load the data using `prepare_data!`, which will do all the necessary parsing of the network, settings, and events files"
+
+# ╔═╡ 24ea3ffc-ec31-4b18-a8f6-b5ede42ff33c
+prepare_data!(args)
+
+# ╔═╡ b8a81954-8115-4e88-9d19-4ea3abec15ed
+md"Then we can use `set_settings!` to adjust some options in the `args` data structure"
+
+# ╔═╡ 550ebcd5-9b7c-435e-9450-4eb5a94aac03
+set_settings!(
+	args,
+	Dict(
+		("solvers","useGurobi") => false,
+		("solvers","HiGHS","time_limit") => 300.0,
+		("solvers","Ipopt","max_cpu_time") => 300.0,
+		("options","problem","operations-algorithm") => "rolling-horizon",
+		("options","problem","dispatch-formulation") => "lindistflow",
+		("options","constraints","disable-microgrid-networking") => true,
+		("options","problem","skip") => ["stability","faults"]
+	)
+)
+
+# ╔═╡ 8b192733-2e26-4e9c-a4d9-45e8fbf3571d
+md"Finally, we can execute the `entrypoint` function, which will perform all parts of the ONM workflow"
 
 # ╔═╡ 32073778-e62a-46ee-9797-3988be5c8fba
 entrypoint_results = entrypoint(args)
@@ -436,13 +500,21 @@ In many cases, the default bounds from DSS are either much too restrictive, such
 # ╠═d8124cac-293a-4a2d-ba70-bc75ec624712
 # ╟─ae76a6e5-f114-476f-8c53-36e369586d0c
 # ╠═0641c9b7-4cb2-48a7-985a-fea34175a635
-# ╟─626cc32c-99b1-4383-a346-16538af31963
+# ╠═d7d6bf22-36ce-4765-b7d9-a4fd7ca41a47
+# ╠═f2deeb76-33c5-4d85-a032-60773e0ebf04
+# ╠═fe5b1f7c-f7d9-4451-9942-3e86fea61a35
+# ╠═0b2651db-d938-4737-b63a-7679a5750d9c
+# ╠═d01b5080-eb75-4a7c-b026-fe1d3bfe996c
+# ╠═0ece8e62-7ce7-4a74-b403-0477b23600c6
+# ╠═626cc32c-99b1-4383-a346-16538af31963
+# ╠═51e6236d-f6eb-4dcf-9b03-1f9b04848ce7
+# ╠═583c7e8f-4e2b-4a91-8edf-681e55b55bfd
 # ╠═4891479c-9eb5-494e-ad1f-9bd52a171c57
 # ╟─e1f1b7cf-d8ad-432d-ac98-95860e1ec65d
 # ╠═f7636969-d29b-415e-8fe4-d725b6fa97d0
 # ╟─c6dbd392-2269-4572-8b07-ff7f233b8c89
 # ╠═e686d58d-50ea-4789-93e7-5f3c41ee53ad
-# ╠═70b6075c-b548-44d2-b301-9621023e06e0
+# ╟─70b6075c-b548-44d2-b301-9621023e06e0
 # ╠═cf4b988d-0774-4e5f-8ded-4db1ca869066
 # ╟─27fd182f-3cdc-4568-b6f5-cae1b5e2e1a2
 # ╠═b4bec7ca-ee1b-42e2-aea2-86e8b5c3dc46
@@ -457,6 +529,11 @@ In many cases, the default bounds from DSS are either much too restrictive, such
 # ╟─72736da6-917e-4cc1-8aff-0923d4c637e9
 # ╠═d20f4d1c-c8bc-41bd-8f9a-2ee7ee931697
 # ╟─438b71e6-aca2-49b4-ab15-e747d335f331
+# ╟─a8ce787f-6a2c-4c97-940c-8331fbda1f3c
+# ╠═87959af2-47b2-484c-8396-98f87a4abc2b
+# ╟─7197dba8-4fb3-460b-8fe3-a0efc59a2d98
+# ╠═ad417629-caf6-4efd-8861-d7a40c58b53f
+# ╟─a566fb16-6368-4edb-846c-0dc1917e15da
 # ╠═c733df10-79b1-4b72-8c74-fe1fabfead44
 # ╟─8ce619a2-fe39-4b77-beda-bde92878cb86
 # ╠═484fc544-157e-4fda-a97b-3c791063b1b8
@@ -494,6 +571,12 @@ In many cases, the default bounds from DSS are either much too restrictive, such
 # ╠═1d30b557-afbe-4527-84d7-d742f2abdb93
 # ╟─a2f8c882-6fed-48f9-a554-c69e354ba0c0
 # ╠═753c3b4c-861b-4787-b304-b4d3b1b84be0
+# ╟─5c6e9ace-de55-4b45-84f8-876e7c04f664
+# ╟─1a68e9eb-1e37-4049-9480-74cb185c7531
+# ╠═24ea3ffc-ec31-4b18-a8f6-b5ede42ff33c
+# ╟─b8a81954-8115-4e88-9d19-4ea3abec15ed
+# ╠═550ebcd5-9b7c-435e-9450-4eb5a94aac03
+# ╠═8b192733-2e26-4e9c-a4d9-45e8fbf3571d
 # ╠═32073778-e62a-46ee-9797-3988be5c8fba
 # ╟─6b1d3355-11ff-4aec-b6b2-b0fe0183dca6
 # ╠═d418b2bf-a01d-43bf-8cd0-ca53be431a9f
