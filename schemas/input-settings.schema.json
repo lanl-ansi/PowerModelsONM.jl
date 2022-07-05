@@ -150,7 +150,7 @@
     },
     "mip_solver_tol": {
       "type": "number",
-      "description": "deprecated: {solvers/HiGHS/primal_feasibility_tolerance,solvers/HiGHS/dual_feasibility_tolerance,solvers/Gurobi/FeasibilityTol}",
+      "description": "deprecated: {solvers/HiGHS/primal_feasibility_tolerance,solvers/HiGHS/dual_feasibility_tolerance,solvers/Gurobi/FeasibilityTol,solvers/Juniper/atol}",
       "deprecated": true
     },
     "mip_solver_gap": {
@@ -158,7 +158,7 @@
       "exclusiveMinimum": 0,
       "default": 0.05,
       "format": "float",
-      "description": "deprecated: {solvers/HiGHS/mip_rel_gap,solvers/Gurobi/MIPGap}",
+      "description": "deprecated: {solvers/HiGHS/mip_rel_gap,solvers/Gurobi/MIPGap,solvers/Juniper/mip_gap}",
       "deprecated": true
     }  }
 }
