@@ -389,7 +389,7 @@ default value if path does not exist.
 """
 function get_option(network::Dict{String,<:Any}, path::Tuple{Vararg{String}}, default::Any=missing)::Any
     if length(path) > 1
-        return get_option(get(network, path[1], Dict{String,Any}()), path[2:end])
+        return get_option(get(network, path[1], Dict{String,Any}()), path[2:end], default)
     else
         return get(network, path[1], default)
     end
@@ -409,6 +409,17 @@ end
 
 
 """
+    get_option(settings_file::String, path::Tuple{Vararg{String}}, default::Any=missing)::Any
+
+Helper function for variant where `settings_file` has not been parsed yet.
+"""
+get_option(settings_file::String, path::Tuple{Vararg{String}}, default::Any=missing)::Any = get_option(path[1] == "settings" ? Dict{String,Any}("settings"=>parse_settings(settings_file)) : parse_settings(settings_file), path, default)
+
+
+"""
+    build_settings(network_file::String; kwargs...)
+
+Helper function for variant where `network_file` has not been parsed yet.
 """
 build_settings(network_file::String; kwargs...) = build_settings(PMD.parse_file(network_file; transformations=[PMD.apply_kron_reduction!]); kwargs...)
 

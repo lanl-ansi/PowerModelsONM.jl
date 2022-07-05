@@ -36,7 +36,7 @@ end
 Configures logging based on runtime arguments
 """
 function setup_logging!(args::Dict{String,<:Any})
-    log_level = get_setting(args, ("options","output","log-level"), "warn")
+    log_level = get_setting(args, ("options","outputs","log-level"), "warn")
 
     set_log_level!(Symbol(titlecase(log_level)))
 end
