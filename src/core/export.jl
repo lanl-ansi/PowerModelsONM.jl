@@ -15,7 +15,6 @@ end
 export nw_id_default, ref, var, ids, nws, nw_ids, con, sol, optimizer_with_attributes
 
 # explicitly export the PMD PowerModels used in this package
-import PowerModelsDistribution: AbstractUnbalancedPowerModel, ACRUPowerModel, ACPUPowerModel, IVRUPowerModel, LPUBFDiagPowerModel, LinDist3FlowPowerModel, NFAUPowerModel, FOTRUPowerModel, FOTPUPowerModel
 export AbstractUnbalancedPowerModel, ACRUPowerModel, ACPUPowerModel, IVRUPowerModel, LPUBFDiagPowerModel, LinDist3FlowPowerModel, NFAUPowerModel, FOTRUPowerModel, FOTPUPowerModel
 
 import PowerModelsDistribution: Status
