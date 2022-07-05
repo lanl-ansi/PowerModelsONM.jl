@@ -10,6 +10,14 @@ end
 
 
 """
+    get_timestep_device_actions(::String, ::Dict{String,<:Any})::Vector{Dict{String,Any}}
+
+Helper function for the variant where `args["network"]` hasn't been parsed yet.
+"""
+get_timestep_device_actions(::String, ::Dict{String,<:Any})::Vector{Dict{String,Any}} = Dict{String,Any}[]
+
+
+"""
     get_timestep_device_actions(
         network::Dict{String,<:Any},
         optimal_switching_results::Dict{String,<:Any}
@@ -59,6 +67,14 @@ and applies it in-place to args, for use with [`entrypoint`](@ref entrypoint)
 function get_timestep_switch_changes!(args::Dict{String,<:Any})::Vector{Vector{String}}
     args["output_data"]["Switch changes"] = get_timestep_switch_changes(get(args, "network", Dict{String,Any}()), get(args, "optimal_switching_results", Dict{String,Any}()))
 end
+
+
+"""
+    get_timestep_switch_changes(::String, ::Dict{String,<:Any})::Vector{Vector{String}}
+
+Helper function for the variant where `args["network"]` hasn't been parsed yet.
+"""
+get_timestep_switch_changes(::String, optimal_switching_results::Dict{String,<:Any}=Dict{String,Any}())::Vector{Vector{String}} = String[]
 
 
 """

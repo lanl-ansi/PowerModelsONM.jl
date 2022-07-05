@@ -12,6 +12,23 @@ end
 
 
 """
+    get_timestep_load_served(::Dict{String,<:Any}, network::String, switching_solution::Union{Missing,Dict{String,<:Any}}=missing)
+
+Helper function for the variant where `args["network"]` hasn't been parsed yet.
+"""
+get_timestep_load_served(::Dict{String,<:Any}, network::String, switching_solution::Union{Missing,Dict{String,<:Any}}=missing) = Dict{String,Vector{Real}}(
+    "Feeder load (%)" => Real[],
+    "Microgrid load (%)" => Real[],
+    "Bonus load via microgrid (%)" => Real[],
+    "Total load (%)" => Real[],
+    "Feeder customers (%)" => Real[],
+    "Microgrid customers (%)" => Real[],
+    "Bonus customers via microgrid (%)" => Real[],
+    "Total customers (%)" => Real[],
+)
+
+
+"""
     get_timestep_load_served(
         solution::Dict{String,<:Any},
         network::Dict{String,<:Any}
@@ -234,6 +251,14 @@ for use in [`entrypoint`](@ref entrypoint), using
 function get_timestep_storage_soc!(args::Dict{String,<:Any})::Vector{Real}
     args["output_data"]["Storage SOC (%)"] = get_timestep_storage_soc(get(get(args, "optimal_dispatch_result", Dict{String,Any}()), "solution", Dict{String,Any}()), args["network"])
 end
+
+
+"""
+    get_timestep_storage_soc(::Dict{String,<:Any}, ::String)
+
+Helper function for the variant where `args["network"]` hasn't been parsed yet.
+"""
+get_timestep_storage_soc(::Dict{String,<:Any}, ::String) = Real[]
 
 
 """

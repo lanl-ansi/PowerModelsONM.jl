@@ -12,6 +12,18 @@ end
 
 
 """
+    get_timestep_voltage_statistics(::Dict{String,<:Any}, ::String)
+
+Helper function for the variant where `args["network"]` hasn't been parsed yet.
+"""
+get_timestep_voltage_statistics(::Dict{String,<:Any}, ::String) = Dict{String,Vector{Real}}(
+    "Min voltage (p.u.)" => Real[],
+    "Mean voltage (p.u.)" => Real[],
+    "Max voltage (p.u.)" => Real[],
+)
+
+
+"""
     get_voltage_min_mean_max(
         solution::Dict{String,<:Any},
         data::Dict{String,<:Any};
@@ -84,6 +96,14 @@ Gets the optimal dispatch results in-place in args, for use in [`entrypoint`](@r
 function get_timestep_dispatch!(args::Dict{String,<:Any})::Vector{Dict{String,Any}}
     args["output_data"]["Powerflow output"] = get_timestep_dispatch(get(get(args, "optimal_dispatch_result", Dict{String,Any}()), "solution", Dict{String,Any}()), get(args, "network", Dict{String,Any}()))
 end
+
+
+"""
+    get_timestep_dispatch(::Dict{String,<:Any}, ::String)::Vector{Dict{String,Any}}
+
+Helper function for the variant where `args["network"]` hasn't been parsed yet.
+"""
+get_timestep_dispatch(::Dict{String,<:Any}, ::String)::Vector{Dict{String,Any}} = Dict{String,Any}[]
 
 
 """

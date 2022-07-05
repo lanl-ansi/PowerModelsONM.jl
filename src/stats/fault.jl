@@ -103,6 +103,13 @@ Special case where the faults string was not parsed
 get_timestep_fault_currents(fault_studies_results::Dict{String,<:Any}, faults::String, network::Dict{String,<:Any}; ret_protection_only::Bool=false)::Vector{Dict{String,Any}} = get_timestep_fault_currents(fault_studies_results, Dict{String,Any}(), network; ret_protection_only=ret_protection_only)
 
 
+"""
+    get_timestep_fault_currents(::Dict{String,<:Any}, ::String, ::String; ret_protection_only::Bool=false)::Vector{Dict{String,Any}}
+
+Helper function for the variant where `args["network"]` hasn't been parsed yet.
+"""
+get_timestep_fault_currents(::Dict{String,<:Any}, ::String, ::String; ret_protection_only::Bool=false)::Vector{Dict{String,Any}} = Dict{String,Any}[]
+
 
 """
     get_timestep_fault_study_metadata!(

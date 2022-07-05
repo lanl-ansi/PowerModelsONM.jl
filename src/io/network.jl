@@ -95,7 +95,7 @@ const _pnm2eng_objects = Dict{String,Vector{String}}(
 Builds a network data model for use in Protection settings optimization.
 """
 function get_protection_network_model!(args::Dict{String,<:Any})
-    args["output_data"]["Protection settings"]["network_model"] = get_protection_network_model(args["base_network"])
+    args["output_data"]["Protection settings"]["network_model"] = get_protection_network_model(get(args, "base_network", Dict{String,Any}()))
 end
 
 
@@ -193,6 +193,14 @@ function get_timestep_bus_types!(args::Dict{String,<:Any})::Vector{Dict{String,S
         get(get(args, "optimal_dispatch_result", Dict{String,Any}()), "solution", Dict{String,Any}()), get(args, "network", Dict{String,Any}())
     )
 end
+
+
+"""
+    get_timestep_bus_types(::Dict{String,<:Any}, ::String)::Vector{Dict{String,String}}
+
+Helper function for the variant where `args["network"]` hasn't been parsed yet.
+"""
+get_timestep_bus_types(::Dict{String,<:Any}, ::String)::Vector{Dict{String,String}} = Dict{String,String}[]
 
 
 """

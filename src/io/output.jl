@@ -64,13 +64,30 @@ end
 
 Initializes the empty data structure for "output_data"
 """
-function initialize_output(raw_args::Dict{String,<:Any})::Dict{String,Any}
+function initialize_output(raw_args::Union{Dict{String,<:Any},Missing}; current_args::Dict{String,<:Any}=Dict{String,Any}())::Dict{String,Any}
     output_schema = load_schema(joinpath(dirname(pathof(PowerModelsONM)), "..", "schemas/output.schema.json"))
 
     output = Dict{String,Any}()
     output = _recursive_initialize_output_from_schema!(output, get(output_schema.data, "properties", Dict{String,Any}()))
 
-    output["Runtime arguments"] = deepcopy(raw_args)
+    if !ismissing(raw_args)
+        output["Runtime arguments"] = deepcopy(raw_args)
+    else
+        runtime_arg_schema = load_schema(joinpath(dirname(pathof(PowerModelsONM)), "../schemas/input-runtime_arguments.schema.json"))
+        rt_arg_type = Dict(k=>v["type"] for (k,v) in runtime_arg_schema.data["properties"])
+        _raw_args = Dict{String,Any}()
+        for (k,v) in current_args
+            if k in keys(rt_arg_type) && isa(v, _json_schema_type_conversions[rt_arg_type[k]])
+                _raw_args[k] = deepcopy(v)
+            end
+        end
+        if !haskey(_raw_args, "network") && haskey(current_args, "base_network")
+            _raw_args["network"] = get(current_args["base_network"], "files", [""])[1]
+        end
+        if !isempty(_raw_args) && haskey(_raw_args, "network")
+            output["Runtime arguments"] = _raw_args
+        end
+    end
 
     return output
 end
@@ -102,7 +119,7 @@ end
 Initializes the output data strucutre inside of the args dict at "output_data"
 """
 function initialize_output!(args::Dict{String,<:Any})::Dict{String,Any}
-    args["output_data"] = initialize_output(get(args, "raw_args", deepcopy(args)))
+    args["output_data"] = initialize_output(get(args, "raw_args", missing); current_args=args)
 end
 
 
@@ -131,7 +148,11 @@ function analyze_results!(args::Dict{String,<:Any})::Dict{String,Any}
         initialize_output!(args)
     end
 
-    args["output_data"]["Simulation time steps"] = [args["network"]["mn_lookup"]["$n"] for n in sort([parse(Int,i) for i in keys(args["network"]["mn_lookup"])]) ]
+    if isa(get(args, "network", ""), Dict)
+        args["output_data"]["Simulation time steps"] = [args["network"]["mn_lookup"]["$n"] for n in sort([parse(Int,i) for i in keys(args["network"]["mn_lookup"])]) ]
+    else
+        args["output_data"]["Simulation time steps"] = Real[]
+    end
     args["output_data"]["Events"] = get(args, "raw_events", Dict{String,Any}[])
 
     get_timestep_voltage_statistics!(args)

@@ -1,10 +1,10 @@
 """
-    get_timestep_microgrid_networks(output::String, network::Dict{String,<:Any})::Vector{Vector{Vector{String}}}
+    get_timestep_microgrid_networks_from_output_file(output::String, network::Dict{String,<:Any})::Vector{Vector{Vector{String}}}
 
 Analytics for determining when microgrids network from output file
 """
-function get_timestep_microgrid_networks(output::String, network::Dict{String,<:Any})::Vector{Vector{Vector{String}}}
-    output = JSON.parsefile(output)
+function get_timestep_microgrid_networks_from_output_file(output_file::String, network::Dict{String,<:Any})::Vector{Vector{Vector{String}}}
+    output = JSON.parsefile(output_file)
 
     actions = get(output, "Device action timestep", [])
 
@@ -27,8 +27,10 @@ end
 
 Collects microgrid networks per timestep and assigns them to 'Device action timestep'/'Microgrid networks'
 """
-function get_timestep_microgrid_networks!(args::Dict{String,<:Any})::Vector{Dict{String,Any}}
-    args["output_data"]["Device action timeline"] = recursive_merge_timesteps(args["output_data"]["Device action timeline"], [Dict{String,Vector{Vector{String}}}("Microgrid networks" => _mg_networks) for _mg_networks in get_timestep_microgrid_networks(get(args, "network", Dict{String,Any}()), get(args, "optimal_switching_results", Dict{String,Any}()))])
+function get_timestep_microgrid_networks!(args::Dict{String,<:Any})::Union{Vector{Dict{String,Any}},Nothing}
+    if isa(get(args, "network", ""), Dict)
+        args["output_data"]["Device action timeline"] = recursive_merge_timesteps(args["output_data"]["Device action timeline"], [Dict{String,Vector{Vector{String}}}("Microgrid networks" => _mg_networks) for _mg_networks in get_timestep_microgrid_networks(get(args, "network", Dict{String,Any}()), get(args, "optimal_switching_results", Dict{String,Any}()))])
+    end
 end
 
 
