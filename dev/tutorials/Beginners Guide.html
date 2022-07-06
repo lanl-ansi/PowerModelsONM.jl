@@ -7,7 +7,7 @@
     </title>
     <script data-outdated-warner="" src="../assets/warner.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.039/juliamono-regular.css" rel="stylesheet" type="text/css"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.044/juliamono.css" rel="stylesheet" type="text/css"/>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/>
@@ -61,13 +61,18 @@
                 </a>
               </li>
               <li>
-                <a class="tocitem" href="../manual/osw_mld_model.html">
+                <a class="tocitem" href="../manual/mld_model.html">
                   Optimal Switch / Load shed Mathematical Model
                 </a>
               </li>
               <li>
                 <a class="tocitem" href="../manual/opf_model.html">
                   Optimal Dispatch Mathematical Model
+                </a>
+              </li>
+              <li>
+                <a class="tocitem" href="../manual/graphml_export.html">
+                  Exporting with GraphML
                 </a>
               </li>
             </ul>
@@ -91,6 +96,21 @@
                   </li>
                 </ul>
               </li>
+              <li>
+                <a class="tocitem" href="Block MLD Basic Example.html">
+                  Block MLD Basic Example
+                </a>
+              </li>
+              <li>
+                <a class="tocitem" href="JuMP Model by Hand - MLD-Block.html">
+                  JuMP Model by Hand - MLD-Block Example
+                </a>
+              </li>
+              <li>
+                <a class="tocitem" href="Use Case Examples.html">
+                  Use Case Examples
+                </a>
+              </li>
             </ul>
           </li>
           <li>
@@ -106,6 +126,11 @@
               <li>
                 <a class="tocitem" href="../reference/data.html">
                   Data Handling
+                </a>
+              </li>
+              <li>
+                <a class="tocitem" href="../reference/graphml.html">
+                  GraphML Functions
                 </a>
               </li>
               <li>
@@ -152,6 +177,38 @@
           </li>
           <li>
             <span class="tocitem">
+              Schemas
+            </span>
+            <ul>
+              <li>
+                <a class="tocitem" href="../schemas/output.schema.html">
+                  output.schema
+                </a>
+              </li>
+              <li>
+                <a class="tocitem" href="../schemas/input-settings.schema.html">
+                  settings.schema
+                </a>
+              </li>
+              <li>
+                <a class="tocitem" href="../schemas/input-events.schema.html">
+                  events.schema
+                </a>
+              </li>
+              <li>
+                <a class="tocitem" href="../schemas/input-faults.schema.html">
+                  faults.schema
+                </a>
+              </li>
+              <li>
+                <a class="tocitem" href="../schemas/input-runtime_arguments.schema.html">
+                  runtime-arguments.schema
+                </a>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <span class="tocitem">
               Developer Docs
             </span>
             <ul>
@@ -168,136 +225,6 @@
               <li>
                 <a class="tocitem" href="../developer/roadmap.html">
                   Roadmap
-                </a>
-              </li>
-            </ul>
-          </li>
-          <li>
-            <span class="tocitem">
-              Schema Documentation
-            </span>
-            <ul>
-              <li>
-                <a class="tocitem" href="../schemas/input-events.html">
-                  input-events
-                </a>
-              </li>
-              <li>
-                <a class="tocitem" href="../schemas/input-faults.html">
-                  input-faults
-                </a>
-              </li>
-              <li>
-                <a class="tocitem" href="../schemas/input-fuse.html">
-                  input-fuse
-                </a>
-              </li>
-              <li>
-                <a class="tocitem" href="../schemas/input-inverters.html">
-                  input-inverters
-                </a>
-              </li>
-              <li>
-                <a class="tocitem" href="../schemas/input-recloser.html">
-                  input-recloser
-                </a>
-              </li>
-              <li>
-                <a class="tocitem" href="../schemas/input-runtime_arguments.html">
-                  input-runtime_arguments
-                </a>
-              </li>
-              <li>
-                <a class="tocitem" href="../schemas/input-settings.html">
-                  input-settings
-                </a>
-              </li>
-              <li>
-                <a class="tocitem" href="../schemas/output-additional_statistics.html">
-                  output-additional_statistics
-                </a>
-              </li>
-              <li>
-                <a class="tocitem" href="../schemas/output-device_action_timeline.html">
-                  output-device
-                  <em>
-                    action
-                  </em>
-                  timeline
-                </a>
-              </li>
-              <li>
-                <a class="tocitem" href="../schemas/output-fault_currents.html">
-                  output-fault_currents
-                </a>
-              </li>
-              <li>
-                <a class="tocitem" href="../schemas/output-fault_study_metadata.html">
-                  output-fault
-                  <em>
-                    study
-                  </em>
-                  metadata
-                </a>
-              </li>
-              <li>
-                <a class="tocitem" href="../schemas/output-generator_profiles.html">
-                  output-generator_profiles
-                </a>
-              </li>
-              <li>
-                <a class="tocitem" href="../schemas/output-load_served.html">
-                  output-load_served
-                </a>
-              </li>
-              <li>
-                <a class="tocitem" href="../schemas/output-optimization_metadata.html">
-                  output-optimization_metadata
-                </a>
-              </li>
-              <li>
-                <a class="tocitem" href="../schemas/output-powerflow.html">
-                  output-powerflow
-                </a>
-              </li>
-              <li>
-                <a class="tocitem" href="../schemas/output-protection.html">
-                  output-protection
-                </a>
-              </li>
-              <li>
-                <a class="tocitem" href="../schemas/output-small_signal.html">
-                  output-small_signal
-                </a>
-              </li>
-              <li>
-                <a class="tocitem" href="../schemas/output-storage_soc.html">
-                  output-storage_soc
-                </a>
-              </li>
-              <li>
-                <a class="tocitem" href="../schemas/output-switch_changes.html">
-                  output-switch_changes
-                </a>
-              </li>
-              <li>
-                <a class="tocitem" href="../schemas/output-system_metadata.html">
-                  output-system_metadata
-                </a>
-              </li>
-              <li>
-                <a class="tocitem" href="../schemas/output-timesteps.html">
-                  output-timesteps
-                </a>
-              </li>
-              <li>
-                <a class="tocitem" href="../schemas/output-voltages.html">
-                  output-voltages
-                </a>
-              </li>
-              <li>
-                <a class="tocitem" href="../schemas/output.html">
-                  output
                 </a>
               </li>
             </ul>
@@ -340,7 +267,7 @@
             </ul>
           </nav>
           <div class="docs-right">
-            <a class="docs-edit-link" href="https://github.com/lanl-ansi/PowerModelsONM.jl/blob/master/docs/src/tutorials/Beginners Guide.md" title="Edit on GitHub">
+            <a class="docs-edit-link" href="https://github.com/lanl-ansi/PowerModelsONM.jl/blob/main/docs/src/tutorials/Beginners Guide.md" title="Edit on GitHub">
               <span class="docs-icon fab">
                 
               </span>
@@ -354,11 +281,11 @@
         </header>
         <iframe src="Beginners Guide.jl.html"></iframe>
         <nav class="docs-footer">
-          <a class="docs-footer-prevpage" href="../manual/opf_model.html">
-            « Optimal Dispatch Mathematical Model
+          <a class="docs-footer-prevpage" href="../manual/graphml_export.html">
+            « Exporting with GraphML
           </a>
-          <a class="docs-footer-nextpage" href="../reference/base.html">
-            Base functions »
+          <a class="docs-footer-nextpage" href="Block MLD Basic Example.html">
+            Block MLD Basic Example »
           </a>
           <div class="flexbox-break"></div>
           <p class="footer-message">
@@ -406,11 +333,11 @@
               <a href="https://github.com/JuliaDocs/Documenter.jl">
                 Documenter.jl
               </a>
-              version 0.27.15 on
-              <span class="colophon-date" title="Wednesday 6 April 2022 21:09">
-                Wednesday 6 April 2022
+              version 0.27.19 on
+              <span class="colophon-date" title="Wednesday 6 July 2022 15:40">
+                Wednesday 6 July 2022
               </span>
-              . Using Julia version 1.7.2.
+              . Using Julia version 1.7.3.
             </p>
           </section>
           <footer class="modal-card-foot"></footer>
