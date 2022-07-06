@@ -5,7 +5,6 @@ RUN apt-get update && \
 
 # Julia env
 ADD Project.toml /
-ADD Manifest.toml /
 
 # Source code
 ADD src /src
