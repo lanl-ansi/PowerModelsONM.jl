@@ -1,5 +1,7 @@
 """
-    get_timestep_load_served!(args::Dict{String,<:Any})::Dict{String,Vector{Real}}
+    get_timestep_load_served!(
+        args::Dict{String,<:Any}
+    )::Dict{String,Vector{Real}}
 
 Gets Load served statistics in-place in args, for use in [`entrypoint`](@ref entrypoint),
 using [`get_timestep_load_served`](@ref get_timestep_load_served).
@@ -10,10 +12,30 @@ end
 
 
 """
-    get_timestep_load_served(solution::Dict{String,<:Any}, network::Dict{String,<:Any})::Dict{String,Vector{Real}}
+    get_timestep_load_served(::Dict{String,<:Any}, network::String, switching_solution::Union{Missing,Dict{String,<:Any}}=missing)
 
-Returns Load statistics from an optimal dispatch `solution`, and compares to the base load (non-shedded) in `network`,
-giving statistics for
+Helper function for the variant where `args["network"]` hasn't been parsed yet.
+"""
+get_timestep_load_served(::Dict{String,<:Any}, network::String, switching_solution::Union{Missing,Dict{String,<:Any}}=missing) = Dict{String,Vector{Real}}(
+    "Feeder load (%)" => Real[],
+    "Microgrid load (%)" => Real[],
+    "Bonus load via microgrid (%)" => Real[],
+    "Total load (%)" => Real[],
+    "Feeder customers (%)" => Real[],
+    "Microgrid customers (%)" => Real[],
+    "Bonus customers via microgrid (%)" => Real[],
+    "Total customers (%)" => Real[],
+)
+
+
+"""
+    get_timestep_load_served(
+        solution::Dict{String,<:Any},
+        network::Dict{String,<:Any}
+    )::Dict{String,Vector{Real}}
+
+Returns Load statistics from an optimal dispatch `solution`, and compares to the
+base load (non-shedded) in `network`, giving statistics for
 
 - `"Feeder load (%)"`: How much load is the feeder supporting,
 - `"Microgrid load (%)"`: How much load is(are) the microgrid(s) supporting,
@@ -100,7 +122,7 @@ function get_timestep_load_served(dispatch_solution::Dict{String,<:Any}, network
         total_load_served = 0.0
         total_cust_served = 0
 
-        mg_ncustomers = sum(Int64[length(mg_loads) for (mg,mg_loads) in microgrid_loads])
+        mg_ncustomers = sum(Int[length(mg_loads) for (mg,mg_loads) in microgrid_loads])
         total_mg_load = sum(Float64[sum(abs.(load["pd_nom"])) for (id,load) in get(network["nw"]["$n"], "load", Dict()) if id ∈ keys(load2mg) && load["status"] == PMD.ENABLED])
 
         mg_bonus_ncustomers = length(get(network["nw"]["$n"], "load", Dict())) - mg_ncustomers
@@ -174,7 +196,9 @@ end
 
 
 """
-    get_timestep_generator_profiles!(args::Dict{String,<:Any})::Dict{String,Vector{Real}}
+    get_timestep_generator_profiles!(
+        args::Dict{String,<:Any}
+    )::Dict{String,Vector{Real}}
 
 Gets generator profile statistics for each timestep in-place in args, for use in [`entrypoint`](@ref entrypoint),
 using [`get_timestep_generator_profiles`](@ref get_timestep_generator_profiles)
@@ -185,7 +209,9 @@ end
 
 
 """
-    get_timestep_generator_profiles(solution::Dict{String,<:Any})::Dict{String,Vector{Real}}
+    get_timestep_generator_profiles(
+        solution::Dict{String,<:Any}
+    )::Dict{String,Vector{Real}}
 
 Returns statistics about the generator profiles from the optimal dispatch `solution`:
 
@@ -214,10 +240,13 @@ end
 
 
 """
-    get_timestep_storage_soc!(args::Dict{String,<:Any})::Vector{Real}
+    get_timestep_storage_soc!(
+        args::Dict{String,<:Any}
+    )::Vector{Real}
 
-Gets storage energy remaining percentage for each timestep in-place in args, for use in [`entrypoint`](@ref entrypoint),
-using [`get_timestep_storage_soc`](@ref get_timestep_storage_soc)
+Gets storage energy remaining percentage for each timestep in-place in args,
+for use in [`entrypoint`](@ref entrypoint), using
+[`get_timestep_storage_soc`](@ref get_timestep_storage_soc)
 """
 function get_timestep_storage_soc!(args::Dict{String,<:Any})::Vector{Real}
     args["output_data"]["Storage SOC (%)"] = get_timestep_storage_soc(get(get(args, "optimal_dispatch_result", Dict{String,Any}()), "solution", Dict{String,Any}()), args["network"])
@@ -225,7 +254,18 @@ end
 
 
 """
-    get_timestep_storage_soc(solution::Dict{String,<:Any}, network::Dict{String,<:Any})::Vector{Real}
+    get_timestep_storage_soc(::Dict{String,<:Any}, ::String)
+
+Helper function for the variant where `args["network"]` hasn't been parsed yet.
+"""
+get_timestep_storage_soc(::Dict{String,<:Any}, ::String) = Real[]
+
+
+"""
+    get_timestep_storage_soc(
+        solution::Dict{String,<:Any},
+        network::Dict{String,<:Any}
+    )::Vector{Real}
 
 Returns the storage state of charge, i.e., how much energy is remaining in all of the the energy storage DER
 based on the optimal dispatch `solution`. Needs `network` to give percentage.
@@ -248,7 +288,7 @@ function get_timestep_storage_soc(solution::Dict{String,<:Any}, network::Dict{St
         elseif i == 1
             energy = 0.0
             energy_ub = 0.0
-            for (s,strg) in network["nw"]["$n"]["storage"]
+            for (s,strg) in get(network["nw"]["$n"], "storage", Dict())
                 energy += get(strg, "energy", 0.0)
                 energy_ub += strg["energy_ub"]
             end

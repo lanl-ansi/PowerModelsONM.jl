@@ -20,7 +20,7 @@
       "faults": "../test/data/ieee13_faults.json",
       "inverters": "../test/data/ieee13_inverters.json",
       "events": "../test/data/ieee13_events.json",
-      "quiet": true,
+      "log-level": "error",
       "opt-disp-formulation": "acr"
     }
   ],
@@ -30,204 +30,158 @@
       "type": "string",
       "description": "The network file path (DSS format)"
     },
-    "output": {
+    "settings": {
       "type": "string",
-      "description": "The path to the output file (JSON format)"
-    },
-    "faults": {
-      "type": "string",
-      "description": "The path to the faults input file (JSON format)"
+      "description": "The path to the settings input file (JSON format)"
     },
     "events": {
       "type": "string",
       "description": "The path to the events input file (JSON format)"
     },
+    "faults": {
+      "type": "string",
+      "description": "The path to the faults input file (JSON format)"
+    },
     "inverters": {
       "type": "string",
       "description": "The path to the inverters input file (JSON format)"
     },
-    "settings": {
+    "output": {
       "type": "string",
-      "description": "The path to the settings input file (JSON format)"
-    },
-    "quiet": {
-      "type": "boolean",
-      "default": false,
-      "description": "A flag to indicate the log level should be :Error"
-    },
-    "verbose": {
-      "type": "boolean",
-      "default": false,
-      "description": "A flag to indicate the log level should be :Info"
-    },
-    "debug": {
-      "type": "boolean",
-      "default": false,
-      "description": "A flag to indicate the log level should be :Debug"
+      "description": "The path to the output file (JSON format)"
     },
     "gurobi": {
       "type": "boolean",
-      "default": false,
-      "description": "A flag to signal to use the Gurobi solver"
+      "deprecated": true,
+      "description": "deprecated: solvers/useGurobi"
     },
     "knitro": {
       "type": "boolean",
-      "default": false,
-      "description": "A flag to signal to use the KNITRO solver"
-    },
-    "opt-switch-formulation": {
-      "type": "string",
-      "enum": ["lindistflow", "nfa", "fbs", "fot"],
-      "default": "lindistflow"
-    },
-    "opt-switch-algorithm": {
-      "type": "string",
-      "description": "Flag to use multinetwork problem for optimal switching algorithm",
-      "enum": ["iterative", "global"],
-      "default": "global"
-    },
-    "opt-switch-solver": {
-      "type": "string",
-      "enum": ["misocp_solver", "nlp_solver", "minlp_solver", "mip_solver"],
-      "default": "misocp_solver"
-    },
-    "opt-disp-formulation": {
-      "type": "string",
-      "enum": ["acp", "acr", "lindistflow", "nfa", "fbs", "fot"],
-      "description": "Formulation to use for [`optimize_dispath`](@ref optimize_dispatch), which includes the real power only formulation (`nfa`), the LinDist3Flow formulation (`lindistflow`), the AC-rectangular formulation (`acr`), or the AC-polar formulation (`acp`)"
-    },
-    "opt-disp-algorithm": {
-      "type": "string",
-      "enum": ["opf", "mld", "oltc"],
-      "default": "opf"
-    },
-    "opt-disp-solver": {
-      "type": "string",
-      "enum": ["nlp_solver", "misocp_solver", "minlp_solver", "mip_solver"],
-      "description": "Which solver (from the solver instances built-in to ONM) to use for the optimal dispatch problem. WARNING: solver capabilities should match the optimal dispatch formulation",
-      "default": "nlp_solver"
-    },
-    "fix-small-numbers": {
-      "type": "boolean",
-      "description": "Will prune small impedances, admittances, and lengths, for better problem solving stability"
-    },
-    "network-file": {
-      "type": "string",
-      "deprecated": true,
-      "description": "DEPRECIATED: the path to the network file (DSS format)"
-    },
-    "output-file": {
-      "type": "string",
-      "deprecated": true,
-      "description": "DEPRECIATED: the path to the output file (JSON format)"
-    },
-    "problem": {
-      "type": "string",
-      "deprecated": true,
-      "enum": ["opf", "mld"],
-      "description": "DEPRECIATED: algorithm to use for [`optimize_dispatch`](@ref optimize_dispatch), either the optimal power flow (`opf`) or load shed (`mld`)"
-    },
-    "formulation": {
-      "type": "string",
-      "deprecated": true,
-      "enum": ["acr", "acp", "lindistflow", "nfa"],
-      "description": "DEPRECIATED: Formulation to use for [`optimize_dispath`](@ref optimize_dispatch), which includes the real power only formulation (`nfa`), the LinDist3Flow formulation (`lindistflow`), the AC-rectangular formulation (`acr`), or the AC-polar formulation (`acp`)"
-    },
-    "protection-settings": {
-      "type": "string",
-      "deprecated": true,
-      "description": "DEPRECIATED: enumerations of the protection settings (XLSX format)"
-    },
-    "debug-export-file": {
-      "type": "string",
-      "deprecated": true,
-      "description": "DEPRECIATED: the path to the debug output (JSON format)"
-    },
-    "use-gurobi": {
-      "type": "boolean",
-      "default": false,
-      "deprecated": true,
-      "description": "DEPRECIATED: flag to indicate usage of the Gurobi solver"
-    },
-    "solver-tolerance": {
-      "type": "number",
-      "default": 0.0001,
-      "deprecated": true,
-      "description": "DEPRECIATED: tolerance of the nonlinear optimization solver"
-    },
-    "max-switch-actions": {
-      "type": "integer",
-      "default": 0,
-      "deprecated": true,
-      "description": "DEPRECIATED: maximum allowed switching actions"
-    },
-    "timestep-hours": {
-      "type": "number",
-      "default": 1,
-      "deprecated": true,
-      "description": "DEPRECIATED: the timestep delta, in hours"
-    },
-    "voltage-lower-bound": {
-      "default": 0.8,
-      "deprecated": true,
-      "type": "number",
-      "description": "DEPRECIATED: the voltage magnitude lower bound for buses, in per-unit representation"
-    },
-    "voltage-upper-bound": {
-      "type": "number",
-      "default": 1.2,
-      "deprecated": true,
-      "description": "DEPRECIATED: the voltage magnitude upper bound for buses in per-unit representation"
-    },
-    "voltage-angle-difference": {
-      "type": "number",
-      "default": 5,
-      "deprecated": true,
-      "description": "DEPRECIATED: the maximum allowed voltage angle difference across lines, in degrees"
-    },
-    "clpu-factor": {
-      "type": "number",
-      "description": "DEPRECIATED: the cold load pickup factor"
+      "description": "deprecated: solvers/useKNITRO",
+      "deprecated": true
     },
     "skip": {
       "type": "array",
       "uniqueItems": true,
-      "description": "Parts of the ONM algorithm to skip, e.g. \"--skip faults\" to skip fault studies, or \"--skip faults,stability\" to skip both fault studies and stability analysis",
+      "deprecated": true,
+      "description": "deprecated: options/problem/skip",
       "items": {
         "type": "string",
         "enum": ["stability", "faults", "dispatch", "switching"]
       }
     },
-    "pretty-print": {
+    "log-level": {
+      "type": "string",
+      "deprecated": true,
+      "description": "deprecated: options/outputs/log-level",
+      "enum": ["debug", "info", "warn", "error"]
+    },
+    "quiet": {
       "type": "boolean",
-      "description": "Toggle to enable pretty-printed output json",
-      "default": false
+      "description": "missing",
+      "deprecated": true
+    },
+    "verbose": {
+      "type": "boolean",
+      "description": "missing",
+      "deprecated": true
+    },
+    "debug": {
+      "type": "boolean",
+      "deprecated": true,
+      "description": "missing"
     },
     "nprocs": {
       "type": "integer",
       "description": "Number of processors to utilize for parallel computations (Fault studies and Stability Analysis)",
-      "minimum": 1,
       "default": 1
+    },
+    "pretty-print": {
+      "type": "boolean",
+      "description": "deprecated: options/output/pretty-print",
+      "default": false
+    },
+    "opt-switch-formulation": {
+      "type": "string",
+      "enum": ["lindistflow", "nfa", "fbs", "fot"],
+      "deprecated": true,
+      "description": "deprecated: options/problem/operations-formulation"
+    },
+    "opt-switch-algorithm": {
+      "type": "string",
+      "description": "deprecated: options/problem/operations-algorithm",
+      "enum": ["iterative", "global"],
+      "deprecated": true
+    },
+    "opt-switch-solver": {
+      "type": "string",
+      "enum": ["misocp_solver", "nlp_solver", "minlp_solver", "mip_solver"],
+      "deprecated": true,
+      "description": "deprecated: options/problem/operations-solver"
+    },
+    "opt-switch-problem": {
+      "type": "string",
+      "enum": ["traditional", "block"],
+      "deprecated": true,
+      "description": "deprecated: options/problem/operations-problem-type"
+    },
+    "opt-disp-formulation": {
+      "type": "string",
+      "enum": ["acp", "acr", "lindistflow", "nfa", "fbs", "fot"],
+      "description": "deprecated: options/problem/dispatch-formulation",
+      "deprecated": true
+    },
+    "opt-disp-algorithm": {
+      "type": "string",
+      "enum": ["opf", "mld", "oltc"],
+      "deprecated": true,
+      "description": "deprecated: missing"
+    },
+    "opt-disp-solver": {
+      "type": "string",
+      "enum": ["nlp_solver", "misocp_solver", "minlp_solver", "mip_solver"],
+      "description": "deprecated: options/problem/dispatch-solver",
+      "deprecated": true
+    },
+    "fix-small-numbers": {
+      "type": "boolean",
+      "description": "deprecated: options/data/fix-small-numbers",
+      "deprecated": true
     },
     "disable-switch-penalty": {
       "type": "boolean",
-      "description": "Toggle to disable applying a penalty to changing switch status in the objective function",
-      "default": true
+      "description": "deprecated: options/objective/disable-switch-state-change-cost",
+      "deprecated": true
     },
     "apply-switch-scores": {
       "type": "boolean",
-      "description": "Toggle to enable adding a weight to switches in the objective function, to promote closing",
-      "default": false
+      "description": "deprecated: options/objective/enable-switch-state-open-cost",
+      "deprecated": true
     },
     "disable-radial-constraint": {
       "type": "boolean",
-      "description": "Toggle to disable the radial constraint (allow mesh-networking)",
-      "default": true
+      "deprecated": true,
+      "description": "deprecated: options/constraints/disable-radiality-constraint"
     },
     "disable-isolation-constraint": {
       "type": "boolean",
-      "description": "Toggle to disable the block isolation constraint (allow power to pass through 'shedded' blocks)",
-      "default": true
+      "description": "deprecated: options/constraints/disable-block-isolation-constraint",
+      "deprecated": true
+    },
+    "disable-inverter-constraint": {
+      "type": "boolean",
+      "description": "deprecated: options/constraints/disable-grid-forming-inverter-constraint",
+      "deprecated": true
+    },
+    "disable-networking": {
+      "type": "boolean",
+      "deprecated": true,
+      "description": "deprecated: options/constraints/disable-microgrid-networking"
+    },
+    "disable-presolver": {
+      "type": "boolean",
+      "deprecated": true,
+      "description": "deprecated: {solvers/HiGHS/presolve,solvers/Gurobi/Presolve,solvers/KNITRO/presolve}"
     }
   },
   "required": ["network"]

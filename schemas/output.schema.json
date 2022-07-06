@@ -151,7 +151,10 @@
     "Runtime timestamp": {
       "type": "string",
       "description": "Time at which ONM algorithm was executed",
-      "format": "date-time"
+      "format": "date-time",
+      "example": "2020-01-01T12:00:00.000",
+      "default": "string(Dates.now())",
+      "readOnly": true
     },
     "Simulation time steps": {
       "$ref": "./output-timesteps.schema.json"
@@ -221,7 +224,6 @@
     "Storage SOC (%)",
     "Device action timeline",
     "Powerflow output",
-    "Runtime arguments",
     "Switch changes",
     "System metadata",
     "Protection settings"

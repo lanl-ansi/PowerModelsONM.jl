@@ -11,8 +11,7 @@ To experience the full interactivity of this notebook please install Pluto.jl, a
 Run Julia and add the package:
 
 ```julia
-julia> ]
-(v1.6) pkg> add Pluto
+]add Pluto
 ```
 
 _Using the package manager for the first time after installing Julia can take up to 15 minutes - hang in there!_
@@ -20,8 +19,8 @@ _Using the package manager for the first time after installing Julia can take up
 To run the notebook server:
 
 ```julia
-julia> import Pluto
-julia> Pluto.run()
+import Pluto
+Pluto.run()
 ```
 
 Pluto will open in your browser, and you can get started!

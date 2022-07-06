@@ -1,5 +1,9 @@
 """
-    parse_events!(args::Dict{String,<:Any}; validate::Bool=true, apply::Bool=true)::Dict{String,Any}
+    parse_events!(
+        args::Dict{String,<:Any};
+        validate::Bool=true,
+        apply::Bool=true
+    )::Dict{String,Any}
 
 Parses events file in-place using [`parse_events`](@ref parse_events), for use inside of [`entrypoint`](@ref entrypoint).
 
@@ -9,7 +13,7 @@ If `apply`, will apply the events to the multinetwork data structure.
 
 If `validate=true` (default), the parsed data structure will be validated against the latest [Events Schema](@ref Events-Schema).
 """
-function parse_events!(args::Dict{String,<:Any}; validate::Bool=true, apply::Bool=true)::Dict{String,Any}
+function parse_events!(args::Dict{String,<:Any}; validate::Bool=true, apply::Bool=true)::Union{Dict{String,Any},Vector{Dict{String,Any}}}
     if !isempty(get(args, "events", ""))
         if isa(args["events"], String)
             if isa(get(args, "network", ""), Dict)
@@ -20,7 +24,7 @@ function parse_events!(args::Dict{String,<:Any}; validate::Bool=true, apply::Boo
                 args["events"] = parse_events(args["events"])
             end
         elseif isa(args["events"], Vector) && isa(get(args, "network", ""), Dict)
-            parse_events(args["events"], args["network"])
+            args["events"] = parse_events(args["events"], args["network"])
         end
     else
         args["events"] = Dict{String,Any}()
@@ -30,7 +34,7 @@ function parse_events!(args::Dict{String,<:Any}; validate::Bool=true, apply::Boo
         if isa(get(args, "network", ""), Dict)
             apply_events!(args)
         else
-            error("cannot apply events, no multinetwork is loaded in 'network'")
+            @error("cannot apply events, no multinetwork is loaded in 'network'")
         end
     end
 
@@ -39,7 +43,10 @@ end
 
 
 """
-    parse_events(events_file::String; validate::Bool=true)::Vector{Dict{String,Any}}
+    parse_events(
+        events_file::String;
+        validate::Bool=true
+    )::Vector{Dict{String,Any}}
 
 Parses an events file into a raw events data structure
 
@@ -58,20 +65,24 @@ function parse_events(events_file::String; validate::Bool=true)::Vector{Dict{Str
 end
 
 
-"helper function to convert JSON data types to native data types (Enums) in events"
+"""
+    _convert_event_data_types!(
+        events::Vector{<:Dict{String,<:Any}}
+    )::Vector{Dict{String,Any}}
+
+Helper function to convert JSON data types to native data types (Enums) in events.
+"""
 function _convert_event_data_types!(events::Vector{<:Dict{String,<:Any}})::Vector{Dict{String,Any}}
     for event in events
         for (k,v) in event["event_data"]
-            if k == "dispatchable"
-                event["event_data"][k] = PMD.Dispatchable(Int(v))
-            end
-
-            if k == "state"
-                event["event_data"][k] = Dict("open" => PMD.OPEN, "closed" => PMD.CLOSED)[lowercase(string(v))]
-            end
-
-            if k == "status"
-                event["event_data"][k] = PMD.Status(Int(v))
+            if k ∈ ["state", "dispatchable", "status"]
+                if isa(v, String)
+                    event["event_data"][k] = getproperty(PMD, Symbol(uppercase(v)))
+                elseif isa(v, Int)
+                    event["event_data"][k] = getproperty(PMD, k == "state" ? :SwitchState : Symbol(titlecase(k)))(v)
+                elseif isa(v, Bool)
+                    event["event_data"][k] = getproperty(PMD, k == "state" ? :SwitchState : Symbol(titlecase(k)))(Int(v))
+                end
             end
         end
     end
@@ -81,7 +92,10 @@ end
 
 
 """
-    parse_events(raw_events::Vector{<:Dict{String,<:Any}}, mn_data::Dict{String,<:Any})::Dict{String,Any}
+    parse_events(
+        raw_events::Vector{<:Dict{String,<:Any}},
+        mn_data::Dict{String,<:Any}
+    )::Dict{String,Any}
 
 Converts `raw_events`, e.g. loaded from JSON, and therefore in the format Vector{Dict}, to an internal data structure
 that closely matches the multinetwork data structure for easy merging (applying) to the multinetwork data structure.
@@ -120,12 +134,14 @@ function parse_events(raw_events::Vector{<:Dict{String,<:Any}}, mn_data::Dict{St
         if event["event_type"] == "switch"
             switch_id = _find_switch_id_from_source_id(mn_data["nw"][n], event["affected_asset"])
 
-            events[n]["switch"][switch_id] = Dict{String,Any}(
-                k => v for (k,v) in event["event_data"]
-            )
+            if !ismissing(switch_id)
+                events[n]["switch"][switch_id] = Dict{String,Any}(
+                    k => v for (k,v) in event["event_data"]
+                )
+            end
         elseif event["event_type"] == "fault"
             switch_ids = _find_switch_ids_by_faulted_asset(mn_data["nw"][n], event["affected_asset"])
-            n_next = _find_next_nw_id_from_fault_duration(mn_data, n, event["event_data"]["duration"])
+            n_next = _find_next_nw_id_from_fault_duration(mn_data, n, event["event_data"]["duration_ms"])
 
             if !ismissing(n_next)
                 if !haskey(events, n_next)
@@ -156,7 +172,11 @@ end
 
 
 """
-    parse_events(events_file::String, mn_data::Dict{String,<:Any}; validate::Bool=true)::Dict{String,Any}
+    parse_events(
+        events_file::String,
+        mn_data::Dict{String,<:Any};
+        validate::Bool=true
+    )::Dict{String,Any}
 
 Parses raw events from `events_file` and passes it to [`parse_events`](@ref parse_events) to convert to the
 native data type.
@@ -182,7 +202,10 @@ end
 
 
 """
-    apply_events(network::Dict{String,<:Any}, events::Dict{String,<:Any})::Dict{String,Any}
+    apply_events(
+        network::Dict{String,<:Any},
+        events::Dict{String,<:Any}
+    )::Dict{String,Any}
 
 Creates a copy of the multinetwork data structure `network` and applies the events in `events`
 to that data.
@@ -207,24 +230,70 @@ function apply_events(network::Dict{String,<:Any}, events::Dict{String,<:Any})::
 end
 
 
-"helper function to find a switch id in the network model based on the dss `source_id`"
-function _find_switch_id_from_source_id(network::Dict{String,<:Any}, source_id::String)::String
+"""
+    _find_switch_id_from_source_id(
+        network::Dict{String,<:Any},
+        source_id::String
+    )::Union{String,Missing}
+
+Helper function to find a switch id in the network model based on the dss `source_id`
+"""
+function _find_switch_id_from_source_id(network::Dict{String,<:Any}, source_id::String)::Union{String,Missing}
     for (id, switch) in get(network, "switch", Dict())
         if switch["source_id"] == lowercase(source_id)
             return id
         end
     end
-    error("switch '$(source_id)' not found in network model, aborting")
+    @info "events parsing: switch '$(source_id)' not found in network model, skipping"
+    return missing
 end
 
 
 "helper function to find which switches need to be opened to isolate a fault on asset given by `source_id`"
 function _find_switch_ids_by_faulted_asset(network::Dict{String,<:Any}, source_id::String)::Vector{String}
-    # TODO algorithm for isolating faults (heuristic)
+    data = deepcopy(network)
+    data["data_model"] = PMD.ENGINEERING
+
+    blocks = Dict{Int,Set}(i => block for (i,block) in enumerate(PMD.calc_connected_components(data; type="load_blocks", check_enabled=true)))
+    bus2block_map = Dict(bus => block_id for (block_id,block) in blocks for bus in block)
+
+    source_id_map = Dict{String,Tuple{String,String}}(
+        obj["source_id"] => (obj_type,obj_id) for obj_type in PMD.pmd_eng_asset_types for (obj_id,obj) in get(data,obj_type,Dict()) if haskey(obj,"source_id")
+    )
+
+    (type,obj_id) = source_id_map[lowercase(source_id)]
+    obj = get(get(data, type, Dict()), obj_id, Dict())
+
+    affected_blocks = Set()
+    if type in PMD._eng_edge_elements
+        if type == "transformer" && haskey(obj, "bus")
+            affected_blocks = Set([bus2block_map[bus] for bus in obj["bus"]])
+        elseif haskey(obj, "f_bus") && haskey(obj, "t_bus")
+            affected_blocks = Set([bus2block_map[obj["f_bus"]], bus2block_map[obj["t_bus"]]])
+        end
+    elseif haskey(obj, "bus")
+        affected_blocks = Set([bus2block_map[obj["bus"]]])
+    end
+
+    affected_switches = String[]
+    for (s,switch) in get(network, "switch", Dict())
+        if bus2block_map[switch["f_bus"]] in affected_blocks || bus2block_map[switch["t_bus"]] in affected_blocks
+            push!(affected_switches, s)
+        end
+    end
+
+    return affected_switches
 end
 
 
-"helper function to find the multinetwork id of the subnetwork corresponding most closely to a `timestep`"
+"""
+    _find_nw_id_from_timestep(
+        network::Dict{String,<:Any},
+        timestep::Union{Real,String}
+    )::String
+
+Helper function to find the multinetwork id of the subnetwork of `network` corresponding most closely to a `timestep`.
+"""
 function _find_nw_id_from_timestep(network::Dict{String,<:Any}, timestep::Union{Real,String})::String
     @assert PMD.ismultinetwork(network) "network data structure is not multinetwork"
 
@@ -263,13 +332,21 @@ function _find_nw_id_from_timestep(network::Dict{String,<:Any}, timestep::Union{
 end
 
 
-"helper function to find the next timestep following a fault given its duration in ms"
+"""
+    _find_next_nw_id_from_fault_duration(
+        network::Dict{String,<:Any},
+        nw_id::String,
+        duration::Real
+    )::Union{String,Missing}
+
+Helper function to find the next timestep following a fault given its duration in ms
+"""
 function _find_next_nw_id_from_fault_duration(network::Dict{String,<:Any}, nw_id::String, duration::Real)::Union{String,Missing}
     current_timestep = network["mn_lookup"][nw_id]
     mn_lookup_reverse = Dict{Any,String}(v => k for (k,v) in network["mn_lookup"])
 
     timesteps = sort(collect(values(network["mn_lookup"])))
-    dist = timesteps .- current_timestep + (duration / 3.6e6)  # duration is in ms, timestep in hours
+    dist = timesteps .- (current_timestep .+ (duration / 3.6e6))  # duration is in ms, timestep in hours
     if all(dist .< 0)
         return missing
     else
@@ -280,14 +357,45 @@ end
 
 
 """
-    build_events_file(case_file::String, events_file::String; custom_events::Vector{Dict{String,Any}}=Dict{String,Any}[], default_switch_state::PMD.SwitchState=PMD.CLOSED, default_switch_dispatchable::PMD.Dispatchable=PMD.YES)
+    build_events(case_file::String; kwargs...)::Vector{Dict{String,Any}}
 
-A helper function to assist in making (very) simple events files with some default settings for switches
+A helper function to assist in making rudamentary events data structure with some default settings for switches from a network case at path `case_file`.
 """
-function build_events_file(case_file::String, events_file::String; custom_events::Vector{Dict{String,Any}}=Dict{String,Any}[], default_switch_state::PMD.SwitchState=PMD.CLOSED, default_switch_dispatchable::PMD.Dispatchable=PMD.YES, default_switch_status::Union{Missing,PMD.Status}=missing)
+build_events(case_file::String; kwargs...)::Vector{Dict{String,Any}} = build_events(PMD.parse_file(case_file); kwargs...)
+
+
+"""
+    build_events(
+        eng::Dict{String,<:Any};
+        custom_events::Vector{Dict{String,Any}}=Dict{String,Any}[],
+        default_switch_state::Union{PMD.SwitchState,String}=PMD.CLOSED,
+        default_switch_dispatchable::Union{PMD.Dispatchable,Bool}=PMD.YES,
+        default_switch_status::Union{Missing,PMD.Status,Int}=missing
+    )::Vector{Dict{String,Any}}
+
+A helper function to assist in making rudamentary events data structure with some default settings for switches.
+
+- `eng::Dict{String,<:Any}` is the input case data structure
+- `custom_events` is a Vector of *events* that will be applied **after** the automatic generation of events based off of the `default` kwargs
+- `default_switch_state::Union{PMD.SwitchState,String}` (default: `CLOSED`) is the toggle for the default state to apply to every switch
+- `default_switch_dispatchable::Union{PMD.Dispatchable,Bool}` (default: `YES`) is the toggle for the default dispatchability (controllability) of every switch
+- `default_switch_status::Union{Missing,PMD.Status,Int}` (default: `missing`) is the toggle for the default status (whether the switch appears in the model at all or not) of every switch. If `missing` will default to the status given by the model.
+"""
+function build_events(
+    eng::Dict{String,<:Any};
+    custom_events::Vector{Dict{String,Any}}=Dict{String,Any}[],
+    default_switch_state::Union{PMD.SwitchState,String}=PMD.CLOSED,
+    default_switch_dispatchable::Union{PMD.Dispatchable,Bool}=PMD.YES,
+    default_switch_status::Union{Missing,PMD.Status,Int}=missing
+    )::Vector{Dict{String,Any}}
+
+    @assert !PMD.ismultinetwork(eng) "this function cannot utilize multinetwork data"
+
     events = Dict{String,Any}[]
 
-    eng = PMD.parse_file(case_file)
+    default_switch_state = isa(default_switch_state, String) ? getproperty(PMD, Symbol(uppercase(default_switch_state))) : default_switch_state
+    default_switch_dispatchable = isa(default_switch_dispatchable, Bool) ? PMD.Dispatchable(Int(default_switch_dispatchable)) : default_switch_dispatchable
+    default_switch_status = isa(default_switch_status, Int) ? PMD.Status(default_switch_status) : default_switch_status
 
     for (s, switch) in get(eng, "switch", Dict())
         push!(
@@ -297,18 +405,79 @@ function build_events_file(case_file::String, events_file::String; custom_events
                 "event_type" => "switch",
                 "affected_asset" => switch["source_id"],
                 "event_data" => Dict{String,Any}(
-                    "type" => "breaker",
-                    "state" => lowercase(string(default_switch_state)),
-                    "dispatchable" => Bool(Int(default_switch_dispatchable)),
-                    "status" => ismissing(default_switch_status) ? Int(switch["status"]) : Int(default_switch_status),
+                    "state" => string(default_switch_state),
+                    "dispatchable" => string(default_switch_dispatchable),
+                    "status" => ismissing(default_switch_status) ? string(switch["status"]) : string(default_switch_status),
                 )
             )
         )
     end
 
-    append!(events, custom_events)
+    converted_custom_events = Dict{String,Any}[]
+    for event in custom_events
+        converted_event = Dict{String,Any}()
 
+        if get(event, "event_type", "switch") == "switch"
+            for (k,v) in event
+                converted_event[k] = v
+                if k == "event_data"
+                    for (_k,_v) in v
+                        converted_event[k][_k] = _v
+                        if _k == "state" && !isa(_v, PMD.SwitchState)
+                            converted_event[k][_k] = lowercase(_v) == "closed" ? PMD.CLOSED : PMD.OPEN
+                        elseif _k == "status" && !isa(_v, PMD.Status)
+                            converted_event[k][_k] = PMD.Status(_v)
+                        elseif _k == "dispatchable" && !isa(_v, PMD.Dispatchable)
+                            converted_event[k][_k] = PMD.Dispatchable(Int(_v))
+                        end
+                        converted_event[k][_k] = string(converted_event[k][_k])
+                    end
+                end
+            end
+            push!(converted_custom_events, converted_event)
+        else
+            # nothing to do
+            push!(converted_custom_events, event)
+        end
+    end
+
+    append!(events, converted_custom_events)
+
+    return events
+end
+
+
+"""
+    build_events_file(case_file::String, io::IO; kwargs...)
+
+A helper function to save a rudamentary events data structure to `io` from a network case at path `case_file`.
+"""
+build_events_file(case_file::String, io::IO; kwargs...) = JSON.print(io, build_events(case_file; kwargs...))
+
+
+"""
+    build_events_file(eng::Dict{String,<:Any}, io::IO; kwargs...)
+
+A helper function to save a rudamentary events data structure to `io` from a network case `eng`.
+"""
+build_events_file(eng::Dict{String,<:Any}, io::IO; kwargs...) = JSON.print(io, build_events(eng; kwargs...))
+
+
+"""
+    build_events_file(case_file::String, events_file::String; kwargs...)
+
+A helper function to build a rudamentary `events_file` from a network case at path `case_file`.
+"""
+build_events_file(case_file::String, events_file::String; kwargs...) = build_events_file(PMD.parse_file(case_file), events_file; kwargs...)
+
+
+"""
+    build_events_file(eng::Dict{String,<:Any}, events_file::String; kwargs...)
+
+A helper function to build a rudamentary `events_file` from a network case `eng`.
+"""
+function build_events_file(eng::Dict{String,<:Any}, events_file::String; kwargs...)
     open(events_file, "w") do io
-        JSON.print(io, events)
+        build_events_file(eng, io; kwargs...)
     end
 end

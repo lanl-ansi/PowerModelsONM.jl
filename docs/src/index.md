@@ -20,15 +20,17 @@ Read the introductory tutorial [Introduction to PowerModelsONM](@ref Introductio
 
 The following is a high-level overview of how our documetation is structured. There are three primary sections:
 
-- The __Manual__ contains detailed documentation for certain aspects of PowerModelsONM, such as
+- The **Manual** contains detailed documentation for certain aspects of PowerModelsONM, such as
 
-- __Tutorials__ contains working examples of how to use PowerModelsONM. Start here if you are new to PowerModelsONM.
+- **Tutorials** contains working examples of how to use PowerModelsONM. Start here if you are new to PowerModelsONM.
 
-- The __API Reference__ contains a complete list of the functions you can use in PowerModelsONM. Look here if you want to know how to use a particular function.
+- The **API Reference** contains a complete list of the functions you can use in PowerModelsONM. Look here if you want to know how to use a particular function.
 
 ## PowerModelsONM Analyses Packages
 
-PowerModelsONM depends on several other PowerModels(...) packages from the InfrastructureModels ecosystem.
+PowerModelsONM depends on several other PowerModels(...) packages from the InfrastructureModels ecosystem. The packages in blue below are created and maintained by the core InfrastructureModels developer team, and the other packages are those that are built as extensions or rely on one of the core InfrastructureModels packages in some way.
+
+![InfrastructureModels Ecosystem](assets/infrastructuremodels_ecosystem.png)
 
 ### PowerModelsDistribution
 

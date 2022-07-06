@@ -1,0 +1,190 @@
+[
+  {
+    "event_data": {
+      "status": "ENABLED",
+      "dispatchable": "NO",
+      "state": "OPEN"
+    },
+    "timestep": 1,
+    "affected_asset": "line.cb_101",
+    "event_type": "switch"
+  },
+  {
+    "event_data": {
+      "status": "ENABLED",
+      "dispatchable": "NO",
+      "state": "OPEN"
+    },
+    "timestep": 1,
+    "affected_asset": "line.cb_102",
+    "event_type": "switch"
+  },
+  {
+    "event_data": {
+      "status": "ENABLED",
+      "dispatchable": "NO",
+      "state": "OPEN"
+    },
+    "timestep": 1,
+    "affected_asset": "line.cb_302",
+    "event_type": "switch"
+  },
+  {
+    "event_data": {
+      "status": "ENABLED",
+      "dispatchable": "NO",
+      "state": "OPEN"
+    },
+    "timestep": 1,
+    "affected_asset": "line.cb_303",
+    "event_type": "switch"
+  },
+  {
+    "event_data": {
+      "status": "ENABLED",
+      "dispatchable": "NO",
+      "state": "OPEN"
+    },
+    "timestep": 1,
+    "affected_asset": "line.cb_202",
+    "event_type": "switch"
+  },
+  {
+    "event_data": {
+      "status": "ENABLED",
+      "dispatchable": "NO",
+      "state": "OPEN"
+    },
+    "timestep": 1,
+    "affected_asset": "line.cb_203",
+    "event_type": "switch"
+  },
+  {
+    "event_data": {
+      "status": "ENABLED",
+      "dispatchable": "NO",
+      "state": "OPEN"
+    },
+    "timestep": 1,
+    "affected_asset": "line.cb_201",
+    "event_type": "switch"
+  },
+  {
+    "event_data": {
+      "status": "ENABLED",
+      "dispatchable": "NO",
+      "state": "OPEN"
+    },
+    "timestep": 1,
+    "affected_asset": "line.cb_301",
+    "event_type": "switch"
+  },
+  {
+    "event_data": {
+      "status": "ENABLED",
+      "dispatchable": "NO",
+      "state": "OPEN"
+    },
+    "timestep": 1,
+    "affected_asset": "line.cb_204",
+    "event_type": "switch"
+  },
+  {
+    "event_data": {
+      "status": "ENABLED",
+      "dispatchable": "NO",
+      "type": "breaker",
+      "state": "OPEN"
+    },
+    "timestep": 1,
+    "affected_asset": "line.cb_101",
+    "event_type": "switch"
+  },
+  {
+    "event_data": {
+      "status": "ENABLED",
+      "dispatchable": "NO",
+      "type": "breaker",
+      "state": "OPEN"
+    },
+    "timestep": 1,
+    "affected_asset": "line.cb_201",
+    "event_type": "switch"
+  },
+  {
+    "event_data": {
+      "status": "ENABLED",
+      "dispatchable": "NO",
+      "type": "breaker",
+      "state": "OPEN"
+    },
+    "timestep": 1,
+    "affected_asset": "line.cb_202",
+    "event_type": "switch"
+  },
+  {
+    "event_data": {
+      "status": "ENABLED",
+      "dispatchable": "NO",
+      "type": "breaker",
+      "state": "OPEN"
+    },
+    "timestep": 1,
+    "affected_asset": "line.cb_301",
+    "event_type": "switch"
+  },
+  {
+    "event_data": { "dispatchable": "NO" },
+    "timestep": 2,
+    "affected_asset": "line.cb_102",
+    "event_type": "switch"
+  },
+  {
+    "event_data": { "dispatchable": "YES" },
+    "timestep": 2,
+    "affected_asset": "line.cb_202",
+    "event_type": "switch"
+  },
+  {
+    "event_data": { "dispatchable": "YES" },
+    "timestep": 2,
+    "affected_asset": "line.cb_203",
+    "event_type": "switch"
+  },
+  {
+    "event_data": { "dispatchable": "NO" },
+    "timestep": 2,
+    "affected_asset": "line.cb_204",
+    "event_type": "switch"
+  },
+  {
+    "event_data": { "dispatchable": "YES" },
+    "timestep": 2,
+    "affected_asset": "line.cb_302",
+    "event_type": "switch"
+  },
+  {
+    "event_data": { "dispatchable": "NO" },
+    "timestep": 2,
+    "affected_asset": "line.cb_303",
+    "event_type": "switch"
+  },
+  {
+    "event_data": { "dispatchable": "YES" },
+    "timestep": 6,
+    "affected_asset": "line.cb_101",
+    "event_type": "switch"
+  },
+  {
+    "event_data": { "dispatchable": "YES" },
+    "timestep": 12,
+    "affected_asset": "line.cb_201",
+    "event_type": "switch"
+  },
+  {
+    "event_data": { "dispatchable": "YES" },
+    "timestep": 18,
+    "affected_asset": "line.cb_301",
+    "event_type": "switch"
+  }
+]

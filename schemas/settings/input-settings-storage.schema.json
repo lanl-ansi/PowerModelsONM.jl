@@ -28,11 +28,11 @@
           "description": "currently stored energy in the battery in kWh"
         },
         "qs_lb": {
-          "type": "number",
+          "type": ["number", "null"],
           "description": "lower bound of reactive power that can be outputted in kvar"
         },
         "qs_ub": {
-          "type": "number",
+          "type": ["number", "null"],
           "description": "upper bound of reactive power that can be outputted in kvar"
         },
         "pex": {
@@ -48,10 +48,13 @@
           "enum": [0, 1, "ENABLED", "DISABLED"],
           "description": "the status of the asset, _i.e._ enabled (`1`) or disabled (`0`)"
         },
-        "phase_unbalance_factor": {
-          "type": "number",
-          "minimum": 0,
+        "phase_unbalance_ub": {
+          "type": ["number", "null"],
           "description": "Percent within which power input/output must be on between phases on the storage object"
+        },
+        "inverter": {
+          "type": "string",
+          "enum": ["GRID_FOLLOWING", "GRID_FORMING"]
         }
       }
     }

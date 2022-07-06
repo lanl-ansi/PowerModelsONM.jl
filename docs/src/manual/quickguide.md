@@ -42,4 +42,4 @@ Although PowerModelsONM includes some open source solvers by default, namely
 we recommend using Gurobi to solve the [`optimal switching problem`](@ref optimize_switches!), if it is available to you, as we have found it has far superior performance on the MISOCP problem that it is solving as compared to the open-source solutions.
 
 !!! info
-    To use Gurobi with PowerModelsONM, do `import Gurobi` __BEFORE__ `import PowerModelsONM`. We use [Requires.jl](https://github.com/JuliaPackaging/Requires.jl) to manage the Gurobi Environment `GRB_ENV`, which will check out a license that can be used throughout the optimization solves.
+To use Gurobi with PowerModelsONM, do `import Gurobi` **BEFORE** `import PowerModelsONM`. We use [Requires.jl](https://github.com/JuliaPackaging/Requires.jl) to manage the Gurobi Environment `GRB_ENV`, which will check out a license that can be used throughout the optimization solves.

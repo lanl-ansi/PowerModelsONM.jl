@@ -1,0 +1,320 @@
+{
+  "bus": {
+    "646": {
+      "vm_ub": [2.641954831811728, 2.641954831811728],
+      "vm_lb": [2.161599407845959, 2.161599407845959]
+    },
+    "671": {
+      "vm_ub": [2.641954831811728, 2.641954831811728, 2.641954831811728],
+      "vm_lb": [2.161599407845959, 2.161599407845959, 2.161599407845959]
+    },
+    "800": {
+      "vm_ub": [2.641954831811728, 2.641954831811728, 2.641954831811728],
+      "vm_lb": [2.161599407845959, 2.161599407845959, 2.161599407845959]
+    },
+    "680": {
+      "vm_ub": [2.641954831811728, 2.641954831811728, 2.641954831811728],
+      "vm_lb": [2.161599407845959, 2.161599407845959, 2.161599407845959]
+    },
+    "634": {
+      "vm_ub": [0.30484094213212237, 0.30484094213212237, 0.30484094213212237],
+      "vm_lb": [0.24941531628991828, 0.24941531628991828, 0.24941531628991828]
+    },
+    "652": { "vm_ub": [2.641954831811728], "vm_lb": [2.161599407845959] },
+    "701": {
+      "vm_ub": [2.641954831811728, 2.641954831811728, 2.641954831811728],
+      "vm_lb": [2.161599407845959, 2.161599407845959, 2.161599407845959],
+      "microgrid_id": "3"
+    },
+    "675": {
+      "vm_ub": [2.641954831811728, 2.641954831811728, 2.641954831811728],
+      "vm_lb": [2.161599407845959, 2.161599407845959, 2.161599407845959],
+      "microgrid_id": "2"
+    },
+    "702": {
+      "vm_ub": [2.641954831811728, 2.641954831811728, 2.641954831811728],
+      "vm_lb": [2.161599407845959, 2.161599407845959, 2.161599407845959],
+      "microgrid_id": "4"
+    },
+    "650": {
+      "vm_ub": [2.641954831811728, 2.641954831811728, 2.641954831811728],
+      "vm_lb": [2.161599407845959, 2.161599407845959, 2.161599407845959]
+    },
+    "700": {
+      "vm_ub": [2.641954831811728, 2.641954831811728, 2.641954831811728],
+      "vm_lb": [2.161599407845959, 2.161599407845959, 2.161599407845959],
+      "microgrid_id": "3"
+    },
+    "801": {
+      "vm_ub": [2.641954831811728, 2.641954831811728, 2.641954831811728],
+      "vm_lb": [2.161599407845959, 2.161599407845959, 2.161599407845959],
+      "microgrid_id": "1"
+    },
+    "rg60": {
+      "vm_ub": [2.641954831811728, 2.641954831811728, 2.641954831811728],
+      "vm_lb": [2.161599407845959, 2.161599407845959, 2.161599407845959]
+    },
+    "611": { "vm_ub": [2.641954831811728], "vm_lb": [2.161599407845959] },
+    "645": {
+      "vm_ub": [2.641954831811728, 2.641954831811728],
+      "vm_lb": [2.161599407845959, 2.161599407845959]
+    },
+    "632": {
+      "vm_ub": [2.641954831811728, 2.641954831811728, 2.641954831811728],
+      "vm_lb": [2.161599407845959, 2.161599407845959, 2.161599407845959]
+    },
+    "675aux": {
+      "vm_ub": [2.641954831811728, 2.641954831811728, 2.641954831811728],
+      "vm_lb": [2.161599407845959, 2.161599407845959, 2.161599407845959],
+      "microgrid_id": "2"
+    },
+    "703": {
+      "vm_ub": [2.641954831811728, 2.641954831811728, 2.641954831811728],
+      "vm_lb": [2.161599407845959, 2.161599407845959, 2.161599407845959],
+      "microgrid_id": "4"
+    },
+    "633": {
+      "vm_ub": [2.641954831811728, 2.641954831811728, 2.641954831811728],
+      "vm_lb": [2.161599407845959, 2.161599407845959, 2.161599407845959]
+    },
+    "684": {
+      "vm_ub": [2.641954831811728, 2.641954831811728],
+      "vm_lb": [2.161599407845959, 2.161599407845959]
+    },
+    "692": {
+      "vm_ub": [2.641954831811728, 2.641954831811728, 2.641954831811728],
+      "vm_lb": [2.161599407845959, 2.161599407845959, 2.161599407845959],
+      "microgrid_id": "2"
+    },
+    "670": {
+      "vm_ub": [2.641954831811728, 2.641954831811728, 2.641954831811728],
+      "vm_lb": [2.161599407845959, 2.161599407845959, 2.161599407845959]
+    },
+    "800aux": {
+      "vm_ub": [2.641954831811728, 2.641954831811728, 2.641954831811728],
+      "vm_lb": [2.161599407845959, 2.161599407845959, 2.161599407845959]
+    }
+  },
+  "solvers": {
+    "HiGHS": {
+      "presolve": "choose",
+      "small_matrix_value": 1.0e-12,
+      "mip_feasibility_tolerance": 0.0001,
+      "primal_feasibility_tolerance": 1.0e-5,
+      "dual_feasibility_tolerance": 1.0e-5,
+      "mip_rel_gap": 0.0001,
+      "allow_unbounded_or_infeasible": true,
+      "output_flag": false
+    },
+    "useGurobi": true,
+    "Juniper": {
+      "branch_strategy": ":MostInfeasible",
+      "traverse_strategy": ":DFS",
+      "mip_gap": 0.0001
+    },
+    "Ipopt": {
+      "tol": 1.0e-5,
+      "mu_strategy": "adaptive",
+      "print_level": 0,
+      "mumps_mem_percent": 200
+    },
+    "Gurobi": {
+      "FeasibilityTol": 1.0e-5,
+      "NumericFocus": 3,
+      "MIPGap": 0.0001,
+      "Quad": 1,
+      "MIPFocus": 2,
+      "DualReductions": 0,
+      "GURO_PAR_DUMP": 0,
+      "OutputFlag": 0,
+      "Presolve": -1
+    },
+    "KNITRO": {
+      "presolve": 1,
+      "opttol": 0.0001,
+      "algorithm": 3,
+      "feastol": 1.0e-5,
+      "outlev": 0
+    },
+    "useKNITRO": false
+  },
+  "settings": { "sbase_default": 1000.0 },
+  "storage": {
+    "battery_mg1a": { "phase_unbalance_factor": 0.0 },
+    "battery_mg1c": { "phase_unbalance_factor": 0.0 },
+    "battery_mg1b": { "phase_unbalance_factor": 0.0 }
+  },
+  "switch": {
+    "801675": { "cm_ub": [35.0, 35.0, 35.0] },
+    "671692": { "cm_ub": [null, null, null] },
+    "671700": { "cm_ub": [null, null, null] },
+    "703800": { "cm_ub": [null, null, null] },
+    "800801": { "cm_ub": [35.0, 35.0, 35.0] },
+    "701702": { "cm_ub": [null, null, null] }
+  },
+  "generator": {},
+  "dss": {
+    "Storage.Battery_mg1b": { "inverter": "gfm" },
+    "Storage.Battery_mg1c": { "inverter": "grid_forming" },
+    "PVSystem.PV_mg1a": { "inverter": "gfm" },
+    "PVSystem.PV_mg1b": { "inverter": "gfm" },
+    "Storage.Battery_mg1a": { "inverter": "GRID_FORMING" },
+    "Generator.675": { "inverter": "GRID_FORMING" }
+  },
+  "voltage_source": {
+    "source": { "qg_lb": [0.0, 0.0, 0.0], "pg_lb": [0.0, 0.0, 0.0] }
+  },
+  "line": {
+    "632670": {
+      "vad_ub": [5.0, 5.0, 5.0],
+      "cm_ub": [null, null, null],
+      "vad_lb": [-5.0, -5.0, -5.0]
+    },
+    "700701": {
+      "vad_ub": [5.0, 5.0, 5.0],
+      "cm_ub": [null, null, null],
+      "vad_lb": [-5.0, -5.0, -5.0]
+    },
+    "632645": {
+      "vad_ub": [5.0, 5.0],
+      "cm_ub": [null, null],
+      "vad_lb": [-5.0, -5.0]
+    },
+    "684611": { "vad_ub": [5.0], "cm_ub": [null], "vad_lb": [-5.0] },
+    "692675": {
+      "vad_ub": [5.0, 5.0, 5.0],
+      "cm_ub": [null, null, null],
+      "vad_lb": [-5.0, -5.0, -5.0]
+    },
+    "675675aux": {
+      "vad_ub": [5.0, 5.0, 5.0],
+      "cm_ub": [null, null, null],
+      "vad_lb": [-5.0, -5.0, -5.0]
+    },
+    "671684": {
+      "vad_ub": [5.0, 5.0],
+      "cm_ub": [null, null],
+      "vad_lb": [-5.0, -5.0]
+    },
+    "645646": {
+      "vad_ub": [5.0, 5.0],
+      "cm_ub": [null, null],
+      "vad_lb": [-5.0, -5.0]
+    },
+    "650632": {
+      "vad_ub": [5.0, 5.0, 5.0],
+      "cm_ub": [null, null, null],
+      "vad_lb": [-5.0, -5.0, -5.0]
+    },
+    "800800aux": {
+      "vad_ub": [5.0, 5.0, 5.0],
+      "cm_ub": [null, null, null],
+      "vad_lb": [-5.0, -5.0, -5.0]
+    },
+    "702703": {
+      "vad_ub": [5.0, 5.0, 5.0],
+      "cm_ub": [null, null, null],
+      "vad_lb": [-5.0, -5.0, -5.0]
+    },
+    "671680": {
+      "vad_ub": [5.0, 5.0, 5.0],
+      "cm_ub": [null, null, null],
+      "vad_lb": [-5.0, -5.0, -5.0]
+    },
+    "632633": {
+      "vad_ub": [5.0, 5.0, 5.0],
+      "cm_ub": [null, null, null],
+      "vad_lb": [-5.0, -5.0, -5.0]
+    },
+    "684652": { "vad_ub": [5.0], "cm_ub": [null], "vad_lb": [-5.0] },
+    "670671": {
+      "vad_ub": [5.0, 5.0, 5.0],
+      "cm_ub": [null, null, null],
+      "vad_lb": [-5.0, -5.0, -5.0]
+    }
+  },
+  "options": {
+    "outputs": {
+      "sparse-fault-studies": true,
+      "pretty-print": true,
+      "debug-output": false
+    },
+    "variables": {
+      "unbound-transformer-power": false,
+      "unbound-generation-power": false,
+      "unbound-storage-power": false,
+      "unbound-line-power": false,
+      "unbound-line-current": false,
+      "unbound-voltage": false,
+      "relax-integer-variables": false,
+      "unbound-switch-power": false
+    },
+    "constraints": {
+      "disable-grid-forming-inverter-constraint": true,
+      "disable-switch-close-action-limit": false,
+      "enable-strictly-increasing-restoration-constraint": false,
+      "disable-thermal-limit-constraints": false,
+      "disable-storage-unbalance-constraint": false,
+      "disable-radiality-constraint": false,
+      "disable-current-limit-constraints": false,
+      "disable-block-isolation-constraint": false,
+      "disable-microgrid-networking": false,
+      "disable-microgrid-expansion": false
+    },
+    "problem": {
+      "operations-problem-type": "block",
+      "operations-formulation": "LPUBFDiagPowerModel",
+      "dispatch-formulation": "LPUBFDiagPowerModel",
+      "operations-algorithm": "rolling-horizon",
+      "dispatch-solver": "nlp_solver",
+      "operations-solver": "mip_solver",
+      "concurrent-fault-studies": true,
+      "concurrent-stability-studies": true
+    },
+    "data": {
+      "fix-small-numbers": false,
+      "switch-close-actions-ub": [1, 1, 1, 1, 1, 1, 1, 1]
+    },
+    "objective": {
+      "disable-load-block-shed-cost": false,
+      "disable-switch-state-change-cost": false,
+      "disable-generation-dispatch-cost": false,
+      "enable-switch-state-open-cost": true,
+      "disable-storage-discharge-cost": false,
+      "disable-load-block-weight-cost": false
+    }
+  },
+  "transformer": {
+    "xfm1": { "sm_ub": 25000.0 },
+    "reg1": { "sm_ub": 25000.0 },
+    "sub": { "sm_ub": 25000.0 }
+  },
+  "shunt": {},
+  "solar": {},
+  "load": {
+    "671_1": { "clpu_factor": 2.0 },
+    "634a": { "clpu_factor": 2.0 },
+    "692_3": { "clpu_factor": 2.0 },
+    "675b": { "clpu_factor": 2.0 },
+    "675a": { "clpu_factor": 2.0 },
+    "652": { "clpu_factor": 2.0 },
+    "692_1": { "clpu_factor": 2.0 },
+    "701": { "clpu_factor": 2.0 },
+    "671_3": { "clpu_factor": 2.0 },
+    "702": { "clpu_factor": 2.0 },
+    "646_3": { "clpu_factor": 2.0 },
+    "700": { "clpu_factor": 2.0 },
+    "801": { "clpu_factor": 2.0 },
+    "670c": { "clpu_factor": 2.0 },
+    "611": { "clpu_factor": 2.0 },
+    "645": { "clpu_factor": 2.0 },
+    "634c": { "clpu_factor": 2.0 },
+    "671_2": { "clpu_factor": 2.0 },
+    "703": { "clpu_factor": 2.0 },
+    "670b": { "clpu_factor": 2.0 },
+    "634b": { "clpu_factor": 2.0 },
+    "675c": { "clpu_factor": 2.0 },
+    "670a": { "clpu_factor": 2.0 },
+    "646_2": { "clpu_factor": 2.0 }
+  }
+}

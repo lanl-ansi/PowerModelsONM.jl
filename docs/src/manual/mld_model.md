@@ -1,10 +1,10 @@
-# [Optimal Switching / Load shed Mathematical Model](@id osw-mld-math)
+# [Optimal Load Shed Mathematical Model](@id mld-math)
 
 The following contains the mathematical model for the optimal switching / load shed problem as implemented in PowerModelsONM.
 
 For more information about notation see the [optimal dispatch documentation](@ref opf-math), or [PowerModelsDistribution AC OPF documentation](https://lanl-ansi.github.io/PowerModelsDistribution.jl/stable/manual/math-model.html).
 
-## OSW/MLD Variables
+## MLD Variables
 
 ```math
 \begin{align}
@@ -18,7 +18,7 @@ For more information about notation see the [optimal dispatch documentation](@re
 \end{align}
 ```
 
-## OSW/MLD Objective
+## MLD Objective
 
 ```math
 \begin{align}
@@ -43,7 +43,7 @@ where
 \end{align}
 ```
 
-## OSW/MLD Constraints
+## MLD Constraints
 
 ```math
 \begin{align}

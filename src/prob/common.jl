@@ -1,46 +1,125 @@
-"default eng2math passthrough"
-const _eng2math_passthrough = Dict{String,Vector{String}}(
-    "root"=>String[
-        "max_switch_actions",
-        "disable_networking",
-        "disable_switch_penalty",
-        "apply_switch_scores",
-        "disable_radial_constraint",
-        "disable_isolation_constraint",
-    ],
-    "load"=>String["priority"],
-    "bus"=>String["microgrid_id"],
-    "storage"=>String["phase_unbalance_factor"],
-)
+"default ref_extension functions"
+const _default_ref_extensions = Function[
+    ref_add_load_blocks!,
+    ref_add_options!,
+]
 
-"default ref_extensions for solve_mc_model"
-const _ref_extensions = Function[ref_add_load_blocks!, ref_add_max_switch_actions!]
+"default solution_processor functions"
+const _default_solution_processors = Function[
+    PMD.sol_data_model!,
+    solution_reference_buses!,
+    solution_statuses!,
+    solution_inverter!,
+    PowerModelsONM.solution_blocks!,
+]
 
-"default solution processors"
-const _solution_processors = Function[PMD.sol_data_model!, PowerModelsONM.solution_reference_buses!]
+"""
+    solve_onm_model(
+        data::Union{Dict{String,<:Any}, String},
+        model_type::Type,
+        solver::Any,
+        model_builder::Function;
+        solution_processors::Vector{Function}=Function[],
+        eng2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
+        ref_extensions::Vector{Function}=Function[],
+        multinetwork::Bool=false,
+        global_keys::Set{String}=Set{String}(),
+        kwargs...
+    )::Dict{String,Any}
+
+Custom version of `PowerModelsDistribution.solve_mc_model` that automatically includes the solution processors,
+ref extensions and eng2math_passthroughs required for ONM problems.
+"""
+function solve_onm_model(
+    data::Union{Dict{String,<:Any}, String},
+    model_type::Type,
+    solver::Any,
+    model_builder::Function;
+    solution_processors::Vector{Function}=Function[],
+    eng2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
+    ref_extensions::Vector{Function}=Function[],
+    multinetwork::Bool=false,
+    global_keys::Set{String}=Set{String}(),
+    kwargs...)::Dict{String,Any}
+
+    return PMD.solve_mc_model(
+        data,
+        model_type,
+        solver,
+        model_builder;
+        multinetwork=multinetwork,
+        solution_processors=Function[
+            _default_solution_processors...,
+            solution_processors...
+        ],
+        ref_extensions=Function[
+            _default_ref_extensions...,
+            ref_extensions...
+        ],
+        eng2math_passthrough=recursive_merge_including_vectors(_eng2math_passthrough_default, eng2math_passthrough),
+        global_keys=union(_default_global_keys,global_keys),
+        kwargs...
+    )
+end
 
 
 """
-    build_solver_instances!(args::Dict{String,<:Any})::Dict{String,JuMP.MOI.OptimizerWithAttributes}
+instantiate_onm_model(
+        data::Union{Dict{String,<:Any}, String},
+        model_type::Type,
+        model_builder::Function;
+        eng2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
+        ref_extensions::Vector{Function}=Function[],
+        multinetwork::Bool=false,
+        global_keys::Set{String}=Set{String}(),
+        kwargs...
+    )
+
+ONM-specific version of PowerModelsDistribution.instantiate_mc_model
+"""
+function instantiate_onm_model(
+    data::Union{Dict{String,<:Any}, String},
+    model_type::Type,
+    model_builder::Function;
+    eng2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
+    ref_extensions::Vector{Function}=Function[],
+    multinetwork::Bool=false,
+    global_keys::Set{String}=Set{String}(),
+    kwargs...)
+
+    return PMD.instantiate_mc_model(
+        data,
+        model_type,
+        model_builder;
+        multinetwork=multinetwork,
+        ref_extensions=Function[
+            _default_ref_extensions...,
+            ref_extensions...
+        ],
+        eng2math_passthrough=recursive_merge_including_vectors(_eng2math_passthrough_default, eng2math_passthrough),
+        global_keys=union(_default_global_keys, global_keys),
+        kwargs...
+    )
+end
+
+
+"""
+    build_solver_instances!(args::Dict{String,<:Any})::Dict{String,Any}
 
 Creates the Optimizers in-place (within the args dict data structure), for use inside [`entrypoint`](@ref entrypoint),
 using [`build_solver_instances`](@ref build_solver_instances), assigning them to `args["solvers"]``
 """
-function build_solver_instances!(args::Dict{String,<:Any})::Dict{String,JuMP.MOI.OptimizerWithAttributes}
+function build_solver_instances!(args::Dict{String,<:Any})::Dict{String,Any}
+    solver_opts = get(get(args, "network", Dict()), "solvers", Dict{String,Any}())
+    log_level = get_setting(args, ("options","outputs","log-level"), "warn")
+
     args["solvers"] = build_solver_instances(;
         nlp_solver = get(get(args, "solvers", Dict()), "nlp_solver", missing),
-        nlp_solver_options = isa(get(args, "settings", ""), String) ? missing : get(args["settings"], "nlp_solver_options", missing),
         mip_solver = get(get(args, "solvers", Dict()), "mip_solver", missing),
-        mip_solver_options = isa(get(args, "settings", ""), String) ? missing : get(args["settings"], "nlp_solver_options", missing),
         minlp_solver = get(get(args, "solvers", Dict()), "minlp_solver", missing),
-        minlp_solver_options = isa(get(args, "settings", ""), String) ? missing : get(args["settings"], "nlp_solver_options", missing),
         misocp_solver = get(get(args, "solvers", Dict()), "misocp_solver", missing),
-        feas_tol=isa(get(args, "settings", ""), String) ? 1e-4 : get(get(args, "settings", Dict()), "nlp_solver_tol", 1e-4),
-        mip_gap_tol=isa(get(args, "settings", ""), String) ? 0.05 : get(get(args, "settings", Dict()), "mip_solver_gap", 0.05),
-        verbose=get(args, "verbose", false),
-        debug=get(args, "debug", false),
-        gurobi=get(args, "gurobi", false),
-        knitro=get(args, "knitro", false),
+        solver_options=solver_opts,
+        log_level=log_level,
     )
 end
 
@@ -51,16 +130,9 @@ end
         mip_solver::Union{Missing,JuMP.MOI.OptimizerWithAttributes}=missing,
         minlp_solver::Union{Missing,JuMP.MOI.OptimizerWithAttributes}=missing,
         misocp_solver::Union{Missing,JuMP.MOI.OptimizerWithAttributes}=missing,
-        nlp_solver_options::Union{Missing,Vector{Pair}}=missing,
-        mip_solver_options::Union{Missing,Vector{Pair}}=missing,
-        minlp_solver_options::Union{Missing,Vector{Pair}}=missing,
-        feas_tol::Float64=1e-6,
-        mip_gap_tol::Float64=1e-4,
-        gurobi::Bool=false,
-        knitro::Bool=false,
-        verbose::Bool=false,
-        debug::Bool=false,
-    )::Dict{String,JuMP.MOI.OptimizerWithAttributes}
+        solver_options::Dict{String,<:Any}=Dict{String,Any}(),
+        log_level::String="warn",
+    )::Dict{String,Any}
 
 Returns solver instances as a Dict ready for use with JuMP Models, for NLP (`"nlp_solver"`), MIP (`"mip_solver"`), MINLP (`"minlp_solver"`), and (MI)SOC (`"misocp_solver"`) problems.
 
@@ -68,134 +140,105 @@ Returns solver instances as a Dict ready for use with JuMP Models, for NLP (`"nl
 - `mip_solver` (default: `missing`): If missing, will use Cbc as MIP solver, or Gurobi if `gurobi==true`
 - `minlp_solver` (default: `missing`): If missing, will use Juniper with `nlp_solver` and `mip_solver`, of KNITRO if `knitro=true`
 - `misocp_solver` (default: `missing`): If missing will use Juniper with `mip_solver`, or Gurobi if `gurobi==true`
-- `nlp_solver_options` (default: `missing`): If missing, will use some default nlp solver options
-- `mip_solver_options` (default: `missing`): If missing, will use some default mip solver options
-- `minlp_solver_options` (default: `missing`): If missing, will use some default minlp solver options
-- `feas_tol` (default: `1e-4`): The solver tolerance
-- `mip_gap_tol` (default: 0.05): The desired MIP Gap for the MIP Solver
-- `verbose` (default: `false`): Sets the verbosity of the solvers
-- `debug` (default: `false`): Sets the verbosity of the solvers even higher (if available)
-- `gurobi` (default: `false`): Use Gurobi for MIP / MISOC solvers
-- `knitro` (default: `false`): Use KNITRO for NLP / MINLP solvers
+- `solver_options` (default: Dict{String,Any}())
+- `log_level` (default: "warn")
 """
 function build_solver_instances(;
     nlp_solver::Union{Missing,JuMP.MOI.OptimizerWithAttributes}=missing,
     mip_solver::Union{Missing,JuMP.MOI.OptimizerWithAttributes}=missing,
     minlp_solver::Union{Missing,JuMP.MOI.OptimizerWithAttributes}=missing,
     misocp_solver::Union{Missing,JuMP.MOI.OptimizerWithAttributes}=missing,
-    nlp_solver_options::Union{Missing,Vector{Pair}}=missing,
-    mip_solver_options::Union{Missing,Vector{Pair}}=missing,
-    minlp_solver_options::Union{Missing,Vector{Pair}}=missing,
-    feas_tol::Float64=1e-6,
-    mip_gap_tol::Float64=1e-4,
-    gurobi::Bool=false,
-    knitro::Bool=false,
-    verbose::Bool=false,
-    debug::Bool=false,
-    )::Dict{String,JuMP.MOI.OptimizerWithAttributes}
+    solver_options::Dict{String,<:Any}=Dict{String,Any}(),
+    log_level::String="warn",
+    )::Dict{String,Any}
 
     if ismissing(nlp_solver)
-        if knitro
-            if ismissing(nlp_solver_options)
-                nlp_solver_options = Pair[
-                    "outlev" => debug ? 3 : verbose ? 2 : 0,
-                    "mip_outlevel" => debug ? 2 : verbose ? 1 : 0,
-                    "opttol" => mip_gap_tol,
-                    "feastol" => feas_tol,
-                    "algorithm" => 3,
-                    "presolve" => 0,
-                ]
+        if get(solver_options, "useKNITRO", false)
+            opts = get(solver_options, "KNITRO", Dict{String,Any}())
+            if log_level == "debug"
+                opts["outlev"] = 3
+                opts["mip_outlevel"] = 3
+            elseif log_level == "info"
+                opts["outlev"] = 2
+                opts["mip_outlevel"] = 2
             end
             nlp_solver = optimizer_with_attributes(
                 () -> KNITRO.Optimizer(;license_manager=KN_LMC),
-                nlp_solver_options...
+                opts...
             )
         else
-            if ismissing(nlp_solver_options)
-                nlp_solver_options = Pair[
-                    "tol" => feas_tol,
-                    "print_level" => debug ? 5 : verbose ? 3 : 0,
-                    "mumps_mem_percent" => 200,
-                    "mu_strategy" => "adaptive",
-                ]
+            opts = get(solver_options, "Ipopt", Dict{String,Any}())
+            if log_level == "debug"
+                opts["print_level"] = 5
+            elseif log_level == "info"
+                opts["print_level"] = 3
             end
             nlp_solver = optimizer_with_attributes(
                 Ipopt.Optimizer,
-                nlp_solver_options...
+                opts...
             )
         end
     end
 
     if ismissing(mip_solver)
-        if gurobi
-            if ismissing(mip_solver_options)
-                mip_solver_options = Pair[
-                    # output settings
-                    "OutputFlag" => verbose || debug ? 1 : 0,
-                    "GURO_PAR_DUMP" => debug ? 1 : 0,
-                    # tolerance settings
-                    "MIPGap" => mip_gap_tol,
-                    "FeasibilityTol" => feas_tol,
-                    # MIP settings
-                    "MIPFocus" => 2,
-                    # presolve settings
-                    "DualReductions" => 0,
-                ]
+        if get(solver_options, "useGurobi", false)
+            opts = get(solver_options, "Gurobi", Dict{String,Any}())
+            if log_level == "debug"
+                opts["OutputFlag"] = 1
+            elseif log_level == "info"
+                opts["OutputFlag"] = 1
             end
             mip_solver = optimizer_with_attributes(
                 () -> Gurobi.Optimizer(GRB_ENV),
-                mip_solver_options...
+                opts...
             )
         else
-            if ismissing(mip_solver_options)
-                mip_solver_options = Pair[
-                    "loglevel" => verbose || debug ? 1 : 0,
-                ]
+            opts = get(solver_options, "HiGHS", Dict{String,Any}())
+            if log_level == "debug"
+                opts["output_flag"] = true
+            elseif log_level == "info"
+                opts["output_flag"] = true
             end
             mip_solver = optimizer_with_attributes(
-                Cbc.Optimizer,
-                mip_solver_options...
+                HiGHS.Optimizer,
+                opts...
             )
         end
     end
 
     if ismissing(minlp_solver)
-        if knitro
-            if ismissing(minlp_solver_options)
-                minlp_solver_options = Pair[
-                    "outlev" => debug ? 3 : verbose ? 2 : 0,
-                    "mip_outlevel" => debug ? 2 : verbose ? 1 : 0,
-                    "opttol" => mip_gap_tol,
-                    "feastol" => feas_tol,
-                    "algorithm" => 3,
-                    "presolve" => 0,
-                ]
+        if get(solver_options, "useKNITRO", false)
+            opts = get(solver_options, "KNITRO", Dict{String,Any}())
+            if log_level == "debug"
+                opts["outlev"] = 3
+                opts["mip_outlevel"] = 3
+            elseif log_level == "info"
+                opts["outlev"] = 2
+                opts["mip_outlevel"] = 2
             end
             minlp_solver = optimizer_with_attributes(
                 () -> KNITRO.Optimizer(;license_manager=KN_LMC),
-                minlp_solver_options...
+                opts...
             )
         else
-            if ismissing(minlp_solver_options)
-                minlp_solver_options = Pair[
-                    "nl_solver" => nlp_solver,
-                    "mip_solver" => mip_solver,
-                    "branch_strategy" => :MostInfeasible,
-                    "log_levels" => debug ? [:Error,:Warn,:Info] : verbose ? [:Error,:Warn] : [],
-                    "mip_gap" => mip_gap_tol,
-                    "traverse_strategy" => :DFS,
-                ]
+            opts = get(solver_options, "Juniper", Dict{String,Any}())
+            if log_level == "debug"
+                opts["log_levels"] = [:Table,:Info,:Options]
+            elseif log_level == "info"
+                opts["log_levels"] = [:Info,:Options]
             end
             minlp_solver = optimizer_with_attributes(
                 Juniper.Optimizer,
-                minlp_solver_options...
+                "nl_solver" => nlp_solver,
+                "mip_solver" => mip_solver,
+                opts...
             )
 
         end
     end
 
     if ismissing(misocp_solver)
-        if gurobi
+        if get(solver_options, "useKNITRO", false)
             misocp_solver = mip_solver
         else
             misocp_solver = minlp_solver

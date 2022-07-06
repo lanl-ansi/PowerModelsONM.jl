@@ -13,9 +13,12 @@ if get(args, "nprocs", 1) > 1
     @everywhere Pkg.activate(joinpath(@__DIR__), "..", "..")
 end
 
-# TODO: Remove use-gurobi when it gets removed from depreciated CLI Arguments
-if get(args, "gurobi", false) || get(args, "use-gurobi", false)
+if get(args, "gurobi", false)
     @everywhere import Gurobi
+end
+
+if get(args, "knitro", false)
+    @everywhere import KNITRO
 end
 
 @everywhere import PowerModelsONM

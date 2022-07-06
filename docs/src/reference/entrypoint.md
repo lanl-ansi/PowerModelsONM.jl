@@ -4,10 +4,12 @@
 
 ```@docs
 entrypoint
+```
+
+```@docs
 initialize_output!
-parse_network!
-parse_events!
-parse_settings!
+setup_logging!
+prepare_data!
 build_solver_instances!
 optimize_switches!
 optimize_dispatch!

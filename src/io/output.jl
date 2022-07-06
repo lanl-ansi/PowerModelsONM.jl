@@ -1,62 +1,104 @@
+"Lookup for JSON to Julia type conversions"
+const _json_schema_type_conversions = Dict{Union{Missing,String},Type}(
+    "string"=>String,
+    "array"=>Vector,
+    "integer"=>Int,
+    "number"=>Real,
+    "boolean"=>Bool,
+    missing=>Any,
+    "object"=>Dict{String,Any},
+    "null"=>Union{Real,Nothing,Missing}, # Inf,NaN,missing
+)
+
+
+"""
+    _recursive_initialize_output_from_schema!(output::Dict{String,<:Any}, schema_properties::Dict{String,<:Any})
+
+Helper function to initialize the output data structure from the output schema
+"""
+function _recursive_initialize_output_from_schema!(output::Dict{String,<:Any}, schema_properties::Dict{String,<:Any})
+    for (prop_name,prop) in schema_properties
+        if haskey(prop, "\$ref")
+            _prop = prop["\$ref"]
+        else
+            _prop = prop
+        end
+
+        if get(_prop, "type", "") == "object"
+            output[prop_name] = Dict{String,Any}()
+            _recursive_initialize_output_from_schema!(output[prop_name], get(_prop, "properties", Dict{String,Any}()))
+        elseif get(_prop, "type", "") == "array"
+            if haskey(_prop["items"], "\$ref")
+                raw_subtype = get(_prop["items"]["\$ref"], "type", missing)
+            else
+                raw_subtype = get(_prop["items"], "type", missing)
+            end
+
+            if isa(raw_subtype, Vector)
+                subtype = Union{[_json_schema_type_conversions[t] for t in raw_subtype]...}
+            else
+                subtype = _json_schema_type_conversions[raw_subtype]
+            end
+
+            if subtype == Vector
+                raw_subsubtype = get(_prop["items"]["items"], "type", missing)
+                if isa(raw_subsubtype, Vector)
+                    subsubtype = Union{[_json_schema_type_conversions[t] for t in raw_subsubtype]...}
+                else
+                    subsubtype = _json_schema_type_conversions[raw_subsubtype]
+                end
+                output[prop_name] = Vector{subtype{subsubtype}}([])
+            else
+                output[prop_name] = Vector{subtype}([])
+            end
+        elseif get(_prop, "readOnly", false)
+            output[prop_name] = @eval $(Meta.parse(_prop["default"]))
+        end
+    end
+    return output
+end
+
+
 """
     initialize_output(args::Dict{String,<:Any})::Dict{String,Any}
 
 Initializes the empty data structure for "output_data"
 """
-function initialize_output(args::Dict{String,<:Any})::Dict{String,Any}
-    _deepcopy_args!(args)
+function initialize_output(raw_args::Union{Dict{String,<:Any},Missing}; current_args::Dict{String,<:Any}=Dict{String,Any}())::Dict{String,Any}
+    output_schema = load_schema(joinpath(dirname(pathof(PowerModelsONM)), "..", "schemas/output.schema.json"))
 
-    Dict{String,Any}(
-        "Runtime arguments" => deepcopy(args["raw_args"]),
-        "Simulation time steps" => Any[],
-        "Load served" => Dict{String,Any}(
-            "Feeder load (%)" => Real[],
-            "Microgrid load (%)" => Real[],
-            "Bonus load via microgrid (%)" => Real[],
-        ),
-        "Generator profiles" => Dict{String,Any}(
-            "Grid mix (kW)" => Real[],
-            "Solar DG (kW)" => Real[],
-            "Energy storage (kW)" => Real[],
-            "Diesel DG (kW)" => Real[],
-        ),
-        "Voltages" => Dict{String,Any}(
-            "Min voltage (p.u.)" => Real[],
-            "Mean voltage (p.u.)" => Real[],
-            "Max voltage (p.u.)" => Real[],
-        ),
-        "Storage SOC (%)" => Real[],
-        "Device action timeline" => Dict{String,Any}[],
-        "Powerflow output" => Dict{String,Any}[],
-        "Additional statistics" => Dict{String,Any}(),
-        "Events" => Dict{String,Any}[],
-        "Fault currents" => Dict{String,Any}[],
-        "Small signal stable" => Bool[],
-        "Runtime timestamp" => "$(Dates.now())",
-        "Optimal switching metadata" => Dict{String,Any}[],
-        "Optimal dispatch metadata" => Dict{String,Any}(),
-        "Fault studies metadata" => Dict{String,Any}[],
-        "System metadata" => Dict{String,Any}(
-            "platform" => string(Sys.MACHINE),
-            "cpu_info" => string(first(Sys.cpu_info()).model),
-            "physical_cores" => Hwloc.num_physical_cores(),
-            "logical_processors" => Hwloc.num_virtual_cores(),
-            "system_memory" => round(Int, Sys.total_memory() / 2^20 / 1024),
-            "julia_max_threads" => Threads.nthreads(),
-            "julia_max_procs" => Distributed.nprocs(),
-            "julia_version" => string(Base.VERSION),
-        ),
-        "Protection settings" => Dict{String,Any}(
-            "network_model" => Dict{String,Vector{Dict{String,Any}}}(),
-            "bus_types" => Vector{Dict{String,String}}(),
-            "settings" => Vector{Vector{Dict{String,Any}}}(), # TODO
-        ),
-    )
+    output = Dict{String,Any}()
+    output = _recursive_initialize_output_from_schema!(output, get(output_schema.data, "properties", Dict{String,Any}()))
+
+    if !ismissing(raw_args)
+        output["Runtime arguments"] = deepcopy(raw_args)
+    else
+        runtime_arg_schema = load_schema(joinpath(dirname(pathof(PowerModelsONM)), "../schemas/input-runtime_arguments.schema.json"))
+        rt_arg_type = Dict(k=>v["type"] for (k,v) in runtime_arg_schema.data["properties"])
+        _raw_args = Dict{String,Any}()
+        for (k,v) in current_args
+            if k in keys(rt_arg_type) && isa(v, _json_schema_type_conversions[rt_arg_type[k]])
+                _raw_args[k] = deepcopy(v)
+            end
+        end
+        if !haskey(_raw_args, "network") && haskey(current_args, "base_network")
+            _raw_args["network"] = get(current_args["base_network"], "files", [""])[1]
+        end
+        if !isempty(_raw_args) && haskey(_raw_args, "network")
+            output["Runtime arguments"] = _raw_args
+        end
+    end
+
+    return output
 end
 
 
 """
-    write_json(file::String, data::Dict{String,<:Any}; indent::Union{Int,Missing}=missing)
+    write_json(
+        file::String,
+        data::Dict{String,<:Any};
+        indent::Union{Int,Missing}=missing
+    )
 
 Write JSON `data` to `file`. If `!ismissing(indent)`, JSON will be pretty-formatted with `indent`
 """
@@ -77,7 +119,7 @@ end
 Initializes the output data strucutre inside of the args dict at "output_data"
 """
 function initialize_output!(args::Dict{String,<:Any})::Dict{String,Any}
-    args["output_data"] = initialize_output(args)
+    args["output_data"] = initialize_output(get(args, "raw_args", missing); current_args=args)
 end
 
 
@@ -98,13 +140,19 @@ Adds information and statistics to "output_data", including
 - `"Switch changes"`: [`get_timestep_switch_changes!`](@ref get_timestep_switch_changes!)
 - `"Small signal stability"`: [`get_timestep_stability!`](@ref get_timestep_stability!)
 - `"Fault currents"`: [`get_timestep_fault_currents!`](@ref get_timestep_fault_currents!)
+- `"Optimal dispatch metadata"`: [`get_timestep_dispatch_optimization_metadata!`](@ref get_timestep_dispatch_optimization_metadata!)
+- `"Optimal switching metadata"`: [`get_timestep_switch_optimization_metadata!`](@ref get_timestep_switch_optimization_metadata!)
 """
 function analyze_results!(args::Dict{String,<:Any})::Dict{String,Any}
     if !haskey(args, "output_data")
         initialize_output!(args)
     end
 
-    args["output_data"]["Simulation time steps"] = [args["network"]["mn_lookup"]["$n"] for n in sort([parse(Int,i) for i in keys(args["network"]["mn_lookup"])]) ]
+    if isa(get(args, "network", ""), Dict)
+        args["output_data"]["Simulation time steps"] = [args["network"]["mn_lookup"]["$n"] for n in sort([parse(Int,i) for i in keys(args["network"]["mn_lookup"])]) ]
+    else
+        args["output_data"]["Simulation time steps"] = Real[]
+    end
     args["output_data"]["Events"] = get(args, "raw_events", Dict{String,Any}[])
 
     get_timestep_voltage_statistics!(args)
@@ -114,6 +162,7 @@ function analyze_results!(args::Dict{String,<:Any})::Dict{String,Any}
     get_timestep_storage_soc!(args)
 
     get_timestep_dispatch!(args)
+    get_timestep_inverter_states!(args) # must run after get_timestep_dispatch!
     get_timestep_dispatch_optimization_metadata!(args)
 
     get_timestep_device_actions!(args)

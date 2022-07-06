@@ -5,7 +5,7 @@ JuMP.lower_bound(x::Number) = x
 JuMP.upper_bound(x::Number) = x
 
 "variable_domain helper function for constant values"
-_IM.variable_domain(var::Number) = (var, var)
+IM.variable_domain(var::Number) = (var, var)
 
 "has_lower_bound helper function for constant values"
 JuMP.has_lower_bound(x::Number) = true
@@ -16,38 +16,48 @@ JuMP.has_upper_bound(x::Number) = true
 "is_binary helper function for constant values"
 JuMP.is_binary(x::Number) = false
 
-"lower_bound helper function for Affine Expression variables"
+"""
+    JuMP.lower_bound(x::JuMP.AffExpr)
+
+lower_bound helper function for Affine Expression variables
+"""
 function JuMP.lower_bound(x::JuMP.AffExpr)
     lb = []
-    for (k,v) in x.terms
+    for (k, v) in x.terms
         push!(lb, JuMP.lower_bound(k) * v)
     end
-    sum(lb)
+    return sum(lb)
 end
 
-"upper_bound helper function for Affine Expression variables"
+"""
+    JuMP.upper_bound(x::JuMP.AffExpr)
+
+upper_bound helper function for Affine Expression variables
+"""
 function JuMP.upper_bound(x::JuMP.AffExpr)
     ub = []
-    for (k,v) in x.terms
+    for (k, v) in x.terms
         push!(ub, JuMP.upper_bound(k) * v)
     end
-    sum(ub)
+    return sum(ub)
 end
 
 "has_lower_bound helper function for Affine Expression variables"
-JuMP.has_lower_bound(x::JuMP.AffExpr) = all(JuMP.has_lower_bound(k) for (k,_) in x.terms)
+JuMP.has_lower_bound(x::JuMP.AffExpr) = all(JuMP.has_lower_bound(k) for (k, _) in x.terms)
 
 "has_upper_bound helper function for Affine Expression variables"
-JuMP.has_upper_bound(x::JuMP.AffExpr) = all(JuMP.has_upper_bound(k) for (k,_) in x.terms)
+JuMP.has_upper_bound(x::JuMP.AffExpr) = all(JuMP.has_upper_bound(k) for (k, _) in x.terms)
 
 "is_binary helper function for Affine Expression variables"
 JuMP.is_binary(x::JuMP.AffExpr) = false
 
 """
+    IM.variable_domain(var::JuMP.AffExpr)
+
 Computes the valid domain of a given JuMP variable taking into account bounds
 and the varaible's implicit bounds (e.g., binary).
 """
-function _IM.variable_domain(var::JuMP.AffExpr)
+function IM.variable_domain(var::JuMP.AffExpr)
     lb = -Inf
     if JuMP.has_lower_bound(var)
         lb = JuMP.lower_bound(var)
@@ -67,78 +77,164 @@ function _IM.variable_domain(var::JuMP.AffExpr)
     return (lower_bound=lb, upper_bound=ub)
 end
 
-
 """
-general relaxation of binlinear term (McCormick)
-```
+    IM.relaxation_product(m::JuMP.Model, x::JuMP.AffExpr, y::JuMP.VariableRef, z::JuMP.VariableRef;
+        default_x_domain::Tuple{Real,Real}=(-Inf, Inf),
+        default_y_domain::Tuple{Real,Real}=(-Inf, Inf)
+    )
+
+general relaxation of binlinear term (McCormick) for Affine Expressions and VariableRefs
+
+```julia
 z >= JuMP.lower_bound(x)*y + JuMP.lower_bound(y)*x - JuMP.lower_bound(x)*JuMP.lower_bound(y)
 z >= JuMP.upper_bound(x)*y + JuMP.upper_bound(y)*x - JuMP.upper_bound(x)*JuMP.upper_bound(y)
 z <= JuMP.lower_bound(x)*y + JuMP.upper_bound(y)*x - JuMP.lower_bound(x)*JuMP.upper_bound(y)
 z <= JuMP.upper_bound(x)*y + JuMP.lower_bound(y)*x - JuMP.upper_bound(x)*JuMP.lower_bound(y)
 ```
 """
-function _IM.relaxation_product(m::JuMP.Model, x::JuMP.AffExpr, y::JuMP.VariableRef, z::JuMP.VariableRef; default_x_domain::Tuple{Real,Real}=(-Inf,Inf), default_y_domain::Tuple{Real,Real}=(-Inf,Inf))
-    x_lb, x_ub = _IM.variable_domain(x)
-    y_lb, y_ub = _IM.variable_domain(y)
+function IM.relaxation_product(m::JuMP.Model, x::JuMP.AffExpr, y::JuMP.VariableRef, z::JuMP.VariableRef;
+                                default_x_domain::Tuple{Real,Real}=(-Inf, Inf),
+                                default_y_domain::Tuple{Real,Real}=(-Inf, Inf))
+    x_lb, x_ub = IM.variable_domain(x)
+    y_lb, y_ub = IM.variable_domain(y)
 
     x_lb = !isfinite(x_lb) ? default_x_domain[1] : x_lb
     x_ub = !isfinite(x_ub) ? default_x_domain[2] : x_ub
     y_lb = !isfinite(y_lb) ? default_y_domain[1] : y_lb
     y_ub = !isfinite(y_ub) ? default_y_domain[2] : y_ub
 
-    JuMP.@constraint(m, z >= x_lb*y + y_lb*x - x_lb*y_lb)
-    JuMP.@constraint(m, z >= x_ub*y + y_ub*x - x_ub*y_ub)
-    JuMP.@constraint(m, z <= x_lb*y + y_ub*x - x_lb*y_ub)
-    JuMP.@constraint(m, z <= x_ub*y + y_lb*x - x_ub*y_lb)
+    JuMP.@constraint(m, z >= x_lb * y + y_lb * x - x_lb * y_lb)
+    JuMP.@constraint(m, z >= x_ub * y + y_ub * x - x_ub * y_ub)
+    JuMP.@constraint(m, z <= x_lb * y + y_ub * x - x_lb * y_ub)
+    JuMP.@constraint(m, z <= x_ub * y + y_lb * x - x_ub * y_lb)
 end
 
+@doc raw"""
+    IM.relaxation_product(m::JuMP.Model, x::Real, y::JuMP.VariableRef, z::JuMP.VariableRef)
 
-"""
-general relaxation of binlinear term (McCormick)
-```
+general relaxation of binlinear term (McCormick) for Constants and VariableRefs
+
+```julia
 z >= JuMP.lower_bound(x)*y + JuMP.lower_bound(y)*x - JuMP.lower_bound(x)*JuMP.lower_bound(y)
 z >= JuMP.upper_bound(x)*y + JuMP.upper_bound(y)*x - JuMP.upper_bound(x)*JuMP.upper_bound(y)
 z <= JuMP.lower_bound(x)*y + JuMP.upper_bound(y)*x - JuMP.lower_bound(x)*JuMP.upper_bound(y)
 z <= JuMP.upper_bound(x)*y + JuMP.lower_bound(y)*x - JuMP.upper_bound(x)*JuMP.lower_bound(y)
 ```
 """
-function _IM.relaxation_product(m::JuMP.Model, x::Float64, y::JuMP.VariableRef, z::JuMP.VariableRef)
-    x_lb, x_ub = _IM.variable_domain(x)
-    y_lb, y_ub = _IM.variable_domain(y)
+function IM.relaxation_product(m::JuMP.Model, x::Real, y::JuMP.VariableRef, z::JuMP.VariableRef)
+    x_lb, x_ub = IM.variable_domain(x)
+    y_lb, y_ub = IM.variable_domain(y)
 
-    JuMP.@constraint(m, z >= x_lb*y + y_lb*x - x_lb*y_lb)
-    JuMP.@constraint(m, z >= x_ub*y + y_ub*x - x_ub*y_ub)
-    JuMP.@constraint(m, z <= x_lb*y + y_ub*x - x_lb*y_ub)
-    JuMP.@constraint(m, z <= x_ub*y + y_lb*x - x_ub*y_lb)
+    JuMP.@constraint(m, z >= x_lb * y + y_lb * x - x_lb * y_lb)
+    JuMP.@constraint(m, z >= x_ub * y + y_ub * x - x_ub * y_ub)
+    JuMP.@constraint(m, z <= x_lb * y + y_ub * x - x_lb * y_ub)
+    JuMP.@constraint(m, z <= x_ub * y + y_lb * x - x_ub * y_lb)
 end
 
-
 "recursive dictionary merge, similar to update data"
-recursive_merge(x::AbstractDict...) = merge(recursive_merge, x...)
+recursive_merge_including_vectors(x::AbstractDict...) = merge(recursive_merge_including_vectors, x...)
 
 "recursive vector merge, similar to update data"
-recursive_merge(x::AbstractVector...) = cat(x...; dims=1)
+recursive_merge_including_vectors(x::AbstractVector...) = cat(x...; dims=1)
 
 "recursive other merge"
-recursive_merge(x...) = x[end]
+recursive_merge_including_vectors(x...) = x[end]
 
 "recursive dictionary merge, similar to update data, with vectors getting overwritten instead of appended"
-recursive_merge_no_vecs(x::AbstractDict...) = merge(recursive_merge_no_vecs, x...)
+recursive_merge(x::AbstractDict...) = merge(recursive_merge, x...)
 
 "recursive other merge, with vectors getting overwritten instead of appended"
-recursive_merge_no_vecs(x...) = x[end]
+recursive_merge(x...) = x[end]
 
+"""
+    recursive_merge_timesteps(x::T, y::U)::promote_type(T,U) where {T<: AbstractVector,U<: AbstractVector}
 
-"helper function to recursively merge timestep vectors (e.g., of dictionaries)"
-function recursive_merge_timesteps(x::T, y::U)::promote_type(T,U) where {T<: AbstractVector,U<: AbstractVector}
+helper function to recursively merge timestep vectors (e.g., of dictionaries)
+"""
+function recursive_merge_timesteps(x::T, y::U)::promote_type(T, U) where {T<:AbstractVector,U<:AbstractVector}
     if !isempty(x)
         @assert length(x) == length(y) "cannot combine vectors of different lengths"
-        new = promote_type(T,U)()
-        for (_x,_y) in zip(x,y)
-            push!(new, recursive_merge(_x,_y))
+        new = promote_type(T, U)()
+        for (_x, _y) in zip(x, y)
+            push!(new, recursive_merge_including_vectors(_x, _y))
         end
         return new
     else
         return y
     end
+end
+
+
+"""
+    set_dict_value!(a::Dict, key::String, value::Any)
+
+Helper function to assist in setting nested Dict values
+"""
+function set_dict_value!(a::Dict, key::String, value::Any)
+    a[key] = value
+end
+
+
+"""
+    set_dict_value!(a::T, path::Tuple{Vararg{String}}, value::Any) where T <: Dict
+
+Helper function to assist in setting nested Dict values
+"""
+function set_dict_value!(a::T, path::Tuple{Vararg{String}}, value::Any) where T <: Dict
+    if !haskey(a, first(path))
+        a[first(path)] = T()
+    end
+
+    new_path = length(path) == 2 ? path[2] : path[2:end]
+
+    set_dict_value!(a[first(path)], new_path, value)
+end
+
+
+"""
+    convert(value::Any, path::Tuple{Vararg{String}}=tuple())
+
+Helper function to assist in converting deprecated settings to their correct types / values
+"""
+function convert(value::Any, path::Tuple{Vararg{String}}=tuple())
+    if haskey(settings_conversions, path)
+        value = settings_conversions[path](value)
+    end
+
+    if isa(value, String) && startswith(value, ":")
+        value = Symbol(value[2:end])
+    end
+
+    if isa(value, Vector) && all(isa.(value, String)) && all(startswith.(value,":"))
+        value = Symbol[Symbol(v[2:end]) for v in value]
+    end
+
+    return value
+end
+
+
+"""
+    Base.parse(::Type{T}, status::String)::T where T <: PMD.Status
+
+Parses a string from dss property 'enabled' into PMD.Status
+"""
+function Base.parse(::Type{T}, status::String)::T where T <: PMD.Status
+    if lowercase(status) ∈ ["y", "yes", "true"]
+        return PMD.ENABLED
+    elseif lowercase(status) ∈ ["n", "no", "false"]
+        return PMD.DISABLED
+    end
+
+    @warn "enabled code '$status' not recognized, defaulting to ENABLED"
+    return PMD.ENABLED
+end
+
+"Parses different options for Status enums in the events schema"
+Base.parse(::Type{PMD.Status}, status::PMD.Status)::PMD.Status = status
+Base.parse(::Type{PMD.Status}, status::Bool)::PMD.Status = PMD.Status(Int(status))
+Base.parse(::Type{PMD.Status}, status::Int)::PMD.Status = PMD.Status(status)
+
+"Parses formulation strings from the settings schema into AbstractUnbalancedPowerModels"
+function Base.parse(::Type{PMD.AbstractUnbalancedPowerModel}, form::String)::Type
+    return _get_formulation(form)
 end

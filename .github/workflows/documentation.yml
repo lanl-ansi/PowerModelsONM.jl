@@ -13,12 +13,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/julia-buildpkg@latest
-      - uses: actions/setup-node@v1
-        with:
-          node-version: '16.x'
-      - name: Install @adobe/jsonschema2md
-        run: npm install -g @adobe/jsonschema2md@7.0.0
       - uses: julia-actions/julia-docdeploy@latest
         env:
+          PYTHON: ""
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}

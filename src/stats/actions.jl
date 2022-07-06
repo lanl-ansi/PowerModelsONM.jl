@@ -10,7 +10,18 @@ end
 
 
 """
-    get_timestep_device_actions(network::Dict{String,<:Any}, optimal_switching_results::Dict{String,<:Any})::Vector{Dict{String,Any}}
+    get_timestep_device_actions(::String, ::Dict{String,<:Any})::Vector{Dict{String,Any}}
+
+Helper function for the variant where `args["network"]` hasn't been parsed yet.
+"""
+get_timestep_device_actions(::String, ::Dict{String,<:Any})::Vector{Dict{String,Any}} = Dict{String,Any}[]
+
+
+"""
+    get_timestep_device_actions(
+        network::Dict{String,<:Any},
+        optimal_switching_results::Dict{String,<:Any}
+    )::Vector{Dict{String,Any}}
 
 From the multinetwork `network`, determines the switch configuration at each timestep. If the switch does not exist
 in `mld_results`, the state will default back to the state given in the original network. This could happen if the switch
@@ -35,7 +46,7 @@ function get_timestep_device_actions(network::Dict{String,<:Any}, optimal_switch
 
         for (id, load) in get(network["nw"]["$n"], "load", Dict())
             load_solution = get(get(get(get(optimal_switching_results, "$n", Dict()), "solution", Dict()), "load", Dict()), id, Dict())
-            if round(Int, get(load_solution, "status", 1)) != 1
+            if get(load_solution, "status", PMD.ENABLED) != PMD.ENABLED
                 push!(_out["Shedded loads"], id)
             end
         end
@@ -59,10 +70,22 @@ end
 
 
 """
-    get_timestep_switch_changes(network::Dict{String,<:Any}, optimal_switching_results::Dict{String,<:Any}=Dict{String,Any}())::Vector{Vector{String}}
+    get_timestep_switch_changes(::String, ::Dict{String,<:Any})::Vector{Vector{String}}
 
-Gets a list of switches whose state has changed between timesteps (always expect the first timestep to be an empty list).
-This expects the solutions from the MLD problem to have been merged into `network`
+Helper function for the variant where `args["network"]` hasn't been parsed yet.
+"""
+get_timestep_switch_changes(::String, optimal_switching_results::Dict{String,<:Any}=Dict{String,Any}())::Vector{Vector{String}} = String[]
+
+
+"""
+    get_timestep_switch_changes(
+        network::Dict{String,<:Any},
+        optimal_switching_results::Dict{String,<:Any}=Dict{String,Any}()
+    )::Vector{Vector{String}}
+
+Gets a list of switches whose state has changed between timesteps (always expect the
+first timestep to be an empty list). This expects the solutions from the MLD problem to
+have been merged into `network`
 """
 function get_timestep_switch_changes(network::Dict{String,<:Any}, optimal_switching_results::Dict{String,<:Any}=Dict{String,Any}())::Vector{Vector{String}}
     switch_changes = Vector{String}[]
@@ -90,26 +113,32 @@ end
 
 
 """
-    get_timestep_switch_optimization_metadata!(args::Dict{String,<:Any})::Vector{Dict{String,Any}}
+    get_timestep_switch_optimization_metadata!(
+        args::Dict{String,<:Any}
+    )::Vector{Dict{String,Any}}
 
-Retrieves the switching optimization results metadata from the optimal switching solution via [`get_timestep_switch_optimization_metadata`](@ref get_timestep_switch_optimization_metadata)
+Retrieves the switching optimization results metadata from the optimal switching solution via
+[`get_timestep_switch_optimization_metadata`](@ref get_timestep_switch_optimization_metadata)
 and applies it in-place to args, for use with [`entrypoint`](@ref entrypoint)
 """
 function get_timestep_switch_optimization_metadata!(args::Dict{String,<:Any})::Vector{Dict{String,Any}}
-    args["output_data"]["Optimal switching metadata"] = get_timestep_switch_optimization_metadata(get(args, "optimal_switching_results", Dict{String,Any}()); opt_switch_algorithm=get(args, "opt-switch-algorithm", "global"))
+    args["output_data"]["Optimal switching metadata"] = get_timestep_switch_optimization_metadata(get(args, "optimal_switching_results", Dict{String,Any}()); opt_switch_algorithm=get(args, "opt-switch-algorithm", "full-lookahead"))
 end
 
 
 """
-    get_timestep_switch_optimization_metadata(optimal_switching_results::Dict{String,Any}; opt_switch_algorithm::String="iterative")::Vector{Dict{String,Any}}
+    get_timestep_switch_optimization_metadata(
+        optimal_switching_results::Dict{String,Any};
+        opt_switch_algorithm::String="full-lookahead"
+    )::Vector{Dict{String,Any}}
 
-Gets the metadata from the optimal switching results for each timestep, returning a list of Dicts (if opt_switch_algorithm="iterative), or a list with a single
-Dict (if opt_switch_algorithm="global").
+Gets the metadata from the optimal switching results for each timestep, returning a list of `Dicts`
+(if `opt_switch_algorithm="iterative`), or a list with a single `Dict` (if `opt_switch_algorithm="full-lookahead"`).
 """
-function get_timestep_switch_optimization_metadata(optimal_switching_results::Dict{String,Any}; opt_switch_algorithm::String="iterative")::Vector{Dict{String,Any}}
+function get_timestep_switch_optimization_metadata(optimal_switching_results::Dict{String,Any}; opt_switch_algorithm::String="full-lookahead")::Vector{Dict{String,Any}}
     results_metadata = Dict{String,Any}[]
 
-    if opt_switch_algorithm == "global" && !isempty(optimal_switching_results)
+    if opt_switch_algorithm == "full-lookahead" && !isempty(optimal_switching_results)
         push!(results_metadata, filter(x->x.first!="solution", first(optimal_switching_results).second))
     else
         ns = sort([parse(Int, n) for n in keys(optimal_switching_results)])

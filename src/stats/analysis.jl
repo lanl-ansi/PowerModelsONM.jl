@@ -1,19 +1,19 @@
 """
-    get_timestep_microgrid_networks(output::String, network::Dict{String,<:Any})::Vector{Vector{Vector{String}}}
+    get_timestep_microgrid_networks_from_output_file(output::String, network::Dict{String,<:Any})::Vector{Vector{Vector{String}}}
 
 Analytics for determining when microgrids network from output file
 """
-function get_timestep_microgrid_networks(output::String, network::Dict{String,<:Any})::Vector{Vector{Vector{String}}}
-    output = JSON.parsefile(output)
+function get_timestep_microgrid_networks_from_output_file(output_file::String, network::Dict{String,<:Any})::Vector{Vector{Vector{String}}}
+    output = JSON.parsefile(output_file)
 
     actions = get(output, "Device action timestep", [])
 
-    switch_config = Dict{String,PowerModelsDistribution.SwitchState}[]
+    switch_config = Dict{String,PMD.SwitchState}[]
 
     for timestep in actions
-        _switch_config = Dict{String,PowerModelsDistribution.SwitchState}()
+        _switch_config = Dict{String,PMD.SwitchState}()
         for (id, state) in get(timestep, "Switch configurations", Dict())
-            _switch_config[id] = Dict("closed"=>PowerModelsDistribution.CLOSED, "open"=>PowerModelsDistribution.OPEN)[lowercase(state)]
+            _switch_config[id] = Dict("closed"=>PMD.CLOSED, "open"=>PMD.OPEN)[lowercase(state)]
         end
         push!(switch_config, _switch_config)
     end
@@ -27,8 +27,10 @@ end
 
 Collects microgrid networks per timestep and assigns them to 'Device action timestep'/'Microgrid networks'
 """
-function get_timestep_microgrid_networks!(args::Dict{String,<:Any})::Vector{Dict{String,Any}}
-    args["output_data"]["Device action timeline"] = recursive_merge_timesteps(args["output_data"]["Device action timeline"], [Dict{String,Vector{Vector{String}}}("Microgrid networks" => _mg_networks) for _mg_networks in get_timestep_microgrid_networks(get(args, "network", Dict{String,Any}()), get(args, "optimal_switching_results", Dict{String,Any}()))])
+function get_timestep_microgrid_networks!(args::Dict{String,<:Any})::Union{Vector{Dict{String,Any}},Nothing}
+    if isa(get(args, "network", ""), Dict)
+        args["output_data"]["Device action timeline"] = recursive_merge_timesteps(args["output_data"]["Device action timeline"], [Dict{String,Vector{Vector{String}}}("Microgrid networks" => _mg_networks) for _mg_networks in get_timestep_microgrid_networks(get(args, "network", Dict{String,Any}()), get(args, "optimal_switching_results", Dict{String,Any}()))])
+    end
 end
 
 
@@ -45,7 +47,7 @@ function get_timestep_microgrid_networks(network::Dict{String,Any}, switching_re
         nw = mn_data["nw"]["$n"]
         nw["data_model"] = mn_data["data_model"]
 
-        sr = get(switching_results, "$n", Dict{String,Any}())
+        sr = get(get(switching_results, "$n", Dict{String,Any}()), "solution", Dict{String,Any}())
         switch_config = Dict{String,PMD.SwitchState}(s => get(sw, "state", nw["switch"][s]["state"]) for (s,sw) in get(sr, "switch", Dict{String,Any}()))
 
         push!(microgrid_networks, get_microgrid_networks(nw; switch_config=switch_config))

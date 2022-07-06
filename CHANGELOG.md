@@ -4,6 +4,74 @@
 
 - none
 
+## v3.0.0
+
+- Added documentation for GraphML export
+- Updated process flow diagram for ONM
+- Added helper functions to set options and get options from the different data structures used by ONM
+- Explicitly exported a number of AbstractUnbalancedPowerModels from PowerModelsDistribution, for better user experience
+- Switched to `import LongName as LN` pattern
+- Updated `"iterative"` to `"rolling-horizon"` and `"global"` to `"full-lookahead"` (**breaking**)
+- Deprecated many runtime arguments in favor of settings schema
+- Updated default logger settings
+- Added `build_settings_new` functions to match updated schema
+- Refactored to use schemas directly to build Julia data structures, to make API maintanence easier
+- Added `prepare_data!` function to quickly build the multinetwork `network` data from `network`, `settings` and `events` files
+- Refactored settings functions to apply settings to base_network and then rebuild the multinetwork structure (**breaking**)
+- Refactored settings schemas to allow for more options for user control of different parts of the entrypoint function (**breaking**)
+- Added more documentation for new users to the examples folder, including use cases, basic usage of the Block-MLD problem, and how to build a JuMP model by hand
+- Added support for exporting network data as a graph in the GraphML format
+- Added EzXML as a dependency to support GraphML export
+- Removed ProgressMeter dependency
+- Added support for JuMP v1
+- Added `transform_data_model` specific to ONM
+- Added `instantiate_onm_model`, an ONM-specific version of `instantiate_mc_model` from PowerModelsDistribution
+- Added `dss` settings schema for easier adding of inverter property by source id, e.g., "vsource.source", etc.
+- Added `constraint_disable_networking` based on coloring model to enabled microgrids to expand but not network
+- Updated events schema to allow for typical string values for certain switch fields
+- Added disable-networking option to CLI for future implementation of feature
+- Changed objective function term balances to ensure that restoring load is always the most critical term
+- Fixed bug in `_prepare_fault_study_multinetwork_data` where `va` was not being used
+- Added option to `get_timestep_fault_currents` to filter out switches from outputs that have no associated protection devices (i.e., relay, recloser, fuse)
+- Changed instances of `Int64` to `Int`
+- Fixed issue with transformer control constraints in dispatch optimization
+- Added support for [JuMP](https://jump.dev) v0.23
+- Changed built-in mip solver from [Cbc](https://github.com/jump-dev/Cbc.jl) to [HiGHS](https://github.com/jump-dev/HiGHS.jl)
+- Added user option to disable presolvers in the built-in solvers `disable_presolver`
+- Changed `@warn` to `@info` in `_find_switch_id_from_source_id`
+- Updated radial topology constraint in `constraint_radial_topology` to be switch-direction-agnostic (previously required a strongly connected directed graph)
+- Added constraint for reference buses that uses `inverter` state to set theta constraints, `constraint_mc_inverter_theta_ref`
+- Added phase unbalance constraint for grid-following storage `constraint_mc_storage_phase_unbalance_grid_following`
+- Added inverters to `_prepare_fault_study_multinetwork_data` and `_prepare_dispatch_data`
+- Added user option to disable inverter constraint: `disable_inverter_constraint`
+- Added constraint for identifying a single grid-forming inverter per connected component `constraint_grid_forming_inverter_per_cc_{block|traditional}`
+- Added `get_timestep_inverter_states!` which adds inverter states to the `"Powerflow output"`
+- Added `solution_inverter!`, which converts `inverter` variable value to `Inverter` enum
+- Added `Inverter`, with `GRID_FOLLOWING` and `GRID_FORMING` enums to indicate what generation object is acting as grid-forming or following
+- Fixed `constraint_mc_power_balance_shed_block`, wrong call to `PMD.diag`, should have been `LinearAlgebra.diag`
+- Added `cost_pg_parameters` and `cost_pg_model` to settings schemas for generators, voltage sources, and storage and solar devices
+- Added `opt-switch-problem` flag to runtime input to enable section of `block` or `traditional` optimal switching problems
+- Removed `SwitchModel` types to realign software design with InfrastructureModels (**breaking**)
+- Refactored problems to better delineate mld code from PMD (**breaking**)
+- Added `traditional` mld problem
+- Renamed problems, objective functions, and constraint functions to be more simple for users (**breaking**)
+- Added solution processor function `solution_statuses!` to assist in converting solution statuses to `Status` enums
+- Fixed `_prepare_dispatch_data` to account for new `traditional` mld problem type
+- Disabled _indicator_ constraints (**breaking**)
+- Fixed bug in `get_timestep_microgrid_networks`
+- Introduced `block` and `traditional` versions of constraints to account for different `z` indicator variables (**breaking**)
+- Renamed `constraint_switch_state_max_actions` to `constraint_switch_close_action_limit` to better reflect the nature of the constraint (**breaking**)
+- Renamed `variable_mc_block_indicator` to `variable_block_indicator`, since it was not a multiconductor variable (**breaking**)
+- Renamed `variable_mc_switch_state` to `variable_switch_state`, since it was not a multiconductor variable (**breaking**)
+- Refactored `variable_mc_switch_fixed` to be called from inside `variable_switch_state` directly (**breaking**)
+- Added `variable_mc_storage_power_mi_on_off`, which will not attempt to make its own `z_storage` indicator variable as in PowerModelsDistribution
+- Added "traditional" indicator variable functions, `variable_bus_voltage_indicator`, `variable_generator_indicator`, `variable_storage_indicator`, and `variable_load_indicator`
+- Fixed bug in `solution_reference_buses!`
+- Added `solve_onm_model`
+- Updated README
+- Updated documentation
+- Updated examples
+
 ## v2.1.2
 
 - Fixed documentation build process
@@ -88,7 +156,7 @@
 - Added `mn_opf_oltc_capc` problem for dispatch step
 - Added `variable_mc_storage_indicator` due to overlap of `z_storage` with `z_block`
 - Added LinearAlgebra (stdlib) dependency
-- Fixed order of parsing in `entrypoint` (events should go *after* settings)
+- Fixed order of parsing in `entrypoint` (events should go _after_ settings)
 - Add support for `null` values in settings schema, and new objects / fields
 - Updated power variables to be `bounded=false` in the switching problem, and use ampacity constraints only instead
 - Updated `sbase_default` to `1e3` to avoid convergence issues

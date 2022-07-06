@@ -48,41 +48,6 @@
     "additionalProperties": false,
     "description": "Timestep object",
     "properties": {
-      "generator": {
-        "type": "object",
-        "additionalProperties": false,
-        "description": "Generation types: diesel generators (`generator`), or substations (`voltage_source`), or solar PV (`solar`), or energy storage (`storage`)",
-        "patternProperties": {
-          "^.+$": {
-            "type": "object",
-            "additionalProperties": false,
-            "description": "generation object",
-            "properties": {
-              "real power setpoint (kW)": {
-                "type": "array",
-                "description": "real power setpoints in kW",
-                "items": {
-                  "type": "number"
-                }
-              },
-              "reactive power setpoint (kVar)": {
-                "type": "array",
-                "description": "reactive power setpoint in kVar",
-                "items": {
-                  "type": "number"
-                }
-              },
-              "connections": {
-                "type": "array",
-                "description": "The connections (terminals) that the generator is connected to, in order",
-                "items": {
-                  "type": "integer"
-                }
-              }
-            }
-          }
-        }
-      },
       "voltage_source": {
         "type": "object",
         "additionalProperties": false,
@@ -113,6 +78,50 @@
                 "items": {
                   "type": "integer"
                 }
+              },
+              "inverter": {
+                "type": "string",
+                "enum": ["GRID_FOLLOWING", "GRID_FORMING"],
+                "description": "Indicator for whether the generation object is grid-forming or grid-following"
+              }
+            }
+          }
+        }
+      },
+      "generator": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Generation types: diesel generators (`generator`), or substations (`voltage_source`), or solar PV (`solar`), or energy storage (`storage`)",
+        "patternProperties": {
+          "^.+$": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "generation object",
+            "properties": {
+              "real power setpoint (kW)": {
+                "type": "array",
+                "description": "real power setpoints in kW",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "reactive power setpoint (kVar)": {
+                "type": "array",
+                "description": "reactive power setpoint in kVar",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "connections": {
+                "type": "array",
+                "description": "The connections (terminals) that the generator is connected to, in order",
+                "items": {
+                  "type": "integer"
+                }
+              },
+              "inverter": {
+                "type": "string",
+                "enum": ["GRID_FOLLOWING", "GRID_FORMING"]
               }
             }
           }
@@ -148,6 +157,10 @@
                 "items": {
                   "type": "integer"
                 }
+              },
+              "inverter": {
+                "type": "string",
+                "enum": ["GRID_FOLLOWING", "GRID_FORMING"]
               }
             }
           }
@@ -183,6 +196,10 @@
                 "items": {
                   "type": "integer"
                 }
+              },
+              "inverter": {
+                "type": "string",
+                "enum": ["GRID_FOLLOWING", "GRID_FORMING"]
               }
             }
           }

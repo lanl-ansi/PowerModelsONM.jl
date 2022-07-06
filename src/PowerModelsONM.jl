@@ -11,15 +11,15 @@ module PowerModelsONM
     using Distributed: pmap
 
     # InfrastructureModels ecosystem
-    import InfrastructureModels
-    const _IM = InfrastructureModels
+    import InfrastructureModels as IM
+    import InfrastructureModels: ismultinetwork, ismultiinfrastructure
 
-    import PowerModelsDistribution
-    import PowerModelsDistribution: ref, var, con, sol, ids, nw_ids, nw_id_default, nws, AbstractUnbalancedPowerModel
-    const PMD = PowerModelsDistribution
+    import PowerModelsDistribution as PMD
+    import PowerModelsDistribution: ref, var, con, sol, ids, nw_ids, nw_id_default, nws
+    import PowerModelsDistribution: AbstractUnbalancedPowerModel, ACRUPowerModel, ACPUPowerModel, IVRUPowerModel, LPUBFDiagPowerModel, LinDist3FlowPowerModel, NFAUPowerModel, FOTRUPowerModel, FOTPUPowerModel
 
-    import PowerModelsProtection
-    import PowerModelsStability
+    import PowerModelsProtection as PMP
+    import PowerModelsStability as PMS
 
     # Optimization Modeling
     import JuMP
@@ -28,7 +28,7 @@ module PowerModelsONM
     import PolyhedralRelaxations
 
     import Ipopt
-    import Cbc
+    import HiGHS
     import Juniper
 
     import ArgParse
@@ -39,22 +39,23 @@ module PowerModelsONM
     # Logging Tools
     import Logging
     import LoggingExtras
-    import ProgressMeter: @showprogress
 
     # Hardware statistics
     import Hwloc
 
     # Network Graphs
     import Graphs
+    import EzXML
 
     # Import Tools
     import Requires: @require
 
     function __init__()
-        global _LOGGER = Logging.ConsoleLogger(; meta_formatter=PowerModelsDistribution._pmd_metafmt)
+        global _LOGGER = Logging.ConsoleLogger(; meta_formatter=PMD._pmd_metafmt)
         global _DEFAULT_LOGGER = Logging.current_logger()
 
         Logging.global_logger(_LOGGER)
+        PowerModelsONM.set_log_level!(:Info)
 
         @require Gurobi="2e9cd046-0924-5485-92f1-d5272153d98b" begin
             global GRB_ENV = Gurobi.Env()
@@ -77,15 +78,17 @@ module PowerModelsONM
     include("core/solution.jl")
 
     include("data_model/checks.jl")
+    include("data_model/eng2math.jl")
 
     include("form/acp.jl")
     include("form/acr.jl")
     include("form/apo.jl")
-    include("form/bf_mx_lin.jl")
+    include("form/lindistflow.jl")
     include("form/shared.jl")
 
     include("io/events.jl")
     include("io/faults.jl")
+    include("io/graphml.jl")
     include("io/inverters.jl")
     include("io/json.jl")
     include("io/network.jl")
@@ -95,8 +98,9 @@ module PowerModelsONM
     include("prob/common.jl")
     include("prob/dispatch.jl")
     include("prob/faults.jl")
-    include("prob/mn_opf_oltc_capc.jl")
-    include("prob/osw_mld.jl")
+    include("prob/opf.jl")
+    include("prob/mld_traditional.jl")
+    include("prob/mld_block.jl")
     include("prob/stability.jl")
     include("prob/switch.jl")
 

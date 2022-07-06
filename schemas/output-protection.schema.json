@@ -2,7 +2,6 @@
   "title": "protection.schema",
   "type": "object",
   "description": "Protection settings outputs",
-  "required": ["network_model"],
   "properties": {
     "network_model": {
       "type": "object",
@@ -29,6 +28,10 @@
               "nphases": {
                 "type": "integer",
                 "description": "Number of phases on the bus"
+              },
+              "status": {
+                "type": "integer",
+                "enum": [0, 1]
               }
             }
           }
@@ -73,6 +76,10 @@
               "switch": {
                 "type": "boolean",
                 "description": "Is the line a switch?"
+              },
+              "status": {
+                "type": "integer",
+                "enum": [0, 1]
               }
             }
           }
@@ -131,6 +138,10 @@
               "rating (kVA)": {
                 "type": "number",
                 "description": "Thermal rating of the transformer in kVA"
+              },
+              "status": {
+                "type": "integer",
+                "enum": [0, 1]
               }
             }
           }
@@ -165,6 +176,10 @@
               "nphases": {
                 "type": "integer",
                 "description": "Number of phases in the source object"
+              },
+              "status": {
+                "type": "integer",
+                "enum": [0, 1]
               }
             }
           }
@@ -210,7 +225,56 @@
     "settings": {
       "type": "array",
       "description": "Output from Protection optimization algorithm",
-      "items": {}
+      "items": {
+        "type": "object",
+        "properties": {
+          "primary pickup (A)": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "TDS": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "to": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "from": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "TOC": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "operating time (s)": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "primary pickup (A)",
+          "TDS",
+          "to",
+          "from",
+          "TOC",
+          "operating time (s)"
+        ]
+      }
     }
-  }
+  },
+  "required": ["network_model"]
 }

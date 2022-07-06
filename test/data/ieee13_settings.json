@@ -1,5 +1,6 @@
 {
-  "voltage_source": { "source": { "pg_lb": [0.0, 0.0, 0.0] } },
+  "time_elapsed": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+  "disable_inverter_constraint": false,
   "line": {
     "632670": {
       "vad_ub": [5.0, 5.0, 5.0],
@@ -42,6 +43,11 @@
       "cm_ub": [null, null, null],
       "vad_lb": [-5.0, -5.0, -5.0]
     },
+    "800800aux": {
+      "vad_ub": [5.0, 5.0, 5.0],
+      "cm_ub": [null, null, null],
+      "vad_lb": [-5.0, -5.0, -5.0]
+    },
     "702703": {
       "vad_ub": [5.0, 5.0, 5.0],
       "cm_ub": [null, null, null],
@@ -64,7 +70,25 @@
       "vad_lb": [-5.0, -5.0, -5.0]
     }
   },
+  "disable_presolver": false,
+  "apply_switch_scores": true,
+  "voltage_source": {
+    "source": { "qg_lb": [0.0, 0.0, 0.0], "pg_lb": [0.0, 0.0, 0.0] }
+  },
+  "disable_isolation_constraint": false,
+  "dss": {
+    "Generator.675": { "inverter": "GRID_FORMING" },
+    "PVSystem.PV_mg1a": { "inverter": "gfm" },
+    "PVSystem.PV_mg1b": { "inverter": "gfm" },
+    "Storage.Battery_mg1a": { "inverter": "GRID_FORMING" },
+    "Storage.Battery_mg1b": { "inverter": "gfm" },
+    "Storage.Battery_mg1c": { "inverter": "grid_forming" }
+  },
   "bus": {
+    "800aux": {
+      "vm_ub": [2.641954831811728, 2.641954831811728, 2.641954831811728],
+      "vm_lb": [2.161599407845959, 2.161599407845959, 2.161599407845959]
+    },
     "671": {
       "vm_ub": [2.641954831811728, 2.641954831811728, 2.641954831811728],
       "vm_lb": [2.161599407845959, 2.161599407845959, 2.161599407845959]
@@ -156,20 +180,29 @@
       "vm_lb": [2.161599407845959, 2.161599407845959]
     }
   },
-  "nlp_solver_tol": 0.0001,
-  "mip_solver_tol": 0.0001,
-  "mip_solver_gap": 0.05,
+  "nlp_solver_tol": 1.0e-5,
+  "mip_solver_tol": 1.0e-5,
+  "mip_solver_gap": 0.0001,
   "settings": { "sbase_default": 1000.0 },
   "transformer": {
-    "xfm1": { "sm_ub": null },
-    "reg1": { "sm_ub": null },
-    "sub": { "sm_ub": null }
+    "xfm1": { "sm_ub": 25000.0 },
+    "reg1": { "sm_ub": 25000.0 },
+    "sub": { "sm_ub": 25000.0 }
   },
   "shunt": {},
   "solar": {},
-  "storage": {},
+  "storage": {
+    "battery_mg1a": { "phase_unbalance_factor": 0.0 },
+    "battery_mg1c": { "phase_unbalance_factor": 0.0 },
+    "battery_mg1b": { "phase_unbalance_factor": 0.0 }
+  },
   "switch": {
-    "801675": { "cm_ub": [25.0, 25.0, 25.0] },
+    "801675": {
+      "cm_ub": [25.0, 25.0, 25.0],
+      "state": "OPEN",
+      "status": "ENABLED",
+      "dispatchable": "YES"
+    },
     "671692": { "cm_ub": [null, null, null] },
     "671700": { "cm_ub": [null, null, null] },
     "703800": { "cm_ub": [null, null, null] },
@@ -204,5 +237,6 @@
     "646_2": { "clpu_factor": 2.0 }
   },
   "max_switch_actions": [1, 1, 1, 1, 1, 1, 1, 1],
-  "disable_switch_penalty": false
+  "disable_switch_penalty": false,
+  "disable_radial_constraint": false
 }

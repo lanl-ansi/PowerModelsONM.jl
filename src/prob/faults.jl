@@ -1,25 +1,43 @@
 """
-    run_fault_studies!(args::Dict{String,<:Any}; validate::Bool=true, solver::String="nlp_solver")::Dict{String,Any}
+    run_fault_studies!(
+        args::Dict{String,<:Any};
+        validate::Bool=true,
+        solver::String="nlp_solver"
+    )::Dict{String,Any}
 
 Runs fault studies using `args["faults"]`, if defined, and stores the results in-place in
 `args["fault_stuides_results"]`, for use in [`entrypoint`](@ref entrypoint), using
 [`run_fault_studies`](@ref run_fault_studies)
 """
-function run_fault_studies!(args::Dict{String,<:Any}; validate::Bool=true, solver::String="nlp_solver")::Dict{String,Any}
+function run_fault_studies!(args::Dict{String,<:Any}; validate::Bool=true)::Dict{String,Any}
     if !isempty(get(args, "faults", ""))
         if isa(args["faults"], String)
             args["faults"] = parse_faults(args["faults"]; validate=validate)
         end
     else
-        args["faults"] = PowerModelsProtection.build_mc_fault_study(args["base_network"])
+        args["faults"] = PMP.build_mc_sparse_fault_study(args["base_network"])
     end
 
-    args["fault_studies_results"] = run_fault_studies(args["network"], args["solvers"][solver]; faults=args["faults"], switching_solutions=get(args, "optimal_switching_results", missing), dispatch_solution=get(args, "optimal_dispatch_result", missing), distributed=get(args, "nprocs", 1) > 1)
+    args["fault_studies_results"] = run_fault_studies(
+        args["network"],
+        args["solvers"][get_setting(args, ("options", "problem", "fault-studies-solver"), "nlp_solver")];
+        faults=args["faults"],
+        switching_solutions=get(args, "optimal_switching_results", missing),
+        dispatch_solution=get(args, "optimal_dispatch_result", missing),
+        distributed=get_setting(args, ("options", "problem", "concurrent-fault-studies"), true)
+    )
 end
 
 
 """
-    run_fault_studies(network::Dict{String,<:Any}, solver; faults::Dict{String,<:Any}=Dict{String,Any}(), switching_solutions::Union{Missing,Dict{String,<:Any}}=missing, dispatch_solution::Union{Missing,Dict{String,<:Any}}=missing, distributed::Bool=false)::Dict{String,Any}
+    run_fault_studies(
+        network::Dict{String,<:Any},
+        solver;
+        faults::Dict{String,<:Any}=Dict{String,Any}(),
+        switching_solutions::Union{Missing,Dict{String,<:Any}}=missing,
+        dispatch_solution::Union{Missing,Dict{String,<:Any}}=missing,
+        distributed::Bool=false
+    )::Dict{String,Any}
 
 Runs fault studies defined in ieee13_faults.json. If no faults file is provided, it will automatically generate faults
 using `PowerModelsProtection.build_mc_fault_study`.
@@ -31,17 +49,24 @@ Uses [`run_fault_study`](@ref run_fault_study) to solve the actual fault study.
 `solver` will determine which instantiated solver is used, `"nlp_solver"` or `"juniper_solver"`
 
 """
-function run_fault_studies(network::Dict{String,<:Any}, solver; faults::Dict{String,<:Any}=Dict{String,Any}(), switching_solutions::Union{Missing,Dict{String,<:Any}}=missing, dispatch_solution::Union{Missing,Dict{String,<:Any}}=missing, distributed::Bool=false)::Dict{String,Any}
+function run_fault_studies(
+    network::Dict{String,<:Any},
+    solver;
+    faults::Dict{String,<:Any}=Dict{String,Any}(),
+    switching_solutions::Union{Missing,Dict{String,<:Any}}=missing,
+    dispatch_solution::Union{Missing,Dict{String,<:Any}}=missing,
+    distributed::Bool=false
+    )::Dict{String,Any}
     mn_data = _prepare_fault_study_multinetwork_data(network, switching_solutions, dispatch_solution)
 
     switch_states = Dict{String,Dict{String,PMD.SwitchState}}(n => Dict{String,PMD.SwitchState}(s => sw["state"] for (s,sw) in get(nw, "switch", Dict())) for (n,nw) in get(mn_data, "nw", Dict()))
 
-    shedded_buses = Dict{String,Vector{String}}(n => String[] for (n,nw) in get(mn_data, "nw", Dict()))
+    shedded_buses = Dict{String,Vector{String}}(n => collect(keys(filter(x->x.second["status"] == PMD.DISABLED, mn_data["nw"][n]["bus"]))) for (n,nw) in get(mn_data, "nw", Dict()))
     if !ismissing(switching_solutions)
         for (n,shed) in shedded_buses
             nw = get(switching_solutions["$n"], "solution", Dict{String,Any}())
             for (i,bus) in get(nw, "bus", Dict())
-                if round(Int, get(bus, "status", 1)) != 1
+                if get(bus, "status", PMD.ENABLED) == PMD.DISABLED
                     push!(shed, i)
                 end
             end
@@ -58,7 +83,7 @@ function run_fault_studies(network::Dict{String,<:Any}, solver; faults::Dict{Str
     end
 
     if isempty(faults)
-        faults = PowerModelsProtection.build_mc_fault_study(first(network["nw"]).second)
+        faults = PMP.build_mc_fault_study(first(network["nw"]).second)
     end
 
     fault_studies_results = Dict{String,Any}()
@@ -75,7 +100,7 @@ function run_fault_studies(network::Dict{String,<:Any}, solver; faults::Dict{Str
             end
         end
     else
-        _results = @showprogress pmap(ns; distributed=distributed) do n
+        _results = pmap(ns; distributed=distributed) do n
             _faults = filter(x->!(x.first in shedded_buses["$(n)"]), faults)
             if (n > 1 && switch_states["$(n)"] == switch_states["$(n-1)"]) || isempty(_faults)
                 # skip identical configurations or all faults missing
@@ -102,7 +127,11 @@ end
 
 
 """
-    run_fault_study(subnetwork::Dict{String,<:Any}, faults::Dict{String,<:Any}, solver)::Dict{String,Any}
+    run_fault_study(
+        subnetwork::Dict{String,<:Any},
+        faults::Dict{String,<:Any},
+        solver
+    )::Dict{String,Any}
 
 Uses `PowerModelsProtection.solve_mc_fault_study` to solve multiple faults defined in `faults`, applied
 to `subnetwork`, i.e., not a multinetwork, using a nonlinear `solver`.
@@ -110,12 +139,24 @@ to `subnetwork`, i.e., not a multinetwork, using a nonlinear `solver`.
 Requires the use of `PowerModelsDistribution.IVRUPowerModel`.
 """
 function run_fault_study(subnetwork::Dict{String,<:Any}, faults::Dict{String,<:Any}, solver)::Dict{String,Any}
-    PowerModelsProtection.solve_mc_fault_study(subnetwork, faults, solver)
+    PMP.solve_mc_fault_study(subnetwork, faults, solver)
 end
 
 
-"helper function that helps to prepare all of the subnetworks for use in `PowerModelsProtection.solve_mc_fault_study`"
-function _prepare_fault_study_multinetwork_data(network::Dict{String,<:Any}, switching_solutions::Union{Missing,Dict{String,<:Any}}=missing, dispatch_solution::Union{Missing,Dict{String,<:Any}}=missing)
+"""
+    _prepare_fault_study_multinetwork_data(
+        network::Dict{String,<:Any},
+        switching_solutions::Union{Missing,Dict{String,<:Any}}=missing,
+        dispatch_solution::Union{Missing,Dict{String,<:Any}}=missing
+    )
+
+Helper function that helps to prepare all of the subnetworks for use in `PowerModelsProtection.solve_mc_fault_study`
+"""
+function _prepare_fault_study_multinetwork_data(
+    network::Dict{String,<:Any},
+    switching_solutions::Union{Missing,Dict{String,<:Any}}=missing,
+    dispatch_solution::Union{Missing,Dict{String,<:Any}}=missing
+    )::Dict{String,Any}
     data = _prepare_dispatch_data(network, switching_solutions)
 
     if !ismissing(dispatch_solution)
@@ -127,7 +168,7 @@ function _prepare_fault_study_multinetwork_data(network::Dict{String,<:Any}, swi
                         data["nw"]["$n"]["bus"][i]["vm"] = nw_sol["bus"][i]["vm"]
                     end
                     if haskey(nw_sol["bus"][i], "va")
-                        data["nw"]["$n"]["bus"][i]["vm"] = nw_sol["bus"][i]["va"]
+                        data["nw"]["$n"]["bus"][i]["va"] = nw_sol["bus"][i]["va"]
                     end
                 end
             end
@@ -141,12 +182,12 @@ function _prepare_fault_study_multinetwork_data(network::Dict{String,<:Any}, swi
         for type in ["solar", "storage", "generator"]
             if haskey(nw, type)
                 for (i,obj) in nw[type]
-                    if obj["status"] == PMD.ENABLED
+                    if haskey(obj, "inverter") && obj["inverter"] == GRID_FORMING
                         data["nw"]["$n"][type][i]["grid_forming"] = true
 
                         bus = data["nw"]["$n"]["bus"]["$(obj["bus"])"]
                         if !haskey(bus, "vm")
-                            data["nw"]["$n"]["bus"]["$(obj["bus"])"]["vm"] = ones(length(bus["terminals"]))[bus["terminals"]]
+                            data["nw"]["$n"]["bus"]["$(obj["bus"])"]["vm"] = [ones(3)..., zeros(length(bus["terminals"]))...][bus["terminals"]]
                         end
                         if !haskey(bus, "va")
                             data["nw"]["$n"]["bus"]["$(obj["bus"])"]["va"] = [0.0, -120.0, 120.0, zeros(length(bus["terminals"]))...][bus["terminals"]]

@@ -1,6 +1,6 @@
 # ONM Workflow
 
-![ONM Workflow Diagram](../assets/onm_workflow-white.png)
+![ONM Workflow Diagram](../assets/onm_process_flow_v4.png)
 
 PowerModelsONM is designed to have a straightforward workflow for optimizing the operation and recovering of distribution feeders under contingencies.
 
@@ -19,11 +19,11 @@ At a minimum, PowerModelsONM requires a network file, in DSS format, with timese
 
 There are several other supplementary files that can be included as well, of which the [events data](@ref Events-Schema) is the most important. This file defines the contingency, by either explicitly defining the switching actions, or by applying a fault to a particular asset (_i.e._, a line).
 
-Another useful file is the network [settings data](@ref Settings-Schema), which is used to define extra information about the network, __not__ related to the timeseries, which cannot be expressed in the DSS format, such as bus voltage magnitude bounds, cold load pickup factors, voltage angle difference bounds, microgrid definitions, etc.
+Another useful file is the network [settings data](@ref Settings-Schema), which is used to define extra information about the network, **not** related to the timeseries, which cannot be expressed in the DSS format, such as bus voltage magnitude bounds, cold load pickup factors, voltage angle difference bounds, microgrid definitions, etc.
 
 Finally, there are the two inputs for Stability Analysis and Fault Analysis, performed post optimization. For stability analysis, [inverters data](@ref Inverters-Schema) is required for the analysis to produce meaningful results (see, [PowerModelsStability documentation](https://github.com/lanl-ansi/PowerModelsStability.jl)), but for fault analysis, although you can specify faults ahead of time via [fault data](@ref Faults-Schema), it is not necessary because if no faults are specified, a set of faults for analysis will be automatically generated. It should be noted however that a large number of faults will be generated automatically, which could incur serious time penalties in the completion of the algorithm. For more information, see [PowerModelsProtection documentation](https://github.com/lanl-ansi/PowerModelsProtection.jl).
 
-## Optimal Switching Problem (OSW/MLD)
+## Optimal Switching Problem (MLD)
 
 The optimal switching algorithm in ONM is an extension of the single-network MLD problem contained in PowerModelsDistribution, that takes into consideration certain engineering realities of distribution feeders.
 
@@ -35,7 +35,7 @@ Second, the optimal switching problem currently uses the LinDist3Flow model (`Po
 
 Finally, the optimial switching problem currently solves sequentially, rather than globally over the entire multinetwork, which means switch configurations and storage energies are manually updated after each timestep is solved.
 
-The mathematical formulation can be found [here](@ref osw-mld-math).
+The mathematical formulation can be found [here](@ref mld-math).
 
 ## Optimal Dispatch (OPF)
 
@@ -45,7 +45,7 @@ This nonlinear AC OPF problem is a simple extension of the [AC-OPF problem conta
 
 ## Statistics
 
-After the optimizations have completed, ONM collects essential statistics for our default [output specification](@ref Outputs-Schema). These include:
+After the optimizations have completed, ONM collects essential statistics for our default [output specification](@ref Output-Schema). These include:
 
 - a device action timeline, which contains an ordered list of the switch settings and loads shed at each timestep,
 - a list of switch changes, _i.e._, switches whose state has changed from the previous timestep,
@@ -63,3 +63,5 @@ Finally, if fault analysis is performed, an ordered list of fault analysis resul
 - the fault susceptance / conductance,
 - both the unbalanced and symmetric (sequence) fault currents at each protection device, and
 - the voltage magnitude at each protection device.
+
+Full details of what is included in the output can be found in the schema files.

@@ -1,0 +1,672 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<styles>
+  <style name="ONM Suggested" scope="edge" selectionOnly="false">
+    <mapping>
+      <source name="state" origin="customProperty" type="string"/>
+      <target name="lineColor" type="color">
+        <hints/>
+      </target>
+      <conversion type="discrete">
+        <discrete>
+          <value>CLOSED</value>
+          <result>#339966</result>
+        </discrete>
+        <discrete>
+          <value>OPEN</value>
+          <result>#ff0000</result>
+        </discrete>
+      </conversion>
+    </mapping>
+    <mapping>
+      <source name="status" origin="customProperty" type="string"/>
+      <target name="lineColor" type="color">
+        <hints/>
+      </target>
+      <conversion type="discrete">
+        <discrete>
+          <value>DISABLED</value>
+          <result>#ff0000</result>
+        </discrete>
+        <discrete>
+          <value>ENABLED</value>
+          <result>#339966</result>
+        </discrete>
+      </conversion>
+    </mapping>
+    <mapping>
+      <source name="type" origin="customProperty" type="string"/>
+      <target name="lineLineType" type="lineType">
+        <hints/>
+      </target>
+      <conversion type="discrete">
+        <discrete>
+          <value>line</value>
+          <result>
+            <lineType type="line" width="2.0"/>
+          </result>
+        </discrete>
+        <discrete>
+          <value>switch</value>
+          <result>
+            <lineType type="dashed" width="2.0"/>
+          </result>
+        </discrete>
+        <discrete>
+          <value>transformer</value>
+          <result>
+            <lineType type="line" width="3.0"/>
+          </result>
+        </discrete>
+        <discrete>
+          <value>virtual_edge</value>
+          <result>
+            <lineType type="dotted" width="2.0"/>
+          </result>
+        </discrete>
+      </conversion>
+    </mapping>
+    <mapping>
+      <source name="type" origin="customProperty" type="string"/>
+      <target name="arrowTarget" type="arrow">
+        <hints/>
+      </target>
+      <conversion type="discrete">
+        <discrete>
+          <value>line</value>
+          <result>
+            <arrow type="none"/>
+          </result>
+        </discrete>
+        <discrete>
+          <value>switch</value>
+          <result>
+            <arrow type="none"/>
+          </result>
+        </discrete>
+        <discrete>
+          <value>transformer</value>
+          <result>
+            <arrow type="none"/>
+          </result>
+        </discrete>
+        <discrete>
+          <value>virtual_edge</value>
+          <result>
+            <arrow type="none"/>
+          </result>
+        </discrete>
+      </conversion>
+    </mapping>
+  </style>
+  <style name="ONM Suggested" scope="node" selectionOnly="false">
+    <mapping>
+      <source name="type" origin="customProperty" type="string"/>
+      <target name="template" type="nodeTemplate">
+        <hints/>
+      </target>
+      <conversion type="discrete">
+        <discrete>
+          <value>load</value>
+          <result>
+            <graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:java="http://www.yworks.com/xml/yfiles-common/1.0/java" xmlns:sys="http://www.yworks.com/xml/yfiles-common/markup/primitives/2.0" xmlns:x="http://www.yworks.com/xml/yfiles-common/markup/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:y="http://www.yworks.com/xml/graphml" xmlns:yed="http://www.yworks.com/xml/yed/3" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://www.yworks.com/xml/schema/graphml/1.1/ygraphml.xsd">
+
+              <!--Created by yEd 3.21.1-->
+
+              <key for="port" id="d0" yfiles.type="portgraphics"/>
+
+              <key for="port" id="d1" yfiles.type="portgeometry"/>
+
+              <key for="port" id="d2" yfiles.type="portuserdata"/>
+
+              <key for="node" id="d3" yfiles.type="nodegraphics"/>
+
+              <key for="graphml" id="d4" yfiles.type="resources"/>
+
+              <key for="edge" id="d5" yfiles.type="edgegraphics"/>
+
+              <graph edgedefault="directed" id="G">
+
+                <node id="n0">
+
+                  <data key="d3">
+
+                    <y:ShapeNode>
+
+                      <y:Geometry height="30.0" width="30.0" x="-15.0" y="-15.0"/>
+
+                      <y:Fill color="#FFCC00" transparent="false"/>
+
+                      <y:BorderStyle color="#000000" raised="false" type="line" width="1.0"/>
+
+                      <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" hasText="false" height="4.0" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="4.0" x="13.0" y="13.0">
+
+                        <y:LabelModel>
+
+                          <y:SmartNodeLabelModel distance="4.0"/>
+
+                        </y:LabelModel>
+
+                        <y:ModelParameter>
+
+                          <y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="0.0" nodeRatioX="0.0" nodeRatioY="0.0" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/>
+
+                        </y:ModelParameter>
+
+                      </y:NodeLabel>
+
+                      <y:Shape type="triangle2"/>
+
+                    </y:ShapeNode>
+
+                  </data>
+
+                </node>
+
+              </graph>
+
+              <data key="d4">
+
+                <y:Resources/>
+
+              </data>
+
+            </graphml>
+          </result>
+        </discrete>
+        <discrete>
+          <value>bus</value>
+          <result>
+            <graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:java="http://www.yworks.com/xml/yfiles-common/1.0/java" xmlns:sys="http://www.yworks.com/xml/yfiles-common/markup/primitives/2.0" xmlns:x="http://www.yworks.com/xml/yfiles-common/markup/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:y="http://www.yworks.com/xml/graphml" xmlns:yed="http://www.yworks.com/xml/yed/3" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://www.yworks.com/xml/schema/graphml/1.1/ygraphml.xsd">
+
+              <!--Created by yEd 3.21.1-->
+
+              <key for="port" id="d0" yfiles.type="portgraphics"/>
+
+              <key for="port" id="d1" yfiles.type="portgeometry"/>
+
+              <key for="port" id="d2" yfiles.type="portuserdata"/>
+
+              <key for="node" id="d3" yfiles.type="nodegraphics"/>
+
+              <key for="graphml" id="d4" yfiles.type="resources"/>
+
+              <key for="edge" id="d5" yfiles.type="edgegraphics"/>
+
+              <graph edgedefault="directed" id="G">
+
+                <node id="n0">
+
+                  <data key="d3">
+
+                    <y:ShapeNode>
+
+                      <y:Geometry height="30.0" width="30.0" x="-15.0" y="-15.0"/>
+
+                      <y:Fill color="#FFCC00" transparent="false"/>
+
+                      <y:BorderStyle color="#000000" raised="false" type="line" width="1.0"/>
+
+                      <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" hasText="false" height="4.0" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="4.0" x="13.0" y="13.0">
+
+                        <y:LabelModel>
+
+                          <y:SmartNodeLabelModel distance="4.0"/>
+
+                        </y:LabelModel>
+
+                        <y:ModelParameter>
+
+                          <y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="0.0" nodeRatioX="0.0" nodeRatioY="0.0" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/>
+
+                        </y:ModelParameter>
+
+                      </y:NodeLabel>
+
+                      <y:Shape type="ellipse"/>
+
+                    </y:ShapeNode>
+
+                  </data>
+
+                </node>
+
+              </graph>
+
+              <data key="d4">
+
+                <y:Resources/>
+
+              </data>
+
+            </graphml>
+          </result>
+        </discrete>
+        <discrete>
+          <value>generator</value>
+          <result>
+            <graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:java="http://www.yworks.com/xml/yfiles-common/1.0/java" xmlns:sys="http://www.yworks.com/xml/yfiles-common/markup/primitives/2.0" xmlns:x="http://www.yworks.com/xml/yfiles-common/markup/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:y="http://www.yworks.com/xml/graphml" xmlns:yed="http://www.yworks.com/xml/yed/3" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://www.yworks.com/xml/schema/graphml/1.1/ygraphml.xsd">
+
+              <!--Created by yEd 3.21.1-->
+
+              <key for="port" id="d0" yfiles.type="portgraphics"/>
+
+              <key for="port" id="d1" yfiles.type="portgeometry"/>
+
+              <key for="port" id="d2" yfiles.type="portuserdata"/>
+
+              <key for="node" id="d3" yfiles.type="nodegraphics"/>
+
+              <key for="graphml" id="d4" yfiles.type="resources"/>
+
+              <key for="edge" id="d5" yfiles.type="edgegraphics"/>
+
+              <graph edgedefault="directed" id="G">
+
+                <node id="n0">
+
+                  <data key="d3">
+
+                    <y:ShapeNode>
+
+                      <y:Geometry height="30.0" width="30.0" x="-15.0" y="-15.0"/>
+
+                      <y:Fill color="#FFCC00" transparent="false"/>
+
+                      <y:BorderStyle color="#000000" raised="false" type="line" width="1.0"/>
+
+                      <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" hasText="false" height="4.0" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="4.0" x="13.0" y="13.0">
+
+                        <y:LabelModel>
+
+                          <y:SmartNodeLabelModel distance="4.0"/>
+
+                        </y:LabelModel>
+
+                        <y:ModelParameter>
+
+                          <y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="0.0" nodeRatioX="0.0" nodeRatioY="0.0" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/>
+
+                        </y:ModelParameter>
+
+                      </y:NodeLabel>
+
+                      <y:Shape type="ellipse"/>
+
+                    </y:ShapeNode>
+
+                  </data>
+
+                </node>
+
+              </graph>
+
+              <data key="d4">
+
+                <y:Resources/>
+
+              </data>
+
+            </graphml>
+          </result>
+        </discrete>
+        <discrete>
+          <value>shunt</value>
+          <result>
+            <graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:java="http://www.yworks.com/xml/yfiles-common/1.0/java" xmlns:sys="http://www.yworks.com/xml/yfiles-common/markup/primitives/2.0" xmlns:x="http://www.yworks.com/xml/yfiles-common/markup/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:y="http://www.yworks.com/xml/graphml" xmlns:yed="http://www.yworks.com/xml/yed/3" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://www.yworks.com/xml/schema/graphml/1.1/ygraphml.xsd">
+
+              <!--Created by yEd 3.21.1-->
+
+              <key for="port" id="d0" yfiles.type="portgraphics"/>
+
+              <key for="port" id="d1" yfiles.type="portgeometry"/>
+
+              <key for="port" id="d2" yfiles.type="portuserdata"/>
+
+              <key for="node" id="d3" yfiles.type="nodegraphics"/>
+
+              <key for="graphml" id="d4" yfiles.type="resources"/>
+
+              <key for="edge" id="d5" yfiles.type="edgegraphics"/>
+
+              <graph edgedefault="directed" id="G">
+
+                <node id="n0">
+
+                  <data key="d3">
+
+                    <y:ShapeNode>
+
+                      <y:Geometry height="30.0" width="30.0" x="-15.0" y="-15.0"/>
+
+                      <y:Fill color="#FFCC00" transparent="false"/>
+
+                      <y:BorderStyle color="#000000" raised="false" type="line" width="1.0"/>
+
+                      <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" hasText="false" height="4.0" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="4.0" x="13.0" y="13.0">
+
+                        <y:LabelModel>
+
+                          <y:SmartNodeLabelModel distance="4.0"/>
+
+                        </y:LabelModel>
+
+                        <y:ModelParameter>
+
+                          <y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="0.0" nodeRatioX="0.0" nodeRatioY="0.0" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/>
+
+                        </y:ModelParameter>
+
+                      </y:NodeLabel>
+
+                      <y:Shape type="triangle"/>
+
+                    </y:ShapeNode>
+
+                  </data>
+
+                </node>
+
+              </graph>
+
+              <data key="d4">
+
+                <y:Resources/>
+
+              </data>
+
+            </graphml>
+          </result>
+        </discrete>
+        <discrete>
+          <value>voltage_source</value>
+          <result>
+            <graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:java="http://www.yworks.com/xml/yfiles-common/1.0/java" xmlns:sys="http://www.yworks.com/xml/yfiles-common/markup/primitives/2.0" xmlns:x="http://www.yworks.com/xml/yfiles-common/markup/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:y="http://www.yworks.com/xml/graphml" xmlns:yed="http://www.yworks.com/xml/yed/3" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://www.yworks.com/xml/schema/graphml/1.1/ygraphml.xsd">
+
+              <!--Created by yEd 3.21.1-->
+
+              <key for="port" id="d0" yfiles.type="portgraphics"/>
+
+              <key for="port" id="d1" yfiles.type="portgeometry"/>
+
+              <key for="port" id="d2" yfiles.type="portuserdata"/>
+
+              <key for="node" id="d3" yfiles.type="nodegraphics"/>
+
+              <key for="graphml" id="d4" yfiles.type="resources"/>
+
+              <key for="edge" id="d5" yfiles.type="edgegraphics"/>
+
+              <graph edgedefault="directed" id="G">
+
+                <node id="n0">
+
+                  <data key="d3">
+
+                    <y:ShapeNode>
+
+                      <y:Geometry height="30.0" width="30.0" x="-15.0" y="-15.0"/>
+
+                      <y:Fill color="#FFCC00" transparent="false"/>
+
+                      <y:BorderStyle color="#000000" raised="false" type="line" width="1.0"/>
+
+                      <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" hasText="false" height="4.0" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="4.0" x="13.0" y="13.0">
+
+                        <y:LabelModel>
+
+                          <y:SmartNodeLabelModel distance="4.0"/>
+
+                        </y:LabelModel>
+
+                        <y:ModelParameter>
+
+                          <y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="0.0" nodeRatioX="0.0" nodeRatioY="0.0" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/>
+
+                        </y:ModelParameter>
+
+                      </y:NodeLabel>
+
+                      <y:Shape type="star8"/>
+
+                    </y:ShapeNode>
+
+                  </data>
+
+                </node>
+
+              </graph>
+
+              <data key="d4">
+
+                <y:Resources/>
+
+              </data>
+
+            </graphml>
+          </result>
+        </discrete>
+        <discrete>
+          <value>solar</value>
+          <result>
+            <graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:java="http://www.yworks.com/xml/yfiles-common/1.0/java" xmlns:sys="http://www.yworks.com/xml/yfiles-common/markup/primitives/2.0" xmlns:x="http://www.yworks.com/xml/yfiles-common/markup/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:y="http://www.yworks.com/xml/graphml" xmlns:yed="http://www.yworks.com/xml/yed/3" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://www.yworks.com/xml/schema/graphml/1.1/ygraphml.xsd">
+
+              <!--Created by yEd 3.21.1-->
+
+              <key for="port" id="d0" yfiles.type="portgraphics"/>
+
+              <key for="port" id="d1" yfiles.type="portgeometry"/>
+
+              <key for="port" id="d2" yfiles.type="portuserdata"/>
+
+              <key for="node" id="d3" yfiles.type="nodegraphics"/>
+
+              <key for="graphml" id="d4" yfiles.type="resources"/>
+
+              <key for="edge" id="d5" yfiles.type="edgegraphics"/>
+
+              <graph edgedefault="directed" id="G">
+
+                <node id="n0">
+
+                  <data key="d3">
+
+                    <y:ShapeNode>
+
+                      <y:Geometry height="30.0" width="30.0" x="-15.0" y="-15.0"/>
+
+                      <y:Fill color="#FFCC00" transparent="false"/>
+
+                      <y:BorderStyle color="#000000" raised="false" type="line" width="1.0"/>
+
+                      <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" hasText="false" height="4.0" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="4.0" x="13.0" y="13.0">
+
+                        <y:LabelModel>
+
+                          <y:SmartNodeLabelModel distance="4.0"/>
+
+                        </y:LabelModel>
+
+                        <y:ModelParameter>
+
+                          <y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="0.0" nodeRatioX="0.0" nodeRatioY="0.0" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/>
+
+                        </y:ModelParameter>
+
+                      </y:NodeLabel>
+
+                      <y:Shape type="parallelogram2"/>
+
+                    </y:ShapeNode>
+
+                  </data>
+
+                </node>
+
+              </graph>
+
+              <data key="d4">
+
+                <y:Resources/>
+
+              </data>
+
+            </graphml>
+          </result>
+        </discrete>
+        <discrete>
+          <value>storage</value>
+          <result>
+            <graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:java="http://www.yworks.com/xml/yfiles-common/1.0/java" xmlns:sys="http://www.yworks.com/xml/yfiles-common/markup/primitives/2.0" xmlns:x="http://www.yworks.com/xml/yfiles-common/markup/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:y="http://www.yworks.com/xml/graphml" xmlns:yed="http://www.yworks.com/xml/yed/3" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://www.yworks.com/xml/schema/graphml/1.1/ygraphml.xsd">
+
+              <!--Created by yEd 3.21.1-->
+
+              <key for="port" id="d0" yfiles.type="portgraphics"/>
+
+              <key for="port" id="d1" yfiles.type="portgeometry"/>
+
+              <key for="port" id="d2" yfiles.type="portuserdata"/>
+
+              <key for="node" id="d3" yfiles.type="nodegraphics"/>
+
+              <key for="graphml" id="d4" yfiles.type="resources"/>
+
+              <key for="edge" id="d5" yfiles.type="edgegraphics"/>
+
+              <graph edgedefault="directed" id="G">
+
+                <node id="n0">
+
+                  <data key="d3">
+
+                    <y:ShapeNode>
+
+                      <y:Geometry height="30.0" width="30.0" x="-15.0" y="-15.0"/>
+
+                      <y:Fill color="#FFCC00" transparent="false"/>
+
+                      <y:BorderStyle color="#000000" raised="false" type="line" width="1.0"/>
+
+                      <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" hasText="false" height="4.0" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="4.0" x="13.0" y="13.0">
+
+                        <y:LabelModel>
+
+                          <y:SmartNodeLabelModel distance="4.0"/>
+
+                        </y:LabelModel>
+
+                        <y:ModelParameter>
+
+                          <y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="0.0" nodeRatioX="0.0" nodeRatioY="0.0" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/>
+
+                        </y:ModelParameter>
+
+                      </y:NodeLabel>
+
+                      <y:Shape type="trapezoid2"/>
+
+                    </y:ShapeNode>
+
+                  </data>
+
+                </node>
+
+              </graph>
+
+              <data key="d4">
+
+                <y:Resources/>
+
+              </data>
+
+            </graphml>
+          </result>
+        </discrete>
+      </conversion>
+    </mapping>
+    <mapping>
+      <source name="status" origin="customProperty" type="string"/>
+      <target name="fillColor" type="color">
+        <hints/>
+      </target>
+      <conversion type="discrete">
+        <discrete>
+          <value>ENABLED</value>
+          <result>#339966</result>
+        </discrete>
+      </conversion>
+    </mapping>
+    <mapping>
+      <source name="type" origin="customProperty" type="string"/>
+      <target name="fillColor" type="color">
+        <hints/>
+      </target>
+      <conversion type="discrete">
+        <discrete>
+          <value>bus</value>
+          <result>#000000</result>
+        </discrete>
+        <discrete>
+          <value>storage</value>
+          <result>#00ffff</result>
+        </discrete>
+        <discrete>
+          <value>generator</value>
+          <result>#00ffff</result>
+        </discrete>
+        <discrete>
+          <value>solar</value>
+          <result>#00ffff</result>
+        </discrete>
+        <discrete>
+          <value>voltage_source</value>
+          <result>#ff0000</result>
+        </discrete>
+        <discrete>
+          <value>load</value>
+          <result>#ffcc00</result>
+        </discrete>
+        <discrete>
+          <value>shunt</value>
+          <result>#ff99cc</result>
+        </discrete>
+        <discrete>
+          <value>block</value>
+          <result>#dfc1ff26</result>
+        </discrete>
+      </conversion>
+    </mapping>
+    <mapping>
+      <source name="type" origin="customProperty" type="string"/>
+      <target name="geometryWidth" type="double">
+        <hints/>
+      </target>
+      <conversion type="discrete">
+        <discrete>
+          <value>bus</value>
+          <result>10.0</result>
+        </discrete>
+      </conversion>
+    </mapping>
+    <mapping>
+      <source name="type" origin="customProperty" type="string"/>
+      <target name="geometryHeight" type="double">
+        <hints/>
+      </target>
+      <conversion type="discrete">
+        <discrete>
+          <value>bus</value>
+          <result>10.0</result>
+        </discrete>
+      </conversion>
+    </mapping>
+    <mapping>
+      <source name="source_id" origin="customProperty" type="string"/>
+      <target name="labelText" type="string">
+        <hints>
+          <hint type="int">0</hint>
+        </hints>
+      </target>
+      <conversion type="asIs"/>
+    </mapping>
+  </style>
+</styles>

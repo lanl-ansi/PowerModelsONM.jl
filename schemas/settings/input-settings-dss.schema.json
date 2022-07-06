@@ -1,0 +1,37 @@
+{
+  "title": "input-settings-dss.schema",
+  "type": "object",
+  "definitions": {
+    "inverterToggle": {
+      "type": "string",
+      "enum": [
+        "GRID_FORMING",
+        "grid_forming",
+        "gfm",
+        "GRID_FOLLOWING",
+        "grid_following",
+        "gfl"
+      ]
+    },
+    "statusToggle": {
+      "type": "string",
+      "enum": ["yes", "no", "YES", "NO", "y", "n", "Y", "N"]
+    }
+  },
+  "patternProperties": {
+    "^.+$": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "inverter": {
+          "type": "string",
+          "$ref": "#/definitions/inverterToggle"
+        },
+        "enabled": {
+          "type": "string",
+          "$ref": "#/definitions/statusToggle"
+        }
+      }
+    }
+  }
+}
