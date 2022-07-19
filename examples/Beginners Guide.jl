@@ -9,7 +9,7 @@ using InteractiveUtils
 begin
 	using Pkg
 	Pkg.activate(;temp=true)
-	Pkg.add(Pkg.PackageSpec(; name="PowerModelsONM", rev="v3.0-rc"))
+	Pkg.add(Pkg.PackageSpec(; name="PowerModelsONM", version="3.0.0"))
 end
 
 # ╔═╡ d8124cac-293a-4a2d-ba70-bc75ec624712

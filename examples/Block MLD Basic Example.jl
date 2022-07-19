@@ -10,7 +10,7 @@ using Pkg
 # ╔═╡ e8dd4b8e-bc68-408e-a6f6-32fec5f74942
 begin
 	Pkg.activate(;temp=true)
-	Pkg.add(Pkg.PackageSpec(;name="PowerModelsONM", rev="v3.0-rc"))
+	Pkg.add(Pkg.PackageSpec(;name="PowerModelsONM", version="3.0.0"))
 	Pkg.add(
 		[
 			"PowerModelsDistribution",
@@ -86,13 +86,13 @@ md"## Instantiate a solver and attach it"
 
 # ╔═╡ 7bcc1e19-f982-44cb-bbc0-df72eca756eb
 solver = JuMP.optimizer_with_attributes(
-	HiGHS.Optimizer, 
-	"presolve"=>"off", 
-	"primal_feasibility_tolerance"=>1e-6, 
-	"dual_feasibility_tolerance"=>1e-6, 
-	"mip_feasibility_tolerance"=>1e-4, 
-	"mip_rel_gap"=>1e-4, 
-	"small_matrix_value"=>1e-12, 
+	HiGHS.Optimizer,
+	"presolve"=>"off",
+	"primal_feasibility_tolerance"=>1e-6,
+	"dual_feasibility_tolerance"=>1e-6,
+	"mip_feasibility_tolerance"=>1e-4,
+	"mip_rel_gap"=>1e-4,
+	"small_matrix_value"=>1e-12,
 	"allow_unbounded_or_infeasible"=>true
 )
 

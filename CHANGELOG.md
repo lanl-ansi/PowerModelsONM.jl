@@ -2,7 +2,7 @@
 
 ## staged
 
-- none
+- Updated Pluto notebooks PowerModelsONM version to `3.0.0`
 
 ## v3.0.0
 

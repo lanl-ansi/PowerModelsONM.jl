@@ -11,7 +11,7 @@ using Pkg
 # ╠═╡ show_logs = false
 begin
 	Pkg.activate(;temp=true)
-	Pkg.add(Pkg.PackageSpec(;name="PowerModelsONM", rev="v3.0-rc"))
+	Pkg.add(Pkg.PackageSpec(;name="PowerModelsONM", version="3.0.0"))
 	Pkg.add(
 		[
 			"PowerModelsDistribution",
@@ -38,13 +38,13 @@ html"""
 # ╔═╡ bdfca444-f5f0-413f-8a47-8346de453d12
 md"""# JuMP Model by Hand - MLD-Block
 
-This notebook is intended to illustrate how one would build the JuMP model for a MLD problem of the "block" type (i.e., `build_block_mld(pm::AbstractUBFModels)`) with the LinDist3Flow (i.e., `LPUBFDiagPowerModel`) formulation. 
+This notebook is intended to illustrate how one would build the JuMP model for a MLD problem of the "block" type (i.e., `build_block_mld(pm::AbstractUBFModels)`) with the LinDist3Flow (i.e., `LPUBFDiagPowerModel`) formulation.
 
 ## Outline
 
 ### Environment Setup
 
-This is based on PowerModelsONM.jl#v3.0-rc, which is not yet released, and therefore requires manual setup of the environment using Pkg, overriding the built-in package management in Pluto notebooks.
+This is based on `PowerModelsONM.jl@3.0.0`.
 
 ### Solver
 
@@ -52,7 +52,7 @@ This notebook uses the [HiGHS solver](https://github.com/jump-dev/HiGHS.jl).
 
 ### Data Model
 
-This notebook uses a modified IEEE-13 case that is [included in PowerModelsONM.jl](https://github.com/lanl-ansi/PowerModelsONM.jl/blob/v3.0-rc/test/data/ieee13_feeder.dss).
+This notebook uses a modified IEEE-13 case that is [included in PowerModelsONM.jl](https://github.com/lanl-ansi/PowerModelsONM.jl/blob/v3.0.0/test/data/ieee13_feeder.dss).
 
 What is loaded here is the single-network, **not** multinetwork (i.e., time-series) version of the feeder.
 
@@ -130,7 +130,7 @@ PMD.apply_voltage_bounds!(eng)
 # ╔═╡ b9582cb1-0f92-42ef-88b8-fb7e98ff6c3b
 md"""### Convert ENGINEERING to MATHEMATICAL Model
 
-To build a JuMP model, we require the `MATHEMATICAL` representation of the network model, which is normally performed automatically by PowerModelsDistribution, but here we need to do it manually using `transform_data_model`. 
+To build a JuMP model, we require the `MATHEMATICAL` representation of the network model, which is normally performed automatically by PowerModelsDistribution, but here we need to do it manually using `transform_data_model`.
 
 The ONM version of this function used below includes several augmentations required to pass along extra data parameters that are not contained in the base PowerModelsDistribution data models.
 """
@@ -209,7 +209,7 @@ z_inverter = Dict(
 # ╔═╡ 1480b91d-fcbb-46c1-9a47-c4daa99731a2
 md"""#### Bus voltage variables
 
-These variables are used to represent the squared voltage magnitudes `w` for each terminal on each bus. 
+These variables are used to represent the squared voltage magnitudes `w` for each terminal on each bus.
 
 By default, voltage magnitudes have a lower bound of `0.0` to avoid infeasibilities, since this is an on-off problem. There are constraints applied later that enforce lower-bounds based on `z_block`.
 """
@@ -1742,7 +1742,7 @@ end
 # ╔═╡ 6df404eb-d816-4ae4-ae3f-a39505f79669
 md"""### Objective
 
-Below is the objective function used for the block-mld problem, which includes terms for 
+Below is the objective function used for the block-mld problem, which includes terms for
 
 - minimizing the amount of load shed
 - minimizing the number of switches left open

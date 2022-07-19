@@ -23,7 +23,7 @@ begin
 	using Pkg
 	Pkg.activate(; temp=true)
 	Pkg.add([
-		Pkg.PackageSpec(; name="PowerModelsONM", rev="v3.0-rc"),
+		Pkg.PackageSpec(; name="PowerModelsONM", version="3.0.0"),
 		Pkg.PackageSpec(; name="PowerModelsDistribution", version="0.14.4"),
 		Pkg.PackageSpec(; name="VegaLite", version="2.6.0"),
 		Pkg.PackageSpec(; name="DataFrames", version="1.3.4"),
