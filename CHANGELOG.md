@@ -2,6 +2,10 @@
 
 ## staged
 
+- none
+
+## v3.0.1
+
 - Fixed bug in `apply_settings` where settings for ENGINEERING data model object were getting written even if they did not exist in the original data model
 - Updated Pluto notebooks PowerModelsONM version to `3.0.0`
 
