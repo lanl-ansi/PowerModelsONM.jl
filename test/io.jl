@@ -385,5 +385,13 @@
 
         @test count_faults(faults) == 3
     end
-end
 
+    @testset "test settings invalid eng object" begin
+        settings = parse_settings("../test/data/ieee13_settings.json")
+        settings["transformer"]["test_missing"] = Dict{String,Any}("status"=>DISABLED)
+
+        eng = apply_settings(base_network, settings)
+
+        @test haskey(settings["transformer"], "test_missing") && !haskey(eng["transformer"], "test_missing")
+    end
+end

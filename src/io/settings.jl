@@ -278,7 +278,15 @@ Applies `settings` to single-network `network`
 function apply_settings(network::T, settings::T; multinetwork::Bool=true)::T where T <: Dict{String,Any}
     @assert !PMD.ismultinetwork(network)
 
+    network_objects = [(t,n) for t in PMD.pmd_eng_asset_types for n in keys(get(network, t, Dict()))]
+    invalid_eng_objs = [(t,n) for t in PMD.pmd_eng_asset_types for n in keys(get(settings, t, Dict())) if !((t,n) in network_objects)]
+
     eng = recursive_merge(recursive_merge(deepcopy(network), filter(x->x.first!="dss",settings)), parse_dss_settings(get(settings, "dss", Dict{String,Any}()), network))
+
+    for path in invalid_eng_objs
+        @info "Settings at '$path' do not match any object in the data model, ignoring"
+        delete_path!(eng, path)
+    end
 
     if get_option(eng, ("options","data","fix-small-numbers"), false)
         @info "fix-small-numbers algorithm applied"
@@ -414,6 +422,39 @@ end
 Helper function for variant where `settings_file` has not been parsed yet.
 """
 get_option(settings_file::String, path::Tuple{Vararg{String}}, default::Any=missing)::Any = get_option(path[1] == "settings" ? Dict{String,Any}("settings"=>parse_settings(settings_file)) : parse_settings(settings_file), path, default)
+
+
+"""
+    delete_option!(network::Dict{String,<:Any}, path::Tuple{Vararg{String}})
+
+Helper function to delete some option path from a network data structure
+"""
+function delete_option!(network::Dict{String,<:Any}, path::Tuple{Vararg{String}})
+    delete_path!(network, path)
+    if ismultinetwork(network)
+        for (n,nw) in network["nw"]
+            delete_path!(nw, path)
+        end
+    end
+end
+
+
+"""
+    delete_setting!(args::Dict{String,<:Any}, path::Tuple{Vararg{String}})
+
+Helper function to delete some option path from settings data structure
+"""
+function delete_setting!(args::Dict{String,<:Any}, path::Tuple{Vararg{String}})
+    delete_path!(args, ("settings", path...))
+end
+
+
+"""
+    delete_option!(settings_file::String, path::Tuple{Vararg{String}})
+
+Helper function for variant where `settings_file` has not been parsed yet.
+"""
+delete_option!(settings_file::String, path::Tuple{Vararg{String}}) = @info "settings file has not yet been parsed, cannot delete option at '$path'"
 
 
 """

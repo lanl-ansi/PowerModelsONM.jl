@@ -238,3 +238,25 @@ Base.parse(::Type{PMD.Status}, status::Int)::PMD.Status = PMD.Status(status)
 function Base.parse(::Type{PMD.AbstractUnbalancedPowerModel}, form::String)::Type
     return _get_formulation(form)
 end
+
+
+"""
+    delete_path!(data::Dict{String,<:Any}, path::Tuple{Vararg{String}})
+
+Helper function to delete a path within a dictionary
+"""
+function delete_path!(data::Dict{String,<:Any}, path::Tuple{Vararg{String}})
+    if length(path) > 1
+        return delete_path!(get(data, path[1], Dict{String,Any}()), path[2:end])
+    else
+        return delete!(data, path[1])
+    end
+end
+
+
+"""
+    delete_path!(data::Dict{String,<:Any}, path::Tuple{Vararg{String}})
+
+Helper function for variant where data is not a dict
+"""
+delete_path!(data::Any, path::Tuple{Vararg{String}}) = @info "cannot delete option at '$path' in data, not a Dictionary"
