@@ -2,6 +2,7 @@
 
 ## staged
 
+- Fixed bug in protection model where `location` is missing, and `monitoredobj` is used instead
 - Added line impedances `rs` and `xs` to the protection network model
 - Added "phi (deg)" as output in fault currents, representing the bus voltage angle at the f-bus of the switch
 - Fixed bug in objective functions where if no storage was present, calculating `total_energy_ub` would result in error

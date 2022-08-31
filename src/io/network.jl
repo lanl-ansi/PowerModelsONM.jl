@@ -204,7 +204,7 @@ function get_protection_network_model(base_eng::Dict{String,<:Any})
             push!(pnm["protection"], Dict{String,Any}(
                 "name" => id,
                 "type" => type,
-                "location" => string(obj["location"]),
+                "location" => string(get(obj, "location", get(obj, "monitoredobj", ""))),
             ))
         end
     end
