@@ -2,7 +2,7 @@
 
 ## staged
 
-- none
+- Added `_dss2eng_gen_model!` from PowerModelsProtection to `parse_file`
 
 ## v3.0.1
 

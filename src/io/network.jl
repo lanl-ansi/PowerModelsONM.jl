@@ -54,6 +54,7 @@ function parse_file(network_file::String; dss2eng_extensions=Function[], transfo
             PMP._dss2eng_fuse!,
             PMP._dss2eng_ct!,
             PMP._dss2eng_relay!,
+            PMP._dss2eng_gen_model!,
             _dss2eng_protection_locations!,
             dss2eng_extensions...
         ],
