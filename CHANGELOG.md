@@ -2,6 +2,7 @@
 
 ## staged
 
+- Fixed bug where `"gen_model"` from PowerModelsProtection was not being passed to the `MATHEMATICAL` model on transformation
 - Added `_dss2eng_gen_model!` from PowerModelsProtection to `parse_file`
 
 ## v3.0.1
