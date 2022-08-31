@@ -396,8 +396,8 @@ function build_graphml_document(gr::NestedGraph)::EzXML.Document
     end
 
     for edge in gr.edge
-        source_block, source_node = split(edge["source"], "::")
-        target_block, target_node = split(edge["target"], "::")
+        source_block, source_node = string.(split(edge["source"], "::"))
+        target_block, target_node = string.(split(edge["target"], "::"))
 
         if isempty(gr.node[source_block].edge)
             source = source_block

@@ -2,6 +2,7 @@
 
 ## staged
 
+- Fixed bug in `build_graphml_document` where some values were `SubString` instead of `String`
 - Fixed bug in `get_timestep_load_served` to convert `NaN` into zeros
 - Fixed bug in `constraint_grid_forming_inverter_per_cc` that was causing infeasibilities in cases where there were no grid-forming inverters in a block
 - Refactored `constraint_grid_forming_inverter_per_cc` into `constraint_grid_forming_inverter_per_cc_block` and `constraint_grid_forming_inverter_per_cc_traditional`
