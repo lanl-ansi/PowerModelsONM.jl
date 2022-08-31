@@ -191,6 +191,10 @@ function get_timestep_load_served(dispatch_solution::Dict{String,<:Any}, network
         push!(loads_served["Total load (%)"], total_load > 0 ? total_load_served/total_load*100.0 : 0.0)
     end
 
+    for (k,v) in loads_served
+        loads_served[k] = PMD._replace_nan.(v)
+    end
+
     return loads_served
 end
 
