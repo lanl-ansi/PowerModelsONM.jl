@@ -102,3 +102,49 @@ evaluate_settings(data::Dict) = JSONSchema.validate(data, load_schema(joinpath(d
 Helper function to give detailed output on JSON Schema validation of runtime arguments `data`
 """
 evaluate_runtime_arguments(data::Dict) = JSONSchema.validate(data, load_schema(joinpath(dirname(pathof(PowerModelsONM)), "..", "schemas", "input-runtime_arguments.schema.json")))
+
+
+"""
+    check_switch_state_feasibility(data::Dict{String,<:Any})::Union{Dict{String,Bool},Bool}
+
+Helper function to aid users in determining whether network model has a feasible starting switch
+configuration (at each time step, if the network model is multinetwork), assuming radiality constraints
+are applied.
+"""
+function check_switch_state_feasibility(data::Dict{String,<:Any})::Union{Dict{String,Bool},Bool}
+    mn_data = !ismultinetwork(data) ? Dict{String,Any}("0" => data) : data["nw"]
+
+    is_feasible = Dict{String,Bool}()
+    for (n,nw) in mn_data
+        is_feasible[n] = _check_switch_state_feasibility(nw)
+    end
+
+    return ismultinetwork(data) ? is_feasible : first(is_feasible).second
+end
+
+
+"""
+    _check_switch_state_feasibility(eng::Dict{String,Any})
+
+Helper function to aid users in determining whether network model has a feasible starting switch
+configuration, assuming radiality constraints are applied.
+"""
+function _check_switch_state_feasibility(eng::Dict{String,Any})::Bool
+    eng["data_model"] = PMD.ENGINEERING
+
+    blocks = Dict(i => block for (i,block) in enumerate(PMD.identify_blocks(eng)))
+    bus2block_map = Dict(bus => bid for (bid,block) in blocks for bus in block)
+
+    g = Graphs.SimpleGraph(length(blocks))
+
+    for (s,sw) in get(eng, "switch", Dict())
+        f_block = bus2block_map[sw["f_bus"]]
+        t_block = bus2block_map[sw["t_bus"]]
+
+        if sw["state"] == PMD.CLOSED && sw["dispatchable"] == PMD.NO
+            Graphs.add_edge!(g, f_block, t_block)
+        end
+    end
+
+    !Graphs.is_cyclic(g)
+end

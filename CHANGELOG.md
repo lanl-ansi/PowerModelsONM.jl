@@ -2,6 +2,7 @@
 
 ## staged
 
+- Added helper function `check_switch_state_feasibility` to help users determine if the default switch states are feasible (assuming radiality constraints)
 - Fixed bug where `"gen_model"` from PowerModelsProtection was not being passed to the `MATHEMATICAL` model on transformation
 - Added `_dss2eng_gen_model!` from PowerModelsProtection to `parse_file`
 
