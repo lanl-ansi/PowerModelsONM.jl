@@ -126,6 +126,13 @@
                               "type": "number"
                             }
                           },
+                          "phi (deg)": {
+                            "type": "array",
+                            "description": "Bus voltage angles in degrees",
+                            "items": {
+                              "type": "number"
+                            }
+                          },
                           "Re(I0) (A)": {
                             "type": "number",
                             "description": "Real part of the zero sequence current in amps"
@@ -168,7 +175,8 @@
                           "|V| (V)",
                           "|I0| (A)",
                           "|I1| (A)",
-                          "|I2| (A)"
+                          "|I2| (A)",
+                          "phi (deg)"
                         ]
                       }
                     }

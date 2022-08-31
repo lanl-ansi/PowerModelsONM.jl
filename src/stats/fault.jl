@@ -32,6 +32,7 @@ Gets information about the results of fault studies at each timestep, including:
   - the positive-sequence fault current `|I1| (A)`
   - the negative-sequence fault current `|I2| (A)`
   - the bus voltage from the from-side of the switch `|V| (V)`
+  - the bus voltage angle from the from-side of the switch `phi (deg)`
 
 `ret_protection_only==false` indicates that currents and voltages should be returned for all lines where switch=y, and if
 `true`, should only return switches for which a protection device is defined (recloser, relay, fuse)
@@ -67,6 +68,12 @@ function get_timestep_fault_currents(fault_studies_results::Dict{String,<:Any}, 
                                 "|V| (V)" => sqrt.(
                                        get(get(get(fault_sol, "bus", Dict()), switch["f_bus"], Dict()), "vr", fill(0.0, length(network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"])))[findall(network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"].==switch["f_connections"])].^2
                                     .+ get(get(get(fault_sol, "bus", Dict()), switch["f_bus"], Dict()), "vi", fill(0.0, length(network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"])))[findall(network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"].==switch["f_connections"])].^2
+                                ),
+                                "phi (deg)" => rad2deg.(
+                                    atan.(
+                                        get(get(get(fault_sol, "bus", Dict()), switch["f_bus"], Dict()), "vi", fill(0.0, length(network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"])))[findall(network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"].==switch["f_connections"])],
+                                        get(get(get(fault_sol, "bus", Dict()), switch["f_bus"], Dict()), "vr", fill(0.0, length(network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"])))[findall(network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"].==switch["f_connections"])]
+                                    )
                                 )
                             ) for (id, switch) in get(network["nw"]["$n"], "switch", Dict())
                         ),
