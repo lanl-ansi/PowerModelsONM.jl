@@ -2,6 +2,7 @@
 
 ## staged
 
+- Added line impedances `rs` and `xs` to the protection network model
 - Added "phi (deg)" as output in fault currents, representing the bus voltage angle at the f-bus of the switch
 - Fixed bug in objective functions where if no storage was present, calculating `total_energy_ub` would result in error
 - Fixed bug in `build_graphml_document` where some values were `SubString` instead of `String`

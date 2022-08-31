@@ -72,6 +72,14 @@ function parse_file(network_file::String; dss2eng_extensions=Function[], transfo
         eng["solar"][id]["cost_pg_parameters"] = [0.0, 0.0]
     end
 
+    # work-around for protection settings network model if fix-small-numbers is used
+    for t in ["line", "switch"]
+        for (id,obj) in get(eng, t, Dict())
+            eng[t][id]["rs_orig"] = deepcopy(get(obj, "rs", zeros(length(obj["f_connections"]), length(obj["t_connections"]))))
+            eng[t][id]["xs_orig"] = deepcopy(get(obj, "xs", zeros(length(obj["f_connections"]), length(obj["t_connections"]))))
+        end
+    end
+
     return eng
 end
 
@@ -153,6 +161,8 @@ function get_protection_network_model(base_eng::Dict{String,<:Any})
                 "t_bus" => obj["t_bus"],
                 "f_connections" => obj["f_connections"],
                 "t_connections" => obj["t_connections"],
+                "rs" => get(obj, "rs_orig", obj["rs"]),
+                "xs" => get(obj, "xs_orig", obj["xs"]),
                 "nphases" => length(obj["f_connections"]),
                 "switch" => type == "switch",
                 "status" => Int(obj["status"]),

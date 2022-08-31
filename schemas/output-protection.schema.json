@@ -69,6 +69,26 @@
                   "type": "integer"
                 }
               },
+              "rs": {
+                "type": "array",
+                "description": "Series resistance of the line in ohm/meter of size (f_connections, t_connections)",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              },
+              "xs": {
+                "type": "array",
+                "description": "Series reactance of the line in ohm/meter of size (f_connections, t_connections)",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              },
               "nphases": {
                 "type": "integer",
                 "description": "number of phases in the line"
