@@ -54,7 +54,7 @@ function build_mn_traditional_mld(pm::PMD.AbstractUBFModels)
 
         PMD.constraint_mc_model_current(pm; nw=n)
 
-        !con_opts["disable-grid-forming-inverter-constraint"] && constraint_grid_forming_inverter_per_cc(pm; nw=n, relax=var_opts["relax-integer-variables"])
+        !con_opts["disable-grid-forming-inverter-constraint"] && constraint_grid_forming_inverter_per_cc_traditional(pm; nw=n, relax=var_opts["relax-integer-variables"])
 
         for i in ids(pm, n, :bus)
             if con_opts["disable-grid-forming-inverter-constraint"]
@@ -173,7 +173,7 @@ function build_mn_traditional_mld(pm::PMD.AbstractUnbalancedPowerModel)
 
         PMD.constraint_mc_model_voltage(pm; nw=n)
 
-        !con_opts["disable-grid-forming-inverter-constraint"] && constraint_grid_forming_inverter_per_cc(pm; nw=n, relax=var_opts["relax-integer-variables"])
+        !con_opts["disable-grid-forming-inverter-constraint"] && constraint_grid_forming_inverter_per_cc_traditional(pm; nw=n, relax=var_opts["relax-integer-variables"])
 
         for i in ids(pm, n, :bus)
             if con_opts["disable-grid-forming-inverter-constraint"]
@@ -311,7 +311,7 @@ function build_traditional_mld(pm::PMD.AbstractUBFModels)
 
     PMD.constraint_mc_model_current(pm)
 
-    !con_opts["disable-grid-forming-inverter-constraint"] && constraint_grid_forming_inverter_per_cc(pm; relax=var_opts["relax-integer-variables"])
+    !con_opts["disable-grid-forming-inverter-constraint"] && constraint_grid_forming_inverter_per_cc_traditional(pm; relax=var_opts["relax-integer-variables"])
 
     for i in ids(pm, :bus)
         if con_opts["disable-grid-forming-inverter-constraint"]
@@ -410,7 +410,7 @@ function build_traditional_mld(pm::PMD.AbstractUnbalancedPowerModel)
 
     PMD.constraint_mc_model_voltage(pm)
 
-    !con_opts["disable-grid-forming-inverter-constraint"] && constraint_grid_forming_inverter_per_cc(pm; relax=var_opts["relax-integer-variables"])
+    !con_opts["disable-grid-forming-inverter-constraint"] && constraint_grid_forming_inverter_per_cc_traditional(pm; relax=var_opts["relax-integer-variables"])
 
     for i in ids(pm, :bus)
         if con_opts["disable-grid-forming-inverter-constraint"]

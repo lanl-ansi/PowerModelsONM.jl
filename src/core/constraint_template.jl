@@ -369,12 +369,22 @@ end
 
 
 """
-    constraint_grid_forming_inverter_per_cc(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, relax::Bool=false)
+    constraint_grid_forming_inverter_per_cc_traditional(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, relax::Bool=false)
 
 Template function for constraining the number of grid-forming inverters per connected component in the block mld problem
 """
-function constraint_grid_forming_inverter_per_cc(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, relax::Bool=false)
-    constraint_grid_forming_inverter_per_cc(pm, nw; relax=relax)
+function constraint_grid_forming_inverter_per_cc_traditional(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, relax::Bool=false)
+    constraint_grid_forming_inverter_per_cc_traditional(pm, nw; relax=relax)
+end
+
+
+"""
+    constraint_grid_forming_inverter_per_cc_block(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, relax::Bool=false)
+
+Template function for constraining the number of grid-forming inverters per connected component in the block mld problem
+"""
+function constraint_grid_forming_inverter_per_cc_block(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, relax::Bool=false)
+    constraint_grid_forming_inverter_per_cc_block(pm, nw; relax=relax)
 end
 
 

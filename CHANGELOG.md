@@ -2,6 +2,8 @@
 
 ## staged
 
+- Fixed bug in `constraint_grid_forming_inverter_per_cc` that was causing infeasibilities in cases where there were no grid-forming inverters in a block
+- Refactored `constraint_grid_forming_inverter_per_cc` into `constraint_grid_forming_inverter_per_cc_block` and `constraint_grid_forming_inverter_per_cc_traditional`
 - Added helper function `check_switch_state_feasibility` to help users determine if the default switch states are feasible (assuming radiality constraints)
 - Fixed bug where `"gen_model"` from PowerModelsProtection was not being passed to the `MATHEMATICAL` model on transformation
 - Added `_dss2eng_gen_model!` from PowerModelsProtection to `parse_file`
