@@ -40,7 +40,7 @@ function objective_min_shed_load_block_rolling_horizon(pm::AbstractUnbalancedPow
         end
     end
 
-    total_energy_ub = sum(strg["energy_rating"] for (n,nw_ref) in nws(pm) for (i,strg) in nw_ref[:storage])
+    total_energy_ub = sum(Float64[strg["energy_rating"] for (n,nw_ref) in nws(pm) for (i,strg) in nw_ref[:storage]])
     total_pmax = sum(Float64[all(.!isfinite.(gen["pmax"])) ? 0.0 : sum(gen["pmax"][isfinite.(gen["pmax"])]) for (n,nw_ref) in nws(pm) for (i, gen) in nw_ref[:gen]])
 
     total_energy_ub = total_energy_ub <= 1.0 ? 1.0 : total_energy_ub
@@ -125,7 +125,7 @@ function objective_min_shed_load_traditional_rolling_horizon(pm::AbstractUnbalan
         ) for n in nw_ids(pm)
     )
 
-    total_energy_ub = sum(strg["energy_rating"] for (n,nw_ref) in nws(pm) for (i,strg) in nw_ref[:storage])
+    total_energy_ub = sum(Float64[strg["energy_rating"] for (n,nw_ref) in nws(pm) for (i,strg) in nw_ref[:storage]])
     total_pmax = sum(Float64[all(.!isfinite.(gen["pmax"])) ? 0.0 : sum(gen["pmax"][isfinite.(gen["pmax"])]) for (n,nw_ref) in nws(pm) for (i, gen) in nw_ref[:gen]])
 
     total_energy_ub = total_energy_ub <= 1.0 ? 1.0 : total_energy_ub
@@ -193,7 +193,7 @@ function objective_min_shed_load_block(pm::AbstractUnbalancedPowerModel)
         end
     end
 
-    total_energy_ub = sum(strg["energy_rating"] for (n,nw_ref) in nws(pm) for (i,strg) in nw_ref[:storage])
+    total_energy_ub = sum(Float64[strg["energy_rating"] for (n,nw_ref) in nws(pm) for (i,strg) in nw_ref[:storage]])
     total_pmax = sum(Float64[all(.!isfinite.(gen["pmax"])) ? 0.0 : sum(gen["pmax"][isfinite.(gen["pmax"])]) for (n,nw_ref) in nws(pm) for (i, gen) in nw_ref[:gen]])
 
     total_energy_ub = total_energy_ub <= 1.0 ? 1.0 : total_energy_ub
@@ -279,7 +279,7 @@ function objective_min_shed_load_traditional(pm::AbstractUnbalancedPowerModel)
         ) for n in nw_ids(pm)
     )
 
-    total_energy_ub = sum(strg["energy_rating"] for (n,nw_ref) in nws(pm) for (i,strg) in nw_ref[:storage])
+    total_energy_ub = sum(Float64[strg["energy_rating"] for (n,nw_ref) in nws(pm) for (i,strg) in nw_ref[:storage]])
     total_pmax = sum(Float64[all(.!isfinite.(gen["pmax"])) ? 0.0 : sum(gen["pmax"][isfinite.(gen["pmax"])]) for (n,nw_ref) in nws(pm) for (i, gen) in nw_ref[:gen]])
 
     total_energy_ub = total_energy_ub <= 1.0 ? 1.0 : total_energy_ub
@@ -317,7 +317,7 @@ Minimizes the amount of storage that gets utilized in favor of using all availab
 ```
 """
 function objective_mc_min_storage_utilization(pm::AbstractUnbalancedPowerModel)
-    total_energy_ub = sum(strg["energy_rating"] for (n,nw_ref) in nws(pm) for (i,strg) in nw_ref[:storage])
+    total_energy_ub = sum(Float64[strg["energy_rating"] for (n,nw_ref) in nws(pm) for (i,strg) in nw_ref[:storage]])
     total_pmax = sum(Float64[all(.!isfinite.(gen["pmax"])) ? 0.0 : sum(gen["pmax"][isfinite.(gen["pmax"])]) for (n,nw_ref) in nws(pm) for (i, gen) in nw_ref[:gen]])
 
     total_energy_ub = total_energy_ub <= 1.0 ? 1.0 : total_energy_ub

@@ -2,6 +2,7 @@
 
 ## staged
 
+- Fixed bug in objective functions where if no storage was present, calculating `total_energy_ub` would result in error
 - Fixed bug in `build_graphml_document` where some values were `SubString` instead of `String`
 - Fixed bug in `get_timestep_load_served` to convert `NaN` into zeros
 - Fixed bug in `constraint_grid_forming_inverter_per_cc` that was causing infeasibilities in cases where there were no grid-forming inverters in a block
