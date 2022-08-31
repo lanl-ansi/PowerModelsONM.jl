@@ -14,5 +14,5 @@ end
 @testset "check_switch_state_feasibility" begin
     mn_eng = make_multinetwork(parse_file("../test/data/ieee13_feeder.dss"))
 
-    @test all(check_switch_state_feasibility(mn_eng))
+    @test all(collect(values(check_switch_state_feasibility(mn_eng))))
 end
