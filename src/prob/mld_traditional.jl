@@ -56,10 +56,12 @@ function build_mn_traditional_mld(pm::PMD.AbstractUBFModels)
 
         !con_opts["disable-grid-forming-inverter-constraint"] && constraint_grid_forming_inverter_per_cc_traditional(pm; nw=n, relax=var_opts["relax-integer-variables"])
 
-        for i in ids(pm, n, :bus)
-            if con_opts["disable-grid-forming-inverter-constraint"]
+        if con_opts["disable-grid-forming-inverter-constraint"]
+            for i in ids(pm, n, :ref_buses)
                 PMD.constraint_mc_theta_ref(pm, i; nw=n)
-            else
+            end
+        else
+            for i in ids(pm, n, :bus)
                 constraint_mc_inverter_theta_ref(pm, i; nw=n)
             end
         end
@@ -175,10 +177,12 @@ function build_mn_traditional_mld(pm::PMD.AbstractUnbalancedPowerModel)
 
         !con_opts["disable-grid-forming-inverter-constraint"] && constraint_grid_forming_inverter_per_cc_traditional(pm; nw=n, relax=var_opts["relax-integer-variables"])
 
-        for i in ids(pm, n, :bus)
-            if con_opts["disable-grid-forming-inverter-constraint"]
+        if con_opts["disable-grid-forming-inverter-constraint"]
+            for i in ids(pm, n, :ref_buses)
                 PMD.constraint_mc_theta_ref(pm, i; nw=n)
-            else
+            end
+        else
+            for i in ids(pm, n, :bus)
                 constraint_mc_inverter_theta_ref(pm, i; nw=n)
             end
         end
@@ -313,13 +317,16 @@ function build_traditional_mld(pm::PMD.AbstractUBFModels)
 
     !con_opts["disable-grid-forming-inverter-constraint"] && constraint_grid_forming_inverter_per_cc_traditional(pm; relax=var_opts["relax-integer-variables"])
 
-    for i in ids(pm, :bus)
-        if con_opts["disable-grid-forming-inverter-constraint"]
+    if con_opts["disable-grid-forming-inverter-constraint"]
+        for i in ids(pm, :ref_buses)
             PMD.constraint_mc_theta_ref(pm, i)
-        else
+        end
+    else
+        for i in ids(pm, :bus)
             constraint_mc_inverter_theta_ref(pm, i)
         end
     end
+
 
     constraint_mc_bus_voltage_traditional_on_off(pm)
 
@@ -412,10 +419,12 @@ function build_traditional_mld(pm::PMD.AbstractUnbalancedPowerModel)
 
     !con_opts["disable-grid-forming-inverter-constraint"] && constraint_grid_forming_inverter_per_cc_traditional(pm; relax=var_opts["relax-integer-variables"])
 
-    for i in ids(pm, :bus)
-        if con_opts["disable-grid-forming-inverter-constraint"]
+    if con_opts["disable-grid-forming-inverter-constraint"]
+        for i in ids(pm, :ref_buses)
             PMD.constraint_mc_theta_ref(pm, i)
-        else
+        end
+    else
+        for i in ids(pm, :bus)
             constraint_mc_inverter_theta_ref(pm, i)
         end
     end
