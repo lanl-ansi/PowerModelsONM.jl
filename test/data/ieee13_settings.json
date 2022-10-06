@@ -78,7 +78,7 @@
   "disable_isolation_constraint": false,
   "dss": {
     "Generator.675": { "inverter": "GRID_FORMING" },
-    "PVSystem.PV_mg1a": { "inverter": "gfm" },
+    "PVSystem.PV_mg1a": { "inverter": "gfl" },
     "PVSystem.PV_mg1b": { "inverter": "gfl" },
     "Storage.Battery_mg1a": { "inverter": "GRID_FORMING" },
     "Storage.Battery_mg1b": { "inverter": "gfm" },

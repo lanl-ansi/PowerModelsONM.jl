@@ -91,7 +91,6 @@ function get_timestep_fault_currents(fault_studies_results::Dict{String,<:Any}, 
                                 (t, id) = get(sid2eid, location, (missing, missing))
                                 if !ismissing(t)
                                     obj = network["nw"]["$n"][t][id]
-                                    @warn n (t,id) obj get(get(fault_sol, t, Dict()), id, Dict()) get(get(get(fault_sol, "bus", Dict()), obj["f_bus"], Dict()), "vr", fill(0.0, length(network["nw"]["$n"]["bus"][obj["f_bus"]]["terminals"])))
                                     _fault_currents[bus_id][fault_type][fault_id][t][id] = Dict{String,Any}(
                                         "|I| (A)" => get(get(get(fault_sol, t, Dict()), id, Dict()), "cf_fr", fill(0.0, length(obj["f_connections"]))),
                                         "|I0| (A)" => sqrt(get(get(get(fault_sol, t, Dict()), id, Dict()), "cf0r_fr", 0.0)^2 + get(get(get(fault_sol, t, Dict()), id, Dict()), "cf0i_fr", 0.0)^2),
