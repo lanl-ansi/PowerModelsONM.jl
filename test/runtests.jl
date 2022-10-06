@@ -32,7 +32,7 @@ minlp_solver = optimizer_with_attributes(
     "allow_almost_solved" => true,
     "feasibility_pump" => true,
     "seed" => 1,
-    "log_levels" => [:Info, :Table, :Options],
+    "log_levels" => [],
 )
 
 using Test
