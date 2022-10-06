@@ -129,7 +129,7 @@
 
         @test all(nw["generator"]["675"]["inverter"] == GRID_FORMING for nw in values(_network["nw"]))
         @test all(nw["solar"]["pv_mg1a"]["inverter"] == GRID_FORMING for nw in values(_network["nw"]))
-        @test all(nw["solar"]["pv_mg1b"]["inverter"] == GRID_FORMING for nw in values(_network["nw"]))
+        @test all(nw["solar"]["pv_mg1b"]["inverter"] == GRID_FOLLOWING for nw in values(_network["nw"]))
         @test all(nw["storage"]["battery_mg1a"]["inverter"] == GRID_FORMING for nw in values(_network["nw"]))
         @test all(nw["storage"]["battery_mg1b"]["inverter"] == GRID_FORMING for nw in values(_network["nw"]))
         @test all(nw["storage"]["battery_mg1c"]["inverter"] == GRID_FORMING for nw in values(_network["nw"]))
@@ -256,7 +256,7 @@
             "dss" => Dict{String,Any}(
                 "Generator.675" => Dict{String,Any}("inverter" => "GRID_FORMING"),
                 "PVSystem.PV_mg1a" => Dict{String,Any}("inverter" => "gfm"),
-                "PVSystem.PV_mg1b" => Dict{String,Any}("inverter" => "gfm"),
+                "PVSystem.PV_mg1b" => Dict{String,Any}("inverter" => "gfl"),
                 "Storage.Battery_mg1a" => Dict{String,Any}("inverter" => "GRID_FORMING"),
                 "Storage.Battery_mg1b" => Dict{String,Any}("inverter" => "gfm"),
                 "Storage.Battery_mg1c" => Dict{String,Any}("inverter" => "grid_forming")
@@ -326,7 +326,7 @@
             "dss" => Dict{String,Any}(
                 "Generator.675" => Dict{String,Any}("inverter" => GRID_FORMING),
                 "PVSystem.PV_mg1a" => Dict{String,Any}("inverter" => "gfm"),
-                "PVSystem.PV_mg1b" => Dict{String,Any}("inverter" => "gfm"),
+                "PVSystem.PV_mg1b" => Dict{String,Any}("inverter" => "gfl"),
                 "Storage.Battery_mg1a" => Dict{String,Any}("inverter" => GRID_FORMING),
                 "Storage.Battery_mg1b" => Dict{String,Any}("inverter" => "gfm"),
                 "Storage.Battery_mg1c" => Dict{String,Any}("inverter" => "grid_forming")

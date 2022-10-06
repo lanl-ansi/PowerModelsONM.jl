@@ -23,7 +23,7 @@
         result = solve_block_mld(eng, ACPUPowerModel, minlp_solver)
 
         @test result["termination_status"] == LOCALLY_SOLVED
-        @test length(filter(x->x.second["state"]==CLOSED, result["solution"]["switch"])) == 5
+        @test length(filter(x->x.second["state"]==CLOSED, get(get(result, "solution", Dict()), "switch", Dict()))) == 5
         @test isapprox(result["objective"], 6.97; atol=0.1)
     end
 
@@ -31,7 +31,7 @@
         result = solve_block_mld(eng, ACRUPowerModel, minlp_solver)
 
         @test result["termination_status"] == LOCALLY_SOLVED
-        @test length(filter(x->x.second["state"]==CLOSED, result["solution"]["switch"])) == 5
+        @test length(filter(x->x.second["state"]==CLOSED, get(get(result, "solution", Dict()), "switch", Dict()))) == 5
         @test isapprox(result["objective"], 6.97; atol=0.1)
     end
 end

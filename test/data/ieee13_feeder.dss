@@ -162,6 +162,7 @@ New Generator.675 Phases=3 Bus1=675 kv=2.4 kva=500 kw=500 kvar=350
 
 New Relay.801675 monitoredobj=line.801675
 New Recloser.671700 monitoredobj=line.671700 phasetrip=140
+New Fuse.632645 monitoredobj=line.632645
 
 !New CapControl.cap1 Capacitor=Cap1 element=Line.692675  ptphase=3 terminal=2 type=voltage ptratio=1 ctratio=1 ONsetting=2500 OFFsetting=2540 VoltOverride=N
 !New CapControl.cap2 Capacitor=Cap2 element=Line.684611  terminal=3 ptphase=3 type=kvar ptratio=1 ctratio=1 ONsetting=0 OFFsetting=0 VoltOverride=Y Vmin=0 Vmax=10000

@@ -40,6 +40,10 @@ Gets information about the results of fault studies at each timestep, including:
 function get_timestep_fault_currents(fault_studies_results::Dict{String,<:Any}, faults::Dict{String,<:Any}, network::Dict{String,<:Any}; ret_protection_only::Bool=true)::Vector{Dict{String,Any}}
     fault_currents = Dict{String,Any}[]
 
+    sid2eid = Dict{String,Tuple{String,String}}(
+        obj["source_id"] => (t,id) for t in ["switch", "line"] for (id,obj) in get(first(get(network, "nw", Dict())).second, t, Dict())
+    )
+
     for n in sort([parse(Int, i) for i in keys(fault_studies_results)])
         _fault_currents = Dict{String,Any}()
         for (bus_id, fault_types) in faults
@@ -66,18 +70,49 @@ function get_timestep_fault_currents(fault_studies_results::Dict{String,<:Any}, 
                                 "|I2| (A)" => sqrt(get(get(get(fault_sol, "switch", Dict()), id, Dict()), "cf2r_fr", 0.0)^2 + get(get(get(fault_sol, "switch", Dict()), id, Dict()), "cf2i_fr", 0.0)^2),
                                 # TODO add real and imaginary sequence currents
                                 "|V| (V)" => sqrt.(
-                                       get(get(get(fault_sol, "bus", Dict()), switch["f_bus"], Dict()), "vr", fill(0.0, length(network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"])))[findall(network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"].==switch["f_connections"])].^2
-                                    .+ get(get(get(fault_sol, "bus", Dict()), switch["f_bus"], Dict()), "vi", fill(0.0, length(network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"])))[findall(network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"].==switch["f_connections"])].^2
+                                       get(get(get(fault_sol, "bus", Dict()), switch["f_bus"], Dict()), "vr", fill(0.0, length(network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"])))[[findfirst(isequal(c), network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"]) for c in switch["f_connections"]]].^2
+                                    .+ get(get(get(fault_sol, "bus", Dict()), switch["f_bus"], Dict()), "vi", fill(0.0, length(network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"])))[[findfirst(isequal(c), network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"]) for c in switch["f_connections"]]].^2
                                 ),
                                 "phi (deg)" => rad2deg.(
                                     atan.(
-                                        get(get(get(fault_sol, "bus", Dict()), switch["f_bus"], Dict()), "vi", fill(0.0, length(network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"])))[findall(network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"].==switch["f_connections"])],
-                                        get(get(get(fault_sol, "bus", Dict()), switch["f_bus"], Dict()), "vr", fill(0.0, length(network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"])))[findall(network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"].==switch["f_connections"])]
+                                        get(get(get(fault_sol, "bus", Dict()), switch["f_bus"], Dict()), "vi", fill(0.0, length(network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"])))[[findfirst(isequal(c), network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"]) for c in switch["f_connections"]]],
+                                        get(get(get(fault_sol, "bus", Dict()), switch["f_bus"], Dict()), "vr", fill(0.0, length(network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"])))[[findfirst(isequal(c), network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"]) for c in switch["f_connections"]]]
                                     )
                                 )
                             ) for (id, switch) in get(network["nw"]["$n"], "switch", Dict())
                         ),
+                        "line" => Dict{String,Any}(),
                     )
+
+                    for pt in _pnm2eng_objects["protection"]
+                        for (i,pd) in get(network["nw"]["$n"], pt, Dict())
+                            location = get(pd, "location", get(pd, "monitoredobj", missing))
+                            if !ismissing(location)
+                                (t, id) = get(sid2eid, location, (missing, missing))
+                                if !ismissing(t)
+                                    obj = network["nw"]["$n"][t][id]
+                                    @warn n (t,id) obj get(get(fault_sol, t, Dict()), id, Dict()) get(get(get(fault_sol, "bus", Dict()), obj["f_bus"], Dict()), "vr", fill(0.0, length(network["nw"]["$n"]["bus"][obj["f_bus"]]["terminals"])))
+                                    _fault_currents[bus_id][fault_type][fault_id][t][id] = Dict{String,Any}(
+                                        "|I| (A)" => get(get(get(fault_sol, t, Dict()), id, Dict()), "cf_fr", fill(0.0, length(obj["f_connections"]))),
+                                        "|I0| (A)" => sqrt(get(get(get(fault_sol, t, Dict()), id, Dict()), "cf0r_fr", 0.0)^2 + get(get(get(fault_sol, t, Dict()), id, Dict()), "cf0i_fr", 0.0)^2),
+                                        "|I1| (A)" => sqrt(get(get(get(fault_sol, t, Dict()), id, Dict()), "cf1r_fr", 0.0)^2 + get(get(get(fault_sol, t, Dict()), id, Dict()), "cf1i_fr", 0.0)^2),
+                                        "|I2| (A)" => sqrt(get(get(get(fault_sol, t, Dict()), id, Dict()), "cf2r_fr", 0.0)^2 + get(get(get(fault_sol, t, Dict()), id, Dict()), "cf2i_fr", 0.0)^2),
+                                        # TODO add real and imaginary sequence currents
+                                        "|V| (V)" => sqrt.(
+                                            get(get(get(fault_sol, "bus", Dict()), obj["f_bus"], Dict()), "vr", fill(0.0, length(network["nw"]["$n"]["bus"][obj["f_bus"]]["terminals"])))[[findfirst(isequal(c), network["nw"]["$n"]["bus"][obj["f_bus"]]["terminals"]) for c in obj["f_connections"]]].^2
+                                            .+ get(get(get(fault_sol, "bus", Dict()), obj["f_bus"], Dict()), "vi", fill(0.0, length(network["nw"]["$n"]["bus"][obj["f_bus"]]["terminals"])))[[findfirst(isequal(c), network["nw"]["$n"]["bus"][obj["f_bus"]]["terminals"]) for c in obj["f_connections"]]].^2
+                                        ),
+                                        "phi (deg)" => rad2deg.(
+                                            atan.(
+                                                get(get(get(fault_sol, "bus", Dict()), obj["f_bus"], Dict()), "vi", fill(0.0, length(network["nw"]["$n"]["bus"][obj["f_bus"]]["terminals"])))[[findfirst(isequal(c), network["nw"]["$n"]["bus"][obj["f_bus"]]["terminals"]) for c in obj["f_connections"]]],
+                                                get(get(get(fault_sol, "bus", Dict()), obj["f_bus"], Dict()), "vr", fill(0.0, length(network["nw"]["$n"]["bus"][obj["f_bus"]]["terminals"])))[[findfirst(isequal(c), network["nw"]["$n"]["bus"][obj["f_bus"]]["terminals"]) for c in obj["f_connections"]]]
+                                            )
+                                        )
+                                    )
+                                end
+                            end
+                        end
+                    end
 
                     if ret_protection_only
                         protection_locations = Set()
@@ -88,6 +123,7 @@ function get_timestep_fault_currents(fault_studies_results::Dict{String,<:Any}, 
                         end
 
                         _fault_currents[bus_id][fault_type][fault_id]["switch"] = filter(x->x.first∈protection_locations, _fault_currents[bus_id][fault_type][fault_id]["switch"])
+                        _fault_currents[bus_id][fault_type][fault_id]["line"] = filter(x->x.first∈protection_locations, _fault_currents[bus_id][fault_type][fault_id]["line"])
                     end
                 end
             end
