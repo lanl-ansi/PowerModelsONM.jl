@@ -34,18 +34,21 @@ shed at that timestep.
 function get_timestep_device_actions(network::Dict{String,<:Any}, optimal_switching_results::Dict{String,<:Any})::Vector{Dict{String,Any}}
     device_action_timeline = Dict{String,Any}[]
 
-    for n in sort([parse(Int, k) for k in keys(get(network, "nw", Dict{String,Any}()))])
+    mn_data = !ismultinetwork(network) ? Dict("nw" => Dict("0" => network)) : network
+    mn_sol = !ismultinetwork(network) ? Dict("0" => optimal_switching_results) : optimal_switching_results
+
+    for n in sort([parse(Int, k) for k in keys(get(mn_data, "nw", Dict{String,Any}()))])
         _out = Dict{String,Any}(
             "Switch configurations" => Dict{String,String}(),
             "Shedded loads" => String[],
         )
-        for (id, switch) in get(network["nw"]["$n"], "switch", Dict())
-            switch_solution = get(get(get(get(optimal_switching_results, "$n", Dict()), "solution", Dict()), "switch", Dict()), id, Dict())
+        for (id, switch) in get(mn_data["nw"]["$n"], "switch", Dict())
+            switch_solution = get(get(get(get(mn_sol, "$n", Dict()), "solution", Dict()), "switch", Dict()), id, Dict())
             _out["Switch configurations"][id] = lowercase(string(get(switch_solution, "state", switch["state"])))
         end
 
-        for (id, load) in get(network["nw"]["$n"], "load", Dict())
-            load_solution = get(get(get(get(optimal_switching_results, "$n", Dict()), "solution", Dict()), "load", Dict()), id, Dict())
+        for (id, load) in get(mn_data["nw"]["$n"], "load", Dict())
+            load_solution = get(get(get(get(mn_sol, "$n", Dict()), "solution", Dict()), "load", Dict()), id, Dict())
             if get(load_solution, "status", PMD.ENABLED) != PMD.ENABLED
                 push!(_out["Shedded loads"], id)
             end
