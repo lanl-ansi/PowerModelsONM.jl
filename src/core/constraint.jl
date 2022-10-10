@@ -1032,65 +1032,19 @@ function constraint_grid_forming_inverter_per_cc_traditional(pm::AbstractUnbalan
 
         if !isempty(Dₖ)
             # Eq. (3)
-            JuMP.@constraint(pm.model, sum(x[i] for i in Dₖ) >= sum(1-z[ab] for ab in Tₖ)-length(Tₖ)+1)
-            JuMP.@constraint(pm.model, sum(x[i] for i in Dₖ) <= 1)
+            if !all(isa(x[i], Real) for i in Dₖ)
+                JuMP.@constraint(pm.model, sum(x[i] for i in Dₖ) >= sum(1-z[ab] for ab in Tₖ)-length(Tₖ)+1)
+                JuMP.@constraint(pm.model, sum(x[i] for i in Dₖ) <= 1)
+            elseif all(isa(x[i], Real) && x[i] == 0 for i in Dₖ)
+                for (t,j) in Dₖ
+                    JuMP.@constraint(pm.model, var(pm, nw, Symbol("z_$(t)"), j) <= sum(var(pm, nw, Symbol("z_$(u)"), l) for k′ in filter(x->x!=k, L) for (u,l) in ref(pm, nw, :block_inverters, k′)))
+                end
+            end
 
             # Eq. (4)-(5)
             for (t,j) in Dₖ
-                if t == :storage
-                    pmin = fill(-Inf, length(ref(pm, nw, t, j, "connections")))
-                    pmax = fill( Inf, length(ref(pm, nw, t, j, "connections")))
-                    qmin = fill(-Inf, length(ref(pm, nw, t, j, "connections")))
-                    qmax = fill( Inf, length(ref(pm, nw, t, j, "connections")))
-
-                    for (idx,c) in enumerate(ref(pm, nw, t, j, "connections"))
-                        pmin[idx] = inj_lb[j][idx]
-                        pmax[idx] = inj_ub[j][idx]
-                        qmin[idx] = max(inj_lb[j][idx], ref(pm, nw, t, j, "qmin"))
-                        qmax[idx] = min(inj_ub[j][idx], ref(pm, nw, t, j, "qmax"))
-
-                        if isfinite(pmax[idx]) && pmax[idx] >= 0
-                            JuMP.@constraint(pm.model, var(pm, nw, :ps, j)[c] <= pmax[idx] * (sum(z[ab] for ab in Tₖ) + sum(x[i] for i in Dₖ)))
-                            JuMP.@constraint(pm.model, var(pm, nw, :ps, j)[c] <= pmax[idx] * (sum(y[(k′,ab)] for k′ in L for ab in Tₖ) + sum(x[i] for i in Dₖ)))
-                        end
-                        if isfinite(qmax[idx]) && qmax[idx] >= 0 && haskey(var(pm, nw), :qs)
-                            JuMP.@constraint(pm.model, var(pm, nw, :qs, j)[c] <= qmax[idx] * (sum(z[ab] for ab in Tₖ) + sum(x[i] for i in Dₖ)))
-                            JuMP.@constraint(pm.model, var(pm, nw, :qs, j)[c] <= qmax[idx] * (sum(y[(k′,ab)] for k′ in L for ab in Tₖ) + sum(x[i] for i in Dₖ)))
-                        end
-                        if isfinite(pmin[idx]) && pmin[idx] <= 0
-                            JuMP.@constraint(pm.model, var(pm, nw, :ps, j)[c] >= pmin[idx] * (sum(z[ab] for ab in Tₖ) + sum(x[i] for i in Dₖ)))
-                            JuMP.@constraint(pm.model, var(pm, nw, :ps, j)[c] >= pmin[idx] * (sum(y[(k′,ab)] for k′ in L for ab in Tₖ) + sum(x[i] for i in Dₖ)))
-                        end
-                        if isfinite(qmin[idx]) && qmin[idx] <= 0 && haskey(var(pm, nw), :qs)
-                            JuMP.@constraint(pm.model, var(pm, nw, :qs, j)[c] >= qmin[idx] * (sum(z[ab] for ab in Tₖ) + sum(x[i] for i in Dₖ)))
-                            JuMP.@constraint(pm.model, var(pm, nw, :qs, j)[c] >= qmin[idx] * (sum(y[(k′,ab)] for k′ in L for ab in Tₖ) + sum(x[i] for i in Dₖ)))
-                        end
-                    end
-                elseif t == :gen
-                    pmin = ref(pm, nw, t, j, "pmin")
-                    pmax = ref(pm, nw, t, j, "pmax")
-                    qmin = ref(pm, nw, t, j, "qmin")
-                    qmax = ref(pm, nw, t, j, "qmax")
-
-                    for (idx,c) in enumerate(ref(pm, nw, t, j, "connections"))
-                        if isfinite(pmax[idx]) && pmax[idx] >= 0
-                            JuMP.@constraint(pm.model, var(pm, nw, :pg, j)[c] <= pmax[idx] * (sum(z[ab] for ab in Tₖ) + sum(x[i] for i in Dₖ)))
-                            JuMP.@constraint(pm.model, var(pm, nw, :pg, j)[c] <= pmax[idx] * (sum(y[(k′,ab)] for k′ in L for ab in Tₖ) + sum(x[i] for i in Dₖ)))
-                        end
-                        if isfinite(qmax[idx]) && qmax[idx] >= 0 && haskey(var(pm, nw), :qg)
-                            JuMP.@constraint(pm.model, var(pm, nw, :qg, j)[c] <= qmax[idx] * (sum(z[ab] for ab in Tₖ) + sum(x[i] for i in Dₖ)))
-                            JuMP.@constraint(pm.model, var(pm, nw, :qg, j)[c] <= qmax[idx] * (sum(y[(k′,ab)] for k′ in L for ab in Tₖ) + sum(x[i] for i in Dₖ)))
-                        end
-                        if isfinite(pmin[idx]) && pmin[idx] <= 0
-                            JuMP.@constraint(pm.model, var(pm, nw, :pg, j)[c] >= pmin[idx] * (sum(z[ab] for ab in Tₖ) + sum(x[i] for i in Dₖ)))
-                            JuMP.@constraint(pm.model, var(pm, nw, :pg, j)[c] >= pmin[idx] * (sum(y[(k′,ab)] for k′ in L for ab in Tₖ) + sum(x[i] for i in Dₖ)))
-                        end
-                        if isfinite(qmin[idx]) && qmin[idx] <= 0 && haskey(var(pm, nw), :qg)
-                            JuMP.@constraint(pm.model, var(pm, nw, :qg, j)[c] >= qmin[idx] * (sum(z[ab] for ab in Tₖ) + sum(x[i] for i in Dₖ)))
-                            JuMP.@constraint(pm.model, var(pm, nw, :qg, j)[c] >= qmin[idx] * (sum(y[(k′,ab)] for k′ in L for ab in Tₖ) + sum(x[i] for i in Dₖ)))
-                        end
-                    end
-                end
+                JuMP.@constraint(pm.model, var(pm, nw, Symbol("z_$(t)"), j) <= (sum(z[ab] for ab in Tₖ) + sum(x[i] for i in Dₖ)))
+                JuMP.@constraint(pm.model, var(pm, nw, Symbol("z_$(t)"), j) <= (sum(y[(k′,ab)] for k′ in L for ab in Tₖ) + sum(x[i] for i in Dₖ)))
             end
         end
 

@@ -23,7 +23,7 @@ minlp_solver = optimizer_with_attributes(
         "mip_rel_gap" => 0.0001,
         "small_matrix_value" => 1e-12,
         "allow_unbounded_or_infeasible" => true,
-        "output_flag" => true,
+        "output_flag" => false,
         "random_seed" => 1,
     ),
     "mip_gap" => 0.0001,
