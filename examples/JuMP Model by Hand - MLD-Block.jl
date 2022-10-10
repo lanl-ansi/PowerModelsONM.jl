@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.9
+# v0.19.13
 
 using Markdown
 using InteractiveUtils
@@ -535,7 +535,7 @@ tap = Dict(
 		model,
         [p in 1:length(ref[:transformer][i]["f_connections"])],
 		base_name="0_tm_$(i)",
-	) for i in filter(x->!all(x.second["tm_fix"]), ref[:transformer])
+	) for i in keys(filter(x->!all(x.second["tm_fix"]), ref[:transformer]))
 )
 
 # ╔═╡ 7cf6b40c-f89b-44bc-847d-a06a92d86098
@@ -871,54 +871,187 @@ This constraint requires that there be only one Grid Forming inverter (`z_invert
 # ╔═╡ 378f45ee-2e0e-428b-962f-fd686bc5d063
 # constraint_grid_forming_inverter_per_cc
 begin
-    L = Set{Int}(keys(ref[:blocks]))
+	# Set of base connected components
+    L = Set(keys(ref[:blocks]))
 
-	y = Dict()
-	for k in L
-		for ab in keys(ref[:switch])
-			y[(k,ab)] = JuMP.@variable(
-				model,
-				base_name="0_y",
-				binary=true,
-				lower_bound=0,
-				upper_bound=1
-			)
-		end
-	end
-
-    z = z_switch
-    x = z_inverter
-
-    for ((t,j), z_inv) in x
-        if t == :gen && startswith(ref[t][j]["source_id"], "voltage_source")
-            JuMP.@constraint(model, z_inv == 1)
+    # variable representing if switch ab has 'color' k
+    y = Dict()
+    for k in L
+        for ab in keys(ref[:switch])
+            y[(k,ab)] = JuMP.@variable(
+                model,
+                base_name="0_y_gfm[$k,$ab]",
+                binary=true,
+                lower_bound=0,
+                upper_bound=1
+            )
         end
     end
 
-	for ab in keys(ref[:switch])
-		JuMP.@constraint(model, sum(y[(k,ab)] for k in L) == 1)
-	end
+    # switch pairs to ids and vise-versa
+    map_id_pairs = Dict(id => (ref[:bus_block_map][sw["f_bus"]],ref[:bus_block_map][sw["t_bus"]]) for (id,sw) in ref[:switch])
 
+    # set of *virtual* edges between component k and all other components k′
+    Φₖ = Dict(k => Set() for k in L)
+    map_virtual_pairs_id = Dict(k=>Dict() for k in L)
+
+    # Eqs. (9)-(10)
+    f = Dict()
+    ϕ = Dict()
+    for kk in L # color
+        for ab in keys(ref[:switch])
+            f[(kk,ab)] = JuMP.@variable(
+                model,
+                base_name="0_f_gfm[$kk,$ab]"
+            )
+            JuMP.@constraint(model, f[kk,ab] >= -length(keys(ref[:switch]))*(z_switch[ab]))
+            JuMP.@constraint(model, f[kk,ab] <=  length(keys(ref[:switch]))*(z_switch[ab]))
+        end
+
+        touched = Set()
+        ab = 1
+
+        for k in sort(collect(L)) # fr block
+            for k′ in sort(collect(filter(x->x!=k,L))) # to block
+                if (k,k′) ∉ touched
+                    map_virtual_pairs_id[kk][(k,k′)] = map_virtual_pairs_id[kk][(k′,k)] = ab
+                    push!(touched, (k,k′), (k′,k))
+
+                    ϕ[(kk,ab)] = JuMP.@variable(
+                        model,
+                        base_name="0_phi_gfm[$kk,$ab]",
+                        lower_bound=0,
+                        upper_bound=1
+                    )
+
+                    ab += 1
+                end
+            end
+        end
+
+        Φₖ[kk] = Set([map_virtual_pairs_id[kk][(kk,k′)] for k′ in filter(x->x!=kk,L)])
+    end
+
+    # voltage sources are always grid-forming
+    for ((t,j), z_inv) in z_inverter
+        if t == :gen && startswith(ref[t][j]["source_id"], "voltage_source")
+            JuMP.@constraint(model, z_inv == z_block[ref[:bus_block_map][ref[t][j]["$(t)_bus"]]])
+        end
+    end
+
+    # Eq. (2)
+    # constrain each y to have only one color
+    for ab in keys(ref[:switch])
+        JuMP.@constraint(model, sum(y[(k,ab)] for k in L) <= z_switch[ab])
+    end
+
+    # storage flow upper/lower bounds
+    inj_lb, inj_ub = PMD.ref_calc_storage_injection_bounds(ref[:storage], ref[:bus])
+
+    # Eqs. (3)-(7)
     for k in L
         Dₖ = ref[:block_inverters][k]
         Tₖ = ref[:block_switches][k]
 
         if !isempty(Dₖ)
-            JuMP.@constraint(model, sum(x[i] for i in Dₖ) >= sum(1-z[ab] for ab in Tₖ)-length(Tₖ)+1)
-            JuMP.@constraint(model, sum(x[i] for i in Dₖ) <= 1)
-        end
+            # Eq. (14)
+            JuMP.@constraint(model, sum(z_inverter[i] for i in Dₖ) >= sum(1-z_switch[ab] for ab in Tₖ)-length(Tₖ)+z_block[k])
+            JuMP.@constraint(model, sum(z_inverter[i] for i in Dₖ) <= z_block[k])
 
-        for ab in Tₖ
-            JuMP.@constraint(model, sum(x[i] for i in Dₖ) >= y[(k, ab)] - (1 - z[ab]))
-            JuMP.@constraint(model, sum(x[i] for i in Dₖ) <= y[(k, ab)] + (1 - z[ab]))
+            # Eq. (4)-(5)
+            for (t,j) in Dₖ
+                if t == :storage
+                    pmin = fill(-Inf, length(ref[t][j]["connections"]))
+                    pmax = fill( Inf, length(ref[t][j]["connections"]))
+                    qmin = fill(-Inf, length(ref[t][j]["connections"]))
+                    qmax = fill( Inf, length(ref[t][j]["connections"]))
 
-            for dc in filter(x->x!=ab, Tₖ)
-                for k′ in L
-                    JuMP.@constraint(model, y[(k′,ab)] >= y[(k′,dc)] - (1 - z[dc]) - (1 - z[ab]))
-                    JuMP.@constraint(model, y[(k′,ab)] <= y[(k′,dc)] + (1 - z[dc]) + (1 - z[ab]))
+                    for (idx,c) in enumerate(ref[t][j]["connections"])
+                        pmin[idx] = inj_lb[j][idx]
+                        pmax[idx] = inj_ub[j][idx]
+                        qmin[idx] = max(inj_lb[j][idx], ref[t][j]["qmin"])
+                        qmax[idx] = min(inj_ub[j][idx], ref[t][j]["qmax"])
+
+                        if isfinite(pmax[idx]) && pmax[idx] >= 0
+                            JuMP.@constraint(model, ps[j][c] <= pmax[idx] * (sum(z_switch[ab] for ab in Tₖ) + sum(z_inverter[i] for i in Dₖ)))
+                            JuMP.@constraint(model, ps[j][c] <= pmax[idx] * (sum(y[(k′,ab)] for k′ in L for ab in Tₖ) + sum(z_inverter[i] for i in Dₖ)))
+                        end
+                        if isfinite(qmax[idx]) && qmax[idx] >= 0
+                            JuMP.@constraint(model, qs[j][c] <= qmax[idx] * (sum(z_switch[ab] for ab in Tₖ) + sum(z_inverter[i] for i in Dₖ)))
+                            JuMP.@constraint(model, qs[j][c] <= qmax[idx] * (sum(y[(k′,ab)] for k′ in L for ab in Tₖ) + sum(z_inverter[i] for i in Dₖ)))
+                        end
+                        if isfinite(pmin[idx]) && pmin[idx] <= 0
+                            JuMP.@constraint(model, ps[j][c] >= pmin[idx] * (sum(z_switch[ab] for ab in Tₖ) + sum(z_inverter[i] for i in Dₖ)))
+                            JuMP.@constraint(model, ps[j][c] >= pmin[idx] * (sum(y[(k′,ab)] for k′ in L for ab in Tₖ) + sum(z_inverter[i] for i in Dₖ)))
+                        end
+                        if isfinite(qmin[idx]) && qmin[idx] <= 0
+                            JuMP.@constraint(model, qs[j][c] >= qmin[idx] * (sum(z_switch[ab] for ab in Tₖ) + sum(z_inverter[i] for i in Dₖ)))
+                            JuMP.@constraint(model, qs[j][c] >= qmin[idx] * (sum(y[(k′,ab)] for k′ in L for ab in Tₖ) + sum(z_inverter[i] for i in Dₖ)))
+                        end
+                    end
+                elseif t == :gen
+                    pmin = ref[t][j]["pmin"]
+                    pmax = ref[t][j]["pmax"]
+                    qmin = ref[t][j]["qmin"]
+                    qmax = ref[t][j]["qmax"]
+
+                    for (idx,c) in enumerate(ref[t][j]["connections"])
+                        if isfinite(pmax[idx]) && pmax[idx] >= 0
+                            JuMP.@constraint(model, pg[j][c] <= pmax[idx] * (sum(z_switch[ab] for ab in Tₖ) + sum(z_inverter[i] for i in Dₖ)))
+                            JuMP.@constraint(model, pg[j][c] <= pmax[idx] * (sum(y[(k′,ab)] for k′ in L for ab in Tₖ) + sum(z_inverter[i] for i in Dₖ)))
+                        end
+                        if isfinite(qmax[idx]) && qmax[idx] >= 0
+                            JuMP.@constraint(model, qg[j][c] <= qmax[idx] * (sum(z_switch[ab] for ab in Tₖ) + sum(z_inverter[i] for i in Dₖ)))
+                            JuMP.@constraint(model, qg[j][c] <= qmax[idx] * (sum(y[(k′,ab)] for k′ in L for ab in Tₖ) + sum(z_inverter[i] for i in Dₖ)))
+                        end
+                        if isfinite(pmin[idx]) && pmin[idx] <= 0
+                            JuMP.@constraint(model, pg[j][c] >= pmin[idx] * (sum(z_switch[ab] for ab in Tₖ) + sum(z_inverter[i] for i in Dₖ)))
+                            JuMP.@constraint(model, pg[j][c] >= pmin[idx] * (sum(y[(k′,ab)] for k′ in L for ab in Tₖ) + sum(z_inverter[i] for i in Dₖ)))
+                        end
+                        if isfinite(qmin[idx]) && qmin[idx] <= 0
+                            JuMP.@constraint(model, qg[j][c] >= qmin[idx] * (sum(z_switch[ab] for ab in Tₖ) + sum(z_inverter[i] for i in Dₖ)))
+                            JuMP.@constraint(model, qg[j][c] >= qmin[idx] * (sum(y[(k′,ab)] for k′ in L for ab in Tₖ) + sum(z_inverter[i] for i in Dₖ)))
+                        end
+                    end
                 end
             end
         end
+
+        for ab in Tₖ
+            # Eq. (6)
+            JuMP.@constraint(model, sum(z_inverter[i] for i in Dₖ) >= y[(k, ab)] - (1 - z_switch[ab]))
+            JuMP.@constraint(model, sum(z_inverter[i] for i in Dₖ) <= y[(k, ab)] + (1 - z_switch[ab]))
+
+            for dc in filter(x->x!=ab, Tₖ)
+                for k′ in L
+                    # Eq. (7)
+                    JuMP.@constraint(model, y[(k′,ab)] >= y[(k′,dc)] - (1 - z_switch[dc]) - (1 - z_switch[ab]))
+                    JuMP.@constraint(model, y[(k′,ab)] <= y[(k′,dc)] + (1 - z_switch[dc]) + (1 - z_switch[ab]))
+                end
+            end
+
+            # Eq. (8)
+            JuMP.@constraint(model, y[(k,ab)] <= sum(z_inverter[i] for i in Dₖ))
+        end
+
+        # Eq. (11)
+        JuMP.@constraint(model, sum(f[(k,ab)] for ab in filter(x->map_id_pairs[x][1] == k, Tₖ)) - sum(f[(k,ab)] for ab in filter(x->map_id_pairs[x][2] == k, Tₖ)) + sum(ϕ[(k,ab)] for ab in Φₖ[k]) == length(L) - 1)
+
+        for k′ in filter(x->x!=k, L)
+            Tₖ′ = ref[:block_switches][k′]
+            kk′ = map_virtual_pairs_id[k][(k,k′)]
+
+            # Eq. (12)
+            JuMP.@constraint(model, sum(f[(k,ab)] for ab in filter(x->map_id_pairs[x][1]==k′, Tₖ′)) - sum(f[(k,ab)] for ab in filter(x->map_id_pairs[x][2]==k′, Tₖ′)) - ϕ[(k,(kk′))] == -1)
+
+            # Eq. (13)
+            for ab in Tₖ′
+                JuMP.@constraint(model, y[k,ab] <= 1 - ϕ[(k,kk′)])
+            end
+        end
+
+        # Eq. (15)
+        JuMP.@constraint(model, z_block[k] <= sum(z_inverter[i] for i in Dₖ) + sum(y[(k′,ab)] for k′ in L for ab in Tₖ))
     end
 end
 
@@ -1455,7 +1588,7 @@ end
 # ╔═╡ a63763bf-1f87-400e-b4cd-b112c9a0cd64
 # constraint_radial_topology
 begin
-	f = Dict()
+	f_rad = Dict()
     λ = Dict()
     β = Dict()
     α = Dict()
@@ -1472,7 +1605,7 @@ begin
 
     for (i,j) in _L′
         for k in filter(kk->kk∉iᵣ,_N)
-            f[(k, i, j)] = JuMP.@variable(model, base_name="0_f_$((k,i,j))")
+            f_rad[(k, i, j)] = JuMP.@variable(model, base_name="0_f_$((k,i,j))")
         end
         λ[(i,j)] = JuMP.@variable(model, base_name="0_lambda_$((i,j))", binary=true, lower_bound=0, upper_bound=1)
 
@@ -1493,8 +1626,8 @@ begin
             if !(isempty(jiᵣ) && isempty(iᵣj))
                 JuMP.@constraint(
                     model,
-                    sum(f[(k,j,i)] for (j,i) in jiᵣ) -
-                    sum(f[(k,i,j)] for (i,j) in iᵣj)
+                    sum(f_rad[(k,j,i)] for (j,i) in jiᵣ) -
+                    sum(f_rad[(k,i,j)] for (i,j) in iᵣj)
                     ==
                     -1.0
                 )
@@ -1506,8 +1639,8 @@ begin
         if !(isempty(jk) && isempty(kj))
             JuMP.@constraint(
                 model,
-                sum(f[(k,j,k)] for (j,i) in jk) -
-                sum(f[(k,k,j)] for (i,j) in kj)
+                sum(f_rad[(k,j,k)] for (j,i) in jk) -
+                sum(f_rad[(k,k,j)] for (i,j) in kj)
                 ==
                 1.0
             )
@@ -1519,8 +1652,8 @@ begin
             if !(isempty(ji) && isempty(ij))
                 JuMP.@constraint(
                     model,
-                    sum(f[(k,j,i)] for (j,ii) in ji) -
-                    sum(f[(k,i,j)] for (ii,j) in ij)
+                    sum(f_rad[(k,j,i)] for (j,ii) in ji) -
+                    sum(f_rad[(k,i,j)] for (ii,j) in ij)
                     ==
                     0.0
                 )
@@ -1528,10 +1661,10 @@ begin
         end
 
         for (i,j) in _L
-            JuMP.@constraint(model, f[(k,i,j)] >= 0)
-            JuMP.@constraint(model, f[(k,i,j)] <= λ[(i,j)])
-            JuMP.@constraint(model, f[(k,j,i)] >= 0)
-            JuMP.@constraint(model, f[(k,j,i)] <= λ[(j,i)])
+            JuMP.@constraint(model, f_rad[(k,i,j)] >= 0)
+            JuMP.@constraint(model, f_rad[(k,i,j)] <= λ[(i,j)])
+            JuMP.@constraint(model, f_rad[(k,j,i)] >= 0)
+            JuMP.@constraint(model, f_rad[(k,j,i)] <= λ[(j,i)])
         end
     end
 
