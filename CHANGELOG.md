@@ -2,7 +2,7 @@
 
 ## staged
 
-- none
+- Added draft schema for robust partitions outputs
 
 ## v3.1.0
 
