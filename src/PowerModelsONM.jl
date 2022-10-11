@@ -5,6 +5,7 @@ module PowerModelsONM
     import Dates
     import LinearAlgebra
     import Statistics
+    import UUIDs
 
     # Parallel Computing
     import Distributed
@@ -101,6 +102,7 @@ module PowerModelsONM
     include("prob/opf.jl")
     include("prob/mld_traditional.jl")
     include("prob/mld_block.jl")
+    include("prob/partitions.jl")
     include("prob/stability.jl")
     include("prob/switch.jl")
 
