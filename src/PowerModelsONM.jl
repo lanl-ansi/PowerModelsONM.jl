@@ -4,6 +4,7 @@ module PowerModelsONM
     # STDLIB
     import Dates
     import LinearAlgebra
+    import SHA
     import Statistics
     import UUIDs
 
@@ -32,10 +33,15 @@ module PowerModelsONM
     import HiGHS
     import Juniper
 
+    # cli
     import ArgParse
 
+    # schemas
     import JSON
     import JSONSchema
+
+    # math
+    import Combinatorics: combinations
 
     # Logging Tools
     import Logging

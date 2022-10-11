@@ -1,45 +1,84 @@
 """
 """
-function generate_robust_partitions(data::Dict{String,<:Any}, contingencies::Vector{<:Dict{String,<:Any}}, model_type::Type, solver; kwargs...)::Tuple{Vector,Vector}
-    results = Dict{String,Any}[]
+function generate_robust_partitions(data::Dict{String,<:Any}, contingencies::Set{<:Dict{String,<:Any}}, model_type::Type, solver; kwargs...)
+    results = Dict{String,Any}()
     for state in contingencies
         eng = deepcopy(data)
         eng["switch"] = recursive_merge(get(eng, "switch", Dict{String,Any}()), state)
 
-        eng["time_elapsed"] = 1.0  # TODO: what should the time_elapsed be for storage? how long do we want partitions to be robust for?
+        eng["time_elapsed"] = 1.0  # TODO: what should the time_elapsed be? how long do we want partitions to be robust for?
 
-        push!(results, solve_robust_partitions(eng, model_type, solver))
+        results[SHA.bytes2hex(SHA.sha1(join(sort(collect(keys(state))))))] = solve_robust_partitions(eng, model_type, solver; kwargs...)
     end
 
-    sorted_results = sort(results; by=x->get(x, "objective", Inf))
-
-    partitions = Dict{String,Any}[]
-    for (i,result) in enumerate(sorted_results)
-        push!(
-            partitions,
-            Dict{String,Any}(
-                "uuid" => string(UUIDs.uuid4()),
-                "rank" => i,
-                "configuration" => Dict{String,Any}(
-                    data["switch"][s]["source_id"] => string(sw["state"]) for (s,sw) in get(get(result, "solution", Dict()), "switch", Dict())
-                ),
-                "shed" => [data["load"][l]["source_id"] for l in keys(filter(x->x.second["status"]==DISABLED, get(get(result, "solution", Dict()), "load", Dict())))],
-            )
-        )
-    end
-
-    (partitions, sorted_results)
+    return results
 end
 
 
 """
 """
-function generate_n_minus_one_contingencies(data::Dict{String,<:Any})::Vector{Dict{String,Any}}
+function generate_ranked_robust_partitions(data::Dict{String,<:Any}, results::Dict{String,<:Any})::Vector
+    sorted_results = sort(collect(keys(results)); by=x->get(results[x], "objective", Inf) + get(results[x], "mip_gap", 0.0))
+
+    configs = Set()
+
+    partitions = Set{Dict{String,Any}}()
+    rank = 1
+    for id in sorted_results
+        result = results[id]
+        config = Dict{String,Any}(
+            "configuration" => Dict{String,String}(
+                data["switch"][s]["source_id"] => string(sw["state"]) for (s,sw) in get(get(result, "solution", Dict()), "switch", Dict())
+            ),
+            "shed" => [data["load"][l]["source_id"] for l in keys(filter(x->x.second["status"]==DISABLED, get(get(result, "solution", Dict()), "load", Dict())))],
+        )
+
+        if config ∉ configs
+            push!(
+                partitions,
+                Dict{String,Any}(
+                    "uuid" => string(UUIDs.uuid4()),
+                    "rank" => rank,
+                    "score" => round(get(result, "objective", Inf) + get(result, "mip_gap", 0.0); sigdigits=6),
+                    config...
+                )
+            )
+            rank += 1
+
+            push!(configs, config)
+        end
+    end
+
+    partitions = sort(collect(partitions); by=x->x["rank"])
+
+    @assert validate_robust_partitions(partitions) evaluate_robust_partitions(partitions)
+
+    return partitions
+end
+
+
+"""
+"""
+generate_n_minus_one_contingencies(data::Dict{String,<:Any})::Set{Dict{String,Any}} = generate_n_minus_contingencies(data, 1)
+
+
+"""
+"""
+function generate_n_minus_contingencies(data::Dict{String,<:Any}, n_minus::Int)::Set{Dict{String,Any}}
     load_blocks = Dict{Int,Set{String}}(i => block for (i,block) in enumerate(PMD.identify_load_blocks(data)))
+    @assert n_minus <= length(load_blocks)
+
     block_switches = Dict{Int,Set{String}}(i=>Set([s for (s,sw) in filter(x->x.second["f_bus"]∈block || x.second["t_bus"]∈block, get(data, "switch", Dict{String,Any}()))]) for (i,block) in load_blocks)
 
-    contingencies = Dict{String,Any}[Dict{String,Any}(s => Dict{String,Any}("dispatchable"=>NO,"state"=>OPEN,"status"=>ENABLED) for s in switches) for (i,switches) in block_switches]
-    push!(contingencies, Dict{String,Any}())
+    contingencies = Set{Dict{String,Any}}()
+    for n in 0:n_minus
+        for block_ids in combinations(collect(keys(load_blocks)), n)
+            push!(
+                contingencies,
+                Dict{String,Any}(s => Dict{String,Any}("dispatchable"=>NO,"state"=>OPEN,"status"=>ENABLED) for i in block_ids for s in block_switches[i])
+            )
+        end
+    end
 
     return contingencies
 end
