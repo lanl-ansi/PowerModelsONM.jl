@@ -2,11 +2,17 @@
 
 ## staged
 
+- none
+
+## v3.1.0
+
+- Fixed bug in transformer tap variable creation in JuMP by-hand example
+- Updated documentation and JuMP by-hand example to match latest version of constraints
 - Fixed bug in `constraint_grid_forming_inverter_per_cc_{block|traditional}` where exactly one DER was not strictly required
 - Fixed bug in fault current output where if protection objects were not switches, their fault currents were not included in output
 - Fixed bug in protection model where `location` is missing, and `monitoredobj` is used instead
 - Added line impedances `rs` and `xs` to the protection network model
-- Added "phi (deg)" as output in fault currents, representing the bus voltage angle at the f-bus of the switch
+- Added `"phi (deg)"` as output in fault currents, representing the bus voltage angle at the f-bus of the switch
 - Fixed bug in objective functions where if no storage was present, calculating `total_energy_ub` would result in error
 - Fixed bug in `build_graphml_document` where some values were `SubString` instead of `String`
 - Fixed bug in `get_timestep_load_served` to convert `NaN` into zeros
