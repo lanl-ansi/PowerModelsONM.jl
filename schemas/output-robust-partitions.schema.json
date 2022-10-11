@@ -17,14 +17,21 @@
         "type": "integer",
         "description": "Robustness Rank of the configuration"
       },
+      "score": {
+        "type": "number"
+      },
       "configuration": {
         "type": "object",
-        "enum": ["OPEN", "CLOSED"],
         "description": "Configuration of the switches",
         "patternProperties": {
-          "^.$": {
+          "^.+$": {
             "type": "string",
-            "enum": ["OPEN", "CLOSED", "open", "closed"]
+            "enum": [
+              "OPEN",
+              "CLOSED",
+              "open",
+              "closed"
+            ]
           }
         }
       },
@@ -36,6 +43,10 @@
         }
       }
     },
-    "required": ["configuration", "shed"]
+    "required": [
+      "score",
+      "configuration",
+      "shed"
+    ]
   }
 }
