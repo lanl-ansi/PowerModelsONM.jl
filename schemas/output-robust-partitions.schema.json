@@ -1,0 +1,41 @@
+{
+  "title": "output-robust-partitions.schema",
+  "x-stoplight": {
+    "id": "bkeimmt0ouri6"
+  },
+  "type": "array",
+  "description": "",
+  "items": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Unique ID of the configuration",
+        "format": "uuid"
+      },
+      "rank": {
+        "type": "integer",
+        "description": "Robustness Rank of the configuration"
+      },
+      "configuration": {
+        "type": "object",
+        "enum": ["OPEN", "CLOSED"],
+        "description": "Configuration of the switches",
+        "patternProperties": {
+          "^.$": {
+            "type": "string",
+            "enum": ["OPEN", "CLOSED", "open", "closed"]
+          }
+        }
+      },
+      "shed": {
+        "type": "array",
+        "description": "List of loads shed",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "required": ["configuration", "shed"]
+  }
+}
