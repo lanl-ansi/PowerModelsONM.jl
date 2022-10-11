@@ -27,6 +27,7 @@ PowerModelsProtection = "719c1aef-945b-435a-a240-4c2992e5e0df"
 PowerModelsStability = "f9e4c324-c3b6-4bca-9c3d-419775f0bd17"
 Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+UUIDs = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
 
 [compat]
 ArgParse = "1.1"

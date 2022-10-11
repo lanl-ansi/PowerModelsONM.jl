@@ -8,7 +8,7 @@
   "items": {
     "type": "object",
     "properties": {
-      "id": {
+      "uuid": {
         "type": "string",
         "description": "Unique ID of the configuration",
         "format": "uuid"
