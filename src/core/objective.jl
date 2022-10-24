@@ -335,45 +335,25 @@ end
 
 
 """
+    objective_robust_partitions(pm::AbstractUnbalancedPowerModel)
+
+Minimum block load shed objective for robust partition problem.
+
+```math
+\begin{align*}
+\mbox{minimize: } & \\
+& \sum_{\substack{b \in B,t \in T}} W^{bl}_{b,t} \left(1 - z^{bl}_{b,t} \right) \\
+& + \sum_{\substack{e \in E,t \in T}} \epsilon^{ub}_{e} - \epsilon_{e,t} \\
+& + \sum_{\substack{g \in G,t \in T}} f_1 P_{g,t} + f_0
+\end{align*}```
+
 """
 function objective_robust_partitions(pm::AbstractUnbalancedPowerModel)
-    nw_id_list = sort(collect(nw_ids(pm)))
-
-    for (i, n) in enumerate(nw_id_list)
-        nw_ref = ref(pm, n)
-
-        var(pm, n)[:delta_sw_state] = JuMP.@variable(
-            pm.model,
-            [i in ids(pm, n, :switch_dispatchable)],
-            base_name="$(n)_$(i)_delta_sw_state",
-            start = 0
-        )
-
-        for (s,switch) in nw_ref[:switch_dispatchable]
-            z_switch = var(pm, n, :switch_state, s)
-            if i == 1
-                JuMP.@constraint(pm.model, var(pm, n, :delta_sw_state, s) >=  (JuMP.start_value(z_switch) - z_switch))
-                JuMP.@constraint(pm.model, var(pm, n, :delta_sw_state, s) >= -(JuMP.start_value(z_switch) - z_switch))
-            else  # multinetwork
-                z_switch_prev = var(pm, nw_id_list[i-1], :switch_state, s)
-                JuMP.@constraint(pm.model, var(pm, n, :delta_sw_state, s) >=  (z_switch_prev - z_switch))
-                JuMP.@constraint(pm.model, var(pm, n, :delta_sw_state, s) >= -(z_switch_prev - z_switch))
-            end
-        end
-    end
-
     total_energy_ub = sum(Float64[strg["energy_rating"] for (n,nw_ref) in nws(pm) for (i,strg) in nw_ref[:storage]])
     total_pmax = sum(Float64[all(.!isfinite.(gen["pmax"])) ? 0.0 : sum(gen["pmax"][isfinite.(gen["pmax"])]) for (n,nw_ref) in nws(pm) for (i, gen) in nw_ref[:gen]])
 
     total_energy_ub = total_energy_ub <= 1.0 ? 1.0 : total_energy_ub
     total_pmax = total_pmax <= 1.0 ? 1.0 : total_pmax
-
-    n_dispatchable_switches = Dict(n => length(ids(pm, n, :switch_dispatchable)) for n in nw_ids(pm))
-    for (n,nswitch) in n_dispatchable_switches
-        if nswitch < 1
-            n_dispatchable_switches[n] = 1
-        end
-    end
 
     obj_opts = Dict(n=>ref(pm, n, :options, "objective") for n in nw_ids(pm))
 
