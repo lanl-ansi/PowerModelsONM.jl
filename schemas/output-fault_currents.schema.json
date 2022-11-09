@@ -160,6 +160,13 @@
                               "type": "number"
                             }
                           },
+                          "theta (deg)": {
+                            "type": "array",
+                            "description": "Fault current angles in degrees",
+                            "items": {
+                              "type": "number"
+                            }
+                          },
                           "Re(I0) (A)": {
                             "type": "number",
                             "description": "Real part of the zero sequence current in amps"
@@ -201,6 +208,7 @@
                           "|I| (A)",
                           "|V| (V)",
                           "phi (deg)",
+                          "theta (deg)",
                           "|I0| (A)",
                           "|I1| (A)",
                           "|I2| (A)"
@@ -237,6 +245,13 @@
                               "type": "number"
                             }
                           },
+                          "theta (deg)": {
+                            "type": "array",
+                            "description": "Fault current angles in degrees",
+                            "items": {
+                              "type": "number"
+                            }
+                          },
                           "Re(I0) (A)": {
                             "type": "number",
                             "description": "Real part of the zero sequence current in amps"
@@ -278,6 +293,7 @@
                           "|I| (A)",
                           "|V| (V)",
                           "phi (deg)",
+                          "theta (deg)",
                           "|I0| (A)",
                           "|I1| (A)",
                           "|I2| (A)"

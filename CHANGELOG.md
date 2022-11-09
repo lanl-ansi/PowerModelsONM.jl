@@ -4,6 +4,7 @@
 
 - none
 
+- Added `"theta (deg)"` as output in fault currents, representing the phase angle of the current on the from-side of the switch/line
 - Updated version of Julia in Dockerfile to v1.8.2
 
 ## v3.1.0
