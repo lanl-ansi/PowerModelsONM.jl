@@ -1,4 +1,4 @@
-FROM julia:1.7.3
+FROM julia:1.8.2
 
 RUN apt-get update && \
     apt-get -y --no-install-recommends install build-essential gcc fontconfig-config git

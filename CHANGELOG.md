@@ -4,6 +4,8 @@
 
 - none
 
+- Updated version of Julia in Dockerfile to v1.8.2
+
 ## v3.1.0
 
 - Fixed bug in transformer tap variable creation in JuMP by-hand example
