@@ -132,6 +132,10 @@ function build_mn_traditional_mld(pm::PMD.AbstractUBFModels)
             PMD.constraint_storage_state(pm, i, n_1, n_2)
         end
 
+        if ref(pm, n_1, :options, "constraints")["enable-strictly-increasing-restoration-constraint"]
+            constraint_energized_blocks_strictly_increasing(pm, n_1, n_2)
+        end
+
         n_1 = n_2
     end
 
@@ -251,6 +255,10 @@ function build_mn_traditional_mld(pm::PMD.AbstractUnbalancedPowerModel)
 
         for i in ids(pm, :storage; nw=n_2)
             PMD.constraint_storage_state(pm, i, n_1, n_2)
+        end
+
+        if ref(pm, n_1, :options, "constraints")["enable-strictly-increasing-restoration-constraint"]
+            constraint_energized_blocks_strictly_increasing(pm, n_1, n_2)
         end
 
         n_1 = n_2

@@ -4,6 +4,7 @@
 
 - none
 
+- Added `constraint_energized_blocks_strictly_increasing` to `mld_block` and `mld_traditional` multinetwork problems, which can be enabled with option `enable-strictly-increasing-restoration-constraint`
 - Fixed `run_fault_studies` to use `build_mc_sparse_fault_study` if faults are `missing`
 - Added `"theta (deg)"` as output in fault currents, representing the phase angle of the current on the from-side of the switch/line
 - Updated version of Julia in Dockerfile to v1.8.2
