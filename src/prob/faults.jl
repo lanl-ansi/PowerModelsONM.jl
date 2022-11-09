@@ -83,7 +83,7 @@ function run_fault_studies(
     end
 
     if isempty(faults)
-        faults = PMP.build_mc_fault_study(first(network["nw"]).second)
+        faults = PMP.build_mc_sparse_fault_study(first(network["nw"]).second)
     end
 
     fault_studies_results = Dict{String,Any}()
