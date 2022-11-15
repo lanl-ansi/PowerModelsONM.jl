@@ -30,7 +30,9 @@ function generate_ranked_robust_partitions(data::Dict{String,<:Any}, results::Di
             "configuration" => Dict{String,String}(
                 data["switch"][s]["source_id"] => string(sw["state"]) for (s,sw) in get(get(result, "solution", Dict()), "switch", Dict())
             ),
-            "shed" => [data["load"][l]["source_id"] for l in keys(filter(x->x.second["status"]==DISABLED, get(get(result, "solution", Dict()), "load", Dict())))],
+            "shed_loads" => [data["load"][l]["source_id"] for l in keys(filter(x->x.second["status"]==DISABLED, get(get(result, "solution", Dict()), "load", Dict())))],
+            "slack_buses" => ["bus.$(data[t][i]["bus"])" for t in ["storage", "solar", "generator", "voltage_source"] for (i,obj) in get(get(result, "solution", Dict()), t, Dict()) if get(obj, "inverter", GRID_FOLLOWING) == GRID_FORMING],
+            "grid_forming_devices" => ["$(data[t][i]["source_id"])" for t in ["storage", "solar", "generator", "voltage_source"] for (i,obj) in get(get(result, "solution", Dict()), t, Dict()) if get(obj, "inverter", GRID_FOLLOWING) == GRID_FORMING],
         )
 
         if config ∉ configs

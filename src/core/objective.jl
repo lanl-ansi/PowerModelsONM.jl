@@ -334,7 +334,7 @@ function objective_mc_min_storage_utilization(pm::AbstractUnbalancedPowerModel)
 end
 
 
-"""
+raw"""
     objective_robust_partitions(pm::AbstractUnbalancedPowerModel)
 
 Minimum block load shed objective for robust partition problem.
