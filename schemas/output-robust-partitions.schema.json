@@ -54,9 +54,23 @@
           }
         }
       },
-      "shed": {
+      "shed_loads": {
         "type": "array",
         "description": "List of loads that should be shed",
+        "items": {
+          "type": "string"
+        }
+      },
+      "slack_buses": {
+        "type": "array",
+        "description": "List of buses that should be set to serve as slacks",
+        "items": {
+          "type": "string"
+        }
+      },
+      "grid_forming_devices": {
+        "type": "array",
+        "description": "List of devices that should be set to be grid-forming",
         "items": {
           "type": "string"
         }
@@ -67,7 +81,9 @@
       "rank",
       "score",
       "configuration",
-      "shed"
+      "shed_loads",
+      "slack_buses",
+      "grid_forming_devices"
     ]
   }
 }
