@@ -78,7 +78,13 @@ function get_timestep_fault_currents(fault_studies_results::Dict{String,<:Any}, 
                                         get(get(get(fault_sol, "bus", Dict()), switch["f_bus"], Dict()), "vi", fill(0.0, length(network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"])))[[findfirst(isequal(c), network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"]) for c in switch["f_connections"]]],
                                         get(get(get(fault_sol, "bus", Dict()), switch["f_bus"], Dict()), "vr", fill(0.0, length(network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"])))[[findfirst(isequal(c), network["nw"]["$n"]["bus"][switch["f_bus"]]["terminals"]) for c in switch["f_connections"]]]
                                     )
-                                )
+                                ),
+                                "theta" => rad2deg.(
+                                    atan.(
+                                        get(get(get(fault_sol, "switch", Dict()), id, Dict()), "ci_fr", fill(0.0, length(switch["f_connections"]))),
+                                        get(get(get(fault_sol, "switch", Dict()), id, Dict()), "cr_fr", fill(0.0, length(switch["f_connections"])))
+                                    )
+                                ),
                             ) for (id, switch) in get(network["nw"]["$n"], "switch", Dict())
                         ),
                         "line" => Dict{String,Any}(),
@@ -106,7 +112,13 @@ function get_timestep_fault_currents(fault_studies_results::Dict{String,<:Any}, 
                                                 get(get(get(fault_sol, "bus", Dict()), obj["f_bus"], Dict()), "vi", fill(0.0, length(network["nw"]["$n"]["bus"][obj["f_bus"]]["terminals"])))[[findfirst(isequal(c), network["nw"]["$n"]["bus"][obj["f_bus"]]["terminals"]) for c in obj["f_connections"]]],
                                                 get(get(get(fault_sol, "bus", Dict()), obj["f_bus"], Dict()), "vr", fill(0.0, length(network["nw"]["$n"]["bus"][obj["f_bus"]]["terminals"])))[[findfirst(isequal(c), network["nw"]["$n"]["bus"][obj["f_bus"]]["terminals"]) for c in obj["f_connections"]]]
                                             )
-                                        )
+                                        ),
+                                        "theta" => rad2deg.(
+                                            atan.(
+                                                get(get(get(fault_sol, t, Dict()), id, Dict()), "ci_fr", fill(0.0, length(obj["f_connections"]))),
+                                                get(get(get(fault_sol, t, Dict()), id, Dict()), "cr_fr", fill(0.0, length(obj["f_connections"])))
+                                            )
+                                        ),
                                     )
                                 end
                             end
