@@ -2,7 +2,7 @@
 
 ## staged
 
-- none
+- Added robust mld problem formulation using scenario-based approach
 
 ## v3.2.0
 
