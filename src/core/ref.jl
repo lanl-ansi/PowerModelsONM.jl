@@ -179,3 +179,15 @@ function _correct_switch_directions!(switches::Dict{String,<:Any}, blocks::Dict{
 
     return switches
 end
+
+
+"""
+    _ref_add_uncertainty!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
+
+Ref extension to add uncertainty information to ref at a single time step
+"""
+function _ref_add_uncertainty!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
+    ref[:uncertainty] = Dict("load" => Dict(scen => load_factor for (scen,load_factor) in data["uncertainty"]["load"]),
+                             "feasibility_check" => data["uncertainty"]["feasibility_check"])
+    nothing
+end

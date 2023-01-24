@@ -62,7 +62,9 @@ function entrypoint(args::Dict{String,<:Any})::Dict{String,Any}
         run_fault_studies!(args)
     end
 
-    analyze_results!(args)
+    if args["raw_args"]["opt-switch-algorithm"]!="robust"
+        analyze_results!(args)
+    end
 
     !validate_output(args["output_data"]) && @warn "Output data structure failed to validate against its schema:\n$(evaluate_output(args["output_data"]))"
 

@@ -62,6 +62,11 @@ function optimize_switches(
 
             results["$n"] = optimize_switches(mn_data["nw"]["$n"], problem=="traditional" ? solve_traditional_mld : solve_block_mld, solver; formulation=formulation)
         end
+    elseif algorithm == "robust"
+        mn_data = _prepare_optimal_switching_data(network)
+        data = mn_data["nw"]["1"]
+        data["switch_close_actions_ub"] = Inf
+        results["1"] = optimize_switches(data, solve_robust_block_mld, solver; formulation=formulation)
     else
         @warn "'algorithm=$(algorithm)' not recognized, skipping switch optimization"
     end

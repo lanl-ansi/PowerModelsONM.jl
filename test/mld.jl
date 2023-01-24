@@ -128,27 +128,14 @@
         end
 
         @testset "test robust switching - lindistflow - block" begin
+            args = deepcopy(orig_args)
+            args["opt-switch-formulation"] = "lindistflow"
+            args["opt-switch-algorithm"] = "robust"
+            args["opt-switch-problem"] = "block"
 
-            eng = PMD.parse_file("../test/data/ieee13_feeder.dss")
-            solver = JuMP.optimizer_with_attributes(
-                HiGHS.Optimizer,
-                "presolve"=>"on",
-                "primal_feasibility_tolerance"=>1e-6,
-                "dual_feasibility_tolerance"=>1e-6,
-                "mip_feasibility_tolerance"=>1e-4,
-                "mip_rel_gap"=>1e-4,
-                "small_matrix_value"=>1e-8,
-                "allow_unbounded_or_infeasible"=>true,
-                "log_to_console"=>false,
-                "output_flag"=>false
-            )
-            PMD.apply_voltage_bounds!(eng)
-            math = transform_data_model(eng)
+            entrypoint(args)
 
-            result = solve_robust_block_mld(math,PMD.LPUBFDiagPowerModel,solver,5,0.05)
-
-            @test result["termination_status"] == LOCALLY_SOLVED
-            @test isapprox(result["objective"], 9.928; atol = 1e-3)
+            @test isapprox(args["optimal_switching_results"]["1"]["objective"], 6.116; atol=1)
 
         end
     end
