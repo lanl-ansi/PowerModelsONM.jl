@@ -66,7 +66,8 @@ function optimize_switches(
         mn_data = _prepare_optimal_switching_data(network)
         data = mn_data["nw"]["1"]
         data["switch_close_actions_ub"] = Inf
-        results["1"] = optimize_switches(data, solve_robust_block_mld, solver; formulation=formulation)
+        data_math = transform_data_model(data)
+        results["1"] = optimize_switches(data_math, solve_robust_block_mld, solver; formulation=formulation)
     else
         @warn "'algorithm=$(algorithm)' not recognized, skipping switch optimization"
     end

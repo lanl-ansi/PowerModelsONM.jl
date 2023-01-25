@@ -182,12 +182,11 @@ end
 
 
 """
-    _ref_add_uncertainty!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
+    _ref_add_scenarios!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
 
-Ref extension to add uncertainty information to ref at a single time step
+Ref extension to add scenario information to ref at a single time step
 """
-function _ref_add_uncertainty!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
-    ref[:uncertainty] = Dict("load" => Dict(scen => load_factor for (scen,load_factor) in data["uncertainty"]["load"]),
-                             "feasibility_check" => data["uncertainty"]["feasibility_check"])
-    nothing
+function _ref_add_scenarios!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
+    ref[:scenarios] = Dict("load" => Dict(scen => load_factor for (scen,load_factor) in data["scenarios"]["load"]),
+                           "feasibility_check" => data["scenarios"]["feasibility_check"])
 end

@@ -550,15 +550,15 @@ function constraint_mc_load_power(pm::PMD.LPUBFDiagModel, load_id::Int, scen::In
     load = ref(pm, nw, :load, load_id)
     bus_id = load["load_bus"]
     connections = load["connections"]
-    pd0 = load["pd"]
-    qd0 = load["qd"]
     bus = ref(pm, nw, :bus, bus_id)
 
     # calculate load params
     load_scen = deepcopy(load)
-    load_scen["pd"] = load["pd"]*ref(pm, :uncertainty, "load")[scen]["$(load_id)"]
-    load_scen["qd"] = load["qd"]*ref(pm, :uncertainty, "load")[scen]["$(load_id)"]
-    a, alpha, b, beta = PMD._load_expmodel_params(load, bus)
+    load_scen["pd"] = load_scen["pd"]*ref(pm, :scenarios, "load")[scen]["$(load_id)"]
+    load_scen["qd"] = load_scen["qd"]*ref(pm, :scenarios, "load")[scen]["$(load_id)"]
+    pd0 = load_scen["pd"]
+    qd0 = load_scen["qd"]
+    a, alpha, b, beta = PMD._load_expmodel_params(load_scen, bus)
 
     # take care of connections
     if load["configuration"]==PMD.WYE

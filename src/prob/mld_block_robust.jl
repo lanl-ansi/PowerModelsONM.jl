@@ -5,31 +5,52 @@
         solver;
         N::Int, ΔL::Float64,
         kwargs...
-    )::Dict{String,Any}
+    )::Dict{String, Dict{String,Any}}
 
 Solves a robust (N scenarios and ±ΔL load uncertainty) multiconductor optimal switching (mixed-integer) problem using `model_type` and `solver`.
-The default number of scenarios is set to 2 with load uncertainty of ±10%.
+The default number of scenarios is set to 2 with load uncertainty of ±10% and calculated using generate_load_scenarios().
 """
-function solve_robust_block_mld(data::Dict{String,<:Any}, model_type::Type, solver; N::Int=2, ΔL::Float64=0.1, kwargs...)::Dict{String,Any}
+function solve_robust_block_mld(data::Dict{String,<:Any}, model_type::Type, solver; N::Int=2, ΔL::Float64=0.1, kwargs...)::Dict{String, Dict{String,Any}}
     data_math = PMD.iseng(data) ? transform_data_model(data) : data
-    load_factor = generate_load_scenarios(data_math::Dict{String,<:Any}, N, ΔL)     # generate load scenarios
+    load_scenarios = generate_load_scenarios(data_math, solver, N, ΔL)     # generate N scenarios with ±ΔL load uncertainty
+
+    return solve_robust_block_mld(data, model_type, solver, load_scenarios; kwargs...)
+end
+
+
+"""
+    solve_robust_block_mld(
+        data::Dict{String,<:Any},
+        model_type::Type,
+        solver,
+        load_scenarios::Dict{Int, Dict{Any, Any}}
+        kwargs...
+    )::Dict{String, Dict{String,Any}}
+
+Solves a robust multiconductor optimal switching (mixed-integer) problem using `model_type`, `solver`,
+and user-specified load uncertainty data `load_scenarios` (input must be provided as allowed variability range around base value of 1)
+"""
+function solve_robust_block_mld(data::Dict{String,<:Any}, model_type::Type, solver, load_scenarios::Dict{Int,Dict{Any,Any}}; kwargs...)::Dict{String, Dict{String,Any}}
+    data_math = PMD.iseng(data) ? transform_data_model(data) : data
+    N = length(load_scenarios)
 
     # setup iterative process
     violation_indicator = true
-    scenarios = [1]
-    result = Dict{String, Any}()
+    scenarios = [1] # start with scenario 1 corresponding to base load
+    results = Dict{String, Dict{String,Any}}() # store results of each iteration to rank partitions later
     while length(scenarios)<=N && violation_indicator
-        data_all_scen = deepcopy(data_math)
-        data_all_scen["uncertainty"] = Dict("load" => Dict(scen => load_factor[scen] for scen in scenarios),
-                                            "feasibility_check" => false)
+        data_all_scen = deepcopy(data)
+        data_all_scen["scenarios"] = Dict("load" => Dict(scen => load_scenarios[scen] for scen in scenarios),
+                                          "feasibility_check" => false)
+
         # solve outer scenario model
-        result = solve_onm_model(data_all_scen, model_type, solver, build_robust_block_mld; ref_extensions=Function[_ref_add_uncertainty!], multinetwork=false, kwargs...)
+        results["$(scenarios)"] = solve_onm_model(data_all_scen, model_type, solver, build_robust_block_mld; multinetwork=false, ref_extensions=Function[_ref_add_scenarios!], kwargs...)
 
         # update data with solution of variables common across all scenarios
-        _update_switch_settings!(data_all_scen, result["solution"])
-        _update_inverter_settings!(data_all_scen, result["solution"])
+        _update_switch_settings!(data_all_scen, results["$(scenarios)"]["solution"])
+        _update_inverter_settings!(data_all_scen, results["$(scenarios)"]["solution"])
 
-        # feasibility check (inner scenario model)
+        # feasibility check for remaining scenarios (inner scenario model)
         scenario = deleteat!([1:N;], sort(scenarios))
         if length(scenario)==0
             violation_indicator = false
@@ -37,9 +58,9 @@ function solve_robust_block_mld(data::Dict{String,<:Any}, model_type::Type, solv
             infeasible_scen = []
             for scen in scenario
                 data_scen = deepcopy(data_all_scen)
-                data_scen["uncertainty"] = Dict("load" => Dict(scen => load_factor[scen]),
-                                                "feasibility_check" => false)
-                result_scen = solve_onm_model(data_scen, model_type, solver, build_robust_block_mld; multinetwork=false, kwargs...)
+                data_scen["scenarios"] = Dict("load" => Dict(scen => load_scenarios[scen]),
+                                              "feasibility_check" => true)
+                result_scen = solve_onm_model(data_scen, model_type, solver, build_robust_block_mld; multinetwork=false, ref_extensions=Function[_ref_add_scenarios!], kwargs...)
                 if result_scen["termination_status"]!=OPTIMAL
                     push!(infeasible_scen,scen)
                 end
@@ -52,7 +73,7 @@ function solve_robust_block_mld(data::Dict{String,<:Any}, model_type::Type, solv
         end
     end
 
-    return result
+    return results
 end
 
 
@@ -64,8 +85,8 @@ Build single-network robust mld problem for Branch Flow model considering all sc
 function build_robust_block_mld(pm::PMD.AbstractUBFModels; nw::Int=nw_id_default)
     var_opts = ref(pm, :options, "variables")
     con_opts = ref(pm, :options, "constraints")
-    load_uncertainty = ref(pm, :uncertainty, "load")
-    feas_chck = ref(pm, :uncertainty, "feasibility_check")
+    load_uncertainty = ref(pm, :scenarios, "load")
+    feas_chck = ref(pm, :scenarios, "feasibility_check")
 
     # common set of variables for all scenario
     if feas_chck
@@ -96,7 +117,7 @@ Add each scenario variables, constraints to single-network robust mld problem us
 function build_scen_block_mld(pm::PMD.AbstractUBFModels, scen::Int, obj_expr::Dict{Any,Any}; nw::Int=nw_id_default, feas_chck::Bool=false)
     var_opts = ref(pm, :options, "variables")
     con_opts = ref(pm, :options, "constraints")
-    feas_chck = ref(pm, :uncertainty, "feasibility_check")
+    feas_chck = ref(pm, :scenarios, "feasibility_check")
 
     variable_block_indicator(pm; relax=var_opts["relax-integer-variables"], report=false)
 
@@ -189,23 +210,23 @@ end
 
 
 """
-    generate_load_scenarios(data::Dict{String,<:Any}, N::Int, ΔL::Float64)
+    generate_load_scenarios(data::Dict{String,<:Any}, N::Int, ΔL::Float64)::Dict{Int,Dict{Any,Any}}
 
-Generate N scenarios with ±ΔL load uncertainty.
-PMD.solve_mc_opf() is solved for each scenario to check if feasible to original problem (no microgrids, all blocks connected to substation)
+Generate N scenarios with ±ΔL load uncertainty around base load.
+PMD.solve_mc_opf() is solved for each scenario to check if feasible to original problem (no microgrids, all blocks energized by substation)
 """
-function generate_load_scenarios(data_math::Dict{String,<:Any}, N::Int, ΔL::Float64)
+function generate_load_scenarios(data_math::Dict{String,<:Any}, solver, N::Int, ΔL::Float64)::Dict{Int,Dict{Any,Any}}
     n_l = length(data_math["load"])
-    load_factor = Dict(scen => Dict() for scen in 1:N)
+    load_scenarios = Dict(scen => Dict() for scen in 1:N)
     scen = 1
     while scen<=N
         data_scen = deepcopy(data_math)
         uncertain_scen = ΔL==0 ? ones(n_l) : SB.sample((1-ΔL):(2*ΔL/n_l):(1+ΔL), n_l, replace=false)
         for (id,load) in data_math["load"]
             if scen==1
-                load_factor[scen][id] = 1
+                load_scenarios[scen][id] = 1
             else
-                load_factor[scen][id] = uncertain_scen[parse(Int64,id)]
+                load_scenarios[scen][id] = uncertain_scen[parse(Int64,id)]
                 data_scen["load"][id]["pd"] = load["pd"]*uncertain_scen[parse(Int64,id)]
                 data_scen["load"][id]["qd"] = load["qd"]*uncertain_scen[parse(Int64,id)]
             end
@@ -214,5 +235,48 @@ function generate_load_scenarios(data_math::Dict{String,<:Any}, N::Int, ΔL::Flo
         scen = result["termination_status"]==LOCALLY_SOLVED ? (scen+1) : scen
     end
 
-    return load_factor
+    return load_scenarios
+end
+
+
+"""
+    generate_ranked_robust_partitions(data::Dict{String,<:Any}, results::Dict{String,<:Any})::Vector
+
+Generate ranked robust partitions based on objective and mip_gap.
+Higher objective means the partition is more robust to uncertainty.
+"""
+function generate_ranked_robust_partitions(data::Dict{String,<:Any}, results::Dict{String,<:Any})::Vector
+    sorted_results = sort(collect(keys(results)); by=x-> 100/(get(results[x], "objective", Inf)) + get(results[x], "mip_gap", 0.0))
+
+    configs = Set()
+
+    partitions = Set{Dict{String,Any}}()
+    rank = 1
+    for id in sorted_results
+        result = results[id]
+        config = Dict{String,Any}(
+            "configuration" => Dict{String,String}(
+                data["switch"][s]["source_id"] => string(sw["state"]) for (s,sw) in get(get(result, "solution", Dict()), "switch", Dict())
+            ),
+            "slack_buses" => ["$(data["bus"]["$(data[t][i]["$(t)_bus"])"]["source_id"])" for t in ["storage", "solar", "gen", "voltage_source"] for (i,obj) in get(get(result, "solution", Dict()), t, Dict()) if get(obj, "inverter", GRID_FOLLOWING) == GRID_FORMING],
+            "grid_forming_devices" => ["$(data[t][i]["source_id"])" for t in ["storage", "solar", "gen", "voltage_source"] for (i,obj) in get(get(result, "solution", Dict()), t, Dict()) if get(obj, "inverter", GRID_FOLLOWING) == GRID_FORMING],
+        )
+
+        if config ∉ configs
+            push!(
+                partitions,
+                Dict{String,Any}(
+                    "rank" => rank,
+                    "score" => round(100/get(result, "objective", Inf) + get(result, "mip_gap", 0.0); sigdigits=6),
+                    config...
+                )
+            )
+            rank += 1
+
+            push!(configs, config)
+        end
+    end
+    partitions = sort(collect(partitions); by=x->x["rank"])
+
+    return partitions
 end
