@@ -236,6 +236,7 @@
       "switch": {
         "type": "object",
         "description": "Switch objects indexed by name",
+        "deprecated": true,
         "patternProperties": {
           "^.+$": {
             "type": "object",
@@ -272,6 +273,53 @@
               "voltage (V)": {
                 "type": "array",
                 "description": "The voltage on the from-side bus in Volts",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "protection": {
+        "type": "object",
+        "description": "Protection monitored objects indexed by type.name",
+        "patternProperties": {
+          "^.+$": {
+            "type": "object",
+            "description": "Protection monitored object",
+            "properties": {
+              "real power flow (kW)": {
+                "type": "array",
+                "description": "The real power flow on the protection-monitored-object, coming from the from-side, in kW",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "reactive power flow (kVar)": {
+                "type": "array",
+                "description": "The reactive power flow through the protection-monitored-object coming from the from-side, in kVar",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "connections": {
+                "type": "array",
+                "description": "The connections (terminals) that the protection-monitored-object is connected to on the from-side, in order",
+                "items": {
+                  "type": "integer"
+                }
+              },
+              "voltage (kV)": {
+                "type": "array",
+                "description": "The voltage magnitude on the from-side bus in kilovolts",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "phi (deg)": {
+                "type": "array",
+                "description": "The voltage angle on the from-side bus in degrees",
                 "items": {
                   "type": "number"
                 }

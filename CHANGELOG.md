@@ -2,7 +2,10 @@
 
 ## staged
 
-- Added draft schema for robust partitions outputs
+- Added schema for robust partitions outputs
+- Fixed Dockerfile to work with julia-buildpkg:latest
+- Deprecates "switch" in power flow outputs in favor of "protection"
+- Adds "protection" to the power flow outputs which adds voltage magnitudes and angles, and real and reactive power flows for each device that is referenced by a protection device (e.g., fuse, recloser, relay)
 
 ## v3.2.0
 
