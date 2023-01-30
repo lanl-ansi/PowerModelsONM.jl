@@ -260,8 +260,8 @@ function variable_mc_load_power(pm::PMD.AbstractUBFModels, scen::Int; nw=nw_id_d
 		load = ref(pm, nw, :load, i)
 		bus = ref(pm, nw, :bus, load["load_bus"])
         load_scen = deepcopy(load)
-        load_scen["pd"] = load_scen["pd"]*ref(pm, :scenarios, "load")[scen]["$i"]
-        load_scen["qd"] = load_scen["qd"]*ref(pm, :scenarios, "load")[scen]["$i"]
+        load_scen["pd"] = load_scen["pd"]*ref(pm, :scenarios, "load")["$scen"]["$i"]
+        load_scen["qd"] = load_scen["qd"]*ref(pm, :scenarios, "load")["$scen"]["$i"]
 		pmin, pmax, qmin, qmax = PMD._calc_load_pq_bounds(load_scen, bus)
 		for (idx,c) in enumerate(load_connections[i])
 			PMD.set_lower_bound(pd[i][c], pmin[idx])
