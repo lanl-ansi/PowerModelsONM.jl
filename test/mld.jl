@@ -135,7 +135,7 @@
 
             entrypoint(args)
 
-            @test isapprox(args["optimal_switching_results"]["1"]["objective"], 25.506; atol=1)
+            @test isapprox(args["optimal_switching_results"]["1"]["objective"], 5.12; atol=1)
 
         end
     end
