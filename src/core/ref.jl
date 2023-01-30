@@ -179,3 +179,14 @@ function _correct_switch_directions!(switches::Dict{String,<:Any}, blocks::Dict{
 
     return switches
 end
+
+
+"""
+    _ref_add_scenarios!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
+
+Ref extension to add scenario information to ref at a single time step
+"""
+function _ref_add_scenarios!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
+    ref[:scenarios] = Dict("load" => Dict(scen => load_factor for (scen,load_factor) in data["scenarios"]["load"]),
+                           "feasibility_check" => data["scenarios"]["feasibility_check"])
+end

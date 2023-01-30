@@ -2,6 +2,7 @@
 
 ## staged
 
+- Added robust mld problem formulation using scenario-based approach
 - Added draft schema for robust partitions outputs
 - Fixed Dockerfile to work with julia-buildpkg:latest
 - Deprecates "switch" in power flow outputs in favor of "protection"
