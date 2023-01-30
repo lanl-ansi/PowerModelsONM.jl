@@ -126,5 +126,17 @@
 
             @test isapprox(args["optimal_switching_results"]["1"]["objective"], 69.66; atol=1)
         end
+
+        @testset "test robust switching - lindistflow - block" begin
+            args = deepcopy(orig_args)
+            args["opt-switch-formulation"] = "lindistflow"
+            args["opt-switch-algorithm"] = "robust"
+            args["opt-switch-problem"] = "block"
+
+            entrypoint(args)
+
+            @test isapprox(args["optimal_switching_results"]["1"]["objective"], 6.116; atol=1)
+
+        end
     end
 end

@@ -50,6 +50,9 @@ module PowerModelsONM
     # Hardware statistics
     import Hwloc
 
+    # Generate samples for robust partitions
+    import StatsBase as SB
+
     # Network Graphs
     import Graphs
     import EzXML
@@ -109,6 +112,7 @@ module PowerModelsONM
     include("prob/mld_traditional.jl")
     include("prob/mld_block.jl")
     include("prob/partitions.jl")
+    include("prob/mld_block_robust.jl")
     include("prob/stability.jl")
     include("prob/switch.jl")
 
