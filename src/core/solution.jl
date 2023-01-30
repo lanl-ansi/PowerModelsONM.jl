@@ -18,7 +18,7 @@ end
 Helper function to update inverter settings from a solution, for the mld robust problem to check for feasibility.
 """
 function _update_inverter_settings!(data::Dict{String,<:Any}, sol::Dict{String,<:Any})
-    for t in ["gen", "storage"]
+    for t in ["generator", "storage", "voltage_source", "solar"]
         if haskey(sol, t)
             for (i,obj) in sol[t]
                 if haskey(obj, "inverter")

@@ -554,8 +554,8 @@ function constraint_mc_load_power(pm::PMD.LPUBFDiagModel, load_id::Int, scen::In
 
     # calculate load params
     load_scen = deepcopy(load)
-    load_scen["pd"] = load_scen["pd"]*ref(pm, :scenarios, "load")[scen]["$(load_id)"]
-    load_scen["qd"] = load_scen["qd"]*ref(pm, :scenarios, "load")[scen]["$(load_id)"]
+    load_scen["pd"] = load_scen["pd"]*ref(pm, :scenarios, "load")["$scen"]["$(load_id)"]
+    load_scen["qd"] = load_scen["qd"]*ref(pm, :scenarios, "load")["$scen"]["$(load_id)"]
     pd0 = load_scen["pd"]
     qd0 = load_scen["qd"]
     a, alpha, b, beta = PMD._load_expmodel_params(load_scen, bus)
