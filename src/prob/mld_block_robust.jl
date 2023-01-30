@@ -54,7 +54,7 @@ function solve_robust_block_mld(data::Dict{String,<:Any}, model_type::Type, solv
             build_robust_block_mld;
             multinetwork=false,
             ref_extensions=Function[_ref_add_scenarios!],
-            eng2math_extensions=Function[_map_eng2math_screnarios!],
+            eng2math_extensions=Function[_map_eng2math_scenarios!],
             kwargs...
         )
 
@@ -82,7 +82,7 @@ function solve_robust_block_mld(data::Dict{String,<:Any}, model_type::Type, solv
                         build_robust_block_mld;
                         multinetwork=false,
                         ref_extensions=Function[_ref_add_scenarios!],
-                        eng2math_extensions=Function[_map_eng2math_screnarios!],
+                        eng2math_extensions=Function[_map_eng2math_scenarios!],
                         kwargs...
                     )
                     if result_scen["termination_status"] ∉ [JuMP.OPTIMAL, JuMP.ALMOST_OPTIMAL]
@@ -105,12 +105,18 @@ function solve_robust_block_mld(data::Dict{String,<:Any}, model_type::Type, solv
 end
 
 
-"converts engineering scenarios into mathematical branches"
-function _map_eng2math_screnarios!(data_math::Dict{String,<:Any}, data_eng::Dict{String,<:Any}; pass_props::Vector{String}=String[])
-    engload2mathload = Dict(string(split(obj["source_id"], ".")[2])=>i for (i,obj) in get(data_math, "load", Dict()))
+"""
+    _map_eng2math_scenarios!(data_math::Dict{String,<:Any}, data_eng::Dict{String,<:Any}; pass_props::Vector{String}=String[])
+
+Converts engineering scenarios into mathematical scenarios
+"""
+function _map_eng2math_scenarios!(data_math::Dict{String,<:Any}, data_eng::Dict{String,<:Any}; pass_props::Vector{String}=String[])
+    eng2math_load_scenarios = Dict{String,Any}(
+        string(split(obj["source_id"], ".", limit=2)[2])=>id for (id, obj) in get(data_math, "load", Dict())
+    )
 
     data_math["scenarios"] = Dict{String,Any}(
-        "load" => Dict{String,Any}(scen_id => Dict{String,Any}(engload2mathload[lid] => value for (lid,value) in scens) for (scen_id, scens) in get(get(data_eng, "scenarios", Dict()), "load", Dict())),
+        "load" => Dict{String,Any}(scen_id => Dict{String,Any}(eng2math_load_scenarios[load_id] => val for (load_id, val) in scens) for (scen_id, scens) in get(get(data_eng, "scenarios", Dict()), "load", Dict())),
         "feasibility_check" => get(get(data_eng, "scenarios", Dict()), "feasibility_check", false)
     )
 end
@@ -329,14 +335,16 @@ function generate_ranked_partitions(data::Dict{String,<:Any}, results::Dict{Stri
             "configuration" => Dict{String,String}(
                 data["switch"][s]["source_id"] => string(sw["state"]) for (s,sw) in get(get(result, "solution", Dict()), "switch", Dict())
             ),
-            "slack_buses" => ["$(data[t][i]["bus"])" for t in ["storage", "solar", "generator", "voltage_source"] for (i,obj) in get(get(result, "solution", Dict()), t, Dict()) if get(obj, "inverter", GRID_FOLLOWING) == GRID_FORMING],
-            "grid_forming_devices" => ["$(data[t][i]["source_id"])" for t in ["storage", "solar", "gen", "voltage_source"] for (i,obj) in get(get(result, "solution", Dict()), t, Dict()) if get(obj, "inverter", GRID_FOLLOWING) == GRID_FORMING],
+            "shed_loads" => [data["load"][l]["source_id"] for l in keys(filter(x->sum(abs.(x.second["pd"]+im*x.second["qd"]))==0.0, get(get(result, "solution", Dict()), "load", Dict())))],
+            "slack_buses" => ["bus.$(data[t][i]["bus"])" for t in ["storage", "solar", "generator", "voltage_source"] for (i,obj) in get(get(result, "solution", Dict()), t, Dict()) if get(obj, "inverter", GRID_FOLLOWING) == GRID_FORMING],
+            "grid_forming_devices" => ["$(data[t][i]["source_id"])" for t in ["storage", "solar", "generator", "voltage_source"] for (i,obj) in get(get(result, "solution", Dict()), t, Dict()) if get(obj, "inverter", GRID_FOLLOWING) == GRID_FORMING],
         )
 
         if config ∉ configs
             push!(
                 partitions,
                 Dict{String,Any}(
+                    "uuid" => string(UUIDs.uuid4()),
                     "rank" => rank,
                     "score" => round(get(result, "objective", Inf) + get(result, "mip_gap", 0.0); sigdigits=6),
                     config...
@@ -362,13 +370,13 @@ function generate_load_robust_partitions(data::Dict{String,<:Any}, contingencies
     results = Dict{String,Any}()
     load_scenarios = generate_load_scenarios(data, N, ΔL)
 
-    for (idx,state) in enumerate(contingencies)
+    for state in contingencies
         eng = deepcopy(data)
         eng["switch"] = recursive_merge(get(eng, "switch", Dict{String,Any}()), state)
 
         eng["time_elapsed"] = 1.0  # TODO: what should the time_elapsed be? how long do we want partitions to be robust for?
 
-        results["$(idx)"] = solve_robust_block_mld(eng, model_type, solver, load_scenarios)
+        results[SHA.bytes2hex(SHA.sha1(join(sort(collect(keys(state))))))] = solve_robust_block_mld(eng, model_type, solver, load_scenarios)
     end
 
     return results
@@ -383,13 +391,13 @@ Generate robust partitions for `contingencies` while also considering load uncer
 function generate_load_robust_partitions(data::Dict{String,<:Any}, contingencies::Set{<:Dict{String,<:Any}}, load_scenarios::Dict{String,Dict{String,Any}}, model_type::Type, solver; kwargs...)
     results = Dict{String,Any}()
 
-    for (idx,state) in enumerate(contingencies)
+    for state in contingencies
         eng = deepcopy(data)
         eng["switch"] = recursive_merge(get(eng, "switch", Dict{String,Any}()), state)
 
         eng["time_elapsed"] = 1.0  # TODO: what should the time_elapsed be? how long do we want partitions to be robust for?
 
-        results["$(idx)"] = solve_robust_block_mld(eng, model_type, solver, load_scenarios)
+        results[SHA.bytes2hex(SHA.sha1(join(sort(collect(keys(state))))))] = solve_robust_block_mld(eng, model_type, solver, load_scenarios)
     end
 
     return results

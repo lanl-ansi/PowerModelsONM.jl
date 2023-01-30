@@ -277,8 +277,8 @@ function variable_mc_load_power(pm::PMD.AbstractUBFModels, scen::Int; nw=nw_id_d
         load = ref(pm, nw, :load, id)
         bus = ref(pm, nw, :bus, load["load_bus"])
         load_scen = deepcopy(load)
-        load_scen["pd"] = load_scen["pd"]*ref(pm, :scenarios, "load")[scen]["$(id)"]
-        load_scen["qd"] = load_scen["qd"]*ref(pm, :scenarios, "load")[scen]["$(id)"]
+        load_scen["pd"] = load_scen["pd"]*ref(pm, :scenarios, "load")["$scen"]["$(id)"]
+        load_scen["qd"] = load_scen["qd"]*ref(pm, :scenarios, "load")["$scen"]["$(id)"]
         cmax = PMD._calc_load_current_max(load_scen, bus)
         bound[id] = bus["vmax"][[findfirst(isequal(c), bus["terminals"]) for c in conn_bus[id]]]*cmax'
     end
@@ -292,8 +292,8 @@ function variable_mc_load_power(pm::PMD.AbstractUBFModels, scen::Int; nw=nw_id_d
     for id in load_del_ids
 		bus = ref(pm, nw, :bus, load["load_bus"])
         load_scen = deepcopy(load)
-        load_scen["pd"] = load_scen["pd"]*ref(pm, :scenarios, "load")[scen]["$(id)"]
-        load_scen["qd"] = load_scen["qd"]*ref(pm, :scenarios, "load")[scen]["$(id)"]
+        load_scen["pd"] = load_scen["pd"]*ref(pm, :scenarios, "load")["$scen"]["$(id)"]
+        load_scen["qd"] = load_scen["qd"]*ref(pm, :scenarios, "load")["$scen"]["$(id)"]
         cmin[id], cmax[id] = PMD._calc_load_current_magnitude_bounds(load_scen, bus)
     end
     (CCdr, CCdi) = PMD.variable_mx_hermitian(pm.model, load_del_ids, load_connections; sqrt_upper_bound=cmax, sqrt_lower_bound=cmin, name="0_CCd")
