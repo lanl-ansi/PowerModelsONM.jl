@@ -173,6 +173,39 @@ function get_timestep_dispatch(solution::Dict{String,<:Any}, network::Dict{Strin
             _dispatch["switch"][id]["current (A)"] = current
         end
 
+        if any(!isempty(get(network["nw"]["$n"], t, Dict())) for t in ["relay", "recloser", "fuse"])
+            _dispatch["protection"] = Dict{String,Any}()
+        end
+
+        source_id_lookup = Dict(obj["source_id"]=>(t,id) for t in ["line", "switch"] for (id,obj) in get(network["nw"]["$n"], t, Dict()) if haskey(obj, "source_id"))
+
+        for t in ["relay", "recloser", "fuse"]
+            for (id, obj) in get(network["nw"]["$n"], t, Dict())
+                source_id = string(get(obj, "location", get(obj, "monitoredobj", "")))
+                _t, _id = source_id_lookup[source_id]
+                if _t ∈ ["line", "switch"]
+                    _obj = network["nw"]["$n"][_t][_id]
+
+                    connections = _obj["f_connections"]
+
+                    obj_sol = get(get(solution["nw"]["$n"], "switch", Dict()), id, Dict())
+
+                    f_bus_id = _obj["f_bus"]
+                    terminals = network["nw"]["$n"]["bus"][f_bus_id]["terminals"]
+
+                    bus = get(get(solution["nw"]["$n"], "bus", Dict()), f_bus_id, Dict())
+
+                    _dispatch["protection"]["$t.$id"] = Dict{String,Any}(
+                        "real power flow (kW)" => get(obj_sol, "pf", zeros(length(connections))),
+                        "reactive power flow (kVar)" => get(obj_sol, "qf", zeros(length(connections))),
+                        "voltage (kV)" => haskey(bus, "vr") && haskey(bus, "vi") ? sqrt.(bus["vr"].^2 + bus["vi"].^2)[[findfirst(isequal(c), terminals) for c in connections]] : haskey(bus, "w") ? sqrt.(bus["w"])[[findfirst(isequal(c), terminals) for c in connections]] : haskey(bus, "vm") ? bus["vm"][[findfirst(isequal(c), terminals) for c in connections]] : zeros(length(terminals)),
+                        "phi (deg)" => haskey(bus, "vr") && haskey(bus, "vi") ? atan.(bus["vi"], bus["vr"])[[findfirst(isequal(c), terminals) for c in connections]] : haskey(bus, "w") ? [0.0, -120.0, 120.0, 0.0, 0.0][[findfirst(isequal(c), terminals) for c in connections]] : haskey(bus, "va") ? bus["va"][[findfirst(isequal(c), terminals) for c in connections]] : [0.0, -120.0, 120.0, 0.0, 0.0][[findfirst(isequal(c), terminals) for c in connections]],
+                        "connections" => connections,
+                    )
+                end
+            end
+        end
+
         push!(dispatch, _dispatch)
     end
 

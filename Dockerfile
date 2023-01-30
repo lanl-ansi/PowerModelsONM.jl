@@ -17,7 +17,7 @@ ADD LICENSE.md LICENSE
 # Update Julia General registry
 ENV JULIA_PKG_SERVER=""
 RUN git clone https://github.com/julia-actions/julia-buildpkg.git
-RUN julia --color=yes julia-buildpkg/add_general_registry.jl
+RUN julia --color=yes julia-buildpkg/add_general_registry.buildpkg.jl
 RUN rm -rf julia-buildpkg
 
 # Instantiate Julia Env
