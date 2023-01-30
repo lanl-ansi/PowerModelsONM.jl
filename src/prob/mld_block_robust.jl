@@ -108,7 +108,7 @@ end
 """
     _map_eng2math_scenarios!(data_math::Dict{String,<:Any}, data_eng::Dict{String,<:Any}; pass_props::Vector{String}=String[])
 
-Converts engineering scenarios into mathematical scenarios
+Converts engineering scenarios into mathematical scenarios.
 """
 function _map_eng2math_scenarios!(data_math::Dict{String,<:Any}, data_eng::Dict{String,<:Any}; pass_props::Vector{String}=String[])
     eng2math_load_scenarios = Dict{String,Any}(
@@ -217,7 +217,6 @@ function build_scen_block_mld(pm::PMD.AbstractUBFModels, scen::String, obj_expr:
         constraint_mc_storage_block_on_off(pm, i)
         constraint_mc_storage_losses_block_on_off(pm, i)
         !con_opts["disable-thermal-limit-constraints"] && !var_opts["unbound-storage-power"] && PMD.constraint_mc_storage_thermal_limit(pm, i)
-        !con_opts["disable-storage-unbalance-constraint"] && constraint_mc_storage_phase_unbalance_grid_following(pm, i)
     end
 
     for i in ids(pm, :branch)
@@ -235,7 +234,6 @@ function build_scen_block_mld(pm::PMD.AbstractUBFModels, scen::String, obj_expr:
     con_opts["disable-microgrid-networking"] &&  constraint_disable_networking(pm; relax=var_opts["relax-integer-variables"])
     if !feas_chck
         !con_opts["disable-radiality-constraint"] && constraint_radial_topology(pm; relax=var_opts["relax-integer-variables"])
-        !con_opts["disable-switch-close-action-limit"] && constraint_switch_close_action_limit(pm)
     end
     !con_opts["disable-block-isolation-constraint"] && constraint_isolate_block(pm)
     for i in ids(pm, :switch)

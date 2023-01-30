@@ -387,31 +387,6 @@ end
 Minimum block load shed objective (similar to objective_min_shed_load_block_rolling_horizon) for robust partitioning problem considering uncertainty
 """
 function objective_robust_min_shed_load_block_rolling_horizon(pm::AbstractUnbalancedPowerModel, obj_expr::Dict{Int,JuMP.AffExpr}, scen::Int)
-    nw_id_list = sort(collect(nw_ids(pm)))
-
-    for (i, n) in enumerate(nw_id_list)
-        nw_ref = ref(pm, n)
-
-        var(pm, n)[:delta_sw_state] = JuMP.@variable(
-            pm.model,
-            [i in ids(pm, n, :switch_dispatchable)],
-            base_name="$(n)_$(i)_delta_sw_state",
-            start = 0
-        )
-
-        for (s,switch) in nw_ref[:switch_dispatchable]
-            z_switch = var(pm, n, :switch_state, s)
-            if i == 1
-                JuMP.@constraint(pm.model, var(pm, n, :delta_sw_state, s) >=  (JuMP.start_value(z_switch) - z_switch))
-                JuMP.@constraint(pm.model, var(pm, n, :delta_sw_state, s) >= -(JuMP.start_value(z_switch) - z_switch))
-            else  # multinetwork
-                z_switch_prev = var(pm, nw_id_list[i-1], :switch_state, s)
-                JuMP.@constraint(pm.model, var(pm, n, :delta_sw_state, s) >=  (z_switch_prev - z_switch))
-                JuMP.@constraint(pm.model, var(pm, n, :delta_sw_state, s) >= -(z_switch_prev - z_switch))
-            end
-        end
-    end
-
     total_energy_ub = sum(Float64[strg["energy_rating"] for (n,nw_ref) in nws(pm) for (i,strg) in nw_ref[:storage]])
     total_pmax = sum(Float64[all(.!isfinite.(gen["pmax"])) ? 0.0 : sum(gen["pmax"][isfinite.(gen["pmax"])]) for (n,nw_ref) in nws(pm) for (i, gen) in nw_ref[:gen]])
 
@@ -435,8 +410,6 @@ function objective_robust_min_shed_load_block_rolling_horizon(pm::AbstractUnbala
 
     obj_expr[scen] = JuMP.@expression(pm.model, sum(
         sum( block_weights[n][i] * Int(!obj_opts[n]["disable-load-block-shed-cost"]) * (1-var(pm, n, :z_block, i)) for (i,block) in nw_ref[:blocks])
-        + sum( ref(pm, n, :switch_scores, l)*(1-var(pm, n, :switch_state, l)) for l in ids(pm, n, :switch_dispatchable) )
-        + sum( Int(!obj_opts[n]["disable-switch-state-change-cost"]) * sum(var(pm, n, :delta_sw_state, l)) for l in ids(pm, n, :switch_dispatchable)) / n_dispatchable_switches[n]
         + sum( Int(!obj_opts[n]["disable-storage-discharge-cost"]) * (strg["energy_rating"] - var(pm, n, :se, i)) for (i,strg) in nw_ref[:storage]) / total_energy_ub
         + sum( Int(!obj_opts[n]["disable-generation-dispatch-cost"]) * sum(get(gen,  "cost", [0.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [0.0, 0.0])[1] for c in  gen["connections"]) for (i,gen) in nw_ref[:gen]) / total_energy_ub
         for (n, nw_ref) in nws(pm))
