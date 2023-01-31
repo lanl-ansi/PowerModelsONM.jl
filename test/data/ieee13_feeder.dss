@@ -170,6 +170,11 @@ New Relay.632645 MonitoredObj=line.632645
 Set Voltagebases=[115, 4.16, .48]
 calcv
 
+! POINT REGULATOR CONTROLS TO REGULATOR TRANSFORMER AND SET PARAMETERS
+new regcontrol.Reg1  transformer=Reg1 winding=2  vreg=122  band=2  ptratio=20 ctprim=700  R=3   X=9
+new regcontrol.Reg2  transformer=Reg2 winding=2  vreg=122  band=2  ptratio=20 ctprim=700  R=3   X=9
+new regcontrol.Reg3  transformer=Reg3 winding=2  vreg=122  band=2  ptratio=20 ctprim=700  R=3   X=9
+
 Transformer.Reg1.Taps=[1.0 1.0625]
 Transformer.Reg2.Taps=[1.0 1.0500]
 Transformer.Reg3.Taps=[1.0 1.06875]

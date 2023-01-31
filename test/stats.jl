@@ -32,8 +32,8 @@
         @test length(args["output_data"]["Powerflow output"]) == 8
         @test all(all(haskey(ts, k) for k in ["voltage_source", "generator", "solar", "storage", "bus", "switch"]) for ts in args["output_data"]["Powerflow output"])
 
-        @test all(isapprox.(args["output_data"]["Powerflow output"][1]["voltage_source"]["source"]["real power setpoint (kW)"], [756.4, 775.4, 780.2]; atol=1e0))
-        @test all(isapprox.(args["output_data"]["Powerflow output"][1]["voltage_source"]["source"]["reactive power setpoint (kVar)"], [437.1, 420.6, 445.4]; atol=1e0))
+        @test all(isapprox.(args["output_data"]["Powerflow output"][1]["voltage_source"]["source"]["real power setpoint (kW)"], [754.631, 772.791, 773.189]; atol=1e0))
+        @test all(isapprox.(args["output_data"]["Powerflow output"][1]["voltage_source"]["source"]["reactive power setpoint (kVar)"], [434.111, 423.166, 444.365]; atol=1e0))
 
         @test all(isapprox.(args["output_data"]["Powerflow output"][3]["solar"]["pv_mg1b"]["real power setpoint (kW)"], [4.66588, 4.66588, 4.66588]; atol=1e-1))
         @test args["output_data"]["Powerflow output"][3]["solar"]["pv_mg1b"]["inverter"] == "GRID_FOLLOWING"
@@ -56,14 +56,14 @@
     @testset "test microgrid stats" begin
         @test all(isapprox.(args["output_data"]["Storage SOC (%)"], [36.4, 34.8, 44.7, 46.5, 48.0, 48.0, 31.2, 16.8]; atol=1e0))
 
-        @test all(isapprox.(args["output_data"]["Load served"]["Bonus load via microgrid (%)"], [0.0, 0.0, 8.82919, 7.75508, 7.75508, 8.06661, 8.06661, 8.4233]; atol=1e-1))
-        @test all(isapprox.(args["output_data"]["Load served"]["Feeder load (%)"], [94.2578, 94.2371, 85.4012, 86.2202, 86.2202, 85.9931, 85.9931, 85.72]; atol=1e-1))
+        @test all(isapprox.(args["output_data"]["Load served"]["Bonus load via microgrid (%)"], [0.0, 0.0, 9.18339, 7.98514, 7.98514, 8.32841, 8.32841, 8.72574]; atol=1e-1))
+        @test all(isapprox.(args["output_data"]["Load served"]["Feeder load (%)"], [93.7876, 93.7822, 84.6857, 85.7495, 85.7495, 85.4536, 85.4536, 85.101]; atol=1e-1))
         @test all(isapprox.(args["output_data"]["Load served"]["Microgrid load (%)"], [14.2464, 17.9733, 51.9408, 64.7277, 61.1884, 53.4061, 82.2705, 81.8947]; atol=1e-1))
 
-        @test all(isapprox.(args["output_data"]["Generator profiles"]["Diesel DG (kW)"], [0.0, 0.0, 250.389, 264.542, 264.542, 259.691, 259.691, 255.021]; atol=1e0))
+        @test all(isapprox.(args["output_data"]["Generator profiles"]["Diesel DG (kW)"], [0.0, 0.0, 260.503, 272.498, 272.498, 268.22, 268.22, 264.266]; atol=1e0))
         @test all(isapprox.(args["output_data"]["Generator profiles"]["Energy storage (kW)"], [75.0, 20.0016, 6.00045, -22.4995, -17.9993, -0.499176, 210.0, 180.0]; atol=1e0))
         @test all(isapprox.(args["output_data"]["Generator profiles"]["Solar DG (kW)"], [0.0, 0.0, 14.0, 35.0, 28.0, 10.5, 0.0, 0.0]; atol=1e0))
-        @test all(isapprox.(args["output_data"]["Generator profiles"]["Grid mix (kW)"], [2312.14, 2396.64, 2421.91, 2941.16, 2941.16, 2768.4, 2768.4, 2595.23]; atol=1e1))
+        @test all(isapprox.(args["output_data"]["Generator profiles"]["Grid mix (kW)"], [2300.61, 2385.48, 2402.26, 2926.25, 2926.25, 2752.07, 2752.07, 2577.35]; atol=1e1))
     end
 
     @testset "test stability stats" begin
