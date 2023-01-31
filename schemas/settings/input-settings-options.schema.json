@@ -166,7 +166,7 @@
         "operations-algorithm": {
           "description": "Choice for operations optimization algorithm, 'rolling-horizon' or 'full-lookahead'",
           "type": "string",
-          "enum": ["rolling-horizon", "full-lookahead"],
+          "enum": ["rolling-horizon", "full-lookahead", "robust"],
           "default": "full-lookahead"
         },
         "operations-formulation": {

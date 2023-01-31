@@ -41,21 +41,32 @@ silence!()
 
 @testset "PowerModelsONM" begin
     # initialization
+    @info "Running tests in args.jl"
     include("args.jl")
+    @info "Running tests in schema.jl"
     include("schema.jl")
 
     # inputs
+    @info "Running tests in io.jl"
     include("io.jl")
+    @info "Running tests in data.jl"
     include("data.jl")
+    @info "Running tests in graphml.jl"
     include("graphml.jl")
 
     # problems
+    @info "Running tests in mld.jl"
     include("mld.jl")
+    @info "Running tests in nlp.jl"
     include("nlp.jl")
+    @info "Running tests in opf.jl"
     include("opf.jl")
+    @info "Running tests in faults.jl"
     include("faults.jl")
+    @info "Running tests in stability.jl"
     include("stability.jl")
 
     # full workflow and outputs
+    @info "Running tests in stats.jl"
     include("stats.jl")
 end

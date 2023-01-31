@@ -13,6 +13,24 @@ end
 
 
 """
+    _update_inverter_settings!(data::Dict{String,<:Any}, sol::Dict{String,<:Any})
+
+Helper function to update inverter settings from a solution, for the mld robust problem to check for feasibility.
+"""
+function _update_inverter_settings!(data::Dict{String,<:Any}, sol::Dict{String,<:Any})
+    for t in ["generator", "storage", "voltage_source", "solar"]
+        if haskey(sol, t)
+            for (i,obj) in sol[t]
+                if haskey(obj, "inverter")
+                    data[t][i]["inverter"] = Int(obj["inverter"])
+                end
+            end
+        end
+    end
+end
+
+
+"""
     _update_storage_capacity!(data::Dict{String,<:Any}, solution::Dict{String,<:Any})
 
 Helper function to update storage capacity for the next subnetwork based on a solution, for the rolling horizon algorithm.

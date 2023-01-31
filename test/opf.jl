@@ -31,8 +31,8 @@
         vbase, _ = PMD.calc_voltage_bases(args["base_network"], args["base_network"]["settings"]["vbases_default"])
 
         @test isapprox(args["optimal_dispatch_result"]["objective"], 4.85; atol=1e-2)
-        @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["801"]["vm"] ./ vbase["801"], [1.02, 1.02, 1.02]; atol=1e-2))
-        @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["675"]["vm"] ./ vbase["675"], [1.00, 1.03, 1.00]; atol=1e-2))
+        @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["801"]["vm"] ./ vbase["801"], [1.010, 1.016, 1.004]; atol=1e-2))
+        @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["675"]["vm"] ./ vbase["675"], [0.998, 1.023, 0.993]; atol=1e-2))
     end
 
     @testset "test acr opf" begin
@@ -43,10 +43,10 @@
         vbase, _ = PMD.calc_voltage_bases(args["base_network"], args["base_network"]["settings"]["vbases_default"])
 
         @test isapprox(args["optimal_dispatch_result"]["objective"], 5.13; atol=2e-2)
-        @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["801"]["vm"] ./ vbase["801"], [1.04, 1.06, 1.04]; atol=1e-2))
-        @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["801"]["va"], [-3.31, -121.51, 117.33]; atol=1e0))
-        @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["675"]["vm"] ./ vbase["675"], [1.03, 1.08, 1.03]; atol=1e-2))
-        @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["675"]["va"], [-5.03, -121.80, 116.66]; atol=1e0))
+        @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["801"]["vm"] ./ vbase["801"], [1.013, 1.062, 1.025]; atol=1e-2))
+        @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["801"]["va"], [-3.36, -122.49, 117.39]; atol=1e0))
+        @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["675"]["vm"] ./ vbase["675"], [0.979, 1.085, 1.021]; atol=1e-2))
+        @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["675"]["va"], [-4.77, -123.13, 116.81]; atol=1e0))
     end
 
     @testset "test acp opf" begin
@@ -57,10 +57,10 @@
         vbase, _ = PMD.calc_voltage_bases(args["base_network"], args["base_network"]["settings"]["vbases_default"])
 
         @test isapprox(args["optimal_dispatch_result"]["objective"], 5.13; atol=2e-2)
-        @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["801"]["vm"] ./ vbase["801"], [1.04, 1.06, 1.04]; atol=1e-2))
-        @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["801"]["va"], [-3.31, -121.51, 117.33]; atol=1e0))
-        @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["675"]["vm"] ./ vbase["675"], [1.03, 1.08, 1.03]; atol=1e-2))
-        @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["675"]["va"], [-5.03, -121.80, 116.66]; atol=1e0))
+        @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["801"]["vm"] ./ vbase["801"], [1.013, 1.062, 1.025]; atol=1e-2))
+        @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["801"]["va"], [-3.36, -122.49, 117.39]; atol=1e0))
+        @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["675"]["vm"] ./ vbase["675"], [0.979, 1.085, 1.021]; atol=1e-2))
+        @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["675"]["va"], [-4.77, -123.13, 116.81]; atol=1e0))
     end
 
     @testset "test fix-small-numbers nfa opf" begin

@@ -1,0 +1,89 @@
+{
+  "title": "output-robust-partitions.schema",
+  "x-stoplight": {
+    "id": "bkeimmt0ouri6"
+  },
+  "type": "array",
+  "description": "An ordered array of unique robust partition configurations by switch/topology configuration and loads shed",
+  "examples": [
+    [
+      {
+        "rank": 1,
+        "score": 5.128,
+        "uuid": "1b3d21c9-c263-4b10-8194-bac836c3c869",
+        "shed": [],
+        "configuration": {
+          "line.701702": "CLOSED",
+          "line.671700": "CLOSED",
+          "line.671692": "CLOSED",
+          "line.800801": "CLOSED",
+          "line.703800": "CLOSED",
+          "line.801675": "OPEN"
+        }
+      }
+    ]
+  ],
+  "items": {
+    "type": "object",
+    "properties": {
+      "uuid": {
+        "type": "string",
+        "description": "Unique ID of the configuration",
+        "format": "uuid"
+      },
+      "rank": {
+        "type": "integer",
+        "description": "Robustness Rank of the configuration"
+      },
+      "score": {
+        "type": "number",
+        "description": "A score composed from the objective value of the solution and the MIP gap (lower is better)"
+      },
+      "configuration": {
+        "type": "object",
+        "description": "Configuration of the switches",
+        "patternProperties": {
+          "^.+$": {
+            "type": "string",
+            "enum": [
+              "OPEN",
+              "CLOSED",
+              "open",
+              "closed"
+            ]
+          }
+        }
+      },
+      "shed_loads": {
+        "type": "array",
+        "description": "List of loads that should be shed",
+        "items": {
+          "type": "string"
+        }
+      },
+      "slack_buses": {
+        "type": "array",
+        "description": "List of buses that should be set to serve as slacks",
+        "items": {
+          "type": "string"
+        }
+      },
+      "grid_forming_devices": {
+        "type": "array",
+        "description": "List of devices that should be set to be grid-forming",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "required": [
+      "uuid",
+      "rank",
+      "score",
+      "configuration",
+      "shed_loads",
+      "slack_buses",
+      "grid_forming_devices"
+    ]
+  }
+}

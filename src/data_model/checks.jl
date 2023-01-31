@@ -148,3 +148,19 @@ function _check_switch_state_feasibility(eng::Dict{String,Any})::Bool
 
     !Graphs.is_cyclic(g)
 end
+
+
+"""
+    validate_robust_partitions(data::Vector{Dict})::Bool
+
+Validates events `data` against robust partitions output schema
+"""
+validate_robust_partitions(data::Vector)::Bool = _validate_against_schema(data, "output-robust-partitions")
+
+
+"""
+    evaluate_robust_partitions(data::Dict)
+
+Helper function to give detailed output on JSON Schema validation of settings `data`
+"""
+evaluate_robust_partitions(data::Vector) = JSONSchema.validate(data, load_schema(joinpath(dirname(pathof(PowerModelsONM)), "..", "schemas", "output-robust-partitions.schema.json")))

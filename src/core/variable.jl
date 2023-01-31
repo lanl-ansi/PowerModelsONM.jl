@@ -225,3 +225,127 @@ function variable_inverter_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=n
         IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :gen, :inverter, [i for ((t,i),_) in var(pm, nw, :z_inverter) if t == :gen], Dict{Int,Union{JuMP.VariableRef,Int}}(i => v for ((t,i),v) in filter(x->x.first[1]==:gen, z_inverter)))
     end
 end
+
+
+"""
+    variable_mc_load_power(pm::PMD.AbstractUBFModels, scen::Int; nw=nw_id_default, report::Bool=false)
+
+Load variables creation for robust mld problem. The bounds are different for each scenario.
+"""
+function variable_mc_load_power(pm::PMD.AbstractUBFModels, scen::Int; nw=nw_id_default, report::Bool=false)
+    load_wye_ids = [id for (id, load) in ref(pm, nw, :load) if load["configuration"]==PMD.WYE]
+    load_del_ids = [id for (id, load) in ref(pm, nw, :load) if load["configuration"]==PMD.DELTA]
+    load_cone_ids = [id for (id, load) in ref(pm, nw, :load) if PMD._check_load_needs_cone(load)]
+    load_connections = Dict{Int,Vector{Int}}(id => load["connections"] for (id,load) in ref(pm, nw, :load))
+
+    # create dictionaries
+    pd_bus = var(pm, nw)[:pd_bus] = Dict()
+    qd_bus = var(pm, nw)[:qd_bus] = Dict()
+    pd = var(pm, nw)[:pd] = Dict()
+    qd = var(pm, nw)[:qd] = Dict()
+
+    # variable_mc_load_power
+    for i in intersect(load_wye_ids, load_cone_ids)
+		pd[i] = JuMP.@variable(
+			pm.model,
+        	[c in load_connections[i]],
+			base_name="0_pd_$(i)"
+        )
+    	qd[i] = JuMP.@variable(
+			pm.model,
+        	[c in load_connections[i]],
+			base_name="0_qd_$(i)"
+        )
+
+		load = ref(pm, nw, :load, i)
+		bus = ref(pm, nw, :bus, load["load_bus"])
+        load_scen = deepcopy(load)
+        load_scen["pd"] = load_scen["pd"]*ref(pm, :scenarios, "load")["$scen"]["$i"]
+        load_scen["qd"] = load_scen["qd"]*ref(pm, :scenarios, "load")["$scen"]["$i"]
+		pmin, pmax, qmin, qmax = PMD._calc_load_pq_bounds(load_scen, bus)
+		for (idx,c) in enumerate(load_connections[i])
+			PMD.set_lower_bound(pd[i][c], pmin[idx])
+			PMD.set_upper_bound(pd[i][c], pmax[idx])
+			PMD.set_lower_bound(qd[i][c], qmin[idx])
+			PMD.set_upper_bound(qd[i][c], qmax[idx])
+		end
+	end
+
+    # now, create auxilary power variable X for delta loads
+    bound = Dict{eltype(load_del_ids), Matrix{Real}}()
+    for id in load_del_ids
+        load = ref(pm, nw, :load, id)
+        bus = ref(pm, nw, :bus, load["load_bus"])
+        load_scen = deepcopy(load)
+        load_scen["pd"] = load_scen["pd"]*ref(pm, :scenarios, "load")["$scen"]["$(id)"]
+        load_scen["qd"] = load_scen["qd"]*ref(pm, :scenarios, "load")["$scen"]["$(id)"]
+        cmax = PMD._calc_load_current_max(load_scen, bus)
+        bound[id] = bus["vmax"][[findfirst(isequal(c), bus["terminals"]) for c in conn_bus[id]]]*cmax'
+    end
+    (Xdr,Xdi) = PMD.variable_mx_complex(pm.model, load_del_ids, load_connections, load_connections; symm_bound=bound, name="0_Xd")
+    var(pm, nw)[:Xdr] = Xdr
+    var(pm, nw)[:Xdi] = Xdi
+
+    # only delta loads need a current variable
+    cmin = Dict{eltype(load_del_ids), Vector{Real}}()
+    cmax = Dict{eltype(load_del_ids), Vector{Real}}()
+    for id in load_del_ids
+		bus = ref(pm, nw, :bus, load["load_bus"])
+        load_scen = deepcopy(load)
+        load_scen["pd"] = load_scen["pd"]*ref(pm, :scenarios, "load")["$scen"]["$(id)"]
+        load_scen["qd"] = load_scen["qd"]*ref(pm, :scenarios, "load")["$scen"]["$(id)"]
+        cmin[id], cmax[id] = PMD._calc_load_current_magnitude_bounds(load_scen, bus)
+    end
+    (CCdr, CCdi) = PMD.variable_mx_hermitian(pm.model, load_del_ids, load_connections; sqrt_upper_bound=cmax, sqrt_lower_bound=cmin, name="0_CCd")
+    var(pm, nw)[:CCdr] = CCdr
+    var(pm, nw)[:CCdi] = CCdi
+
+end
+
+
+"""
+    variable_robust_inverter_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, report::Bool=true)
+
+Robust mld (outer) problem solution for indicating whether a DER (storage or gen) is in grid-forming mode (1) or grid-following mode (0).
+"""
+function variable_robust_inverter_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, report::Bool=true)
+    z_inverter = var(pm, nw)[:z_inverter] = Dict{Tuple{Symbol,Int},Any}()
+    for t in [:storage, :gen]
+        for i in ids(pm, nw, t)
+            var(pm, nw, :z_inverter)[(t,i)] = Int(ref(pm, nw, t, i, "inverter"))
+        end
+    end
+
+    if report
+        IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :storage, :inverter, [i for ((t,i),_) in var(pm, nw, :z_inverter) if t == :storage], Dict{Int,Any}(i => v for ((t,i),v) in filter(x->x.first[1]==:storage, z_inverter)))
+        IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :gen, :inverter, [i for ((t,i),_) in var(pm, nw, :z_inverter) if t == :gen], Dict{Int,Any}(i => v for ((t,i),v) in filter(x->x.first[1]==:gen, z_inverter)))
+    end
+end
+
+
+"""
+    variable_robust_switch_state(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, report::Bool=true)
+
+Robust mld (outer) problem solution for switch state (open/close) variables
+"""
+function variable_robust_switch_state(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, report::Bool=true)
+    if ref(pm, nw, :options, "constraints")["disable-microgrid-expansion"]
+        dispatchable_switches = [i for (i,sw) in ref(pm, nw, :switch) if !isempty(get(ref(pm, nw, :bus, sw["f_bus"]), "microgrid_id", "")) && !isempty(get(ref(pm, nw, :bus, sw["t_bus"]), "microgrid_id", "")) && ref(pm, nw, :bus, sw["f_bus"], "microgrid_id") == ref(pm, nw, :bus, sw["t_bus"], "microgrid_id")]
+    else
+        dispatchable_switches = collect(ids(pm, nw, :switch_dispatchable))
+    end
+
+    state = var(pm, nw)[:switch_state] = Dict{Int,Any}(
+        l => ref(pm, nw, :switch, l, "state") for l in dispatchable_switches
+    )
+
+    # create variables (constants) for 'fixed' (non-dispatchable) switches
+    fixed_switches = [i for i in ids(pm, nw, :switch) if i ∉ dispatchable_switches]
+
+    for i in fixed_switches
+        var(pm, nw, :switch_state)[i] = ref(pm, nw, :switch, i, "state")
+    end
+
+    report && IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :switch, :state, dispatchable_switches, state)
+    report && IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :switch, :state, fixed_switches, Dict{Int,Any}(i => var(pm, nw, :switch_state, i) for i in fixed_switches))
+end

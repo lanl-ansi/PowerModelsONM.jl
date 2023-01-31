@@ -4,7 +4,9 @@ module PowerModelsONM
     # STDLIB
     import Dates
     import LinearAlgebra
+    import SHA
     import Statistics
+    import UUIDs
 
     # Parallel Computing
     import Distributed
@@ -31,10 +33,15 @@ module PowerModelsONM
     import HiGHS
     import Juniper
 
+    # cli
     import ArgParse
 
+    # schemas
     import JSON
     import JSONSchema
+
+    # math
+    import Combinatorics: combinations
 
     # Logging Tools
     import Logging
@@ -42,6 +49,9 @@ module PowerModelsONM
 
     # Hardware statistics
     import Hwloc
+
+    # Generate samples for robust partitions
+    import StatsBase as SB
 
     # Network Graphs
     import Graphs
@@ -101,6 +111,8 @@ module PowerModelsONM
     include("prob/opf.jl")
     include("prob/mld_traditional.jl")
     include("prob/mld_block.jl")
+    include("prob/partitions.jl")
+    include("prob/mld_block_robust.jl")
     include("prob/stability.jl")
     include("prob/switch.jl")
 
