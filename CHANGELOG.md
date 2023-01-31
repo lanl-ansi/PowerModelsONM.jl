@@ -2,6 +2,10 @@
 
 ## staged
 
+- none
+
+## v3.3.0
+
 - Added robust mld problem formulation using scenario-based approach
 - Added draft schema for robust partitions outputs
 - Fixed Dockerfile to work with julia-buildpkg:latest
