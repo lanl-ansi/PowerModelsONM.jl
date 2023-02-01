@@ -2,7 +2,7 @@
 
 ## staged
 
-- none
+- Fixed bug in `IM.relaxation_product` where `variable_domain` of `AffExpr` could be flipped (`x_lb` is `x_ub` and vice versa), leading to infeasibilities
 
 ## v3.3.0
 

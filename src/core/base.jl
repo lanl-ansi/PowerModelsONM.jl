@@ -95,11 +95,11 @@ z <= JuMP.upper_bound(x)*y + JuMP.lower_bound(y)*x - JuMP.upper_bound(x)*JuMP.lo
 function IM.relaxation_product(m::JuMP.Model, x::JuMP.AffExpr, y::JuMP.VariableRef, z::JuMP.VariableRef;
                                 default_x_domain::Tuple{Real,Real}=(-Inf, Inf),
                                 default_y_domain::Tuple{Real,Real}=(-Inf, Inf))
-    x_lb, x_ub = IM.variable_domain(x)
+    _x_lb, _x_ub = IM.variable_domain(x)
     y_lb, y_ub = IM.variable_domain(y)
 
-    x_lb = !isfinite(x_lb) ? default_x_domain[1] : x_lb
-    x_ub = !isfinite(x_ub) ? default_x_domain[2] : x_ub
+    x_lb = !isfinite(_x_lb) ? default_x_domain[1] : (_x_lb < _x_ub) ? _x_lb : _x_ub
+    x_ub = !isfinite(_x_ub) ? default_x_domain[2] : (_x_lb < _x_ub) ? _x_ub : _x_lb
     y_lb = !isfinite(y_lb) ? default_y_domain[1] : y_lb
     y_ub = !isfinite(y_ub) ? default_y_domain[2] : y_ub
 
