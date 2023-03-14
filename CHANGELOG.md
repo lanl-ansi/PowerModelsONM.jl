@@ -2,6 +2,7 @@
 
 ## staged
 
+- Fixed bug in `JuMP.lower_bound(x::JuMP.AffExpr)` and `JuMP.upper_bound(x::JuMP.AffExpr)` where correct lower and upper bounds were not being calculated
 - Fixed bug in `IM.relaxation_product` where `variable_domain` of `AffExpr` could be flipped (`x_lb` is `x_ub` and vice versa), leading to infeasibilities
 
 ## v3.3.0

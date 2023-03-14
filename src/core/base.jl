@@ -24,7 +24,13 @@ lower_bound helper function for Affine Expression variables
 function JuMP.lower_bound(x::JuMP.AffExpr)
     lb = []
     for (k, v) in x.terms
-        push!(lb, JuMP.lower_bound(k) * v)
+        if v > 0
+            push!(lb, min(JuMP.lower_bound(k), JuMP.upper_bound(k)) * v)
+        elseif v < 0
+            push!(lb, max(JuMP.lower_bound(k), JuMP.upper_bound(k)) * v)
+        else
+            push!(lb, JuMP.lower_bound(k) * v)
+        end
     end
     return sum(lb)
 end
@@ -37,7 +43,13 @@ upper_bound helper function for Affine Expression variables
 function JuMP.upper_bound(x::JuMP.AffExpr)
     ub = []
     for (k, v) in x.terms
-        push!(ub, JuMP.upper_bound(k) * v)
+        if v > 0
+            push!(ub, max(JuMP.lower_bound(k), JuMP.upper_bound(k)) * v)
+        elseif v < 0
+            push!(ub, min(JuMP.lower_bound(k), JuMP.upper_bound(k)) * v)
+        else
+            push!(ub, JuMP.upper_bound(k) * v)
+        end
     end
     return sum(ub)
 end
@@ -93,8 +105,9 @@ z <= JuMP.upper_bound(x)*y + JuMP.lower_bound(y)*x - JuMP.upper_bound(x)*JuMP.lo
 ```
 """
 function IM.relaxation_product(m::JuMP.Model, x::JuMP.AffExpr, y::JuMP.VariableRef, z::JuMP.VariableRef;
-                                default_x_domain::Tuple{Real,Real}=(-Inf, Inf),
-                                default_y_domain::Tuple{Real,Real}=(-Inf, Inf))
+        default_x_domain::Tuple{Real,Real}=(-Inf, Inf),
+        default_y_domain::Tuple{Real,Real}=(-Inf, Inf)
+    )
     _x_lb, _x_ub = IM.variable_domain(x)
     y_lb, y_ub = IM.variable_domain(y)
 
