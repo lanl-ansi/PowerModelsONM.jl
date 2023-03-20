@@ -2,6 +2,7 @@
 
 ## staged
 
+- Fixed `constraint_mc_transformer_power_yy_block_on_off` where `PolyhedralRelaxations.construct_univariate_relaxation!` was producing infeasible constraints
 - Updated constraints in `constraint_grid_forming_inverter_per_cc_traditional` to consider `z_voltage` in the islands to prevent starting MIP infeasibilities
 - Added constrait to `constraint_isolate_block_traditional` to ensure that `z_voltage <= z_demand` if loads are not individually dispatchable
 - Added option `enable-switch-state-open-cost` to `objective_min_shed_load_block_rolling_horizon` and `objective_min_shed_load_traditional_rolling_horizon`
