@@ -13,13 +13,21 @@
         "uuid": "1b3d21c9-c263-4b10-8194-bac836c3c869",
         "shed": [],
         "configuration": {
-          "line.701702": "CLOSED",
+          "line.701702": "OPEN",
           "line.671700": "CLOSED",
           "line.671692": "CLOSED",
           "line.800801": "CLOSED",
           "line.703800": "CLOSED",
           "line.801675": "OPEN"
-        }
+        },
+        "slack_buses": [
+          "800",
+          "sourcebus"
+        ],
+        "grid_forming_devices": [
+          "vsource.source",
+          "storage.800"
+        ]
       }
     ]
   ],
