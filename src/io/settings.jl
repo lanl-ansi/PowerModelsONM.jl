@@ -257,12 +257,12 @@ end
 
 
 """
-    apply_settings!(args::Dict{String,Any})::Dict{String,Any}
+    apply_settings!(args::Dict{String,Any}; multinetwork::Bool=true)::Dict{String,Any}
 
 Applies settings to the network.
 """
-function apply_settings!(args::Dict{String,Any})::Dict{String,Any}
-    args["base_network"] = apply_settings(args["base_network"], get(args, "settings", Dict()))
+function apply_settings!(args::Dict{String,Any}; multinetwork::Bool=true)::Dict{String,Any}
+    args["base_network"] = apply_settings(args["base_network"], get(args, "settings", Dict()); multinetwork=multinetwork)
     args["network"] = make_multinetwork(args["base_network"])
 end
 
@@ -270,7 +270,8 @@ end
 """
     apply_settings(
         network::Dict{String,<:Any},
-        settings::Dict{String,<:Any}
+        settings::Dict{String,<:Any};
+        multinetwork::Bool=true
     )::Dict{String,Any}
 
 Applies `settings` to single-network `network`
@@ -314,7 +315,7 @@ end
 
 Helper function to set a property in a `network` data structure at `path` to `value`
 """
-function set_option!(network::Dict{String,<:Any}, path::Tuple{Vararg{String}}, value::Any)
+function set_option!(network::Dict{String,<:Any}, path::Tuple{Vararg{<:String}}, value::Any)
     if ismultinetwork(network)
         mn_data = network["nw"]
         _set_property!(network, path, value)
@@ -335,7 +336,7 @@ end
 
 Helper function to set a property to value at an arbitrary nested path in a dictionary
 """
-function _set_property!(data::Dict{String,<:Any}, path::Tuple{Vararg{String}}, value::Any)
+function _set_property!(data::Dict{String,<:Any}, path::Tuple{Vararg{<:String}}, value::Any)
     if length(path) > 1
         if !haskey(data, path[1])
             data[path[1]] = Dict{String,Any}()
@@ -353,7 +354,7 @@ end
 Helper function to set multiple properties in an `options` at path::Tuple{Vararg{String}} to value::Any.
 This does not rebuild the network data structure.
 """
-function set_options!(network::Dict{String,<:Any}, options::Dict{<:Tuple{Vararg{String}},<:Any})
+function set_options!(network::Dict{String,<:Any}, options::Dict{<:Tuple{Vararg{<:String}},<:Any})
     for (path,value) in options
         set_option!(network, path, value)
     end
@@ -365,7 +366,7 @@ end
 
 Helper function to set an option at `path` to `value` and then regenerate the multinetwork data from `args`.
 """
-function set_setting!(args::Dict{String,<:Any}, path::Tuple{Vararg{String}}, value::Any)
+function set_setting!(args::Dict{String,<:Any}, path::Tuple{Vararg{<:String}}, value::Any)
     _set_property!(args, ("settings", path...), value)
 
     apply_settings!(args)
@@ -379,7 +380,7 @@ end
 Helper function to set multiple options at `path` to `value` and then regenerate the multinetwork data from `args`,
 where the paths are the keys of the `options` input dictionary.
 """
-function set_settings!(args::Dict{String,<:Any}, options::Dict{<:Tuple{Vararg{String}},<:Any})
+function set_settings!(args::Dict{String,<:Any}, options::Dict{<:Tuple{Vararg{<:String}},<:Any})
     for (path,value) in options
         _set_property!(args, ("settings", path...), value)
     end
@@ -395,7 +396,7 @@ end
 Helper function to get a property at an arbitrary nested path in a network dictionary, returning the
 default value if path does not exist.
 """
-function get_option(network::Dict{String,<:Any}, path::Tuple{Vararg{String}}, default::Any=missing)::Any
+function get_option(network::Dict{String,<:Any}, path::Tuple{Vararg{<:String}}, default::Any=missing)::Any
     if length(path) > 1
         return get_option(get(network, path[1], Dict{String,Any}()), path[2:end], default)
     else
@@ -411,7 +412,7 @@ end
 Helper function to get a property in settings at an arbitrary nested path in an `args` dictionary, returning the
 default value if path does not exist.
 """
-function get_setting(args::Dict{String,Any}, path::Tuple{Vararg{String}}, default::Any=missing)::Any
+function get_setting(args::Dict{String,Any}, path::Tuple{Vararg{<:String}}, default::Any=missing)::Any
     return get_option(args, ("settings", path...), default)
 end
 
@@ -421,7 +422,7 @@ end
 
 Helper function for variant where `settings_file` has not been parsed yet.
 """
-get_option(settings_file::String, path::Tuple{Vararg{String}}, default::Any=missing)::Any = get_option(path[1] == "settings" ? Dict{String,Any}("settings"=>parse_settings(settings_file)) : parse_settings(settings_file), path, default)
+get_option(settings_file::String, path::Tuple{Vararg{<:String}}, default::Any=missing)::Any = get_option(path[1] == "settings" ? Dict{String,Any}("settings"=>parse_settings(settings_file)) : parse_settings(settings_file), path, default)
 
 
 """
@@ -429,7 +430,7 @@ get_option(settings_file::String, path::Tuple{Vararg{String}}, default::Any=miss
 
 Helper function to delete some option path from a network data structure
 """
-function delete_option!(network::Dict{String,<:Any}, path::Tuple{Vararg{String}})
+function delete_option!(network::Dict{String,<:Any}, path::Tuple{Vararg{<:String}})
     delete_path!(network, path)
     if ismultinetwork(network)
         for (n,nw) in network["nw"]
@@ -444,7 +445,7 @@ end
 
 Helper function to delete some option path from settings data structure
 """
-function delete_setting!(args::Dict{String,<:Any}, path::Tuple{Vararg{String}})
+function delete_setting!(args::Dict{String,<:Any}, path::Tuple{Vararg{<:String}})
     delete_path!(args, ("settings", path...))
 end
 
@@ -454,7 +455,7 @@ end
 
 Helper function for variant where `settings_file` has not been parsed yet.
 """
-delete_option!(settings_file::String, path::Tuple{Vararg{String}}) = @info "settings file has not yet been parsed, cannot delete option at '$path'"
+delete_option!(settings_file::String, path::Tuple{Vararg{<:String}}) = @info "settings file has not yet been parsed, cannot delete option at '$path'"
 
 
 """

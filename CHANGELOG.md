@@ -2,6 +2,7 @@
 
 ## staged
 
+- Fixed types in functions `set_option!`, `_set_property!`, `set_options!`, `set_setting!`, `set_settings!`, `get_option`, `get_setting`, `delete_option!`, `delete_setting!`
 - Added `constraint_mc_load_power_block_on_off` and `constraint_mc_load_power_traditional_on_off` to fixed infeasibilities in wye- and delta-connected constant current load constraints
 - Fixed bug in `constraint_mc_load_power_block_scenario` where wye-connected and delta-connected constant current load constraints were causing infeasibilities when being shed
 - Refactored `constraint_mc_load_power` to `constraint_mc_load_power_block_scenario` to make purpose of function clearer
