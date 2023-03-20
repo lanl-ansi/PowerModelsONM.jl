@@ -2,6 +2,7 @@
 
 ## staged
 
+- Fixed bug in `objective_min_shed_load_traditional_rolling_horizon` where option `disable-load-block-shed-cost` was not being used
 - Fixed bug in `variable_mc_load_power_block_scenario` where `conn_bus` was not properly defined
 - Refactored `variable_mc_load_power` to `variable_mc_load_power_block_scenario` to make the purpose of the function clearer
 - Added function `update_start_values!` to add `{var}_start` values for some variables to reduce starting MIP infeasibilities
