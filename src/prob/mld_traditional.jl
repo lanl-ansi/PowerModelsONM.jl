@@ -73,7 +73,7 @@ function build_mn_traditional_mld(pm::PMD.AbstractUBFModels)
         end
 
         for i in ids(pm, n, :load)
-            PMD.constraint_mc_load_power(pm, i; nw=n)
+            constraint_mc_load_power_traditional_on_off(pm, i; nw=n)
         end
 
         for i in ids(pm, n, :bus)
@@ -198,7 +198,7 @@ function build_mn_traditional_mld(pm::PMD.AbstractUnbalancedPowerModel)
         end
 
         for i in ids(pm, n, :load)
-            PMD.constraint_mc_load_power(pm, i; nw=n)
+            constraint_mc_load_power_traditional_on_off(pm, i; nw=n)
         end
 
         for i in ids(pm, n, :bus)
@@ -343,7 +343,7 @@ function build_traditional_mld(pm::PMD.AbstractUBFModels)
     end
 
     for i in ids(pm, :load)
-        PMD.constraint_mc_load_power(pm, i)
+        constraint_mc_load_power_traditional_on_off(pm, i)
     end
 
     for i in ids(pm, :bus)
@@ -444,7 +444,7 @@ function build_traditional_mld(pm::PMD.AbstractUnbalancedPowerModel)
     end
 
     for i in ids(pm, :load)
-        PMD.constraint_mc_load_power(pm, i)
+        constraint_mc_load_power_traditional_on_off(pm, i)
     end
 
     for i in ids(pm, :bus)

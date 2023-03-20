@@ -763,3 +763,120 @@ function constraint_mc_load_power_block_on_off(pm::PMD.LPUBFDiagModel, load_id::
     end
 end
 
+
+"""
+Default to PowerModelsDistribution.constraint_mc_load_power
+"""
+constraint_mc_load_power_traditional_on_off(pm::PMD.AbstractUnbalancedPowerModel, load_id::Int; nw::Int=nw_id_default, report::Bool=true) = PMD.constraint_mc_load_power(pm, load_id; nw=nw, report=report)
+
+
+@doc raw"""
+    constraint_mc_load_power(pm::LPUBFDiagModel, load_id::Int; nw::Int=nw_id_default, report::Bool=true)
+
+Delta/voltage-dependent load models for LPUBFDiagModel. Delta loads use the auxilary power variable (X). The constant current load model is derived by linearizing around the flat-start voltage solution.
+
+```math
+\begin{align}
+&\text{Constant power:} \Rightarrow P_i^d = P_i^{d0},~Q_i^d = Q_i^{d0} ~\forall i \in L \\
+&\text{Constant impedance (Wye):} \Rightarrow P_i^d = a_i \cdot w_i,~Q_i^d = b_i \cdot w_i ~\forall i \in L \\
+&\text{Constant impedance (Delta):} \Rightarrow P_i^d = 3\cdot a_i \cdot w_i,~Q_i^d = 3\cdot b_i \cdot w_i ~\forall i \in L \\
+&\text{Constant current (Wye):} \Rightarrow P_i^d = \frac{a_i}{2}\cdot \left( 1+w_i \right),~Q_i^d = \frac{b_i}{2}\cdot \left( 1+w_i \right) \forall i \in L \\
+&\text{Constant current (Delta):} \Rightarrow P_i^d = \frac{\sqrt{3} \cdot a_i}{2}\cdot \left( 1+w_i \right),~Q_i^d = \frac{\sqrt{3} \cdot b_i}{2}\cdot \left( 1+w_i \right) \forall i \in L
+\end{align}
+```
+"""
+function constraint_mc_load_power_traditional_on_off(pm::PMD.LPUBFDiagModel, load_id::Int; nw::Int=nw_id_default, report::Bool=true)
+    # shared variables and parameters
+    load = ref(pm, nw, :load, load_id)
+    connections = load["connections"]
+    pd0 = load["pd"]
+    qd0 = load["qd"]
+    bus_id = load["load_bus"]
+    bus = ref(pm, nw, :bus, bus_id)
+    terminals = bus["terminals"]
+    z_demand  = var(pm, nw, :z_demand, load_id)
+
+    # calculate load params
+    a, alpha, b, beta = PMD._load_expmodel_params(load, bus)
+
+    # take care of connections
+    if load["configuration"]==PMD.WYE
+        if load["model"]==PMD.POWER
+            var(pm, nw, :pd)[load_id] = JuMP.Containers.DenseAxisArray(pd0, connections)
+            var(pm, nw, :qd)[load_id] = JuMP.Containers.DenseAxisArray(qd0, connections)
+        elseif load["model"]==PMD.IMPEDANCE
+            w = var(pm, nw, :w)[bus_id][[c for c in connections]]
+            var(pm, nw, :pd)[load_id] = a.*w
+            var(pm, nw, :qd)[load_id] = b.*w
+        # in this case, :pd has a JuMP variable
+        else
+            w = var(pm, nw, :w)[bus_id][[c for c in connections]]
+            pd = var(pm, nw, :pd, load_id)
+            qd = var(pm, nw, :qd, load_id)
+            for (idx,c) in enumerate(connections)
+                JuMP.@constraint(pm.model, pd[c] == 1/2*a[idx]*(w[c]+1+(1-z_demand)))
+                JuMP.@constraint(pm.model, qd[c] == 1/2*b[idx]*(w[c]+1+(1-z_demand)))
+            end
+        end
+        # :pd_bus is identical to :pd now
+        var(pm, nw, :pd_bus)[load_id] = var(pm, nw, :pd)[load_id]
+        var(pm, nw, :qd_bus)[load_id] = var(pm, nw, :qd)[load_id]
+
+        ## reporting
+        if report
+            sol(pm, nw, :load, load_id)[:pd] = var(pm, nw, :pd)[load_id]
+            sol(pm, nw, :load, load_id)[:qd] = var(pm, nw, :qd)[load_id]
+            sol(pm, nw, :load, load_id)[:pd_bus] = var(pm, nw, :pd_bus)[load_id]
+            sol(pm, nw, :load, load_id)[:qd_bus] = var(pm, nw, :qd_bus)[load_id]
+        end
+    elseif load["configuration"]==PMD.DELTA
+        Xdr = var(pm, nw, :Xdr, load_id)
+        Xdi = var(pm, nw, :Xdi, load_id)
+        is_triplex = length(connections)<3
+        conn_bus = is_triplex ? bus["terminals"] : connections
+        Td = is_triplex ? [1 -1] : [1 -1 0; 0 1 -1; -1 0 1]  # TODO
+        # define pd/qd and pd_bus/qd_bus as affine transformations of X
+        pd_bus = LinearAlgebra.diag(Xdr*Td)
+        qd_bus = LinearAlgebra.diag(Xdi*Td)
+        pd = LinearAlgebra.diag(Td*Xdr)
+        qd = LinearAlgebra.diag(Td*Xdi)
+        # Equate missing edge parameters to zero
+        for (idx, c) in enumerate(connections)
+            if abs(pd0[idx]+im*qd0[idx]) == 0.0
+                JuMP.@constraint(pm.model, Xdr[:,idx] .== 0)
+                JuMP.@constraint(pm.model, Xdi[:,idx] .== 0)
+            end
+        end
+
+        var(pm, nw, :pd_bus)[load_id] = pd_bus = JuMP.Containers.DenseAxisArray(pd_bus, conn_bus)
+        var(pm, nw, :qd_bus)[load_id] = qd_bus = JuMP.Containers.DenseAxisArray(qd_bus, conn_bus)
+        var(pm, nw, :pd)[load_id] = pd
+        var(pm, nw, :qd)[load_id] = qd
+        if load["model"]==PMD.POWER
+            for (idx, c) in enumerate(connections)
+                JuMP.@constraint(pm.model, pd[idx]==pd0[idx])
+                JuMP.@constraint(pm.model, qd[idx]==qd0[idx])
+            end
+        elseif load["model"]==PMD.IMPEDANCE
+            w = var(pm, nw, :w)[bus_id]
+            for (idx,c) in enumerate(connections)
+                JuMP.@constraint(pm.model, pd[idx]==3*a[idx]*w[c])
+                JuMP.@constraint(pm.model, qd[idx]==3*b[idx]*w[c])
+            end
+        else
+            w = var(pm, nw, :w)[bus_id]
+            for (idx,c) in enumerate(connections)
+                JuMP.@constraint(pm.model, pd[idx]==sqrt(3)/2*a[idx]*(w[c]+1+(1-z_demand)))
+                JuMP.@constraint(pm.model, qd[idx]==sqrt(3)/2*b[idx]*(w[c]+1+(1-z_demand)))
+            end
+        end
+
+        ## reporting; for delta these are not available as saved variables!
+        if report
+            sol(pm, nw, :load, load_id)[:pd] = JuMP.Containers.DenseAxisArray(pd, connections)
+            sol(pm, nw, :load, load_id)[:qd] = JuMP.Containers.DenseAxisArray(qd, connections)
+            sol(pm, nw, :load, load_id)[:pd_bus] = pd_bus
+            sol(pm, nw, :load, load_id)[:qd_bus] = qd_bus
+        end
+    end
+end
