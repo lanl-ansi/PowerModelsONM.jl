@@ -64,7 +64,7 @@ function run_fault_studies(
     shedded_buses = Dict{String,Vector{String}}(n => collect(keys(filter(x->x.second["status"] == PMD.DISABLED, mn_data["nw"][n]["bus"]))) for (n,nw) in get(mn_data, "nw", Dict()))
     if !ismissing(switching_solutions)
         for (n,shed) in shedded_buses
-            nw = get(switching_solutions["$n"], "solution", Dict{String,Any}())
+            nw = get(get(switching_solutions, "$n", Dict()), "solution", Dict{String,Any}())
             for (i,bus) in get(nw, "bus", Dict())
                 if get(bus, "status", PMD.ENABLED) == PMD.DISABLED
                     push!(shed, i)
