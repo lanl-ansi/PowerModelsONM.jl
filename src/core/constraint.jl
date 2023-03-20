@@ -231,13 +231,13 @@ function constraint_radial_topology(pm::AbstractUnbalancedPowerModel, nw::Int; r
     # create variables fᵏ and λ over all L, including virtual branches connected to iᵣ
     for (i,j) in L′
         for k in filter(kk->kk∉iᵣ,N)
-            var(pm, nw, :f)[(k, i, j)] = JuMP.@variable(pm.model, base_name="$(nw)_f_$((k,i,j))", start=0)
+            var(pm, nw, :f)[(k, i, j)] = JuMP.@variable(pm.model, base_name="$(nw)_f_$((k,i,j))", start=(k,i,j) == (k,virtual_iᵣ,k) ? 1 : 0)
         end
-        var(pm, nw, :lambda)[(i,j)] = JuMP.@variable(pm.model, base_name="$(nw)_lambda_$((i,j))", binary=!relax, lower_bound=0, upper_bound=1, start=0)
+        var(pm, nw, :lambda)[(i,j)] = JuMP.@variable(pm.model, base_name="$(nw)_lambda_$((i,j))", binary=!relax, lower_bound=0, upper_bound=1, start=(i,j) == (virtual_iᵣ,j) ? 1 : 0)
 
         # create variable β over only original set L₀
         if (i,j) ∈ L₀
-            var(pm, nw, :beta)[(i,j)] = JuMP.@variable(pm.model, base_name="$(nw)_beta_$((i,j))", lower_bound=0, upper_bound=1, start=0)
+            var(pm, nw, :beta)[(i,j)] = JuMP.@variable(pm.model, base_name="$(nw)_beta_$((i,j))", lower_bound=0, upper_bound=1)
         end
     end
 

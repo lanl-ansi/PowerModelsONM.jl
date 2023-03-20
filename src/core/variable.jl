@@ -15,7 +15,7 @@ function variable_block_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=nw_i
         binary=!relax,
         lower_bound=0,
         upper_bound=1,
-        start=1
+        start=0
     )
 
     report && IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :bus,     :status, ids(pm, nw, :bus),     Dict{Int,Any}(i => var(pm, nw, :z_block, ref(pm, nw, :bus_block_map, i))     for i in ids(pm, nw, :bus)))
@@ -124,7 +124,7 @@ function variable_bus_voltage_indicator(pm::AbstractUnbalancedPowerModel; nw::In
         binary=!relax,
         lower_bound=0,
         upper_bound=1,
-        start=1
+        start=0
     )
 
     report && IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :bus, :status, ids(pm, nw, :bus), z_voltage)
@@ -145,7 +145,7 @@ function variable_generator_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=
         binary=!relax,
         lower_bound=0,
         upper_bound=1,
-        start=1
+        start=0
     )
 
     report && IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :gen, :status, ids(pm, nw, :gen), z_gen)
@@ -166,7 +166,7 @@ function variable_storage_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=nw
         binary=!relax,
         lower_bound=0,
         upper_bound=1,
-        start=1
+        start=0
     )
 
     report && IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :storage, :status, ids(pm, nw, :storage), z_storage)
@@ -187,7 +187,7 @@ function variable_load_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id
         binary=!relax,
         lower_bound=0,
         upper_bound=1,
-        start=1
+        start=0
     )
 
     report && IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :load, :status, ids(pm, nw, :load), z_demand)
@@ -211,7 +211,7 @@ function variable_inverter_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=n
                     binary=!relax,
                     lower_bound=0,
                     upper_bound=1,
-                    start=PMD.comp_start_value(ref(pm, nw, t, i), "inverter_start", Int(get(ref(pm, nw, t, i), "inverter", GRID_FORMING))),
+                    start=0,
                 )
             else
                 # GRID_FOLLOWING only

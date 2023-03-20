@@ -2,6 +2,7 @@
 
 ## staged
 
+- Updated `start` values in `JuMP.@variable` for several variables, to reduce starting MIP infeasibilities (for variables `f`, `lambda`, `beta`, `z_block`, `z_voltage`, `z_gen`, `z_storage`, `z_demand`, `z_inverter`)
 - Added `JuMP.start_value(x::Number)`
 - Refactored `IM.relaxation_product` to simplify code (combined two versions into one for easier maintenance)
 - Fixed bug in `JuMP.lower_bound(x::JuMP.AffExpr)` and `JuMP.upper_bound(x::JuMP.AffExpr)` where correct lower and upper bounds were not being calculated
