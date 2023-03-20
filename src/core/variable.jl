@@ -232,7 +232,7 @@ end
 
 Load variables creation for robust mld problem. The bounds are different for each scenario.
 """
-function variable_mc_load_power(pm::PMD.AbstractUBFModels, scen::Int; nw=nw_id_default, report::Bool=false)
+function variable_mc_load_power_block_scenario(pm::PMD.AbstractUBFModels, scen::Int; nw=nw_id_default, report::Bool=false)
     load_wye_ids = [id for (id, load) in ref(pm, nw, :load) if load["configuration"]==PMD.WYE]
     load_del_ids = [id for (id, load) in ref(pm, nw, :load) if load["configuration"]==PMD.DELTA]
     load_cone_ids = [id for (id, load) in ref(pm, nw, :load) if PMD._check_load_needs_cone(load)]

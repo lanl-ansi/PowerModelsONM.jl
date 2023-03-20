@@ -179,7 +179,7 @@ function build_scen_block_mld(pm::PMD.AbstractUBFModels, scen::String, obj_expr:
 
     variable_mc_storage_power_mi_on_off(pm; bounded=!var_opts["unbound-storage-power"], relax=var_opts["relax-integer-variables"], report=false)
 
-    variable_mc_load_power(pm, parse(Int, scen))    # different from build_block_mld to include load uncertainty
+    variable_mc_load_power_block_scenario(pm, parse(Int, scen))    # different from build_block_mld to include load uncertainty
 
     PMD.variable_mc_capcontrol(pm; relax=var_opts["relax-integer-variables"], report=false)
 

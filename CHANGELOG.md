@@ -2,6 +2,7 @@
 
 ## staged
 
+- Refactored `variable_mc_load_power` to `variable_mc_load_power_block_scenario` to make the purpose of the function clearer
 - Added function `update_start_values!` to add `{var}_start` values for some variables to reduce starting MIP infeasibilities
 - Updated `start` values in `JuMP.@variable` for several variables, to reduce starting MIP infeasibilities (for variables `f`, `lambda`, `beta`, `z_block`, `z_voltage`, `z_gen`, `z_storage`, `z_demand`, `z_inverter`)
 - Added `JuMP.start_value(x::Number)`
