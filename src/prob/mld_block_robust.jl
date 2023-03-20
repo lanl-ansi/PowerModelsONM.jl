@@ -204,7 +204,7 @@ function build_scen_block_mld(pm::PMD.AbstractUBFModels, scen::String, obj_expr:
     end
 
     for i in ids(pm, :load)
-        constraint_mc_load_power(pm, i, parse(Int, scen))    # different from build_block_mld to include load uncertainty
+        constraint_mc_load_power_block_scenario(pm, i, parse(Int, scen))    # different from build_block_mld to include load uncertainty
     end
 
     for i in ids(pm, :bus)

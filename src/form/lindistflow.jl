@@ -546,7 +546,7 @@ end
 
 Load models for LPUBFDiagModel (similar to PMD.constraint_mc_load_power) for robust mld problem. The constraints are different for each scenario.
 """
-function constraint_mc_load_power(pm::PMD.LPUBFDiagModel, load_id::Int, scen::Int; nw::Int=nw_id_default, report::Bool=true)
+function constraint_mc_load_power_block_scenario(pm::PMD.LPUBFDiagModel, load_id::Int, scen::Int; nw::Int=nw_id_default, report::Bool=true)
     # shared variables and parameters
     load = ref(pm, nw, :load, load_id)
     bus_id = load["load_bus"]
