@@ -2,6 +2,7 @@
 
 ## staged
 
+- Added `constraint_mc_load_power_block_on_off` and `constraint_mc_load_power_traditional_on_off` to fixed infeasibilities in wye- and delta-connected constant current load constraints
 - Fixed bug in `constraint_mc_load_power_block_scenario` where wye-connected and delta-connected constant current load constraints were causing infeasibilities when being shed
 - Refactored `constraint_mc_load_power` to `constraint_mc_load_power_block_scenario` to make purpose of function clearer
 - Fixed `constraint_mc_transformer_power_yy_block_on_off` where `PolyhedralRelaxations.construct_univariate_relaxation!` was producing infeasible constraints
