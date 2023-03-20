@@ -2,6 +2,7 @@
 
 ## staged
 
+- Added `JuMP Model by Hand - MLD-Block Scenario Example` to generated documentation
 - Added example to `output-robust-partitions.schema.json`
 - Updated Pluto notebooks to latest versions
 - Fixed bug in `run_fault_studies` where an error would be thrown if a switching solution was missing for a timestep
