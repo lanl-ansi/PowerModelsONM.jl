@@ -164,3 +164,114 @@ validate_robust_partitions(data::Vector)::Bool = _validate_against_schema(data, 
 Helper function to give detailed output on JSON Schema validation of settings `data`
 """
 evaluate_robust_partitions(data::Vector) = JSONSchema.validate(data, load_schema(joinpath(dirname(pathof(PowerModelsONM)), "..", "schemas", "output-robust-partitions.schema.json")))
+
+
+"""
+    update_start_values!(data::Dict{String,Any}; overwrite_start_values::Bool=false)::Dict{String,Any}
+
+Helper function to add some start values for variables to prevent starting MIP infeasibilities
+"""
+function update_start_values!(data::Dict{String,Any}; overwrite_start_values::Bool=false)::Dict{String,Any}
+    PMD.iseng(data) && update_start_values_eng!(data; overwrite_start_values=overwrite_start_values)
+    PMD.ismath(data) && update_start_values_math!(data; overwrite_start_values=overwrite_start_values)
+
+    return data
+end
+
+
+"""
+    update_start_values_eng!(eng::Dict{String,Any}; overwrite_start_values::Bool=false)::Dict{String,Any}
+
+Helper function to add some start values for variables to prevent starting MIP infeasibilities to the ENGINEERING model
+"""
+function update_start_values_eng!(eng::Dict{String,Any}; overwrite_start_values::Bool=false)::Dict{String,Any}
+    if !PMD.ismultinetwork(eng)
+        mn_eng = Dict{String,Any}("nw"=>Dict{String,Any}("0"=>eng))
+    else
+        mn_eng = eng
+    end
+
+    for (n,nw) in mn_eng["nw"]
+        for t in ["voltage_source", "generator", "solar"]
+            for (i,obj) in get(nw, t, Dict())
+                if !haskey(obj, "pg_start") || overwrite_start_values
+                    mn_eng["nw"][n][t][i]["pg_start"] = zeros(length(obj["connections"]))
+                end
+
+                if !haskey(obj, "qg_start") || overwrite_start_values
+                    mn_eng["nw"][n][t][i]["qg_start"] = zeros(length(obj["connections"]))
+                end
+            end
+        end
+
+        for (i,obj) in get(nw, "storage", Dict())
+            if !haskey(obj, "sc_start") || overwrite_start_values
+                mn_eng["nw"][n]["storage"][i]["sc_start"] = 0
+            end
+
+            if !haskey(obj, "sd_start") || overwrite_start_values
+                mn_eng["nw"][n]["storage"][i]["sd_start"] = 0
+            end
+        end
+
+        for (i,obj) in get(nw, "bus", Dict())
+            if !haskey(obj, "vm_start") || overwrite_start_values
+                mn_eng["nw"][n]["bus"][i]["vm_start"] = zeros(length(obj["terminals"]))
+            end
+        end
+    end
+
+    if !PMD.ismultinetwork(eng)
+        return mn_eng["nw"]["0"]
+    else
+        return mn_eng
+    end
+end
+
+
+"""
+    update_start_values_math!(math::Dict{String,Any}; overwrite_start_values::Bool=false)::Dict{String,Any}
+
+Helper function to add some start values for variables to prevent starting MIP infeasibilities to the MATHEMATICAL model
+"""
+function update_start_values_math!(math::Dict{String,Any}; overwrite_start_values::Bool=false)::Dict{String,Any}
+    if !PMD.ismultinetwork(math)
+        mn_math = Dict{String,Any}("nw"=>Dict{String,Any}("0"=>math))
+    else
+        mn_math = math
+    end
+
+    for (n,nw) in mn_math["nw"]
+        for (i,gen) in get(nw, "gen", Dict())
+            if !haskey(gen, "pg_start") || overwrite_start_values
+                mn_math["nw"][n]["gen"][i]["pg_start"] = zeros(length(gen["connections"]))
+            end
+
+            if !haskey(gen, "qg_start") || overwrite_start_values
+                mn_math["nw"][n]["gen"][i]["qg_start"] = zeros(length(gen["connections"]))
+            end
+        end
+
+        for (i,storage) in get(nw, "storage", Dict())
+            if !haskey(storage, "sc_start") || overwrite_start_values
+                mn_math["nw"][n]["storage"][i]["sc_start"] = 0
+            end
+
+            if !haskey(storage, "sd_start") || overwrite_start_values
+                mn_math["nw"][n]["storage"][i]["sd_start"] = 0
+            end
+        end
+
+        for (i,bus) in get(nw, "bus", Dict())
+            if !haskey(bus, "vm_start") || overwrite_start_values
+                # mn_math["nw"][n]["bus"][i]["vm_start"] = zeros(length(bus["terminals"]))
+            end
+        end
+    end
+
+    if !PMD.ismultinetwork(math)
+        return mn_math["nw"]["0"]
+    else
+        return mn_math
+    end
+end
