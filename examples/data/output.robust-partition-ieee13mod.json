@@ -1,0 +1,306 @@
+[
+  {
+    "rank": 1,
+    "score": 5.40128,
+    "grid_forming_devices": ["vsource.source"],
+    "uuid": "9fd1c9d1-28b0-4c73-904c-90ab1a657bf8",
+    "shed_loads": [],
+    "slack_buses": ["bus.sourcebus"],
+    "configuration": {
+      "line.701702": "CLOSED",
+      "line.cb_101": "CLOSED",
+      "line.671700": "CLOSED",
+      "line.671692": "CLOSED",
+      "line.800801": "OPEN",
+      "line.703800": "OPEN",
+      "line.801675": "CLOSED"
+    }
+  },
+  {
+    "rank": 2,
+    "score": 5.41077,
+    "grid_forming_devices": ["storage.battery_mg1b", "vsource.source"],
+    "uuid": "4eccc18b-e9f3-47ac-91b8-c7bc202ad69e",
+    "shed_loads": [],
+    "slack_buses": ["bus.700", "bus.sourcebus"],
+    "configuration": {
+      "line.701702": "OPEN",
+      "line.cb_101": "CLOSED",
+      "line.671700": "OPEN",
+      "line.671692": "CLOSED",
+      "line.800801": "CLOSED",
+      "line.703800": "CLOSED",
+      "line.801675": "CLOSED"
+    }
+  },
+  {
+    "rank": 3,
+    "score": 5.488,
+    "grid_forming_devices": ["storage.battery_mg1c", "vsource.source"],
+    "uuid": "7e757d6b-7b26-465f-8012-f102716782c3",
+    "shed_loads": [],
+    "slack_buses": ["bus.801", "bus.sourcebus"],
+    "configuration": {
+      "line.701702": "CLOSED",
+      "line.cb_101": "CLOSED",
+      "line.671700": "CLOSED",
+      "line.671692": "CLOSED",
+      "line.800801": "OPEN",
+      "line.703800": "OPEN",
+      "line.801675": "OPEN"
+    }
+  },
+  {
+    "rank": 4,
+    "score": 5.508,
+    "grid_forming_devices": [
+      "storage.battery_mg1c",
+      "storage.battery_mg1b",
+      "vsource.source"
+    ],
+    "uuid": "d34e5328-1364-4a05-9078-75948389f99a",
+    "shed_loads": [],
+    "slack_buses": ["bus.801", "bus.700", "bus.sourcebus"],
+    "configuration": {
+      "line.701702": "CLOSED",
+      "line.cb_101": "CLOSED",
+      "line.671700": "OPEN",
+      "line.671692": "CLOSED",
+      "line.800801": "OPEN",
+      "line.703800": "OPEN",
+      "line.801675": "OPEN"
+    }
+  },
+  {
+    "rank": 5,
+    "score": 15.168,
+    "grid_forming_devices": ["vsource.source"],
+    "uuid": "37bed51a-8441-4785-b2d6-f2887a6d6f3a",
+    "shed_loads": [],
+    "slack_buses": ["bus.sourcebus"],
+    "configuration": {
+      "line.701702": "CLOSED",
+      "line.cb_101": "CLOSED",
+      "line.671700": "CLOSED",
+      "line.671692": "OPEN",
+      "line.800801": "CLOSED",
+      "line.703800": "CLOSED",
+      "line.801675": "OPEN"
+    }
+  },
+  {
+    "rank": 6,
+    "score": 15.4413,
+    "grid_forming_devices": ["vsource.source"],
+    "uuid": "53a920d3-5c38-4053-8838-01b82d77d888",
+    "shed_loads": [],
+    "slack_buses": ["bus.sourcebus"],
+    "configuration": {
+      "line.701702": "OPEN",
+      "line.cb_101": "CLOSED",
+      "line.671700": "CLOSED",
+      "line.671692": "CLOSED",
+      "line.800801": "OPEN",
+      "line.703800": "OPEN",
+      "line.801675": "CLOSED"
+    }
+  },
+  {
+    "rank": 7,
+    "score": 15.4508,
+    "grid_forming_devices": ["storage.battery_mg1b", "vsource.source"],
+    "uuid": "2280121f-3169-454c-a4e3-15d47ee2a41b",
+    "shed_loads": [],
+    "slack_buses": ["bus.700", "bus.sourcebus"],
+    "configuration": {
+      "line.701702": "OPEN",
+      "line.cb_101": "CLOSED",
+      "line.671700": "OPEN",
+      "line.671692": "CLOSED",
+      "line.800801": "OPEN",
+      "line.703800": "OPEN",
+      "line.801675": "CLOSED"
+    }
+  },
+  {
+    "rank": 8,
+    "score": 15.528,
+    "grid_forming_devices": ["storage.battery_mg1c", "vsource.source"],
+    "uuid": "5d29a5e5-4443-4732-848f-aa4495fecdb8",
+    "shed_loads": [],
+    "slack_buses": ["bus.801", "bus.sourcebus"],
+    "configuration": {
+      "line.701702": "CLOSED",
+      "line.cb_101": "CLOSED",
+      "line.671700": "CLOSED",
+      "line.671692": "OPEN",
+      "line.800801": "OPEN",
+      "line.703800": "OPEN",
+      "line.801675": "OPEN"
+    }
+  },
+  {
+    "rank": 9,
+    "score": 15.548,
+    "grid_forming_devices": [
+      "storage.battery_mg1c",
+      "storage.battery_mg1b",
+      "vsource.source"
+    ],
+    "uuid": "56b05dc3-27dd-4868-9ed6-c0a152dc540f",
+    "shed_loads": [],
+    "slack_buses": ["bus.801", "bus.700", "bus.sourcebus"],
+    "configuration": {
+      "line.701702": "OPEN",
+      "line.cb_101": "CLOSED",
+      "line.671700": "OPEN",
+      "line.671692": "OPEN",
+      "line.800801": "CLOSED",
+      "line.703800": "CLOSED",
+      "line.801675": "OPEN"
+    }
+  },
+  {
+    "rank": 10,
+    "score": 15.548,
+    "grid_forming_devices": [
+      "storage.battery_mg1c",
+      "storage.battery_mg1b",
+      "vsource.source"
+    ],
+    "uuid": "f6795766-a1f9-4cca-a136-5665e75ed1d1",
+    "shed_loads": [],
+    "slack_buses": ["bus.801", "bus.700", "bus.sourcebus"],
+    "configuration": {
+      "line.701702": "OPEN",
+      "line.cb_101": "CLOSED",
+      "line.671700": "OPEN",
+      "line.671692": "CLOSED",
+      "line.800801": "OPEN",
+      "line.703800": "OPEN",
+      "line.801675": "OPEN"
+    }
+  },
+  {
+    "rank": 11,
+    "score": 15.548,
+    "grid_forming_devices": [
+      "storage.battery_mg1c",
+      "storage.battery_mg1b",
+      "vsource.source"
+    ],
+    "uuid": "a65cdde2-5469-4e83-8748-af4038d576f6",
+    "shed_loads": [],
+    "slack_buses": ["bus.801", "bus.700", "bus.sourcebus"],
+    "configuration": {
+      "line.701702": "CLOSED",
+      "line.cb_101": "CLOSED",
+      "line.671700": "OPEN",
+      "line.671692": "OPEN",
+      "line.800801": "OPEN",
+      "line.703800": "OPEN",
+      "line.801675": "OPEN"
+    }
+  },
+  {
+    "rank": 12,
+    "score": 16.658,
+    "grid_forming_devices": [
+      "storage.battery_mg1c",
+      "storage.battery_mg1b",
+      "vsource.source"
+    ],
+    "uuid": "1a0932aa-ee89-47b5-927f-6ab9cc8b419d",
+    "shed_loads": ["load.652", "load.646"],
+    "slack_buses": ["bus.801", "bus.700", "bus.sourcebus"],
+    "configuration": {
+      "line.701702": "CLOSED",
+      "line.cb_101": "OPEN",
+      "line.671700": "OPEN",
+      "line.671692": "OPEN",
+      "line.800801": "OPEN",
+      "line.703800": "OPEN",
+      "line.801675": "OPEN"
+    }
+  },
+  {
+    "rank": 13,
+    "score": 16.658,
+    "grid_forming_devices": [
+      "storage.battery_mg1c",
+      "storage.battery_mg1b",
+      "vsource.source"
+    ],
+    "uuid": "18dd4896-bfdc-430c-a36c-b84e2fa69986",
+    "shed_loads": ["load.652", "load.646"],
+    "slack_buses": ["bus.801", "bus.700", "bus.sourcebus"],
+    "configuration": {
+      "line.701702": "OPEN",
+      "line.cb_101": "OPEN",
+      "line.671700": "OPEN",
+      "line.671692": "OPEN",
+      "line.800801": "CLOSED",
+      "line.703800": "CLOSED",
+      "line.801675": "OPEN"
+    }
+  },
+  {
+    "rank": 14,
+    "score": 25.548,
+    "grid_forming_devices": ["storage.battery_mg1c", "vsource.source"],
+    "uuid": "5d73e366-8e74-43a4-8401-4a11497d0a13",
+    "shed_loads": [],
+    "slack_buses": ["bus.801", "bus.sourcebus"],
+    "configuration": {
+      "line.701702": "OPEN",
+      "line.cb_101": "CLOSED",
+      "line.671700": "CLOSED",
+      "line.671692": "OPEN",
+      "line.800801": "OPEN",
+      "line.703800": "OPEN",
+      "line.801675": "OPEN"
+    }
+  },
+  {
+    "rank": 15,
+    "score": 25.588,
+    "grid_forming_devices": [
+      "storage.battery_mg1c",
+      "storage.battery_mg1b",
+      "vsource.source"
+    ],
+    "uuid": "ba38a80d-bbb5-40a0-93d6-e13777419e1b",
+    "shed_loads": [],
+    "slack_buses": ["bus.801", "bus.700", "bus.sourcebus"],
+    "configuration": {
+      "line.701702": "OPEN",
+      "line.cb_101": "CLOSED",
+      "line.671700": "OPEN",
+      "line.671692": "OPEN",
+      "line.800801": "OPEN",
+      "line.703800": "OPEN",
+      "line.801675": "OPEN"
+    }
+  },
+  {
+    "rank": 16,
+    "score": 26.698,
+    "grid_forming_devices": [
+      "storage.battery_mg1c",
+      "storage.battery_mg1b",
+      "vsource.source"
+    ],
+    "uuid": "ba1f6d15-de78-4462-9f86-b744e5989d67",
+    "shed_loads": ["load.652", "load.646"],
+    "slack_buses": ["bus.801", "bus.700", "bus.sourcebus"],
+    "configuration": {
+      "line.701702": "OPEN",
+      "line.cb_101": "OPEN",
+      "line.671700": "OPEN",
+      "line.671692": "OPEN",
+      "line.800801": "OPEN",
+      "line.703800": "OPEN",
+      "line.801675": "OPEN"
+    }
+  }
+]
