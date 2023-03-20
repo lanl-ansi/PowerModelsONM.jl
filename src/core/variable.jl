@@ -276,11 +276,15 @@ function variable_mc_load_power_block_scenario(pm::PMD.AbstractUBFModels, scen::
     for id in load_del_ids
         load = ref(pm, nw, :load, id)
         bus = ref(pm, nw, :bus, load["load_bus"])
+        connections = load["connections"]
+        is_triplex = length(connections)<3
+        conn_bus = is_triplex ? bus["terminals"] : connections
+
         load_scen = deepcopy(load)
         load_scen["pd"] = load_scen["pd"]*ref(pm, :scenarios, "load")["$scen"]["$(id)"]
         load_scen["qd"] = load_scen["qd"]*ref(pm, :scenarios, "load")["$scen"]["$(id)"]
         cmax = PMD._calc_load_current_max(load_scen, bus)
-        bound[id] = bus["vmax"][[findfirst(isequal(c), bus["terminals"]) for c in conn_bus[id]]]*cmax'
+        bound[id] = bus["vmax"][[findfirst(isequal(c), bus["terminals"]) for c in conn_bus]]*cmax'
     end
     (Xdr,Xdi) = PMD.variable_mx_complex(pm.model, load_del_ids, load_connections, load_connections; symm_bound=bound, name="0_Xd")
     var(pm, nw)[:Xdr] = Xdr
@@ -290,6 +294,7 @@ function variable_mc_load_power_block_scenario(pm::PMD.AbstractUBFModels, scen::
     cmin = Dict{eltype(load_del_ids), Vector{Real}}()
     cmax = Dict{eltype(load_del_ids), Vector{Real}}()
     for id in load_del_ids
+        load = ref(pm, nw, :load, id)
 		bus = ref(pm, nw, :bus, load["load_bus"])
         load_scen = deepcopy(load)
         load_scen["pd"] = load_scen["pd"]*ref(pm, :scenarios, "load")["$scen"]["$(id)"]
