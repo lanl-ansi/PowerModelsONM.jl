@@ -2,6 +2,7 @@
 
 ## staged
 
+- Updated Pluto notebooks to latest versions
 - Fixed bug in `run_fault_studies` where an error would be thrown if a switching solution was missing for a timestep
 - Fixed types in functions `set_option!`, `_set_property!`, `set_options!`, `set_setting!`, `set_settings!`, `get_option`, `get_setting`, `delete_option!`, `delete_setting!`
 - Added `constraint_mc_load_power_block_on_off` and `constraint_mc_load_power_traditional_on_off` to fixed infeasibilities in wye- and delta-connected constant current load constraints
