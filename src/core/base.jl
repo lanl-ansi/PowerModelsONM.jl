@@ -1,3 +1,6 @@
+"start_value helper function for real values"
+JuMP.start_value(x::Number) = x
+
 "lower_bound helper function for constant values"
 JuMP.lower_bound(x::Number) = x
 
