@@ -50,7 +50,7 @@ Configures logging based `level`, `:Error`, `:Warn`, `:Info`, or `:Debug`
 function set_log_level!(level::Symbol)
     if level == :Error
         loglevel = Logging.Error
-        IM.silence()
+        IM.logger_config!("error")
     elseif level == :Info
         loglevel = Logging.Info
         IM.logger_config!("info")
