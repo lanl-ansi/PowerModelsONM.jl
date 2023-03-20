@@ -90,7 +90,7 @@ function IM.variable_domain(var::JuMP.AffExpr)
 end
 
 """
-    IM.relaxation_product(m::JuMP.Model, x::JuMP.AffExpr, y::JuMP.VariableRef, z::JuMP.VariableRef;
+    IM.relaxation_product(m::JuMP.Model, x::Union{JuMP.AffExpr,Real}, y::JuMP.VariableRef, z::JuMP.VariableRef;
         default_x_domain::Tuple{Real,Real}=(-Inf, Inf),
         default_y_domain::Tuple{Real,Real}=(-Inf, Inf)
     )
@@ -104,7 +104,7 @@ z <= JuMP.lower_bound(x)*y + JuMP.upper_bound(y)*x - JuMP.lower_bound(x)*JuMP.up
 z <= JuMP.upper_bound(x)*y + JuMP.lower_bound(y)*x - JuMP.upper_bound(x)*JuMP.lower_bound(y)
 ```
 """
-function IM.relaxation_product(m::JuMP.Model, x::JuMP.AffExpr, y::JuMP.VariableRef, z::JuMP.VariableRef;
+function IM.relaxation_product(m::JuMP.Model, x::Union{JuMP.AffExpr,Real}, y::JuMP.VariableRef, z::JuMP.VariableRef;
         default_x_domain::Tuple{Real,Real}=(-Inf, Inf),
         default_y_domain::Tuple{Real,Real}=(-Inf, Inf)
     )
@@ -122,27 +122,6 @@ function IM.relaxation_product(m::JuMP.Model, x::JuMP.AffExpr, y::JuMP.VariableR
     JuMP.@constraint(m, z <= x_ub * y + y_lb * x - x_ub * y_lb)
 end
 
-@doc raw"""
-    IM.relaxation_product(m::JuMP.Model, x::Real, y::JuMP.VariableRef, z::JuMP.VariableRef)
-
-general relaxation of binlinear term (McCormick) for Constants and VariableRefs
-
-```julia
-z >= JuMP.lower_bound(x)*y + JuMP.lower_bound(y)*x - JuMP.lower_bound(x)*JuMP.lower_bound(y)
-z >= JuMP.upper_bound(x)*y + JuMP.upper_bound(y)*x - JuMP.upper_bound(x)*JuMP.upper_bound(y)
-z <= JuMP.lower_bound(x)*y + JuMP.upper_bound(y)*x - JuMP.lower_bound(x)*JuMP.upper_bound(y)
-z <= JuMP.upper_bound(x)*y + JuMP.lower_bound(y)*x - JuMP.upper_bound(x)*JuMP.lower_bound(y)
-```
-"""
-function IM.relaxation_product(m::JuMP.Model, x::Real, y::JuMP.VariableRef, z::JuMP.VariableRef)
-    x_lb, x_ub = IM.variable_domain(x)
-    y_lb, y_ub = IM.variable_domain(y)
-
-    JuMP.@constraint(m, z >= x_lb * y + y_lb * x - x_lb * y_lb)
-    JuMP.@constraint(m, z >= x_ub * y + y_ub * x - x_ub * y_ub)
-    JuMP.@constraint(m, z <= x_lb * y + y_ub * x - x_lb * y_ub)
-    JuMP.@constraint(m, z <= x_ub * y + y_lb * x - x_ub * y_lb)
-end
 
 "recursive dictionary merge, similar to update data"
 recursive_merge_including_vectors(x::AbstractDict...) = merge(recursive_merge_including_vectors, x...)
