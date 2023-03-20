@@ -2,6 +2,7 @@
 
 ## staged
 
+- Added option `enable-switch-state-open-cost` to `objective_min_shed_load_block_rolling_horizon` and `objective_min_shed_load_traditional_rolling_horizon`
 - Fixed bug in `objective_min_shed_load_traditional_rolling_horizon` where option `disable-load-block-shed-cost` was not being used
 - Fixed bug in `variable_mc_load_power_block_scenario` where `conn_bus` was not properly defined
 - Refactored `variable_mc_load_power` to `variable_mc_load_power_block_scenario` to make the purpose of the function clearer
