@@ -552,6 +552,7 @@ function constraint_mc_load_power_block_scenario(pm::PMD.LPUBFDiagModel, load_id
     bus_id = load["load_bus"]
     connections = load["connections"]
     bus = ref(pm, nw, :bus, bus_id)
+    z_block  = var(pm, nw, :z_block, ref(pm, nw, :bus_block_map, bus_id))
 
     # calculate load params
     load_scen = deepcopy(load)
@@ -576,8 +577,8 @@ function constraint_mc_load_power_block_scenario(pm::PMD.LPUBFDiagModel, load_id
             pd = var(pm, nw, :pd)[load_id]
             qd = var(pm, nw, :qd)[load_id]
             for (idx,c) in enumerate(connections)
-                JuMP.@constraint(pm.model, pd[c]==1/2*a[idx]*(w[c]+1))
-                JuMP.@constraint(pm.model, qd[c]==1/2*b[idx]*(w[c]+1))
+                JuMP.@constraint(pm.model, pd[c]==1/2*a[idx]*(w[c]+1+(1-z_block)))
+                JuMP.@constraint(pm.model, qd[c]==1/2*b[idx]*(w[c]+1+(1-z_block)))
             end
         end
         # :pd_bus is identical to :pd now
@@ -629,8 +630,8 @@ function constraint_mc_load_power_block_scenario(pm::PMD.LPUBFDiagModel, load_id
         else
             w = var(pm, nw, :w)[bus_id]
             for (idx,c) in enumerate(connections)
-                JuMP.@constraint(pm.model, pd[idx]==sqrt(3)/2*a[idx]*(w[c]+1))
-                JuMP.@constraint(pm.model, qd[idx]==sqrt(3)/2*b[idx]*(w[c]+1))
+                JuMP.@constraint(pm.model, pd[idx]==sqrt(3)/2*a[idx]*(w[c]+1+(1-z_block)))
+                JuMP.@constraint(pm.model, qd[idx]==sqrt(3)/2*b[idx]*(w[c]+1+(1-z_block)))
             end
         end
 
