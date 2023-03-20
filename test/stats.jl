@@ -1,18 +1,19 @@
 @testset "test statistical analysis functions" begin
-    orig_args = Dict{String,Any}(
+    raw_args = Dict{String,Any}(
         "network" => "../test/data/ieee13_feeder.dss",
         "events" => "../test/data/ieee13_events.json",
         "settings" => "../test/data/ieee13_settings.json",
         "inverters" => "../test/data/ieee13_inverters.json",
         "faults" => "../test/data/ieee13_faults.json",
-        "disable-networking" => true,
-        "opt-switch-algorithm" => "global",
-        "opt-switch-problem" => "block",
-        "opt-switch-solver" => "mip_solver",
-        "opt-switch-formulation" => "lindistflow",
-        "opt-disp-formulation" => "lindistflow",
-        "quiet" => true,
     )
+
+    orig_args = prepare_data!(deepcopy(raw_args))
+
+    set_settings!(orig_args, Dict(
+        ("options", "constraints", "disable-microgrid-networking") => true,
+        ("options", "outputs", "log-level") => "error",
+        ("solvers", "HiGHS", "presolve") => "off"
+    ))
 
     args = entrypoint(deepcopy(orig_args))
 
@@ -71,7 +72,7 @@
     end
 
     @testset "test missing events arg" begin
-        _args = deepcopy(orig_args)
+        _args = deepcopy(raw_args)
         delete!(_args, "events")
         _args["skip"] = ["switching", "dispatch", "stability", "faults"]
 

@@ -123,7 +123,7 @@
         settings = parse_settings("../test/data/ieee13_settings.json")
 
         _network = make_multinetwork(apply_settings(base_network, settings))
-        @test all(all(l["clpu_factor"] == 2.0 for l in values(nw["load"])) for nw in values(_network["nw"]))
+        @test all(haskey(l, "clpu_factor") for nw in values(_network["nw"]) for l in values(nw["load"])) && all(l["clpu_factor"] == 2.0 for nw in values(_network["nw"]) for l in values(nw["load"]))
         @test all(nw["switch_close_actions_ub"] == 1 for nw in values(_network["nw"]))
         @test all(nw["time_elapsed"] == 1.0 for nw in values(_network["nw"]))
 

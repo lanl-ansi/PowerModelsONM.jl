@@ -2,19 +2,18 @@
     orig_args = Dict{String,Any}(
         "network" => "../test/data/ieee13_feeder.dss",
         "settings" => "../test/data/ieee13_settings.json",
-        "skip" => ["faults", "switching", "stability"],
         "quiet" => true,
     )
+    prepare_data!(orig_args)
+    build_solver_instances!(orig_args)
 
     @testset "test nfa opf" begin
         args = deepcopy(orig_args)
-        args["opt-disp-formulation"] = "nfa"
+        set_setting!(args, ("options", "problem", "dispatch-formulation"), "nfa")
 
-        entrypoint(args)
+        r = optimize_dispatch!(args)
 
         @test isapprox(args["optimal_dispatch_result"]["objective"], 4.85; atol=1e-2)
-
-        vbase, _ = PMD.calc_voltage_bases(args["base_network"], args["base_network"]["settings"]["vbases_default"])
 
         v_stats = get_timestep_voltage_statistics(args["optimal_dispatch_result"]["solution"], args["network"])
         @test all(all(v .== 0) for v in values(v_stats))
@@ -25,8 +24,9 @@
 
     @testset "test lindistflow opf" begin
         args = deepcopy(orig_args)
-        args["opt-disp-formulation"] = "lindistflow"
-        entrypoint(args)
+        set_setting!(args, ("options", "problem", "dispatch-formulation"), "lindistflow")
+
+        r = optimize_dispatch!(args)
 
         vbase, _ = PMD.calc_voltage_bases(args["base_network"], args["base_network"]["settings"]["vbases_default"])
 
@@ -37,8 +37,9 @@
 
     @testset "test acr opf" begin
         args = deepcopy(orig_args)
-        args["opt-disp-formulation"] = "acr"
-        entrypoint(args)
+        set_setting!(args, ("options", "problem", "dispatch-formulation"), "acr")
+
+        r = optimize_dispatch!(args)
 
         vbase, _ = PMD.calc_voltage_bases(args["base_network"], args["base_network"]["settings"]["vbases_default"])
 
@@ -51,8 +52,9 @@
 
     @testset "test acp opf" begin
         args = deepcopy(orig_args)
-        args["opt-disp-formulation"] = "acp"
-        entrypoint(args)
+        set_setting!(args, ("options", "problem", "dispatch-formulation"), "acp")
+
+        r = optimize_dispatch!(args)
 
         vbase, _ = PMD.calc_voltage_bases(args["base_network"], args["base_network"]["settings"]["vbases_default"])
 
@@ -65,14 +67,11 @@
 
     @testset "test fix-small-numbers nfa opf" begin
         args = deepcopy(orig_args)
-        prepare_data!(args)
 
         set_settings!(args, Dict(
             ("options","data","fix-small-numbers") => true,
             ("options","problem","dispatch-formulation") => "nfa"
         ))
-
-        build_solver_instances!(args)
 
         result = optimize_dispatch!(args)
 

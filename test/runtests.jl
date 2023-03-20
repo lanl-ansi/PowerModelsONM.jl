@@ -4,6 +4,9 @@ Distributed.addprocs(3)
 
 @everywhere using PowerModelsONM
 
+# DEBUGGING
+# cd("test"); import Gurobi; using PowerModelsONM
+
 import JSON
 import PowerModelsDistribution as PMD
 

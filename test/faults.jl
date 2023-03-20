@@ -1,73 +1,65 @@
 @testset "test fault study algorithms" begin
-    args = Dict{String,Any}(
+    orig_args = Dict{String,Any}(
         "network" => "../test/data/ieee13_feeder.dss",
         "settings" => "../test/data/ieee13_settings.json",
         "faults" => "../test/data/ieee13_faults.json",
         "events" => "../test/data/ieee13_events.json",
-        "opt-switch-solver" => "mip_solver",
-        "opt-disp-formulation" => "acp",
-        "opt-switch-algorithm" => "iterative",
-        "quiet" => true,
-        "skip" => ["stability"],
     )
-    entrypoint(args)
+    prepare_data!(orig_args)
 
-    @test args["fault_studies_results"]["5"]["692"]["3p"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
-    @test args["fault_studies_results"]["5"]["692"]["ll"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
-    @test args["fault_studies_results"]["5"]["692"]["lg"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
-end
-
-@testset "test fault study algorithms - no concurrency" begin
-    args = Dict{String,Any}(
-        "network" => "../test/data/ieee13_feeder.dss",
-        "settings" => "../test/data/ieee13_settings.json",
-        "faults" => "../test/data/ieee13_faults.json",
-        "events" => "../test/data/ieee13_events.json",
-        "opt-switch-solver" => "mip_solver",
-        "opt-disp-formulation" => "acp",
-        "opt-switch-algorithm" => "iterative",
-        "quiet" => true,
-        "skip" => ["stability"],
+    set_settings!(
+        orig_args,
+        Dict(
+            ("options", "problem", "operations-solver") => "mip_solver",
+            ("options", "problem", "dispatch-formulation") => "acp",
+            ("options", "problem", "operations-algorithm") => "rolling-horizon",
+            ("options", "outputs", "log-level") => "error",
+        )
     )
-    prepare_data!(args)
-    set_setting!(args, ("options","problem","concurrent-fault-studies"), false)
 
-    entrypoint(args)
+    build_solver_instances!(orig_args)
 
-    @test args["fault_studies_results"]["5"]["692"]["3p"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
-    @test args["fault_studies_results"]["5"]["692"]["ll"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
-    @test args["fault_studies_results"]["5"]["692"]["lg"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
-end
+    r_op = optimize_switches!(orig_args)
+    r_disp = optimize_dispatch!(orig_args)
 
-@testset "test fault study algorithms - missing dispatch solution" begin
-    args = Dict{String,Any}(
-        "network" => "../test/data/ieee13_feeder.dss",
-        "settings" => "../test/data/ieee13_settings.json",
-        "faults" => "../test/data/ieee13_faults.json",
-        "events" => "../test/data/ieee13_events.json",
-        "opt-switch-solver" => "mip_solver",
-        "opt-switch-algorithm" => "iterative",
-        "quiet" => true,
-        "skip" => ["stability", "dispatch"],
-    )
-    entrypoint(args)
+    @testset "test fault study algorithms - base" begin
+        args = deepcopy(orig_args)
 
-    @test args["fault_studies_results"]["5"]["692"]["3p"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
-    @test args["fault_studies_results"]["5"]["692"]["ll"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
-    @test args["fault_studies_results"]["5"]["692"]["lg"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
-end
+        r_faults = run_fault_studies!(args)
 
-@testset "test fault study algorithms - no fault inputs" begin
-    args = Dict{String,Any}(
-        "network" => "../test/data/ieee13_feeder.dss",
-        "settings" => "../test/data/ieee13_settings.json",
-        "events" => "../test/data/ieee13_events.json",
-        "opt-switch-solver" => "mip_solver",
-        "opt-switch-algorithm" => "iterative",
-        "quiet" => true,
-        "skip" => ["stability"],
-    )
-    entrypoint(args)
+        @test args["fault_studies_results"]["5"]["692"]["3p"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
+        @test args["fault_studies_results"]["5"]["692"]["ll"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
+        @test args["fault_studies_results"]["5"]["692"]["lg"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
+    end
 
-    @test count_faults(args["faults"]) == 193
+    @testset "test fault study algorithms - no concurrency" begin
+        args = deepcopy(orig_args)
+        set_setting!(args, ("options", "problem", "concurrent-fault-studies"), false)
+
+        r_faults = run_fault_studies!(args)
+
+        @test args["fault_studies_results"]["5"]["692"]["3p"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
+        @test args["fault_studies_results"]["5"]["692"]["ll"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
+        @test args["fault_studies_results"]["5"]["692"]["lg"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
+    end
+
+    @testset "test fault study algorithms - missing dispatch solution" begin
+        args = deepcopy(orig_args)
+        delete!(args, "optimal_dispatch_result")
+
+        r_faults = run_fault_studies!(args)
+
+        @test args["fault_studies_results"]["5"]["692"]["3p"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
+        @test args["fault_studies_results"]["5"]["692"]["ll"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
+        @test args["fault_studies_results"]["5"]["692"]["lg"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
+    end
+
+    @testset "test fault study algorithms - no fault inputs" begin
+        args = deepcopy(orig_args)
+        delete!(args, "faults")
+
+        r_faults = run_fault_studies!(args)
+
+        @test count_faults(args["faults"]) == 193
+    end
 end
