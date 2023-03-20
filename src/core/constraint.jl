@@ -157,6 +157,9 @@ function constraint_isolate_block_traditional(pm::AbstractUnbalancedPowerModel, 
         for load in loads
             JuMP.@constraint(pm.model, var(pm, nw, :z_demand, load) .<= [var(pm, nw, :z_demand, _load) for _load in filter(x->x!=load, loads)])
             JuMP.@constraint(pm.model, var(pm, nw, :z_demand, load) <= var(pm, nw, :z_voltage, ref(pm, nw, :load, load, "load_bus")))
+            if Int(get(ref(pm, nw, :load, load), "dispatchable", PMD.NO)) == 0
+                JuMP.@constraint(pm.model, var(pm, nw, :z_demand, load) >= var(pm, nw, :z_voltage, ref(pm, nw, :load, load, "load_bus")))
+            end
         end
     end
 
