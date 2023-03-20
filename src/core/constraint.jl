@@ -1005,11 +1005,12 @@ function constraint_grid_forming_inverter_per_cc_traditional(pm::AbstractUnbalan
     ϕ = var(pm, nw, :phi_gfm)
     z = var(pm, nw, :switch_state)
     x = var(pm, nw, :z_inverter)
+    γ = var(pm, nw, :z_voltage)
 
     # voltage sources are always grid-forming
     for ((t,j), z_inv) in x
         if t == :gen && startswith(ref(pm, nw, t, j, "source_id"), "voltage_source")
-            JuMP.@constraint(pm.model, z_inv == 1)
+            JuMP.@constraint(pm.model, z_inv <= var(pm, nw, :z_voltage, ref(pm, nw, t, j, "gen_bus")))
         end
     end
 
@@ -1036,8 +1037,8 @@ function constraint_grid_forming_inverter_per_cc_traditional(pm::AbstractUnbalan
         if !isempty(Dₖ)
             # Eq. (3)
             if !all(isa(x[i], Real) for i in Dₖ)
-                JuMP.@constraint(pm.model, sum(x[i] for i in Dₖ) >= sum(1-z[ab] for ab in Tₖ)-length(Tₖ)+1)
-                JuMP.@constraint(pm.model, sum(x[i] for i in Dₖ) <= 1)
+                JuMP.@constraint(pm.model, sum(x[i] for i in Dₖ) >= sum(1-z[ab] for ab in Tₖ)-length(Tₖ)+γ[first(ref(pm, nw, :blocks, k))])
+                JuMP.@constraint(pm.model, sum(x[i] for i in Dₖ) <= γ[first(ref(pm, nw, :blocks, k))])
             elseif all(isa(x[i], Real) && x[i] == 0 for i in Dₖ)
                 for (t,j) in Dₖ
                     JuMP.@constraint(pm.model, var(pm, nw, Symbol("z_$(t)"), j) <= sum(var(pm, nw, Symbol("z_$(u)"), l) for k′ in filter(x->x!=k, L) for (u,l) in ref(pm, nw, :block_inverters, k′)))
