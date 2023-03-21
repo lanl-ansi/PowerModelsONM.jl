@@ -134,7 +134,7 @@ if !_FAST
     client = Pluto.ClientSession(Symbol("client", rand(UInt16)), nothing)
     ss.connected_clients[client.id] = client
     for file in readdir("examples", join=true)
-        if endswith(file, ".jl")
+        if endswith(file, ".jl") && ispath("docs/build/tutorials/$(replace(basename(file), ".jl" => ".html"))")
             @info "rendering '$(file)' with pluto"
             nb = Pluto.load_notebook_nobackup(file);
             client.connected_notebook = nb;
