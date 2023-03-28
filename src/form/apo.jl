@@ -395,3 +395,8 @@ function constraint_mc_storage_phase_unbalance_grid_following(pm::PMD.AbstractUn
         end
     end
 end
+
+
+"do nothing, no voltage variables"
+function constraint_mc_switch_open_voltage_distance(::PMD.AbstractUnbalancedNFAModel, ::Int, ::Int, ::Int, ::Int, ::Vector{Int}, ::Vector{Int}, ::Real, ::Real)
+end

@@ -34,6 +34,14 @@
           "items": {
             "type": ["number", "null"]
           }
+        },
+        "vm_delta_pu_ub": {
+          "type": "number",
+          "default": null
+        },
+        "va_delta_deg_ub": {
+          "type": "number",
+          "default": null
         }
       }
     }

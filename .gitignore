@@ -12,3 +12,5 @@ test_output*.json
 
 build/
 debug/
+
+*.dylib

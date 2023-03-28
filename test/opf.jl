@@ -78,3 +78,59 @@
         @test isapprox(result["objective"], 4.85; atol=1e-2)
     end
 end
+
+@testset "test optimal dispatch with open switch voltage co-optimization" begin
+    args = Dict{String,Any}(
+        "network" => "../test/data/ieee13_feeder.dss",
+        "settings" => "../test/data/ieee13_settings.json",
+    )
+    prepare_data!(args)
+
+    set_settings!(args, Dict(
+        ("options", "outputs", "log-level") => "error",
+        ("solvers", "Ipopt", "print_level") => 0,
+        ("options", "constraints", "disable-switch-open-voltage-distance-constaint") => false,
+        ("options", "objective", "disable-voltage-distance-slack-cost") => false,
+        ("switch", "801675", "vm_delta_pu_ub") => 0.05,
+        ("switch", "801675", "va_delta_deg_ub") => 1,
+        ("switch", "801675", "state") => OPEN,
+        ("switch", "801675", "status") => ENABLED,
+        ("options", "problem", "dispatch-formulation") => "acp",
+    ))
+
+    build_solver_instances!(args)
+
+    @testset "test opf switch co-optimization with ACP" begin
+        r = solve_mn_opf(args["network"], PowerModelsONM.PMD.ACPUPowerModel, args["solvers"]["nlp_solver"]; make_si=false)
+
+        delta_va = Dict(n => abs.(nw["bus"]["801"]["va"].-nw["bus"]["675aux"]["va"]) for (n,nw) in r["solution"]["nw"])
+        delta_vm = Dict(n => abs.(nw["bus"]["801"]["vm"].-nw["bus"]["675aux"]["vm"]) for (n,nw) in r["solution"]["nw"])
+
+        @test all(all(dva .- 1.0 .< 1e-4) for (n,dva) in delta_va)
+        @test all(all(dvm .- 0.05 .< 1e-4) for (n,dvm) in delta_vm)
+    end
+
+    @testset "test opf switch co-optimization with ACR" begin
+        r = solve_mn_opf(args["network"], PowerModelsONM.PMD.ACRUPowerModel, args["solvers"]["nlp_solver"]; make_si=false)
+
+        delta_va = Dict(n => abs.(nw["bus"]["801"]["va"].-nw["bus"]["675aux"]["va"]) for (n,nw) in r["solution"]["nw"])
+        delta_vm = Dict(n => abs.(nw["bus"]["801"]["vm"].-nw["bus"]["675aux"]["vm"]) for (n,nw) in r["solution"]["nw"])
+
+        @test all(all(dva .- 1.0 .< 1e-4) for (n,dva) in delta_va)
+        @test all(all(dvm .- 0.05 .< 1e-4) for (n,dvm) in delta_vm)
+    end
+
+    @testset "test opf switch co-optimization with LPUBF" begin
+        r = solve_mn_opf(args["network"], PowerModelsONM.PMD.LPUBFDiagPowerModel, args["solvers"]["nlp_solver"]; make_si=false)
+
+        delta_vm = Dict(n => abs.(nw["bus"]["801"]["vm"].-nw["bus"]["675aux"]["vm"]) for (n,nw) in r["solution"]["nw"])
+
+        @test all(all(dvm .- 0.05 .< 1e-4) for (n,dvm) in delta_vm)
+    end
+
+    @testset "test opf switch co-optimization with NFA" begin
+        r = solve_mn_opf(args["network"], PowerModelsONM.PMD.NFAUPowerModel, args["solvers"]["nlp_solver"]; make_si=false)
+
+        @test isapprox(r["objective"], 4.85; atol=1e-2)
+    end
+end

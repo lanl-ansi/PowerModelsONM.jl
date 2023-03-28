@@ -329,6 +329,7 @@ function objective_mc_min_storage_utilization(pm::AbstractUnbalancedPowerModel)
         sum(
               sum( Int(!obj_opts[n]["disable-storage-discharge-cost"]) * (strg["energy_rating"] - var(pm, n, :se, i)) for (i,strg) in nw_ref[:storage]) / total_energy_ub
             + sum( Int(!obj_opts[n]["disable-generation-dispatch-cost"]) * sum(get(gen,  "cost", [0.0, 0.0])[2] * var(pm, n, :pg, i)[c] + get(gen,  "cost", [0.0, 0.0])[1] for c in  gen["connections"]) for (i,gen) in nw_ref[:gen]) / total_energy_ub
+            + sum( Int(!obj_opts[n]["disable-voltage-distance-slack-cost"]) * sum(slack_var) for (i,slack_var) in get(var(pm, n), :sw_v_slack, Dict()))
         for (n, nw_ref) in nws(pm))
     )
 end

@@ -9,6 +9,7 @@ const _eng2math_passthrough_default = Dict{String,Vector{String}}(
     "generator"=>String["inverter", "gen_model"],
     "solar"=>String["inverter", "gen_model"],
     "storage"=>String["phase_unbalance_ub", "inverter", "gen_model"],
+    "switch"=>String["vm_delta_pu_ub", "va_delta_deg_ub"],
     "voltage_source"=>["inverter", "gen_model"],
 )
 
