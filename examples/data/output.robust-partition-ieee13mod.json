@@ -3,7 +3,7 @@
     "rank": 1,
     "score": 5.40128,
     "grid_forming_devices": ["vsource.source"],
-    "uuid": "9fd1c9d1-28b0-4c73-904c-90ab1a657bf8",
+    "uuid": "902d2812-85e6-4df8-8d8d-063601ec8585",
     "shed_loads": [],
     "slack_buses": ["bus.sourcebus"],
     "configuration": {
@@ -20,7 +20,7 @@
     "rank": 2,
     "score": 5.41077,
     "grid_forming_devices": ["storage.battery_mg1b", "vsource.source"],
-    "uuid": "4eccc18b-e9f3-47ac-91b8-c7bc202ad69e",
+    "uuid": "393605c4-fc72-4cdb-9851-8ede1c74aaf0",
     "shed_loads": [],
     "slack_buses": ["bus.700", "bus.sourcebus"],
     "configuration": {
@@ -37,7 +37,7 @@
     "rank": 3,
     "score": 5.488,
     "grid_forming_devices": ["storage.battery_mg1c", "vsource.source"],
-    "uuid": "7e757d6b-7b26-465f-8012-f102716782c3",
+    "uuid": "8fe479fb-3196-480f-bd3e-e3a5584ba22c",
     "shed_loads": [],
     "slack_buses": ["bus.801", "bus.sourcebus"],
     "configuration": {
@@ -52,31 +52,10 @@
   },
   {
     "rank": 4,
-    "score": 5.508,
-    "grid_forming_devices": [
-      "storage.battery_mg1c",
-      "storage.battery_mg1b",
-      "vsource.source"
-    ],
-    "uuid": "d34e5328-1364-4a05-9078-75948389f99a",
-    "shed_loads": [],
-    "slack_buses": ["bus.801", "bus.700", "bus.sourcebus"],
-    "configuration": {
-      "line.701702": "CLOSED",
-      "line.cb_101": "CLOSED",
-      "line.671700": "OPEN",
-      "line.671692": "CLOSED",
-      "line.800801": "OPEN",
-      "line.703800": "OPEN",
-      "line.801675": "OPEN"
-    }
-  },
-  {
-    "rank": 5,
     "score": 15.168,
     "grid_forming_devices": ["vsource.source"],
-    "uuid": "37bed51a-8441-4785-b2d6-f2887a6d6f3a",
-    "shed_loads": [],
+    "uuid": "584cc2f5-f832-4aef-b097-e55e37e1cf5f",
+    "shed_loads": ["load.675b", "load.675a", "load.675c", "load.692"],
     "slack_buses": ["bus.sourcebus"],
     "configuration": {
       "line.701702": "CLOSED",
@@ -89,11 +68,11 @@
     }
   },
   {
-    "rank": 6,
+    "rank": 5,
     "score": 15.4413,
     "grid_forming_devices": ["vsource.source"],
-    "uuid": "53a920d3-5c38-4053-8838-01b82d77d888",
-    "shed_loads": [],
+    "uuid": "742b0fbc-7ed7-4872-a334-46122d44e981",
+    "shed_loads": ["load.702", "load.703"],
     "slack_buses": ["bus.sourcebus"],
     "configuration": {
       "line.701702": "OPEN",
@@ -106,11 +85,11 @@
     }
   },
   {
-    "rank": 7,
+    "rank": 6,
     "score": 15.4508,
     "grid_forming_devices": ["storage.battery_mg1b", "vsource.source"],
-    "uuid": "2280121f-3169-454c-a4e3-15d47ee2a41b",
-    "shed_loads": [],
+    "uuid": "b8778d02-1145-4e42-a513-2880e46f72a5",
+    "shed_loads": ["load.702", "load.703"],
     "slack_buses": ["bus.700", "bus.sourcebus"],
     "configuration": {
       "line.701702": "OPEN",
@@ -123,11 +102,11 @@
     }
   },
   {
-    "rank": 8,
+    "rank": 7,
     "score": 15.528,
     "grid_forming_devices": ["storage.battery_mg1c", "vsource.source"],
-    "uuid": "5d29a5e5-4443-4732-848f-aa4495fecdb8",
-    "shed_loads": [],
+    "uuid": "e370fe53-7a47-4928-ac8c-d5ea8daa0a86",
+    "shed_loads": ["load.675b", "load.675a", "load.675c", "load.692"],
     "slack_buses": ["bus.801", "bus.sourcebus"],
     "configuration": {
       "line.701702": "CLOSED",
@@ -136,6 +115,27 @@
       "line.671692": "OPEN",
       "line.800801": "OPEN",
       "line.703800": "OPEN",
+      "line.801675": "OPEN"
+    }
+  },
+  {
+    "rank": 8,
+    "score": 15.548,
+    "grid_forming_devices": [
+      "storage.battery_mg1c",
+      "storage.battery_mg1b",
+      "vsource.source"
+    ],
+    "uuid": "e8980610-32ba-4330-89e3-54c1db44acd6",
+    "shed_loads": ["load.675b", "load.675a", "load.675c", "load.692"],
+    "slack_buses": ["bus.801", "bus.700", "bus.sourcebus"],
+    "configuration": {
+      "line.701702": "OPEN",
+      "line.cb_101": "CLOSED",
+      "line.671700": "OPEN",
+      "line.671692": "OPEN",
+      "line.800801": "CLOSED",
+      "line.703800": "CLOSED",
       "line.801675": "OPEN"
     }
   },
@@ -147,35 +147,51 @@
       "storage.battery_mg1b",
       "vsource.source"
     ],
-    "uuid": "56b05dc3-27dd-4868-9ed6-c0a152dc540f",
-    "shed_loads": [],
+    "uuid": "96a58d2e-dc84-4f76-939e-6dcf921abb95",
+    "shed_loads": ["load.675b", "load.675a", "load.675c", "load.692"],
     "slack_buses": ["bus.801", "bus.700", "bus.sourcebus"],
     "configuration": {
-      "line.701702": "OPEN",
+      "line.701702": "CLOSED",
       "line.cb_101": "CLOSED",
       "line.671700": "OPEN",
       "line.671692": "OPEN",
-      "line.800801": "CLOSED",
-      "line.703800": "CLOSED",
+      "line.800801": "OPEN",
+      "line.703800": "OPEN",
       "line.801675": "OPEN"
     }
   },
   {
     "rank": 10,
-    "score": 15.548,
+    "score": 16.658,
     "grid_forming_devices": [
       "storage.battery_mg1c",
       "storage.battery_mg1b",
       "vsource.source"
     ],
-    "uuid": "f6795766-a1f9-4cca-a136-5665e75ed1d1",
-    "shed_loads": [],
+    "uuid": "801dbf27-484e-408d-bc90-74460bd29e97",
+    "shed_loads": [
+      "load.634a",
+      "load.675b",
+      "load.671",
+      "load.675a",
+      "load.652",
+      "load.670c",
+      "load.611",
+      "load.645",
+      "load.634c",
+      "load.670b",
+      "load.634b",
+      "load.675c",
+      "load.692",
+      "load.670a",
+      "load.646"
+    ],
     "slack_buses": ["bus.801", "bus.700", "bus.sourcebus"],
     "configuration": {
-      "line.701702": "OPEN",
-      "line.cb_101": "CLOSED",
+      "line.701702": "CLOSED",
+      "line.cb_101": "OPEN",
       "line.671700": "OPEN",
-      "line.671692": "CLOSED",
+      "line.671692": "OPEN",
       "line.800801": "OPEN",
       "line.703800": "OPEN",
       "line.801675": "OPEN"
@@ -183,56 +199,30 @@
   },
   {
     "rank": 11,
-    "score": 15.548,
-    "grid_forming_devices": [
-      "storage.battery_mg1c",
-      "storage.battery_mg1b",
-      "vsource.source"
-    ],
-    "uuid": "a65cdde2-5469-4e83-8748-af4038d576f6",
-    "shed_loads": [],
-    "slack_buses": ["bus.801", "bus.700", "bus.sourcebus"],
-    "configuration": {
-      "line.701702": "CLOSED",
-      "line.cb_101": "CLOSED",
-      "line.671700": "OPEN",
-      "line.671692": "OPEN",
-      "line.800801": "OPEN",
-      "line.703800": "OPEN",
-      "line.801675": "OPEN"
-    }
-  },
-  {
-    "rank": 12,
     "score": 16.658,
     "grid_forming_devices": [
       "storage.battery_mg1c",
       "storage.battery_mg1b",
       "vsource.source"
     ],
-    "uuid": "1a0932aa-ee89-47b5-927f-6ab9cc8b419d",
-    "shed_loads": ["load.652", "load.646"],
-    "slack_buses": ["bus.801", "bus.700", "bus.sourcebus"],
-    "configuration": {
-      "line.701702": "CLOSED",
-      "line.cb_101": "OPEN",
-      "line.671700": "OPEN",
-      "line.671692": "OPEN",
-      "line.800801": "OPEN",
-      "line.703800": "OPEN",
-      "line.801675": "OPEN"
-    }
-  },
-  {
-    "rank": 13,
-    "score": 16.658,
-    "grid_forming_devices": [
-      "storage.battery_mg1c",
-      "storage.battery_mg1b",
-      "vsource.source"
+    "uuid": "f7f281ea-2fab-49f1-87cd-a51ac9c7ded9",
+    "shed_loads": [
+      "load.634a",
+      "load.675b",
+      "load.671",
+      "load.675a",
+      "load.652",
+      "load.670c",
+      "load.611",
+      "load.645",
+      "load.634c",
+      "load.670b",
+      "load.634b",
+      "load.675c",
+      "load.692",
+      "load.670a",
+      "load.646"
     ],
-    "uuid": "18dd4896-bfdc-430c-a36c-b84e2fa69986",
-    "shed_loads": ["load.652", "load.646"],
     "slack_buses": ["bus.801", "bus.700", "bus.sourcebus"],
     "configuration": {
       "line.701702": "OPEN",
@@ -245,11 +235,18 @@
     }
   },
   {
-    "rank": 14,
+    "rank": 12,
     "score": 25.548,
     "grid_forming_devices": ["storage.battery_mg1c", "vsource.source"],
-    "uuid": "5d73e366-8e74-43a4-8401-4a11497d0a13",
-    "shed_loads": [],
+    "uuid": "447f77d7-6f52-4e1d-b466-62c8d3ebb3c3",
+    "shed_loads": [
+      "load.675b",
+      "load.675a",
+      "load.702",
+      "load.703",
+      "load.675c",
+      "load.692"
+    ],
     "slack_buses": ["bus.801", "bus.sourcebus"],
     "configuration": {
       "line.701702": "OPEN",
@@ -262,15 +259,22 @@
     }
   },
   {
-    "rank": 15,
+    "rank": 13,
     "score": 25.588,
     "grid_forming_devices": [
       "storage.battery_mg1c",
       "storage.battery_mg1b",
       "vsource.source"
     ],
-    "uuid": "ba38a80d-bbb5-40a0-93d6-e13777419e1b",
-    "shed_loads": [],
+    "uuid": "be02e486-cd14-45ff-8bd9-641bcece812e",
+    "shed_loads": [
+      "load.675b",
+      "load.675a",
+      "load.702",
+      "load.703",
+      "load.675c",
+      "load.692"
+    ],
     "slack_buses": ["bus.801", "bus.700", "bus.sourcebus"],
     "configuration": {
       "line.701702": "OPEN",
@@ -283,21 +287,56 @@
     }
   },
   {
-    "rank": 16,
+    "rank": 14,
     "score": 26.698,
     "grid_forming_devices": [
       "storage.battery_mg1c",
       "storage.battery_mg1b",
       "vsource.source"
     ],
-    "uuid": "ba1f6d15-de78-4462-9f86-b744e5989d67",
-    "shed_loads": ["load.652", "load.646"],
+    "uuid": "8c529dd1-4799-44fa-875c-57b1afc32b3a",
+    "shed_loads": [
+      "load.634a",
+      "load.675b",
+      "load.671",
+      "load.675a",
+      "load.652",
+      "load.702",
+      "load.670c",
+      "load.611",
+      "load.645",
+      "load.634c",
+      "load.703",
+      "load.670b",
+      "load.634b",
+      "load.675c",
+      "load.692",
+      "load.670a",
+      "load.646"
+    ],
     "slack_buses": ["bus.801", "bus.700", "bus.sourcebus"],
     "configuration": {
       "line.701702": "OPEN",
       "line.cb_101": "OPEN",
       "line.671700": "OPEN",
       "line.671692": "OPEN",
+      "line.800801": "OPEN",
+      "line.703800": "OPEN",
+      "line.801675": "OPEN"
+    }
+  },
+  {
+    "rank": 15,
+    "score": 31.0668,
+    "grid_forming_devices": ["storage.battery_mg1c", "vsource.source"],
+    "uuid": "68f54a85-47db-41c1-af89-550add8e9c8d",
+    "shed_loads": ["load.702", "load.703"],
+    "slack_buses": ["bus.801", "bus.sourcebus"],
+    "configuration": {
+      "line.701702": "OPEN",
+      "line.cb_101": "CLOSED",
+      "line.671700": "CLOSED",
+      "line.671692": "CLOSED",
       "line.800801": "OPEN",
       "line.703800": "OPEN",
       "line.801675": "OPEN"
