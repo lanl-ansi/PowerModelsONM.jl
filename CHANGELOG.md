@@ -2,6 +2,7 @@
 
 ## staged
 
+- Added citation information for PowerModelsONM
 - Updated Documetation build to latest package versions
 - Added `JuMP Model by Hand - MLD-Block Scenario Example` to generated documentation
 - Added example to `output-robust-partitions.schema.json`
