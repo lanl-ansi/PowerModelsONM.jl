@@ -38,6 +38,23 @@ Contributions, feature requests, and suggestions are welcome; please open an [is
 
 This software was supported by the Resilient Operations of Networked Microgrids project funded by the U.S. Department of Energy's Microgrid Research and Development Program.
 
+## Citing PowerModelsONM
+
+If you find PowerModelsONM useful for your work, we kindly request that you cite the following [publication](https://doi.org/10.1109/TSG.2022.3208508):
+
+```bibtex
+@ARTICLE{9897093,
+  author={Fobes, David M. and Nagarajan, Harsha and Bent, Russell},
+  journal={IEEE Transactions on Smart Grid},
+  title={Optimal Microgrid Networking for Maximal Load Delivery in Phase Unbalanced Distribution Grids: A Declarative Modeling Approach},
+  year={2023},
+  volume={14},
+  number={3},
+  pages={1682-1691},
+  doi={10.1109/TSG.2022.3208508}
+}
+```
+
 ## License
 
 This code is provided under a BSD license as part of the Multi-Infrastructure Control and Optimization Toolkit (MICOT) project, LA-CC-13-108.

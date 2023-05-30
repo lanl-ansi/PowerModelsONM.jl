@@ -7,6 +7,7 @@
 - Added `disable-voltage-distance-slack-cost` to options/objective schema with default of `true`
 - Added `disable-switch-open-voltage-distance-constaint` to options/constraints schema with default of `true`
 - Added constraints to optimize voltages on either side of **open** switches to be within some tolerance of one-another in `constraint_mc_switch_open_voltage_distance`
+- Added citation information for PowerModelsONM
 - Updated Documetation build to latest package versions
 - Added `JuMP Model by Hand - MLD-Block Scenario Example` to generated documentation
 - Added example to `output-robust-partitions.schema.json`
