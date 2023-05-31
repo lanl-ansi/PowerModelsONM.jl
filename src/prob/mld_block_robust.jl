@@ -164,6 +164,8 @@ function build_scen_block_mld(pm::PMD.AbstractUBFModels, scen::String, obj_expr:
     feas_chck = ref(pm, :scenarios, "feasibility_check")
 
     variable_block_indicator(pm; relax=var_opts["relax-integer-variables"], report=false)
+    # to grab load shed, since we can't assume sum(pd.+qd) == 0
+    IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :load, Symbol("status_$scen"), ids(pm, nw, :load), Dict{Int,Any}(i => var(pm, nw, :z_block, ref(pm, nw, :load_block_map, i)) for i in ids(pm, nw, :load)))
 
     PMD.variable_mc_bus_voltage_on_off(pm; bounded=!var_opts["unbound-voltage"], report=false)
 
@@ -333,7 +335,7 @@ function generate_ranked_partitions(data::Dict{String,<:Any}, results::Dict{Stri
             "configuration" => Dict{String,String}(
                 data["switch"][s]["source_id"] => string(sw["state"]) for (s,sw) in get(get(result, "solution", Dict()), "switch", Dict())
             ),
-            "shed_loads" => [data["load"][l]["source_id"] for l in keys(filter(x->sum(abs.(x.second["pd"]+im*x.second["qd"]))==0.0, get(get(result, "solution", Dict()), "load", Dict())))],
+            "shed_loads" => [data["load"][i]["source_id"] for (i,load) in get(get(result, "solution", Dict()), "load", Dict()) if load[sort(filter(x->occursin("status", x), collect(keys(load))))[end]] == 0],
             "slack_buses" => ["bus.$(data[t][i]["bus"])" for t in ["storage", "solar", "generator", "voltage_source"] for (i,obj) in get(get(result, "solution", Dict()), t, Dict()) if get(obj, "inverter", GRID_FOLLOWING) == GRID_FORMING],
             "grid_forming_devices" => ["$(data[t][i]["source_id"])" for t in ["storage", "solar", "generator", "voltage_source"] for (i,obj) in get(get(result, "solution", Dict()), t, Dict()) if get(obj, "inverter", GRID_FOLLOWING) == GRID_FORMING],
         )

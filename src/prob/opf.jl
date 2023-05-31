@@ -80,6 +80,7 @@ function build_mn_opf(pm::AbstractUnbalancedPowerModel)
 
         for i in ids(pm, n, :switch)
             PMD.constraint_mc_switch_state(pm, i; nw=n)
+            !con_opts["disable-switch-open-voltage-distance-constaint"] && constraint_mc_switch_open_voltage_distance(pm, i; nw=n)
             !con_opts["disable-thermal-limit-constraints"] && PMD.constraint_mc_switch_thermal_limit(pm, i; nw=n)
             !con_opts["disable-current-limit-constraints"] && PMD.constraint_mc_switch_ampacity(pm, i; nw=n)
         end
@@ -181,6 +182,7 @@ function build_mn_opf(pm::PMD.AbstractUBFModels)
 
         for i in ids(pm, n, :switch)
             PMD.constraint_mc_switch_state(pm, i; nw=n)
+            !con_opts["disable-switch-open-voltage-distance-constaint"] && constraint_mc_switch_open_voltage_distance(pm, i; nw=n)
             !con_opts["disable-thermal-limit-constraints"] && PMD.constraint_mc_switch_thermal_limit(pm, i; nw=n)
             !con_opts["disable-current-limit-constraints"] && PMD.constraint_mc_switch_ampacity(pm, i; nw=n)
         end

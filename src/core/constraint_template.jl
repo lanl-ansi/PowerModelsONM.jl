@@ -407,3 +407,23 @@ Template function for constraint to disable microgrid networking.
 function constraint_disable_networking(pm::AbstractUnbalancedPowerModel; nw::Int=nw_id_default, relax::Bool=false)
     constraint_disable_networking(pm, nw; relax=relax)
 end
+
+
+"""
+    constraint_mc_switch_open_voltage_distance(pm::AbstractUnbalancedPowerModel, i::Int; nw::Int=nw_id_default)
+
+Template function for constraint to encourage voltage matching at partition boundaries
+"""
+function constraint_mc_switch_open_voltage_distance(pm::AbstractUnbalancedPowerModel, i::Int; nw::Int=nw_id_default)
+    if !haskey(var(pm, nw), :sw_v_slack)
+        var(pm, nw)[:sw_v_slack] = Dict{Int,Any}() # TODO: K,V types?
+    end
+
+    switch = ref(pm, nw, :switch, i)
+    vm_delta_pu = get(switch, "vm_delta_pu_ub", Inf)
+    va_delta_deg = get(switch, "va_delta_deg_ub", Inf)
+
+    if Int(switch["state"]) == Int(PMD.OPEN) && Int(switch["status"]) != Int(PMD.DISABLED)
+        constraint_mc_switch_open_voltage_distance(pm, nw, i, switch["f_bus"], switch["t_bus"], switch["f_connections"], switch["t_connections"], vm_delta_pu, va_delta_deg)
+    end
+end

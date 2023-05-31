@@ -122,6 +122,11 @@
           "description": "Flag to enable a constraint that requires that load restoration be strictly increasing, that is, load blocks once energized cannot be de-energized in a later timestep",
           "type": "boolean",
           "default": false
+        },
+        "disable-switch-open-voltage-distance-constaint": {
+          "description": "Flag to disable a constraint that encourages voltages on either side of OPEN switches remain with some distance of each other",
+          "type": "boolean",
+          "default": true
         }
       }
     },
@@ -157,6 +162,11 @@
           "description": "Flag to disable the cost of not energizing load blocks",
           "type": "boolean",
           "default": false
+        },
+        "disable-voltage-distance-slack-cost": {
+          "description": "Flag to disable the inclusion of voltage distance slack variables in the `objective_mc_min_storage_utilization` objective function",
+          "type": "boolean",
+          "default": true
         }
       }
     },

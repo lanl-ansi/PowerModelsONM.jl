@@ -24,7 +24,7 @@
 
         @test result["termination_status"] == LOCALLY_SOLVED
         @test length(filter(x->x.second["state"]==CLOSED, get(get(result, "solution", Dict()), "switch", Dict()))) == 5
-        @test isapprox(result["objective"], 6.97; atol=0.1)
+        @test isapprox(result["objective"], 6.78; atol=0.1)
     end
 
     @testset "test block mld - acr" begin
@@ -32,6 +32,6 @@
 
         @test result["termination_status"] == LOCALLY_SOLVED
         @test length(filter(x->x.second["state"]==CLOSED, get(get(result, "solution", Dict()), "switch", Dict()))) == 5
-        @test isapprox(result["objective"], 6.97; atol=0.1)
+        @test isapprox(result["objective"], 6.78; atol=0.1)
     end
 end
