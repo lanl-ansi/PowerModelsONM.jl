@@ -2,6 +2,10 @@
 
 ## staged
 
+- none
+
+## v3.4.0
+
 - Fixed list of shed loads in robust partions with uncertainty `generate_ranked_partitions`
 - Added `vm_delta_pu_ub` and `va_delta_deg_ub` to switch schema with default of `Inf`
 - Added `disable-voltage-distance-slack-cost` to options/objective schema with default of `true`

@@ -1,7 +1,7 @@
 name = "PowerModelsONM"
 uuid = "25264005-a304-4053-a338-565045d392ac"
 authors = ["David M Fobes <dfobes@lanl.gov>"]
-version = "3.3.0"
+version = "3.4.0"
 
 [deps]
 ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
