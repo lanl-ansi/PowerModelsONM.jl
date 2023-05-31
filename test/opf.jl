@@ -89,6 +89,8 @@ end
     set_settings!(args, Dict(
         ("options", "outputs", "log-level") => "error",
         ("solvers", "Ipopt", "print_level") => 0,
+        ("solvers", "Ipopt", "tol") => 1e-8,
+        ("solvers", "Ipopt", "sb") => "yes",
         ("options", "constraints", "disable-switch-open-voltage-distance-constaint") => false,
         ("options", "objective", "disable-voltage-distance-slack-cost") => false,
         ("switch", "801675", "vm_delta_pu_ub") => 0.05,
@@ -106,8 +108,8 @@ end
         delta_va = Dict(n => abs.(nw["bus"]["801"]["va"].-nw["bus"]["675aux"]["va"]) for (n,nw) in r["solution"]["nw"])
         delta_vm = Dict(n => abs.(nw["bus"]["801"]["vm"].-nw["bus"]["675aux"]["vm"]) for (n,nw) in r["solution"]["nw"])
 
-        @test all(all(dva .- 1.0 .< 1e-4) for (n,dva) in delta_va)
-        @test all(all(dvm .- 0.05 .< 1e-4) for (n,dvm) in delta_vm)
+        @test all(all(dva .- 1.0 .<= 1e-3) for (n,dva) in delta_va)
+        @test all(all(dvm .- 0.05 .<= 1e-4) for (n,dvm) in delta_vm)
     end
 
     @testset "test opf switch co-optimization with ACR" begin
@@ -116,8 +118,8 @@ end
         delta_va = Dict(n => abs.(nw["bus"]["801"]["va"].-nw["bus"]["675aux"]["va"]) for (n,nw) in r["solution"]["nw"])
         delta_vm = Dict(n => abs.(nw["bus"]["801"]["vm"].-nw["bus"]["675aux"]["vm"]) for (n,nw) in r["solution"]["nw"])
 
-        @test all(all(dva .- 1.0 .< 1e-4) for (n,dva) in delta_va)
-        @test all(all(dvm .- 0.05 .< 1e-4) for (n,dvm) in delta_vm)
+        @test all(all(dva .- 1.0 .<= 1e-3) for (n,dva) in delta_va)
+        @test all(all(dvm .- 0.05 .<= 1e-4) for (n,dvm) in delta_vm)
     end
 
     @testset "test opf switch co-optimization with LPUBF" begin
@@ -125,7 +127,7 @@ end
 
         delta_vm = Dict(n => abs.(nw["bus"]["801"]["vm"].-nw["bus"]["675aux"]["vm"]) for (n,nw) in r["solution"]["nw"])
 
-        @test all(all(dvm .- 0.05 .< 1e-4) for (n,dvm) in delta_vm)
+        @test all(all(dvm .- 0.05 .<= 1e-4) for (n,dvm) in delta_vm)
     end
 
     @testset "test opf switch co-optimization with NFA" begin

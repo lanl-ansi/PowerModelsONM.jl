@@ -16,10 +16,9 @@ import HiGHS
 
 minlp_solver = optimizer_with_attributes(
     Juniper.Optimizer,
-    "nl_solver" => optimizer_with_attributes(Ipopt.Optimizer, "tol"=>1e-6, "mu_strategy"=>"adaptive", "print_level"=>0),
+    "nl_solver" => optimizer_with_attributes(Ipopt.Optimizer, "tol"=>1e-6, "print_level"=>0),
     "mip_solver" => optimizer_with_attributes(
         HiGHS.Optimizer,
-        "presolve" => "off",
         "primal_feasibility_tolerance" => 1e-6,
         "dual_feasibility_tolerance" => 1e-6,
         "mip_feasibility_tolerance" => 1e-6,
