@@ -38,6 +38,18 @@ Contributions, feature requests, and suggestions are welcome; please open an [is
 
 This software was supported by the Resilient Operations of Networked Microgrids project funded by the U.S. Department of Energy's Microgrid Research and Development Program.
 
+## R&D100 2023 Winner
+
+PowerModelsONM won an R&D100 Award in 2023
+
+| **Award**                                                                                                                                              | **Entry**                                                                                                                                                                                                                                  |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [<img src="https://lanl-ansi.github.io/PowerModelsONM.jl/dev/assets/RD100_2023_Winner_Logo.png" width=200 alt="R&D100 2023 Winner Logo" />][rd100-url] | **PowerModelsONM: Optimizing Operations of Networked Microgrids for Resilience** <br />Los Alamos National Laboratory, National Renewable Energy Laboratory, Sandia National Laboratories, National Rural Electric Cooperative Association |
+
+You can find a YouTube video that accompanied our entry below for more information on PowerModelsONM:
+
+[![R&D 100 - PowerModels ONM](https://img.youtube.com/vi/D5k-lMicMPM/0.jpg)](https://www.youtube.com/watch?v=D5k-lMicMPM)
+
 ## Citing PowerModelsONM
 
 If you find PowerModelsONM useful for your work, we kindly request that you cite the following [publication](https://doi.org/10.1109/TSG.2022.3208508):
@@ -70,3 +82,4 @@ This code is provided under a BSD license as part of the Multi-Infrastructure Co
 [contrib-url]: https://lanl-ansi.github.io/PowerModelsONM.jl/stable/developer/contributing.html
 [discussions-url]: https://github.com/lanl-ansi/PowerModelsONM.jl/discussions
 [issues-url]: https://github.com/lanl-ansi/PowerModelsONM.jl/issues
+[rd100-url]: https://www.rdworldonline.com/rd-100-winners-for-2023-are-announced-2/
