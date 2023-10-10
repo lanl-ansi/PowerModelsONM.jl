@@ -269,7 +269,7 @@
             clpu_factor=2.0,
             max_switch_actions=1,
             disable_switch_penalty=false,
-            apply_switch_scores=true,
+            apply_switch_scores=false,
             disable_presolver=false,
             mip_solver_gap=0.0001,
             nlp_solver_tol=0.00001,
@@ -333,7 +333,7 @@
             ),
             "options" => Dict{String,Any}(
                 "objective" => Dict{String,Any}(
-                    "enable-switch-state-open-cost" => true,
+                    "enable-switch-state-open-cost" => false,
                 )
             ),
             "solvers" => Dict{String,Any}(

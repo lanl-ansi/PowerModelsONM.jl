@@ -5,7 +5,7 @@
 
     eng = apply_settings(eng, settings; multinetwork=false)
 
-    for (s,switch) in eng["switch"]
+    for (s, switch) in eng["switch"]
         switch["state"] = OPEN
     end
 
@@ -14,8 +14,10 @@
     set_options!(
         eng,
         Dict(
-            ("options","constraints","disable-grid-forming-inverter-constraint") => true,
-            ("options","constraints","disable-storage-unbalance-constraint") => true,
+            ("options", "constraints", "disable-grid-forming-inverter-constraint") => true,
+            ("options", "constraints", "disable-storage-unbalance-constraint") => true,
+            ("options", "constraints", "enable-strictly-increasing-restoration-constraint") => true,
+            ("options", "objective", "enable-switch-state-open-cost") => true,
         )
     )
 
@@ -23,15 +25,15 @@
         result = solve_block_mld(eng, ACPUPowerModel, minlp_solver)
 
         @test result["termination_status"] == LOCALLY_SOLVED
-        @test length(filter(x->x.second["state"]==CLOSED, get(get(result, "solution", Dict()), "switch", Dict()))) == 5
-        @test isapprox(result["objective"], 6.78; atol=0.1)
+        @test length(filter(x -> x.second["state"] == CLOSED, get(get(result, "solution", Dict()), "switch", Dict()))) == 5
+        @test isapprox(result["objective"], 6.96; atol=0.1)
     end
 
     @testset "test block mld - acr" begin
         result = solve_block_mld(eng, ACRUPowerModel, minlp_solver)
 
         @test result["termination_status"] == LOCALLY_SOLVED
-        @test length(filter(x->x.second["state"]==CLOSED, get(get(result, "solution", Dict()), "switch", Dict()))) == 5
-        @test isapprox(result["objective"], 6.78; atol=0.1)
+        @test length(filter(x -> x.second["state"] == CLOSED, get(get(result, "solution", Dict()), "switch", Dict()))) == 5
+        @test isapprox(result["objective"], 6.96; atol=0.1)
     end
 end

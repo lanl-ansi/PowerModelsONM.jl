@@ -11,6 +11,7 @@
 
     set_settings!(orig_args, Dict(
         ("options", "constraints", "disable-microgrid-networking") => true,
+        ("options", "objective", "enable-switch-state-open-cost") => true,
         ("options", "outputs", "log-level") => "error",
         ("solvers", "HiGHS", "mip_feasibility_tolerance") => 1e-6,
         ("solvers", "HiGHS", "presolve") => "off"

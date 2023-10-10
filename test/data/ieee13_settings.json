@@ -71,7 +71,7 @@
     }
   },
   "disable_presolver": false,
-  "apply_switch_scores": true,
+  "apply_switch_scores": false,
   "voltage_source": {
     "source": { "qg_lb": [0.0, 0.0, 0.0], "pg_lb": [0.0, 0.0, 0.0] }
   },

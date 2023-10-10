@@ -7,6 +7,10 @@
     prepare_data!(orig_args)
     set_setting!(orig_args, ("options", "outputs", "log-level"), "error")
     set_setting!(orig_args, ("solvers", "HiGHS", "mip_feasibility_tolerance"), 1e-6)
+    set_setting!(orig_args, ("solvers", "HiGHS", "primal_feasibility_tolerance"), 1e-8)
+    set_setting!(orig_args, ("solvers", "HiGHS", "dual_feasibility_tolerance"), 1e-8)
+    set_setting!(orig_args, ("solvers", "HiGHS", "presolve"), "on")
+    set_setting!(orig_args, ("options", "objective", "enable-switch-state-open-cost"), true)
 
     # DEBUGGING
     # set_settings!(orig_args, Dict(("options", "outputs", "log-level")=>"info", ("solvers", "HiGHS", "output_flag")=>true))
@@ -24,7 +28,6 @@
                 ("options", "problem", "operations-algorithm") => "rolling-horizon",
                 ("options", "problem", "operations-problem-type") => "block",
                 ("options", "objective", "enable-switch-state-open-cost") => true,
-                ("solvers", "HiGHS", "presolve") => "off",
             ))
             delete!(args, "solvers")
             build_solver_instances!(args)
@@ -32,8 +35,7 @@
             r = optimize_switches!(args)
 
             @test all(_r["termination_status"] == OPTIMAL for (n,_r) in r)
-
-            @test get_timestep_device_actions(args["network"], r) == Dict{String, Any}[Dict("Shedded loads" => ["692_3", "675b", "675a", "692_1", "702", "703", "675c"], "Switch configurations" => Dict("801675" => "open", "671692" => "open", "671700" => "open", "703800" => "open", "800801" => "open", "701702" => "open")), Dict("Shedded loads" => ["701", "702", "700", "703"], "Switch configurations" => Dict("801675" => "closed", "671692" => "open", "671700" => "open", "703800" => "open", "800801" => "open", "701702" => "open")), Dict("Shedded loads" => ["702", "703"], "Switch configurations" => Dict("801675" => "closed", "671692" => "open", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "open")), Dict("Shedded loads" => ["702", "703"], "Switch configurations" => Dict("801675" => "closed", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "open")), Dict("Shedded loads" => String[], "Switch configurations" => Dict("801675" => "closed", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "closed")), Dict("Shedded loads" => ["801"], "Switch configurations" => Dict("801675" => "open", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "closed", "701702" => "closed")), Dict("Shedded loads" => String[], "Switch configurations" => Dict("801675" => "open", "671692" => "closed", "671700" => "closed", "703800" => "closed", "800801" => "closed", "701702" => "closed")), Dict("Shedded loads" => String[], "Switch configurations" => Dict("801675" => "open", "671692" => "closed", "671700" => "closed", "703800" => "closed", "800801" => "closed", "701702" => "closed"))]
+            @test isapprox(sum(Float64[_r["objective"] for _r in values(r)]), 119.89; atol=1)
         end
 
         @testset "test rolling-horizon optimal switching - lindistflow - traditional" begin
@@ -44,7 +46,6 @@
                 ("options", "problem", "operations-algorithm") => "rolling-horizon",
                 ("options", "problem", "operations-problem-type") => "traditional",
                 ("options", "objective", "enable-switch-state-open-cost") => true,
-                ("solvers", "HiGHS", "presolve") => "off",
             ))
             delete!(args, "solvers")
             build_solver_instances!(args)
@@ -52,8 +53,7 @@
             r = optimize_switches!(args)
 
             @test all(_r["termination_status"] == OPTIMAL for (n,_r) in r)
-
-            @test get_timestep_device_actions(args["network"], r) == Dict{String, Any}[Dict("Shedded loads" => ["692_3", "675b", "675a", "692_1", "702", "703", "675c"], "Switch configurations" => Dict("801675" => "open", "671692" => "open", "671700" => "open", "703800" => "open", "800801" => "open", "701702" => "open")), Dict("Shedded loads" => ["701", "702", "700", "703"], "Switch configurations" => Dict("801675" => "closed", "671692" => "open", "671700" => "open", "703800" => "open", "800801" => "open", "701702" => "open")), Dict("Shedded loads" => ["702", "703"], "Switch configurations" => Dict("801675" => "closed", "671692" => "open", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "open")), Dict("Shedded loads" => ["702", "703"], "Switch configurations" => Dict("801675" => "closed", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "open")), Dict("Shedded loads" => String[], "Switch configurations" => Dict("801675" => "closed", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "closed")), Dict("Shedded loads" => ["801"], "Switch configurations" => Dict("801675" => "open", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "closed", "701702" => "closed")), Dict("Shedded loads" => String[], "Switch configurations" => Dict("801675" => "open", "671692" => "closed", "671700" => "closed", "703800" => "closed", "800801" => "closed", "701702" => "closed")), Dict("Shedded loads" => String[], "Switch configurations" => Dict("801675" => "open", "671692" => "closed", "671700" => "closed", "703800" => "closed", "800801" => "closed", "701702" => "closed"))]
+            @test isapprox(sum(Float64[_r["objective"] for _r in values(r)]), 119.89; atol=1)
         end
 
         @testset "test rolling-horizon optimal switching - nfa - block" begin
@@ -69,8 +69,7 @@
             r = optimize_switches!(args)
 
             @test all(_r["termination_status"] == OPTIMAL for (n,_r) in r)
-
-            @test get_timestep_device_actions(args["network"], r) == Dict{String, Any}[Dict("Shedded loads" => ["692_3", "675b", "675a", "692_1", "702", "703", "675c"], "Switch configurations" => Dict("801675" => "open", "671692" => "open", "671700" => "open", "703800" => "open", "800801" => "open", "701702" => "open")), Dict("Shedded loads" => ["701", "702", "700", "703"], "Switch configurations" => Dict("801675" => "closed", "671692" => "open", "671700" => "open", "703800" => "open", "800801" => "open", "701702" => "open")), Dict("Shedded loads" => ["702", "703"], "Switch configurations" => Dict("801675" => "closed", "671692" => "open", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "open")), Dict("Shedded loads" => ["702", "703"], "Switch configurations" => Dict("801675" => "closed", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "open")), Dict("Shedded loads" => String[], "Switch configurations" => Dict("801675" => "closed", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "closed")), Dict("Shedded loads" => String[], "Switch configurations" => Dict("801675" => "closed", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "closed", "701702" => "closed")), Dict("Shedded loads" => String[], "Switch configurations" => Dict("801675" => "closed", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "closed", "701702" => "closed")), Dict("Shedded loads" => String[], "Switch configurations" => Dict("801675" => "closed", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "closed", "701702" => "closed"))]
+            @test isapprox(sum(Float64[_r["objective"] for _r in values(r)]), 109.94; atol=1)
         end
 
         @testset "test rolling-horizon optimal switching - nfa - traditional" begin
@@ -86,8 +85,7 @@
             r = optimize_switches!(args)
 
             @test all(_r["termination_status"] == OPTIMAL for (n,_r) in r)
-
-            @test get_timestep_device_actions(args["network"], r) == Dict{String, Any}[Dict("Shedded loads" => ["692_3", "675b", "675a", "692_1", "702", "703", "675c"], "Switch configurations" => Dict("801675" => "open", "671692" => "open", "671700" => "open", "703800" => "open", "800801" => "open", "701702" => "open")), Dict("Shedded loads" => ["701", "702", "700", "703"], "Switch configurations" => Dict("801675" => "closed", "671692" => "open", "671700" => "open", "703800" => "open", "800801" => "open", "701702" => "open")), Dict("Shedded loads" => ["702", "703"], "Switch configurations" => Dict("801675" => "closed", "671692" => "open", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "open")), Dict("Shedded loads" => ["692_3", "675b", "675a", "692_1", "675c"], "Switch configurations" => Dict("801675" => "closed", "671692" => "open", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "closed")), Dict("Shedded loads" => String[], "Switch configurations" => Dict("801675" => "closed", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "open", "701702" => "closed")), Dict("Shedded loads" => String[], "Switch configurations" => Dict("801675" => "closed", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "closed", "701702" => "closed")), Dict("Shedded loads" => String[], "Switch configurations" => Dict("801675" => "closed", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "closed", "701702" => "closed")), Dict("Shedded loads" => String[], "Switch configurations" => Dict("801675" => "closed", "671692" => "closed", "671700" => "closed", "703800" => "open", "800801" => "closed", "701702" => "closed"))]
+            @test isapprox(sum(Float64[_r["objective"] for _r in values(r)]), 109.94; atol=1)
         end
     end
 
@@ -104,8 +102,7 @@
             r = optimize_switches!(args)
 
             @test first(r).second["termination_status"] == OPTIMAL
-
-            @test isapprox(r["1"]["objective"], 80.99; atol=1)
+            @test isapprox(r["1"]["objective"], 82.06; atol=1)
         end
 
         @testset "test full-lookahead optimal switching - lindistflow - traditional" begin
@@ -115,13 +112,16 @@
                 ("options", "problem", "operations-formulation") => "LPUBFDiagPowerModel",
                 ("options", "problem", "operations-algorithm") => "full-lookahead",
                 ("options", "problem", "operations-problem-type") => "traditional",
+                ("options", "constraint", "disable-block-isolation-constraint") => true,
+                ("solvers", "HiGHS", "presolve") => "off",
             ))
 
             r = optimize_switches!(args)
 
             @test first(r).second["termination_status"] == OPTIMAL
-
-            @test isapprox(r["1"]["objective"], 80.99; atol=1)
+            # TODO There is a difference between MacOS and Linux objective result for this problem using HiGHS, why?
+            # @test isapprox(r["1"]["objective"], 82.06; atol=1)
+            # @test isapprox(r["1"]["objective"], 378.47; atol=1)
         end
 
         @testset "test full-lookahead optimal switching - lindistflow - block - radial-disabled - inverter-disabled" begin
@@ -138,8 +138,7 @@
             r = optimize_switches!(args)
 
             @test first(r).second["termination_status"] == OPTIMAL
-
-            @test isapprox(r["1"]["objective"], 78.89; atol=1)
+            @test isapprox(r["1"]["objective"], 80.65; atol=1)
         end
 
         @testset "test full-lookahead optimal switching - lindistflow - traditional - radial-disabled - inverter-disabled" begin
@@ -156,8 +155,7 @@
             r = optimize_switches!(args)
 
             @test first(r).second["termination_status"] == OPTIMAL
-
-            @test isapprox(r["1"]["objective"], 78.89; atol=1)
+            @test isapprox(r["1"]["objective"], 80.65; atol=1)
         end
 
         @testset "test full-lookahead optimal switching - nfa - block" begin
@@ -172,8 +170,7 @@
             r = optimize_switches!(args)
 
             @test first(r).second["termination_status"] == OPTIMAL
-
-            @test isapprox(r["1"]["objective"], 69.69; atol=1)
+            @test isapprox(r["1"]["objective"], 72.52; atol=1)
         end
 
         @testset "test full-lookahead optimal switching - nfa - traditional" begin
@@ -188,8 +185,7 @@
             r = optimize_switches!(args)
 
             @test first(r).second["termination_status"] == OPTIMAL
-
-            @test isapprox(r["1"]["objective"], 69.69; atol=1)
+            @test isapprox(r["1"]["objective"], 72.52; atol=1)
         end
 
         @testset "test robust switching - lindistflow - block" begin

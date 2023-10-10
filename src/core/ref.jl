@@ -4,7 +4,7 @@
 Ref extension to add load blocks to ref at a single time step
 """
 function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
-    ref[:blocks] = Dict{Int,Set}(i => block for (i,block) in enumerate(PMD.calc_connected_components(data; type="load_blocks", check_enabled=true)))
+    ref[:blocks] = Dict{Int,Set}(i => block.second for (i,block) in enumerate(sort([sum(map(x->SHA.sha1(ref[:bus][x]["name"]), collect(b)))=>b for b in PMD.calc_connected_components(data; type="load_blocks", check_enabled=true)]; by=x->x.first)))
     ref[:bus_block_map] = Dict{Int,Int}(bus => b for (b,block) in ref[:blocks] for bus in block)
     ref[:block_branches] = Dict{Int,Set}(b => Set{Int}() for (b,_) in ref[:blocks])
     ref[:block_loads] = Dict{Int,Set}(i => Set{Int}() for (i,_) in ref[:blocks])
@@ -27,6 +27,7 @@ function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any}
     for (br,branch) in ref[:branch]
         push!(ref[:block_branches][ref[:bus_block_map][branch["f_bus"]]], br)
     end
+    ref[:block_line_losses] = Dict{Int,Float64}(i => sum(Float64[LinearAlgebra.norm(ref[:branch][br]["br_r"].+1im*ref[:branch][br]["br_x"]) for br in branches if ref[:branch][br][PMD.pmd_math_component_status["branch"]] != PMD.pmd_math_component_status_inactive["branch"]]) for (i,branches) in ref[:block_branches])
 
     for (l,load) in ref[:load]
         push!(ref[:block_loads][ref[:bus_block_map][load["load_bus"]]], l)
@@ -71,7 +72,7 @@ function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any}
         ref[:block_graph_edge_map][Graphs.Edge(f_block, t_block)] = s
         ref[:block_graph_edge_map][Graphs.Edge(t_block, f_block)] = s
 
-        if switch["dispatchable"] == 1 && switch["status"] == 1
+        if Int(switch["dispatchable"]) == Int(PMD.YES) && Int(switch["status"]) == Int(PMD.ENABLED)
             push!(ref[:block_switches][f_block], s)
             push!(ref[:block_switches][t_block], s)
         end
@@ -84,8 +85,8 @@ function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any}
 
     ref[:neighbors] = Dict{Int,Vector{Int}}(i => Graphs.neighbors(ref[:block_graph], i) for i in Graphs.vertices(ref[:block_graph]))
 
-    ref[:switch_scores] = Dict{Int,Real}(s => 0.0 for (s,_) in ref[:switch])
-    total_line_losses = sum(Float64[LinearAlgebra.norm(br["br_r"] .+ 1im*br["br_x"]) for (_,br) in ref[:branch]])
+    ref[:switch_scores] = Dict{Int,Float64}(s => 0.0 for (s,_) in ref[:switch])
+    total_line_losses = sum(values(ref[:block_line_losses]))
     for type in ["storage", "gen"]
         for (id,obj) in ref[Symbol(type)]
             if obj[PMD.pmd_math_component_status[type]] != PMD.pmd_math_component_status_inactive[type]
@@ -95,15 +96,11 @@ function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any}
                 for path in paths
                     cumulative_weight = 0.0
                     for (i,b) in enumerate(reverse(path[2:end]))
-                        block_line_losses = 0.0  # to help with degeneracy
-                        for line_id in ref[:block_branches][b]
-                            block_line_losses += 1e-2 * LinearAlgebra.norm(ref[:branch][line_id]["br_r"] .+ 1im*ref[:branch][line_id]["br_x"])
-                        end
+                        block_line_losses = 1e-2 * ref[:block_line_losses][b]
                         cumulative_weight += 1e-2 * ref[:block_weights][b]
 
-                        b_prev = path[end-i]
                         adjusted_cumulative_weight = cumulative_weight - (total_line_losses == 0.0 ? 0.0 : block_line_losses / total_line_losses)
-                        ref[:switch_scores][ref[:block_graph_edge_map][Graphs.Edge(b_prev,b)]] += adjusted_cumulative_weight < 0 ? 0.0 : adjusted_cumulative_weight
+                        ref[:switch_scores][ref[:block_graph_edge_map][Graphs.Edge(path[end-i],b)]] += adjusted_cumulative_weight < 0 ? 0.0 : adjusted_cumulative_weight
                     end
                 end
             end
