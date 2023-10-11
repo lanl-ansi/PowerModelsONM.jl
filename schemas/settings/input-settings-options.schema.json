@@ -127,6 +127,11 @@
           "description": "Flag to disable a constraint that encourages voltages on either side of OPEN switches remain with some distance of each other",
           "type": "boolean",
           "default": true
+        },
+        "disable-grid-forming-constraint-block-cuts": {
+          "description": "Flag to toggle between cuts specific for load block modeling or not",
+          "type": "boolean",
+          "default": false
         }
       }
     },

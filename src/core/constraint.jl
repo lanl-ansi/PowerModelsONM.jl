@@ -713,6 +713,8 @@ Constrains each connected component of the load block graph to have only one gri
 ```
 """
 function constraint_grid_forming_inverter_per_cc_block(pm::AbstractUnbalancedPowerModel, nw::Int; relax::Bool=false)
+    con_opts = ref(pm, nw, :options, "constraints")
+
     # Set of base connected components
     L = Set{Int}(ids(pm, nw, :blocks))
 
@@ -810,9 +812,18 @@ function constraint_grid_forming_inverter_per_cc_block(pm::AbstractUnbalancedPow
         Tₖ = ref(pm, nw, :block_switches, k)
 
         if !isempty(Dₖ)
-            # Eq. (14)
-            JuMP.@constraint(pm.model, sum(x[i] for i in Dₖ) >= sum(1-z[ab] for ab in Tₖ)-length(Tₖ)+γ[k])
-            JuMP.@constraint(pm.model, sum(x[i] for i in Dₖ) <= γ[k])
+            if get(con_opts, "disable-grid-forming-constraint-block-cuts", false)
+                # Eq. (13)
+                n_gfm = Int(any([get(ref(pm, nw, i[1], i[2]), "inverter", GRID_FORMING) == GRID_FORMING for i in Dₖ]))
+                if n_gfm > 0
+                    JuMP.@constraint(pm.model, sum(x[i] for i in Dₖ) >= sum(1-z[ab] for ab in Tₖ)-length(Tₖ)+1)
+                    JuMP.@constraint(pm.model, sum(x[i] for i in Dₖ) <= 1)
+                end
+            else
+                # Eq. (24)
+                JuMP.@constraint(pm.model, sum(x[i] for i in Dₖ) >= sum(1-z[ab] for ab in Tₖ)-length(Tₖ)+γ[k])
+                JuMP.@constraint(pm.model, sum(x[i] for i in Dₖ) <= γ[k])
+            end
 
             # Eq. (4)-(5)
             for (t,j) in Dₖ
@@ -906,8 +917,10 @@ function constraint_grid_forming_inverter_per_cc_block(pm::AbstractUnbalancedPow
             end
         end
 
-        # Eq. (15)
-        con(pm, nw, :f_gfm_15)[k] = JuMP.@constraint(pm.model, γ[k] <= sum(x[i] for i in Dₖ) + sum(y[(k′,ab)] for k′ in L for ab in Tₖ))
+        if !get(con_opts, "disable-grid-forming-constraint-block-cuts", false)
+            # Eq. (15), Eq. (26)
+            con(pm, nw, :f_gfm_15)[k] = JuMP.@constraint(pm.model, γ[k] <= sum(x[i] for i in Dₖ) + sum(y[(k′,ab)] for k′ in L for ab in Tₖ))
+        end
     end
 end
 
@@ -938,6 +951,8 @@ Constrains each connected component of the graph to have only one grid-forming i
 ```
 """
 function constraint_grid_forming_inverter_per_cc_traditional(pm::AbstractUnbalancedPowerModel, nw::Int; relax::Bool=false)
+    con_opts = ref(pm, nw, :options, "constraints")
+
     # Set of base connected components
     L = Set{Int}(ids(pm, nw, :blocks))
 
@@ -1037,8 +1052,13 @@ function constraint_grid_forming_inverter_per_cc_traditional(pm::AbstractUnbalan
         if !isempty(Dₖ)
             # Eq. (3)
             if !all(isa(x[i], Real) for i in Dₖ)
-                JuMP.@constraint(pm.model, sum(x[i] for i in Dₖ) >= sum(1-z[ab] for ab in Tₖ)-length(Tₖ)+γ[first(ref(pm, nw, :blocks, k))])
-                JuMP.@constraint(pm.model, sum(x[i] for i in Dₖ) <= γ[first(ref(pm, nw, :blocks, k))])
+                if !get(con_opts, "disable-grid-forming-constraint-block-cuts", false)
+                    JuMP.@constraint(pm.model, sum(x[i] for i in Dₖ) >= sum(1-z[ab] for ab in Tₖ)-length(Tₖ)+γ[first(ref(pm, nw, :blocks, k))])
+                    JuMP.@constraint(pm.model, sum(x[i] for i in Dₖ) <= γ[first(ref(pm, nw, :blocks, k))])
+                else
+                    JuMP.@constraint(pm.model, sum(x[i] for i in Dₖ) >= sum(1-z[ab] for ab in Tₖ)-length(Tₖ)+1)
+                    JuMP.@constraint(pm.model, sum(x[i] for i in Dₖ) <= 1)
+                end
             elseif all(isa(x[i], Real) && x[i] == 0 for i in Dₖ)
                 for (t,j) in Dₖ
                     JuMP.@constraint(pm.model, var(pm, nw, Symbol("z_$(t)"), j) <= sum(var(pm, nw, Symbol("z_$(u)"), l) for k′ in filter(x->x!=k, L) for (u,l) in ref(pm, nw, :block_inverters, k′)))
