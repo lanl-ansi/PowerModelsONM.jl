@@ -16,6 +16,9 @@ function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any}
     ref[:substation_blocks] = Vector{Int}()
     ref[:bus_inverters] = Dict{Int,Set{Tuple{Symbol,Int}}}(i => Set{Tuple{Symbol,Int}}() for (i,_) in ref[:bus])
     ref[:block_inverters] = Dict{Int,Set{Tuple{Symbol,Int}}}(b => Set{Tuple{Symbol,Int}}() for (b,_) in ref[:blocks])
+    ref[:dispatchable_loads] = Dict{Int, Dict}(i => load for (i,load) in ref[:load] if Int(load["dispatchable"]) == Int(PMD.YES))
+    ref[:nondispatchable_loads] = Dict{Int, Dict}(i => load for (i,load) in ref[:load] if Int(load["dispatchable"]) == Int(PMD.NO))
+    ref[:block_dispatchable_loads] = Dict{Int,Set}(i => Set{Int}() for (i,_) in ref[:blocks])
 
     for (b,bus) in ref[:bus]
         if !isempty(get(bus, "microgrid_id", ""))
@@ -32,6 +35,7 @@ function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any}
     for (l,load) in ref[:load]
         push!(ref[:block_loads][ref[:bus_block_map][load["load_bus"]]], l)
         ref[:block_weights][ref[:bus_block_map][load["load_bus"]]] += 1e-2 * get(load, "priority", 1)
+        Int(load["dispatchable"]) == Int(PMD.YES) && push!(ref[:block_dispatchable_loads][ref[:bus_block_map][load["load_bus"]]], l)
     end
     ref[:load_block_map] = Dict{Int,Int}(load => b for (b,block_loads) in ref[:block_loads] for load in block_loads)
 

@@ -59,6 +59,7 @@ function constraint_mc_power_balance_shed_block(pm::PMD.LPUBFDiagModel, nw::Int,
     pd       = get(var(pm, nw), :pd_bus,  Dict()); PMD._check_var_keys(pd,  bus_loads, "active power", "load")
     qd       = get(var(pm, nw), :qd_bus,  Dict()); PMD._check_var_keys(qd,  bus_loads, "reactive power", "load")
     z_block  = var(pm, nw, :z_block, ref(pm, nw, :bus_block_map, i))
+    z_demand = Dict(l => var(pm, nw, :z_demand, l) for (l,_) in bus_loads if l in ids(pm, nw, :dispatchable_loads))
 
     uncontrolled_shunts = Tuple{Int,Vector{Int}}[]
     controlled_shunts = Tuple{Int,Vector{Int}}[]
@@ -93,6 +94,26 @@ function constraint_mc_power_balance_shed_block(pm::PMD.LPUBFDiagModel, nw::Int,
         end
     end
 
+    pd_zblock_zdemand = Dict{Int,JuMP.Containers.DenseAxisArray{JuMP.VariableRef}}(l => JuMP.@variable(pm.model, [c in conns], base_name="$(nw)_pd_zblock_zdemand_$(l)") for (l,conns) in bus_loads if l in ids(pm, nw, :dispatchable_loads))
+    qd_zblock_zdemand = Dict{Int,JuMP.Containers.DenseAxisArray{JuMP.VariableRef}}(l => JuMP.@variable(pm.model, [c in conns], base_name="$(nw)_qd_zblock_zdemand_$(l)") for (l,conns) in bus_loads if l in ids(pm, nw, :dispatchable_loads))
+
+    for (l,conns) in bus_loads
+        if l in ids(pm, nw, :dispatchable_loads)
+            for c in conns
+                JuMP.set_upper_bound(pd_zblock[l][c], max(0, JuMP.upper_bound(pd[l][c])))
+                JuMP.set_upper_bound(qd_zblock[l][c], max(0, JuMP.upper_bound(qd[l][c])))
+                JuMP.set_lower_bound(pd_zblock[l][c], min(0, JuMP.lower_bound(pd[l][c])))
+                JuMP.set_lower_bound(qd_zblock[l][c], min(0, JuMP.lower_bound(qd[l][c])))
+
+                IM.relaxation_product(pm.model, pd_zblock[l][c], z_demand[l], pd_zblock_zdemand[l][c])
+                IM.relaxation_product(pm.model, qd_zblock[l][c], z_demand[l], qd_zblock_zdemand[l][c])
+            end
+        else
+            pd_zblock_zdemand[l] = pd_zblock[l]
+            qd_zblock_zdemand[l] = qd_zblock[l]
+        end
+    end
+
     for (idx, t) in ungrounded_terminals
         cp = JuMP.@constraint(pm.model,
             sum(p[a][t] for (a, conns) in bus_arcs if t in conns)
@@ -101,7 +122,7 @@ function constraint_mc_power_balance_shed_block(pm::PMD.LPUBFDiagModel, nw::Int,
             ==
             sum(pg[g][t] for (g, conns) in bus_gens if t in conns)
             - sum(ps[s][t] for (s, conns) in bus_storage if t in conns)
-            - sum(pd_zblock[l][t] for (l, conns) in bus_loads if t in conns)
+            - sum(pd_zblock_zdemand[l][t] for (l, conns) in bus_loads if t in conns)
             - sum((w[t] * LinearAlgebra.diag(Gt')[idx]) for (sh, conns) in bus_shunts if t in conns)
         )
         push!(cstr_p, cp)
@@ -131,7 +152,7 @@ function constraint_mc_power_balance_shed_block(pm::PMD.LPUBFDiagModel, nw::Int,
             ==
             sum(qg[g][t] for (g, conns) in bus_gens if t in conns)
             - sum(qs[s][t] for (s, conns) in bus_storage if t in conns)
-            - sum(qd_zblock[l][t] for (l, conns) in bus_loads if t in conns)
+            - sum(pd_zblock_zdemand[l][t] for (l, conns) in bus_loads if t in conns)
             - sum((-w[t] * LinearAlgebra.diag(Bt')[idx]) for (sh, conns) in uncontrolled_shunts if t in conns)
             - sum(-var(pm, nw, :capacitor_reactive_power, sh)[t] for (sh, conns) in controlled_shunts if t in conns)
         )

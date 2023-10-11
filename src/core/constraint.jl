@@ -114,6 +114,11 @@ function constraint_isolate_block(pm::AbstractUnbalancedPowerModel, nw::Int)
     for b in ids(pm, nw, :blocks)
         z_block = var(pm, nw, :z_block, b)
 
+        # connect individual dispatchable loads to blocks
+        for i in ref(pm, nw, :block_dispatchable_loads, b)
+            JuMP.@constraint(pm.model, var(pm, nw, :z_demand, i) <= z_block)
+        end
+
         n_gen = length(ref(pm, nw, :block_gens, b))
         n_strg = length(ref(pm, nw, :block_storages, b))
         n_neg_loads = length([_b for (_b,ls) in ref(pm, nw, :block_loads) if any(any(ref(pm, nw, :load, l, "pd") .< 0) for l in ls)])

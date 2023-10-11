@@ -18,8 +18,19 @@ function variable_block_indicator(pm::AbstractUnbalancedPowerModel; nw::Int=nw_i
         start=0
     )
 
+    z_demand = var(pm, nw)[:z_demand] = JuMP.@variable(
+        pm.model,
+        [i in ids(pm, nw, :dispatchable_loads)],
+        base_name="$(nw)_z_demand",
+        binary=!relax,
+        lower_bound=0,
+        upper_bound=1,
+        start=0
+    )
+
     report && IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :bus,     :status, ids(pm, nw, :bus),     Dict{Int,Any}(i => var(pm, nw, :z_block, ref(pm, nw, :bus_block_map, i))     for i in ids(pm, nw, :bus)))
-    report && IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :load,    :status, ids(pm, nw, :load),    Dict{Int,Any}(i => var(pm, nw, :z_block, ref(pm, nw, :load_block_map, i))    for i in ids(pm, nw, :load)))
+    report && IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :load,    :status, ids(pm, nw, :nondispatchable_loads),    Dict{Int,Any}(i => var(pm, nw, :z_block, ref(pm, nw, :load_block_map, i))    for i in ids(pm, nw, :load)))
+    report && IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :load,    :status, ids(pm, nw, :dispatchable_loads), z_demand)
     report && IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :shunt,   :status, ids(pm, nw, :shunt),   Dict{Int,Any}(i => var(pm, nw, :z_block, ref(pm, nw, :shunt_block_map, i))   for i in ids(pm, nw, :shunt)))
     report && IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :gen,     :status, ids(pm, nw, :gen),     Dict{Int,Any}(i => var(pm, nw, :z_block, ref(pm, nw, :gen_block_map, i))     for i in ids(pm, nw, :gen)))
     report && IM.sol_component_value(pm, PMD.pmd_it_sym, nw, :storage, :status, ids(pm, nw, :storage), Dict{Int,Any}(i => var(pm, nw, :z_block, ref(pm, nw, :storage_block_map, i)) for i in ids(pm, nw, :storage)))

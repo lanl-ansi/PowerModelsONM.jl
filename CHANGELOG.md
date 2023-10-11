@@ -2,6 +2,7 @@
 
 ## staged
 
+- Added support for individually shedable loads to block LinDistFlow formulation
 - Added support for traditional nonlinear (ACR, ACP) formulations
 - Fixed monotonic constraint for traditional formulations
 - Added function keyword argument `check_enabled` to `build_nested_graph` to control `calc_connected_components`
