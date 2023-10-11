@@ -2,6 +2,7 @@
 
 ## staged
 
+- Fixed monotonic constraint for traditional formulations
 - Added function keyword argument `check_enabled` to `build_nested_graph` to control `calc_connected_components`
 - Added option `disable-grid-forming-constraint-block-cuts` to disable block-cut constraints in grid-forming inverter constraints
 - Added support for PowerModelsDistribution v0.15
