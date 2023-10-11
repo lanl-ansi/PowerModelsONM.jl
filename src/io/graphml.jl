@@ -220,11 +220,11 @@ end
 
 Helper function to build a NestedGraph of network data `eng`
 """
-function build_nested_graph(eng::Dict{String,Any})::NestedGraph
+function build_nested_graph(eng::Dict{String,Any}; check_enabled::Bool=true)::NestedGraph
     @assert !ismultinetwork(eng) "This function does not take multinetwork data"
     @assert PMD.iseng(eng) "This function only takes ENGINEERING data models"
 
-    cc = Dict(i-1 => block for (i,block) in enumerate(PMD.calc_connected_components(eng; type="load_blocks", check_enabled=true)))
+    cc = Dict(i-1 => block for (i,block) in enumerate(PMD.calc_connected_components(eng; type="load_blocks", check_enabled=check_enabled)))
     bus2bl = Dict(bus => i for (i,block) in cc for bus in block)
     bus_bl_node_map = Dict(i => Dict(bus => n-1 for (n,bus) in enumerate(block)) for (i,block) in cc)
     node_2_bus_map = Dict("n$i::n$node" => bus for (i,nodes) in bus_bl_node_map for (bus,node) in nodes)

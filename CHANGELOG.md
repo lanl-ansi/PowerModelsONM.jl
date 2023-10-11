@@ -2,6 +2,7 @@
 
 ## staged
 
+- Added function keyword argument `check_enabled` to `build_nested_graph` to control `calc_connected_components`
 - Added option `disable-grid-forming-constraint-block-cuts` to disable block-cut constraints in grid-forming inverter constraints
 - Added support for PowerModelsDistribution v0.15
 - Fixed non-deterministic behavior of load block id assignment by introducing SHA1 hash based on the buses in the block
