@@ -109,6 +109,33 @@ function _dss2eng_protection_locations!(eng::Dict{String,<:Any}, dss::Dict{Strin
 end
 
 
+if Pkg.dependencies()[UUIDs.UUID("d7431456-977f-11e9-2de3-97ff7677985e")].version >= v"0.15.0"
+"""
+    _dss2eng_protection!(
+        eng::Dict{String,<:Any},
+        dss::Dict{String,<:Any}
+    )
+
+Extension function for converting opendss protection into protection objects for protection optimization.
+"""
+function _dss2eng_protection_locations!(eng::Dict{String,<:Any}, dss::PMD.OpenDssDataModel)
+    for type in ["relay", "recloser", "fuse"]
+        if !isempty(get(dss, type, Dict())) && !haskey(eng, type)
+            eng[type] = Dict{String,Any}()
+        end
+
+        for (id, dss_obj) in get(dss, type, Dict())
+            if !haskey(eng[type], id)
+                eng[type][id] = Dict{String,Any}()
+            end
+            eng[type][id]["location"] = dss_obj["monitoredobj"]
+            eng[type][id]["monitor_type"] = string(split(dss_obj["monitoredobj"], ".")[1])
+        end
+    end
+end
+end
+
+
 const _pnm2eng_objects = Dict{String,Vector{String}}(
     "bus" => ["bus"],
     "line" => ["line", "switch"],

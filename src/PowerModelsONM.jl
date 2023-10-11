@@ -4,6 +4,7 @@ module PowerModelsONM
     # STDLIB
     import Dates
     import LinearAlgebra
+    import Pkg
     import SHA
     import Statistics
     import UUIDs

@@ -2,6 +2,7 @@
 
 ## staged
 
+- Added support for PowerModelsDistribution v0.15
 - Fixed non-deterministic behavior of load block id assignment by introducing SHA1 hash based on the buses in the block
 
 ## v3.4.0

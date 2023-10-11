@@ -192,7 +192,7 @@ function get_timestep_load_served(dispatch_solution::Dict{String,<:Any}, network
     end
 
     for (k,v) in loads_served
-        loads_served[k] = PMD._replace_nan.(v)
+        loads_served[k] = map(x -> isnan(x) ? zero(x) : x, v)
     end
 
     return loads_served
