@@ -243,3 +243,25 @@ function constraint_mc_switch_open_voltage_distance(pm::PMD.AbstractUnbalancedRe
 
     var(pm, nw, :sw_v_slack)[i] = (sw_vm_slack ./ vm_delta_pu).^2 .+ (sw_va_slack ./ deg2rad(va_delta_deg)).^2
 end
+
+
+"""
+    constraint_mc_transformer_power_yy_block_on_off(
+        pm::PMD.AbstractUnbalancedACRModel,
+        nw::Int,
+        trans_id::Int,
+        f_bus::Int,
+        t_bus::Int,
+        f_idx::Tuple{Int,Int,Int},
+        t_idx::Tuple{Int,Int,Int},
+        f_connections::Vector{Int},
+        t_connections::Vector{Int},
+        pol::Int,
+        tm_set::Vector{<:Real},
+        tm_fixed::Vector{Bool},
+        tm_scale::Real
+    )
+
+Links to and from power and voltages in a wye-wye transformer, assumes tm_fixed is true
+"""
+constraint_mc_transformer_power_yy_traditional_on_off(pm::PMD.AbstractUnbalancedPowerModel, nw::Int, trans_id::Int, f_bus::Int, t_bus::Int, f_idx::Tuple{Int,Int,Int}, t_idx::Tuple{Int,Int,Int}, f_connections::Vector{Int}, t_connections::Vector{Int}, pol::Int, tm_set::Vector{<:Real}, tm_fixed::Vector{Bool}, tm_scale::Real) = PMD.constraint_mc_transformer_power_yy(pm, nw, trans_id, f_bus, t_bus, f_idx, t_idx, f_connections, t_connections, pol, tm_set, tm_fixed, tm_scale)

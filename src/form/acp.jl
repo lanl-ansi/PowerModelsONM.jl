@@ -163,6 +163,123 @@ end
 
 
 """
+    constraint_mc_power_balance_shed_traditional(pm::PMD.AbstractUnbalancedACPModel, nw::Int, i::Int,
+        terminals::Vector{Int}, grounded::Vector{Bool}, bus_arcs::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}},
+        bus_arcs_sw::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_arcs_trans::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}},
+        bus_gens::Vector{Tuple{Int,Vector{Int}}}, bus_storage::Vector{Tuple{Int,Vector{Int}}},
+        bus_loads::Vector{Tuple{Int,Vector{Int}}}, bus_shunts::Vector{Tuple{Int,Vector{Int}}}
+    )
+
+KCL for traditional load shed problem with transformers (ACPU Form)
+"""
+function constraint_mc_power_balance_shed_traditional(pm::PMD.AbstractUnbalancedACPModel, nw::Int, i::Int,
+    terminals::Vector{Int}, grounded::Vector{Bool}, bus_arcs::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}},
+    bus_arcs_sw::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}}, bus_arcs_trans::Vector{Tuple{Tuple{Int,Int,Int},Vector{Int}}},
+    bus_gens::Vector{Tuple{Int,Vector{Int}}}, bus_storage::Vector{Tuple{Int,Vector{Int}}},
+    bus_loads::Vector{Tuple{Int,Vector{Int}}}, bus_shunts::Vector{Tuple{Int,Vector{Int}}})
+
+    vm   = var(pm, nw, :vm, i)
+    va   = var(pm, nw, :va, i)
+    p    = get(var(pm, nw),      :p, Dict()); PMD._check_var_keys(  p, bus_arcs, "active power", "branch")
+    q    = get(var(pm, nw),      :q, Dict()); PMD._check_var_keys(  q, bus_arcs, "reactive power", "branch")
+    pg   = get(var(pm, nw),     :pg, Dict()); PMD._check_var_keys( pg, bus_gens, "active power", "generator")
+    qg   = get(var(pm, nw),     :qg, Dict()); PMD._check_var_keys( qg, bus_gens, "reactive power", "generator")
+    ps   = get(var(pm, nw),     :ps, Dict()); PMD._check_var_keys( ps, bus_storage, "active power", "storage")
+    qs   = get(var(pm, nw),     :qs, Dict()); PMD._check_var_keys( qs, bus_storage, "reactive power", "storage")
+    psw  = get(var(pm, nw),    :psw, Dict()); PMD._check_var_keys(psw, bus_arcs_sw, "active power", "switch")
+    qsw  = get(var(pm, nw),    :qsw, Dict()); PMD._check_var_keys(qsw, bus_arcs_sw, "reactive power", "switch")
+    pt   = get(var(pm, nw),     :pt, Dict()); PMD._check_var_keys( pt, bus_arcs_trans, "active power", "transformer")
+    qt   = get(var(pm, nw),     :qt, Dict()); PMD._check_var_keys( qt, bus_arcs_trans, "reactive power", "transformer")
+    pd   = get(var(pm, nw), :pd_bus, Dict()); PMD._check_var_keys( pd, bus_loads, "active power", "load")
+    qd   = get(var(pm, nw), :qd_bus, Dict()); PMD._check_var_keys( pd, bus_loads, "reactive power", "load")
+    z_demand  = get(var(pm, nw), :z_demand,  Dict()); PMD._check_var_keys( z_demand, bus_loads, "indicator", "load")
+    z_storage = get(var(pm, nw), :z_storage, Dict()); PMD._check_var_keys( z_storage, bus_storage, "indicator", "storage")
+    z_gen     = get(var(pm, nw), :z_gen,     Dict()); PMD._check_var_keys( z_gen, bus_gens, "indicator", "generator")
+    z_voltage = var(pm, nw, :z_voltage, i)
+
+    Gs, Bs = PMD._build_bus_shunt_matrices(pm, nw, terminals, bus_shunts)
+
+    cstr_p = []
+    cstr_q = []
+    ungrounded_terminals = [(idx,t) for (idx,t) in enumerate(terminals) if !grounded[idx]]
+
+    for (idx,t) in ungrounded_terminals
+        if any(Bs[idx,jdx] != 0 for (jdx, u) in ungrounded_terminals if idx != jdx) || any(Gs[idx,jdx] != 0 for (jdx, u) in ungrounded_terminals if idx != jdx)
+            cp = JuMP.@NLconstraint(pm.model,
+                  sum(  p[a][t] for (a, conns) in bus_arcs if t in conns)
+                + sum(psw[a][t] for (a, conns) in bus_arcs_sw if t in conns)
+                + sum( pt[a][t] for (a, conns) in bus_arcs_trans if t in conns)
+                - sum( pg[g][t]*z_gen[g] for (g, conns) in bus_gens if t in conns)
+                + sum( ps[s][t]*z_storage[s] for (s, conns) in bus_storage if t in conns)
+                + sum( pd[l][t]*z_demand[l] for (l, conns) in bus_loads if t in conns)
+                + ( # shunt
+                    +Gs[idx,idx] * vm[t]^2
+                    +sum( Gs[idx,jdx] * vm[t]*vm[u] * cos(va[t]-va[u])
+                         +Bs[idx,jdx] * vm[t]*vm[u] * sin(va[t]-va[u])
+                        for (jdx,u) in ungrounded_terminals if idx != jdx)
+                ) * z_voltage
+                ==
+                0.0
+            )
+            push!(cstr_p, cp)
+
+            cq = JuMP.@NLconstraint(pm.model,
+                  sum(  q[a][t] for (a, conns) in bus_arcs if t in conns)
+                + sum(qsw[a][t] for (a, conns) in bus_arcs_sw if t in conns)
+                + sum( qt[a][t] for (a, conns) in bus_arcs_trans if t in conns)
+                - sum( qg[g][t]*z_gen[g] for (g, conns) in bus_gens if t in conns)
+                + sum( qs[s][t]*z_storage[s] for (s, conns) in bus_storage if t in conns)
+                + sum( qd[l][t]*z_demand[l] for (l, conns) in bus_loads if t in conns)
+                + ( # shunt
+                    -Bs[idx,idx] * vm[t]^2
+                    -sum( Bs[idx,jdx] * vm[t]*vm[u] * cos(va[t]-va[u])
+                         -Gs[idx,jdx] * vm[t]*vm[u] * sin(va[t]-va[u])
+                         for (jdx,u) in ungrounded_terminals if idx != jdx)
+                ) * z_voltage
+                ==
+                0.0
+            )
+            push!(cstr_q, cq)
+        else
+            cp = JuMP.@NLconstraint(pm.model,
+                  sum(  p[a][t] for (a, conns) in bus_arcs if t in conns)
+                + sum(psw[a][t] for (a, conns) in bus_arcs_sw if t in conns)
+                + sum( pt[a][t] for (a, conns) in bus_arcs_trans if t in conns)
+                - sum( pg[g][t]*z_gen[g] for (g, conns) in bus_gens if t in conns)
+                + sum( ps[s][t]*z_storage[s] for (s, conns) in bus_storage if t in conns)
+                + sum( pd[l][t]*z_demand[l] for (l, conns) in bus_loads if t in conns)
+                + Gs[idx,idx] * vm[t]^2 * z_voltage
+                ==
+                0.0
+            )
+            push!(cstr_p, cp)
+
+            cq = JuMP.@NLconstraint(pm.model,
+                  sum(  q[a][t] for (a, conns) in bus_arcs if t in conns)
+                + sum(qsw[a][t] for (a, conns) in bus_arcs_sw if t in conns)
+                + sum( qt[a][t] for (a, conns) in bus_arcs_trans if t in conns)
+                - sum( qg[g][t]*z_gen[g] for (g, conns) in bus_gens if t in conns)
+                + sum( qs[s][t]*z_storage[s] for (s, conns) in bus_storage if t in conns)
+                + sum( qd[l][t]*z_demand[l] for (l, conns) in bus_loads if t in conns)
+                - Bs[idx,idx] * vm[t]^2 * z_voltage
+                ==
+                0.0
+            )
+            push!(cstr_q, cq)
+        end
+    end
+
+    con(pm, nw, :lam_kcl_r)[i] = cstr_p
+    con(pm, nw, :lam_kcl_i)[i] = cstr_q
+
+    if IM.report_duals(pm)
+        sol(pm, nw, :bus, i)[:lam_kcl_r] = cstr_p
+        sol(pm, nw, :bus, i)[:lam_kcl_i] = cstr_q
+    end
+end
+
+
+"""
     constraint_mc_bus_voltage_magnitude_block_on_off(pm::PMD.AbstractUnbalancedACPModel, nw::Int, i::Int, vmin::Vector{<:Real}, vmax::Vector{<:Real})
 
 on/off bus voltage magnitude block constraint for relaxed formulations
