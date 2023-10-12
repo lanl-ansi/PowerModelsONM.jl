@@ -1,4 +1,8 @@
 using Documenter
+
+import PyCall
+import Conda
+
 using PowerModelsONM
 
 # imports to build pluto notebooks
@@ -81,10 +85,6 @@ makedocs(
 
 # Build schema documentation
 try
-    # imports to build schema documentation
-    import PyCall
-    import Conda
-
     Conda.pip_interop(true)
     Conda.pip("install", "json-schema-for-humans")
     jsfhgc = PyCall.pyimport("json_schema_for_humans.generation_configuration")
