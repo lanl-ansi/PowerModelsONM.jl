@@ -2,6 +2,10 @@
 
 ## staged
 
+- none
+
+## v3.5.0
+
 - Added support for individually shedable loads to block LinDistFlow formulation
 - Added support for traditional nonlinear (ACR, ACP) formulations
 - Fixed monotonic constraint for traditional formulations
