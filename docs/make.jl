@@ -72,7 +72,7 @@ pages = [
 # build documents
 makedocs(
     format = format,
-    strict=false,
+    warnonly=true,
     sitename = "PowerModelsONM",
     authors = "David M Fobes and contributors",
     pages = pages

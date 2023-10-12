@@ -7,7 +7,7 @@ PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
 
 [compat]
 Conda = "1.8"
-Documenter = "0.27"
+Documenter = "1"
 Gumbo = "0.8"
 Pluto = "0.19"
 PyCall = "1.95"
