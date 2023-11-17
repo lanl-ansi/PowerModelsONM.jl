@@ -8,7 +8,7 @@
 
        save_graphml("../test/data/ieee13_nested.graphml", eng; type="nested")
        open("../test/data/ieee13_nested.graphml", "r") do io
-            @test length(readlines(io)) == 1509
+            @test length(readlines(io)) == 1533
        end
        rm("../test/data/ieee13_nested.graphml")
     end
@@ -20,7 +20,7 @@
 
         save_graphml("../test/data/ieee13_unnested.graphml", eng; type="unnested")
         open("../test/data/ieee13_unnested.graphml", "r") do io
-             @test length(readlines(io)) == 1479
+             @test length(readlines(io)) == 1503
         end
         rm("../test/data/ieee13_unnested.graphml")
     end
