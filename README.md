@@ -69,7 +69,7 @@ If you find PowerModelsONM useful for your work, we kindly request that you cite
 
 ## License
 
-This code is provided under a BSD license as part of the Multi-Infrastructure Control and Optimization Toolkit (MICOT) project, LA-CC-13-108.
+This code is provided under a BSD license as part of the Multi-Infrastructure Control and Optimization Toolkit (MICOT) project, C15024.
 
 [docs-dev-img]: https://github.com/lanl-ansi/PowerModelsONM.jl/workflows/Documentation/badge.svg
 [docs-dev-url]: https://lanl-ansi.github.io/PowerModelsONM.jl/dev
