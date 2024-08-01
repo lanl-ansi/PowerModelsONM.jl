@@ -28,16 +28,16 @@ end
 
 
 @testset "robust partition evaluation" begin
-    case = ONM.parse_file("test/data/ieee13_feeder.dss")
+    case = parse_file("test/data/ieee13_feeder.dss")
     case = randomize_partition_config(case, 2)
 
     num_load_scenarios = 20
     uncertainty_val = 0.2
-    ls = ONM.generate_load_scenarios(case, num_load_scenarios, uncertainty_val)
+    ls = generate_load_scenarios(case, num_load_scenarios, uncertainty_val)
 
-    solver = ONM.optimizer_with_attributes(HiGHS.Optimizer, "primal_feasibility_tolerance" => 1e-6, "dual_feasibility_tolerance" => 1e-6, "small_matrix_value" => 1e-12, "allow_unbounded_or_infeasible" => true)
+    solver = optimizer_with_attributes(HiGHS.Optimizer, "primal_feasibility_tolerance" => 1e-6, "dual_feasibility_tolerance" => 1e-6, "small_matrix_value" => 1e-12, "allow_unbounded_or_infeasible" => true)
 
-    results_eval_optimality = ONM.evaluate_partition_optimality(case, ls, PMD.LPUBFDiagPowerModel, solver)
+    results_eval_optimality = evaluate_partition_optimality(case, ls, PMD.LPUBFDiagPowerModel, solver)
 
-    optimality = ONM.retrieve_load_scenario_optimality(results_eval_optimality)
+    optimality = retrieve_load_scenario_optimality(results_eval_optimality)
 end
