@@ -14,6 +14,9 @@ import Juniper
 import Ipopt
 import HiGHS
 
+import Random
+Random.seed!(21)
+
 minlp_solver = optimizer_with_attributes(
     Juniper.Optimizer,
     "nl_solver" => optimizer_with_attributes(Ipopt.Optimizer, "tol"=>1e-6, "print_level"=>0),

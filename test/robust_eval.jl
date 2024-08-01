@@ -9,7 +9,7 @@ function randomize_partition_config(
     part_config = Dict{String,Any}()
 
     switch_keys = collect(keys(case["switch"]))
-    shuffled_keys = shuffle(switch_keys)
+    shuffled_keys = Random.shuffle(switch_keys)
     closed_switches = shuffled_keys[1:num_closed_switches]
 
     # Set the status of the selected switches to "CLOSED" and the rest to "OPEN"
