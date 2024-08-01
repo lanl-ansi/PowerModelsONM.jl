@@ -4,6 +4,10 @@
 
 - none
 
+## v3.6.0
+
+- Added capability to evaluate the optimality of a given partition against a set of load scenarios to judge robustness
+
 ## v3.5.0
 
 - Added support for individually shedable loads to block LinDistFlow formulation

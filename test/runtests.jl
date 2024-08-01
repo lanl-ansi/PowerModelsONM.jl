@@ -59,6 +59,8 @@ silence!()
     # problems
     @info "Running tests in mld.jl"
     include("mld.jl")
+    @info "Running tests in robust_eval.jl"
+    include("robust_eval.jl")
     @info "Running tests in nlp.jl"
     include("nlp.jl")
     @info "Running tests in opf.jl"

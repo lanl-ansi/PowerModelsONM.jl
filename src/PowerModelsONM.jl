@@ -114,6 +114,7 @@ module PowerModelsONM
     include("prob/mld_block.jl")
     include("prob/partitions.jl")
     include("prob/mld_block_robust.jl")
+    include("prob/robust_evaluation.jl")
     include("prob/stability.jl")
     include("prob/switch.jl")
 
