@@ -30,16 +30,18 @@ end
 @testset "robust partition evaluation" begin
     case = parse_file("../test/data/ieee13_feeder.dss")
     settings = parse_settings("../test/data/ieee13_settings.json")
-    case = apply_settings(case, settings)
+    PMD.apply_voltage_bounds!(case)
     case = randomize_partition_config(case, 2)
 
     num_load_scenarios = 20
     uncertainty_val = 0.2
     ls = generate_load_scenarios(case, num_load_scenarios, uncertainty_val)
 
-    solver = optimizer_with_attributes(HiGHS.Optimizer, "primal_feasibility_tolerance" => 1e-6, "dual_feasibility_tolerance" => 1e-6, "small_matrix_value" => 1e-12, "allow_unbounded_or_infeasible" => true)
+    solver = optimizer_with_attributes(HiGHS.Optimizer, "primal_feasibility_tolerance" => 1e-6, "dual_feasibility_tolerance" => 1e-6, "small_matrix_value" => 1e-12, "allow_unbounded_or_infeasible" => true, "output_flag" => false)
 
     results_eval_optimality = evaluate_partition_optimality(case, ls, PMD.LPUBFDiagPowerModel, solver)
 
     optimality = retrieve_load_scenario_optimality(results_eval_optimality)
+
+    @test isapprox(optimality["1"], 5, atol=1e0)
 end
