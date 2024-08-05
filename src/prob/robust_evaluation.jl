@@ -21,7 +21,7 @@ function evaluate_partition_optimality(
     solver;
     save_partial_results::Bool=false,
     partial_result_folder::String=".",
-    time_elapsed::Float64 = missing,
+    time_elapsed::Union{Missing,Real} = missing,
     kwargs...)
 
     _results = Dict{String,Any}()
@@ -58,6 +58,6 @@ retrieve_load_scenario_optimality(results::Dict)
 
 Returns a Dict of objectives for the different load scenarios considered in the robust partition evaluation.
 """
-function retrieve_load_scenario_optimality(results::Dict)::Dict{String,Float64}
-    return Dict{String,Float64}("$i" => results["$i"]["1"]["objective"] for i in 1:length(results))
+function retrieve_load_scenario_optimality(results::Dict{String,<:Any})::Dict{String,Real}
+    return Dict{String,Real}("$i" => results["$i"]["1"]["objective"] for i in 1:length(results))
 end
