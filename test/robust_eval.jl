@@ -29,6 +29,8 @@ end
 
 @testset "robust partition evaluation" begin
     case = parse_file("../test/data/ieee13_feeder.dss")
+    settings = parse_settings("../test/data/ieee13_settings.json")
+    case = apply_settings(case, settings)
     case = randomize_partition_config(case, 2)
 
     num_load_scenarios = 20
