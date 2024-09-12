@@ -2,7 +2,7 @@
 
 ## staged
 
-- none
+- Fixed bug in `constraint_mc_power_balance_shed_block` (`LPUBFDiagPowerModel` version) where `pd_zblock_zdemand` was used instead of `qd_zblock_zdemand`
 
 ## v3.5.0
 
