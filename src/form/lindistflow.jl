@@ -152,7 +152,7 @@ function constraint_mc_power_balance_shed_block(pm::PMD.LPUBFDiagModel, nw::Int,
             ==
             sum(qg[g][t] for (g, conns) in bus_gens if t in conns)
             - sum(qs[s][t] for (s, conns) in bus_storage if t in conns)
-            - sum(pd_zblock_zdemand[l][t] for (l, conns) in bus_loads if t in conns)
+            - sum(qd_zblock_zdemand[l][t] for (l, conns) in bus_loads if t in conns)
             - sum((-w[t] * LinearAlgebra.diag(Bt')[idx]) for (sh, conns) in uncontrolled_shunts if t in conns)
             - sum(-var(pm, nw, :capacitor_reactive_power, sh)[t] for (sh, conns) in controlled_shunts if t in conns)
         )

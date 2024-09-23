@@ -35,7 +35,7 @@
             r = optimize_switches!(args)
 
             @test all(_r["termination_status"] == OPTIMAL for (n,_r) in r)
-            @test isapprox(sum(Float64[_r["objective"] for _r in values(r)]), 119.89; atol=1)
+            @test isapprox(sum(Float64[_r["objective"] for _r in values(r)]), 176.86; atol=1)
         end
 
         @testset "test rolling-horizon optimal switching - lindistflow - traditional" begin
@@ -53,7 +53,7 @@
             r = optimize_switches!(args)
 
             @test all(_r["termination_status"] == OPTIMAL for (n,_r) in r)
-            @test isapprox(sum(Float64[_r["objective"] for _r in values(r)]), 119.89; atol=1)
+            @test isapprox(sum(Float64[_r["objective"] for _r in values(r)]), 176.86; atol=1)
         end
 
         @testset "test rolling-horizon optimal switching - nfa - block" begin
@@ -138,7 +138,7 @@
             r = optimize_switches!(args)
 
             @test first(r).second["termination_status"] == OPTIMAL
-            @test isapprox(r["1"]["objective"], 80.65; atol=1)
+            @test isapprox(r["1"]["objective"], 80.64; atol=1)
         end
 
         @testset "test full-lookahead optimal switching - lindistflow - traditional - radial-disabled - inverter-disabled" begin
@@ -244,7 +244,7 @@ end
     r = solve_block_mld(eng_s, LPUBFDiagPowerModel, solver)
 
     @test r["solution"]["switch"]["680675"]["state"] == OPEN
-    @test r["solution"]["switch"]["671692"]["state"] == CLOSED
+    @test r["solution"]["switch"]["671692"]["state"] == OPEN
     @test length(filter(x->x.second["state"]==OPEN, r["solution"]["switch"])) == 2
     @test r["objective"] < 1.0
 
@@ -253,7 +253,7 @@ end
 
     r = solve_block_mld(eng_s, LPUBFDiagPowerModel, solver)
 
-    @test r["solution"]["switch"]["680675"]["state"] == CLOSED
+    @test r["solution"]["switch"]["680675"]["state"] == OPEN
     @test r["solution"]["switch"]["671692"]["state"] == OPEN
     @test length(filter(x->x.second["state"]==OPEN, r["solution"]["switch"])) == 2
     @test r["objective"] < 1.0
