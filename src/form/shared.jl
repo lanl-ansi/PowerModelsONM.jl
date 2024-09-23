@@ -229,15 +229,15 @@ function constraint_mc_switch_open_voltage_distance(pm::PMD.AbstractUnbalancedRe
 
     if vm_delta_pu < Inf
         for (idx, (fc, tc)) in enumerate(zip(f_connections, t_connections))
-            JuMP.@constraint(pm.model,   sqrt(vr_fr[fc]^2 + vi_fr[fc]^2) - sqrt(vr_to[tc]^2 + vi_to[tc]^2)  <= vm_delta_pu + sw_vm_slack[idx])
-            JuMP.@constraint(pm.model, -(sqrt(vr_fr[fc]^2 + vi_fr[fc]^2) - sqrt(vr_to[tc]^2 + vi_to[tc]^2)) <= vm_delta_pu + sw_vm_slack[idx])
+            JuMP.@NLconstraint(pm.model,   sqrt(vr_fr[fc]^2 + vi_fr[fc]^2) - sqrt(vr_to[tc]^2 + vi_to[tc]^2)  <= vm_delta_pu + sw_vm_slack[idx])
+            JuMP.@NLconstraint(pm.model, -(sqrt(vr_fr[fc]^2 + vi_fr[fc]^2) - sqrt(vr_to[tc]^2 + vi_to[tc]^2)) <= vm_delta_pu + sw_vm_slack[idx])
         end
     end
 
     if va_delta_deg < Inf
         for (idx, (fc, tc)) in enumerate(zip(f_connections, t_connections))
-            JuMP.@constraint(pm.model,   atan(vi_fr[fc], vr_fr[fc]) - atan(vi_to[tc], vr_to[tc])  <= deg2rad(va_delta_deg) + sw_va_slack[idx])
-            JuMP.@constraint(pm.model, -(atan(vi_fr[fc], vr_fr[fc]) - atan(vi_to[tc], vr_to[tc])) <= deg2rad(va_delta_deg) + sw_va_slack[idx])
+            JuMP.@NLconstraint(pm.model,   atan(vi_fr[fc], vr_fr[fc]) - atan(vi_to[tc], vr_to[tc])  <= deg2rad(va_delta_deg) + sw_va_slack[idx])
+            JuMP.@NLconstraint(pm.model, -(atan(vi_fr[fc], vr_fr[fc]) - atan(vi_to[tc], vr_to[tc])) <= deg2rad(va_delta_deg) + sw_va_slack[idx])
         end
     end
 

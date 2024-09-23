@@ -88,7 +88,7 @@ function constraint_mc_power_balance_shed_block(pm::PMD.AbstractUnbalancedACPMod
 
     for (idx,t) in ungrounded_terminals
         if any(Bs[idx,jdx] != 0 for (jdx, u) in ungrounded_terminals if idx != jdx) || any(Gs[idx,jdx] != 0 for (jdx, u) in ungrounded_terminals if idx != jdx)
-            cp = JuMP.@constraint(pm.model,
+            cp = JuMP.@NLconstraint(pm.model,
                   sum(  p[a][t] for (a, conns) in bus_arcs if t in conns)
                 + sum(psw[a][t] for (a, conns) in bus_arcs_sw if t in conns)
                 + sum( pt[a][t] for (a, conns) in bus_arcs_trans if t in conns)
@@ -106,7 +106,7 @@ function constraint_mc_power_balance_shed_block(pm::PMD.AbstractUnbalancedACPMod
             )
             push!(cstr_p, cp)
 
-            cq = JuMP.@constraint(pm.model,
+            cq = JuMP.@NLconstraint(pm.model,
                   sum(  q[a][t] for (a, conns) in bus_arcs if t in conns)
                 + sum(qsw[a][t] for (a, conns) in bus_arcs_sw if t in conns)
                 + sum( qt[a][t] for (a, conns) in bus_arcs_trans if t in conns)
@@ -124,7 +124,7 @@ function constraint_mc_power_balance_shed_block(pm::PMD.AbstractUnbalancedACPMod
             )
             push!(cstr_q, cq)
         else
-            cp = JuMP.@constraint(pm.model,
+            cp = JuMP.@NLconstraint(pm.model,
                   sum(  p[a][t] for (a, conns) in bus_arcs if t in conns)
                 + sum(psw[a][t] for (a, conns) in bus_arcs_sw if t in conns)
                 + sum( pt[a][t] for (a, conns) in bus_arcs_trans if t in conns)
@@ -137,7 +137,7 @@ function constraint_mc_power_balance_shed_block(pm::PMD.AbstractUnbalancedACPMod
             )
             push!(cstr_p, cp)
 
-            cq = JuMP.@constraint(pm.model,
+            cq = JuMP.@NLconstraint(pm.model,
                   sum(  q[a][t] for (a, conns) in bus_arcs if t in conns)
                 + sum(qsw[a][t] for (a, conns) in bus_arcs_sw if t in conns)
                 + sum( qt[a][t] for (a, conns) in bus_arcs_trans if t in conns)
@@ -205,7 +205,7 @@ function constraint_mc_power_balance_shed_traditional(pm::PMD.AbstractUnbalanced
 
     for (idx,t) in ungrounded_terminals
         if any(Bs[idx,jdx] != 0 for (jdx, u) in ungrounded_terminals if idx != jdx) || any(Gs[idx,jdx] != 0 for (jdx, u) in ungrounded_terminals if idx != jdx)
-            cp = JuMP.@constraint(pm.model,
+            cp = JuMP.@NLconstraint(pm.model,
                   sum(  p[a][t] for (a, conns) in bus_arcs if t in conns)
                 + sum(psw[a][t] for (a, conns) in bus_arcs_sw if t in conns)
                 + sum( pt[a][t] for (a, conns) in bus_arcs_trans if t in conns)
@@ -223,7 +223,7 @@ function constraint_mc_power_balance_shed_traditional(pm::PMD.AbstractUnbalanced
             )
             push!(cstr_p, cp)
 
-            cq = JuMP.@constraint(pm.model,
+            cq = JuMP.@NLconstraint(pm.model,
                   sum(  q[a][t] for (a, conns) in bus_arcs if t in conns)
                 + sum(qsw[a][t] for (a, conns) in bus_arcs_sw if t in conns)
                 + sum( qt[a][t] for (a, conns) in bus_arcs_trans if t in conns)
@@ -241,7 +241,7 @@ function constraint_mc_power_balance_shed_traditional(pm::PMD.AbstractUnbalanced
             )
             push!(cstr_q, cq)
         else
-            cp = JuMP.@constraint(pm.model,
+            cp = JuMP.@NLconstraint(pm.model,
                   sum(  p[a][t] for (a, conns) in bus_arcs if t in conns)
                 + sum(psw[a][t] for (a, conns) in bus_arcs_sw if t in conns)
                 + sum( pt[a][t] for (a, conns) in bus_arcs_trans if t in conns)
@@ -254,7 +254,7 @@ function constraint_mc_power_balance_shed_traditional(pm::PMD.AbstractUnbalanced
             )
             push!(cstr_p, cp)
 
-            cq = JuMP.@constraint(pm.model,
+            cq = JuMP.@NLconstraint(pm.model,
                   sum(  q[a][t] for (a, conns) in bus_arcs if t in conns)
                 + sum(qsw[a][t] for (a, conns) in bus_arcs_sw if t in conns)
                 + sum( qt[a][t] for (a, conns) in bus_arcs_trans if t in conns)
@@ -383,16 +383,16 @@ function constraint_mc_transformer_power_yy_block_on_off(pm::PMD.AbstractUnbalan
                 x = transformer["controls"]["x"][idx]
 
                 # (cr+jci) = (p-jq)/(vm⋅cos(va)-jvm⋅sin(va))
-                cr = JuMP.@expression(pm.model, ( p_to[idx]*vm_to[tc]*cos(va_to[tc]) + q_to[idx]*vm_to[tc]*sin(va_to[tc]))/vm_to[tc]^2)
-                ci = JuMP.@expression(pm.model, (-q_to[idx]*vm_to[tc]*cos(va_to[tc]) + p_to[idx]*vm_to[tc]*sin(va_to[tc]))/vm_to[tc]^2)
+                cr = JuMP.@NLexpression(pm.model, ( p_to[idx]*vm_to[tc]*cos(va_to[tc]) + q_to[idx]*vm_to[tc]*sin(va_to[tc]))/vm_to[tc]^2)
+                ci = JuMP.@NLexpression(pm.model, (-q_to[idx]*vm_to[tc]*cos(va_to[tc]) + p_to[idx]*vm_to[tc]*sin(va_to[tc]))/vm_to[tc]^2)
                 # v_drop = (cr+jci)⋅(r+jx)
-                vr_drop = JuMP.@expression(pm.model, r*cr-x*ci)
-                vi_drop = JuMP.@expression(pm.model, r*ci+x*cr)
+                vr_drop = JuMP.@NLexpression(pm.model, r*cr-x*ci)
+                vi_drop = JuMP.@NLexpression(pm.model, r*ci+x*cr)
 
                 # v_ref-δ ≤ vm_fr-(cr+jci)⋅(r+jx)≤ v_ref+δ
                 # vm_fr/1.1 ≤ vm_to ≤ vm_fr/0.9
-                JuMP.@constraint(pm.model, (vm_fr[fc]*cos(va_fr[fc])-vr_drop)^2 + (vm_fr[fc]*sin(va_fr[fc])-vi_drop)^2 ≥ (v_ref - δ)^2)
-                JuMP.@constraint(pm.model, (vm_fr[fc]*cos(va_fr[fc])-vr_drop)^2 + (vm_fr[fc]*sin(va_fr[fc])-vi_drop)^2 ≤ (v_ref + δ)^2)
+                JuMP.@NLconstraint(pm.model, (vm_fr[fc]*cos(va_fr[fc])-vr_drop)^2 + (vm_fr[fc]*sin(va_fr[fc])-vi_drop)^2 ≥ (v_ref - δ)^2)
+                JuMP.@NLconstraint(pm.model, (vm_fr[fc]*cos(va_fr[fc])-vr_drop)^2 + (vm_fr[fc]*sin(va_fr[fc])-vi_drop)^2 ≤ (v_ref + δ)^2)
                 JuMP.@constraint(pm.model, vm_fr[fc]/1.1 ≤ vm_to[tc])
                 JuMP.@constraint(pm.model, vm_fr[fc]/0.9 ≥ vm_to[tc])
             end
@@ -421,13 +421,13 @@ function constraint_mc_storage_losses_block_on_off(pm::PMD.AbstractUnbalancedACP
     sd  = var(pm, nw,  :sd, i)
     qsc = var(pm, nw, :qsc, i)
 
-    JuMP.@constraint(pm.model,
+    JuMP.@NLconstraint(pm.model,
         sum(ps[c] for c in connections) + (sd - sc)
         ==
         (p_loss + r * sum((ps[c]^2 + qs[c]^2)/vm[c]^2 for (idx,c) in enumerate(connections))) * z_block
     )
 
-    JuMP.@constraint(pm.model,
+    JuMP.@NLconstraint(pm.model,
         sum(qs[c] for c in connections)
         ==
         (qsc + q_loss + x * sum((ps[c]^2 + qs[c]^2)/vm[c]^2 for (idx,c) in enumerate(connections))) * z_block
@@ -450,13 +450,13 @@ function constraint_mc_storage_losses_traditional_on_off(pm::PMD.AbstractUnbalan
     sd  = var(pm, nw,  :sd, i)
     qsc = var(pm, nw, :qsc, i)
 
-    JuMP.@constraint(pm.model,
+    JuMP.@NLconstraint(pm.model,
         sum(ps[c] for c in connections) + (sd - sc)
         ==
         (p_loss + r * sum((ps[c]^2 + qs[c]^2)/vm[c]^2 for (idx,c) in enumerate(connections))) * z_storage
     )
 
-    JuMP.@constraint(pm.model,
+    JuMP.@NLconstraint(pm.model,
         sum(qs[c] for c in connections)
         ==
         (qsc + q_loss + x * sum((ps[c]^2 + qs[c]^2)/vm[c]^2 for (idx,c) in enumerate(connections))) * z_storage

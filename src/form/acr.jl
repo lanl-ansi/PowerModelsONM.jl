@@ -31,8 +31,8 @@ function constraint_mc_switch_voltage_open_close(pm::PMD.AbstractUnbalancedACRMo
     state = var(pm, nw, :switch_state, i)
 
     for (idx, (fc, tc)) in enumerate(zip(f_connections, t_connections))
-        JuMP.@constraint(pm.model, (vr_fr[fc]^2 + vi_fr[fc]^2) - (vr_to[tc]^2 + vi_to[tc]^2) <=  (vmax[idx]^2-vmin[idx]^2) * (1-state))
-        JuMP.@constraint(pm.model, (vr_fr[fc]^2 + vi_fr[fc]^2) - (vr_to[tc]^2 + vi_to[tc]^2) >= -(vmax[idx]^2-vmin[idx]^2) * (1-state))
+        JuMP.@NLconstraint(pm.model, (vr_fr[fc]^2 + vi_fr[fc]^2) - (vr_to[tc]^2 + vi_to[tc]^2) <=  (vmax[idx]^2-vmin[idx]^2) * (1-state))
+        JuMP.@NLconstraint(pm.model, (vr_fr[fc]^2 + vi_fr[fc]^2) - (vr_to[tc]^2 + vi_to[tc]^2) >= -(vmax[idx]^2-vmin[idx]^2) * (1-state))
 
         # Indicator constraint version, for reference
         # JuMP.@constraint(pm.model, state => {vr_fr[fc] == vr_to[tc]})
@@ -78,7 +78,7 @@ function constraint_mc_power_balance_shed_block(pm::PMD.AbstractUnbalancedACRMod
 
     # pd/qd can be NLexpressions, so cannot be vectorized
     for (idx, t) in ungrounded_terminals
-        cp = JuMP.@constraint(pm.model,
+        cp = JuMP.@NLconstraint(pm.model,
               sum(  p[arc][t] for (arc, conns) in bus_arcs if t in conns)
             + sum(psw[arc][t] for (arc, conns) in bus_arcs_sw if t in conns)
             + sum( pt[arc][t] for (arc, conns) in bus_arcs_trans if t in conns)
@@ -92,7 +92,7 @@ function constraint_mc_power_balance_shed_block(pm::PMD.AbstractUnbalancedACRMod
         )
         push!(cstr_p, cp)
 
-        cq = JuMP.@constraint(pm.model,
+        cq = JuMP.@NLconstraint(pm.model,
               sum(  q[arc][t] for (arc, conns) in bus_arcs if t in conns)
             + sum(qsw[arc][t] for (arc, conns) in bus_arcs_sw if t in conns)
             + sum( qt[arc][t] for (arc, conns) in bus_arcs_trans if t in conns)
@@ -156,7 +156,7 @@ function constraint_mc_power_balance_shed_traditional(pm::PMD.AbstractUnbalanced
 
     # pd/qd can be NLexpressions, so cannot be vectorized
     for (idx, t) in ungrounded_terminals
-        cp = JuMP.@constraint(pm.model,
+        cp = JuMP.@NLconstraint(pm.model,
               sum(  p[arc][t] for (arc, conns) in bus_arcs if t in conns)
             + sum(psw[arc][t] for (arc, conns) in bus_arcs_sw if t in conns)
             + sum( pt[arc][t] for (arc, conns) in bus_arcs_trans if t in conns)
@@ -170,7 +170,7 @@ function constraint_mc_power_balance_shed_traditional(pm::PMD.AbstractUnbalanced
         )
         push!(cstr_p, cp)
 
-        cq = JuMP.@constraint(pm.model,
+        cq = JuMP.@NLconstraint(pm.model,
               sum(  q[arc][t] for (arc, conns) in bus_arcs if t in conns)
             + sum(qsw[arc][t] for (arc, conns) in bus_arcs_sw if t in conns)
             + sum( qt[arc][t] for (arc, conns) in bus_arcs_trans if t in conns)
@@ -301,16 +301,16 @@ function constraint_mc_transformer_power_yy_block_on_off(pm::PMD.AbstractUnbalan
                 # x = transformer["controls"]["x"][idx]
 
                 # # (cr+jci) = (p-jq)/(vr-j⋅vi)
-                # cr = JuMP.@expression(pm.model, ( p_to[idx]*vr_to[tc] + q_to[idx]*vi_to[tc])/(vr_to[tc]^2+vi_to[tc]^2))
-                # ci = JuMP.@expression(pm.model, (-q_to[idx]*vr_to[tc] + p_to[idx]*vi_to[tc])/(vr_to[tc]^2+vi_to[tc]^2))
+                # cr = JuMP.@NLexpression(pm.model, ( p_to[idx]*vr_to[tc] + q_to[idx]*vi_to[tc])/(vr_to[tc]^2+vi_to[tc]^2))
+                # ci = JuMP.@NLexpression(pm.model, (-q_to[idx]*vr_to[tc] + p_to[idx]*vi_to[tc])/(vr_to[tc]^2+vi_to[tc]^2))
                 # # v_drop = (cr+jci)⋅(r+jx)
-                # vr_drop = JuMP.@expression(pm.model, (r*cr-x*ci)*z_block)
-                # vi_drop = JuMP.@expression(pm.model, (r*ci+x*cr)*z_block)
+                # vr_drop = JuMP.@NLexpression(pm.model, (r*cr-x*ci)*z_block)
+                # vi_drop = JuMP.@NLexpression(pm.model, (r*ci+x*cr)*z_block)
 
                 # # (v_ref-δ)^2 ≤ (vr_fr-vr_drop)^2 + (vi_fr-vi_drop)^2 ≤ (v_ref+δ)^2
                 # # (vr_fr^2 + vi_fr^2)/1.1^2 ≤ (vr_to^2 + vi_to^2) ≤ (vr_fr^2 + vi_fr^2)/0.9^2
-                # JuMP.@constraint(pm.model, (vr_fr[fc]-vr_drop)^2 + (vi_fr[fc]-vi_drop)^2 ≥ (v_ref - δ)^2*z_block)
-                # JuMP.@constraint(pm.model, (vr_fr[fc]-vr_drop)^2 + (vi_fr[fc]-vi_drop)^2 ≤ (v_ref + δ)^2*z_block)
+                # JuMP.@NLconstraint(pm.model, (vr_fr[fc]-vr_drop)^2 + (vi_fr[fc]-vi_drop)^2 ≥ (v_ref - δ)^2*z_block)
+                # JuMP.@NLconstraint(pm.model, (vr_fr[fc]-vr_drop)^2 + (vi_fr[fc]-vi_drop)^2 ≤ (v_ref + δ)^2*z_block)
                 # JuMP.@constraint(pm.model, (vr_fr[fc]^2 + vi_fr[fc]^2)/1.1^2 ≤ vr_to[tc]^2 + vi_to[tc]^2)
                 # JuMP.@constraint(pm.model, (vr_fr[fc]^2 + vi_fr[fc]^2)/0.9^2 ≥ vr_to[tc]^2 + vi_to[tc]^2)
             end
@@ -338,13 +338,13 @@ function constraint_mc_storage_losses_block_on_off(pm::PMD.AbstractUnbalancedACR
     sd  = var(pm, nw,  :sd, i)
     qsc = var(pm, nw, :qsc, i)
 
-    JuMP.@constraint(pm.model,
+    JuMP.@NLconstraint(pm.model,
         (sum(ps[c] for c in connections) + (sd - sc)) * z_block
         ==
         (p_loss + r * sum((ps[c]^2 + qs[c]^2)/(vr[c]^2 + vi[c]^2) for (idx,c) in enumerate(connections))) * z_block
     )
 
-    JuMP.@constraint(pm.model,
+    JuMP.@NLconstraint(pm.model,
         sum(qs[c] for c in connections)
         ==
         (qsc + q_loss + x * sum((ps[c]^2 + qs[c]^2)/(vr[c]^2 + vi[c]^2) for (idx,c) in enumerate(connections))) * z_block
@@ -368,13 +368,13 @@ function constraint_mc_storage_losses_traditional_on_off(pm::PMD.AbstractUnbalan
     sd  = var(pm, nw,  :sd, i)
     qsc = var(pm, nw, :qsc, i)
 
-    JuMP.@constraint(pm.model,
+    JuMP.@NLconstraint(pm.model,
         (sum(ps[c] for c in connections) + (sd - sc)) * z_storage
         ==
         (p_loss + r * sum((ps[c]^2 + qs[c]^2)/(vr[c]^2 + vi[c]^2) for (idx,c) in enumerate(connections))) * z_storage
     )
 
-    JuMP.@constraint(pm.model,
+    JuMP.@NLconstraint(pm.model,
         sum(qs[c] for c in connections)
         ==
         (qsc + q_loss + x * sum((ps[c]^2 + qs[c]^2)/(vr[c]^2 + vi[c]^2) for (idx,c) in enumerate(connections))) * z_storage
