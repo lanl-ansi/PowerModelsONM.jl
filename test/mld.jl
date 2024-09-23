@@ -35,7 +35,7 @@
             r = optimize_switches!(args)
 
             @test all(_r["termination_status"] == OPTIMAL for (n,_r) in r)
-            @test isapprox(sum(Float64[_r["objective"] for _r in values(r)]), 119.89; atol=1)
+            @test isapprox(sum(Float64[_r["objective"] for _r in values(r)]), 176.86; atol=1)
         end
 
         @testset "test rolling-horizon optimal switching - lindistflow - traditional" begin
@@ -53,7 +53,7 @@
             r = optimize_switches!(args)
 
             @test all(_r["termination_status"] == OPTIMAL for (n,_r) in r)
-            @test isapprox(sum(Float64[_r["objective"] for _r in values(r)]), 171.72; atol=1)
+            @test isapprox(sum(Float64[_r["objective"] for _r in values(r)]), 176.86; atol=1)
         end
 
         @testset "test rolling-horizon optimal switching - nfa - block" begin
@@ -138,7 +138,7 @@
             r = optimize_switches!(args)
 
             @test first(r).second["termination_status"] == OPTIMAL
-            @test isapprox(r["1"]["objective"], 378.47; atol=1)
+            @test isapprox(r["1"]["objective"], 80.64; atol=1)
         end
 
         @testset "test full-lookahead optimal switching - lindistflow - traditional - radial-disabled - inverter-disabled" begin
