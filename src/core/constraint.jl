@@ -219,7 +219,7 @@ function constraint_radial_topology(pm::AbstractUnbalancedPowerModel, nw::Int; r
     var(pm, nw)[:f] = Dict{Tuple{Int,Int,Int},JuMP.VariableRef}()
     var(pm, nw)[:lambda] = Dict{Tuple{Int,Int},JuMP.VariableRef}()
     var(pm, nw)[:beta] = Dict{Tuple{Int,Int},JuMP.VariableRef}()
-    var(pm, nw)[:alpha] = Dict{Tuple{Int,Int},Union{JuMP.VariableRef,Int}}()
+    var(pm, nw)[:alpha] = Dict{Tuple{Int,Int},Union{JuMP.VariableRef,JuMP.AffExpr,Int}}()
 
     # "real" node and branch sets
     N₀ = ids(pm, nw, :blocks)
@@ -250,9 +250,10 @@ function constraint_radial_topology(pm::AbstractUnbalancedPowerModel, nw::Int; r
     end
 
     # create an aux varible α that maps to the switch states
-    for (s,sw) in ref(pm, nw, :switch)
-        (i,j) = (ref(pm, nw, :bus_block_map, sw["f_bus"]), ref(pm, nw, :bus_block_map, sw["t_bus"]))
-        var(pm, nw, :alpha)[(i,j)] = var(pm, nw, :switch_state, s)
+    switch_lookup = Dict{Tuple{Int,Int},Vector{Int}}((ref(pm, nw, :bus_block_map, sw["f_bus"]), ref(pm, nw, :bus_block_map, sw["t_bus"])) => Int[ss for (ss,ssw) in ref(pm, nw, :switch) if (ref(pm, nw, :bus_block_map, sw["f_bus"])==ref(pm, nw, :bus_block_map, ssw["f_bus"]) && ref(pm, nw, :bus_block_map, sw["t_bus"])==ref(pm, nw, :bus_block_map, ssw["t_bus"])) || (ref(pm, nw, :bus_block_map, sw["f_bus"])==ref(pm, nw, :bus_block_map, ssw["t_bus"]) && ref(pm, nw, :bus_block_map, sw["t_bus"])==ref(pm, nw, :bus_block_map, ssw["f_bus"]))] for (s,sw) in ref(pm, nw, :switch))
+    for ((i,j), switches) in switch_lookup
+        var(pm, nw, :alpha)[(i,j)] = JuMP.@expression(pm.model, sum(var(pm, nw, :switch_state, s) for s in switches))
+        JuMP.@constraint(pm.model, var(pm, nw, :alpha, (i,j)) <= 1)
     end
 
     f = var(pm, nw, :f)

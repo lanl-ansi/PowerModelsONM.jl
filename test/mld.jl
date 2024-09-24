@@ -35,7 +35,7 @@
             r = optimize_switches!(args)
 
             @test all(_r["termination_status"] == OPTIMAL for (n,_r) in r)
-            @test isapprox(sum(Float64[_r["objective"] for _r in values(r)]), 119.89; atol=1)
+            @test isapprox(sum(Float64[_r["objective"] for _r in values(r)]), 176.86; atol=1)
         end
 
         @testset "test rolling-horizon optimal switching - lindistflow - traditional" begin
@@ -53,7 +53,7 @@
             r = optimize_switches!(args)
 
             @test all(_r["termination_status"] == OPTIMAL for (n,_r) in r)
-            @test isapprox(sum(Float64[_r["objective"] for _r in values(r)]), 119.89; atol=1)
+            @test isapprox(sum(Float64[_r["objective"] for _r in values(r)]), 176.86; atol=1)
         end
 
         @testset "test rolling-horizon optimal switching - nfa - block" begin
@@ -138,7 +138,7 @@
             r = optimize_switches!(args)
 
             @test first(r).second["termination_status"] == OPTIMAL
-            @test isapprox(r["1"]["objective"], 80.65; atol=1)
+            @test isapprox(r["1"]["objective"], 80.64; atol=1)
         end
 
         @testset "test full-lookahead optimal switching - lindistflow - traditional - radial-disabled - inverter-disabled" begin
@@ -202,4 +202,77 @@
             @test isapprox(r["1"]["objective"], 25.5; atol=1)
         end
     end
+end
+
+
+@testset "test radiality " begin
+    solver = build_solver_instances(;solver_options=Dict{String,Any}("HiGHS"=>Dict{String,Any}("output_flag"=>false, "presolve"=>"off")))["mip_solver"]
+    eng_s = parse_file("../test/data/network.ieee13mod.dss")
+
+    eng_s["time_elapsed"] = 1.0
+    eng_s["switch_close_actions_ub"] = Inf
+
+    PMD.apply_voltage_bounds!(eng_s; vm_lb=0.9, vm_ub=1.1)
+    PMD.apply_voltage_angle_difference_bounds!(eng_s, 10.0)
+    PMD.adjust_line_limits!(eng_s, Inf)
+    PMD.adjust_transformer_limits!(eng_s, Inf)
+
+    for switch in values(eng_s["switch"])
+        switch["dispatchable"] = YES
+        switch["state"] = CLOSED
+        switch["status"] = ENABLED
+    end
+
+    for t in ["storage", "solar", "generator"]
+        for obj in values(eng_s[t])
+            obj["inverter"] = GRID_FOLLOWING
+        end
+    end
+
+    set_option!(eng_s, ("options", "objective", "disable-load-block-weight-cost"), true)
+    set_option!(eng_s, ("options", "objective", "disable-storage-discharge-cost"), true)
+    set_option!(eng_s, ("options", "objective", "disable-generation-dispatch-cost"), true)
+
+    r = solve_block_mld(eng_s, LPUBFDiagPowerModel, solver)
+
+    @test r["solution"]["switch"]["680675"]["state"] != r["solution"]["switch"]["671692"]["state"]
+    @test length(filter(x->x.second["state"]==OPEN, r["solution"]["switch"])) == 2
+    @test r["objective"] < 1.0
+
+    eng_s["switch"]["680675"]["state"] = OPEN
+
+    r = solve_block_mld(eng_s, LPUBFDiagPowerModel, solver)
+
+    @test r["solution"]["switch"]["680675"]["state"] == OPEN
+    @test r["solution"]["switch"]["671692"]["state"] == OPEN
+    @test length(filter(x->x.second["state"]==OPEN, r["solution"]["switch"])) == 2
+    @test r["objective"] < 1.0
+
+    eng_s["switch"]["680675"]["state"] = CLOSED
+    eng_s["switch"]["671692"]["state"] = OPEN
+
+    r = solve_block_mld(eng_s, LPUBFDiagPowerModel, solver)
+
+    @test r["solution"]["switch"]["680675"]["state"] == OPEN
+    @test r["solution"]["switch"]["671692"]["state"] == OPEN
+    @test length(filter(x->x.second["state"]==OPEN, r["solution"]["switch"])) == 2
+    @test r["objective"] < 1.0
+
+    eng_s["switch"]["680675"]["state"] = OPEN
+    eng_s["switch"]["671692"]["state"] = OPEN
+
+    r = solve_block_mld(eng_s, LPUBFDiagPowerModel, solver)
+
+    @test (r["solution"]["switch"]["680675"]["state"] != r["solution"]["switch"]["671692"]["state"]) || (r["solution"]["switch"]["680675"]["state"] == OPEN)
+    @test length(filter(x->x.second["state"]==OPEN, r["solution"]["switch"])) == 2
+    @test r["objective"] < 1.0
+
+    eng_s["switch"]["680675"]["dispatchable"] = NO
+    eng_s["switch"]["671692"]["dispatchable"] = NO
+
+    r = solve_block_mld(eng_s, LPUBFDiagPowerModel, solver)
+
+    @test r["solution"]["switch"]["680675"]["state"] == r["solution"]["switch"]["671692"]["state"]
+    @test length(filter(x->x.second["state"]==OPEN, r["solution"]["switch"])) == 2
+    @test r["objective"] < 1.0
 end

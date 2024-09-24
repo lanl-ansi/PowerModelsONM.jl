@@ -7,9 +7,7 @@
        @test length(graph.edge) == 6
 
        save_graphml("../test/data/ieee13_nested.graphml", eng; type="nested")
-       open("../test/data/ieee13_nested.graphml", "r") do io
-            @test length(readlines(io)) == 1509
-       end
+       @test length(EzXML.nodes(EzXML.nodes(EzXML.readxml("../test/data/ieee13_nested.graphml").node)[1])) == 185
        rm("../test/data/ieee13_nested.graphml")
     end
 
@@ -19,9 +17,7 @@
         @test length(graph.edge) == 57
 
         save_graphml("../test/data/ieee13_unnested.graphml", eng; type="unnested")
-        open("../test/data/ieee13_unnested.graphml", "r") do io
-             @test length(readlines(io)) == 1479
-        end
+        @test length(EzXML.nodes(EzXML.nodes(EzXML.readxml("../test/data/ieee13_unnested.graphml").node)[1])) == 185
         rm("../test/data/ieee13_unnested.graphml")
     end
 end

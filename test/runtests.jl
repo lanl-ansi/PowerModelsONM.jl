@@ -8,6 +8,7 @@ Distributed.addprocs(3)
 # cd("test"); import Gurobi; using PowerModelsONM
 
 import JSON
+import EzXML
 import PowerModelsDistribution as PMD
 
 import Juniper
