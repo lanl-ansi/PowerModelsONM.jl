@@ -7,17 +7,17 @@
        @test length(graph.edge) == 6
 
        save_graphml("../test/data/ieee13_nested.graphml", eng; type="nested")
-       @test length(EzXML.nodes(EzXML.nodes(EzXML.readxml("../test/data/ieee13_nested.graphml").node)[1])) == 185
+       @test length(EzXML.nodes(EzXML.nodes(EzXML.readxml("../test/data/ieee13_nested.graphml").node)[1])) == 177
        rm("../test/data/ieee13_nested.graphml")
     end
 
     @testset "test unnested graph" begin
         graph = build_unnested_graph(eng)
         @test length(graph.node) == 57
-        @test length(graph.edge) == 57
+        @test length(graph.edge) == 59
 
         save_graphml("../test/data/ieee13_unnested.graphml", eng; type="unnested")
-        @test length(EzXML.nodes(EzXML.nodes(EzXML.readxml("../test/data/ieee13_unnested.graphml").node)[1])) == 185
+        @test length(EzXML.nodes(EzXML.nodes(EzXML.readxml("../test/data/ieee13_unnested.graphml").node)[1])) == 177
         rm("../test/data/ieee13_unnested.graphml")
     end
 end

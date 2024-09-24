@@ -55,14 +55,14 @@
     @testset "test microgrid stats" begin
         @test all(isapprox.(args["output_data"]["Storage SOC (%)"], [36.4, 34.8, 44.7, 46.5, 48.0, 48.0, 31.2, 16.8]; atol=1e0))
 
-        @test all(isapprox.(args["output_data"]["Load served"]["Bonus load via microgrid (%)"], [0.0, 0.0, 9.18339, 7.98514, 7.98514, 8.32841, 8.32841, 8.72574]; atol=1e-1))
-        @test all(isapprox.(args["output_data"]["Load served"]["Feeder load (%)"], [93.7876, 93.7822, 84.6857, 85.7495, 85.7495, 85.4536, 85.4536, 85.101]; atol=1e-1))
+        @test all(isapprox.(args["output_data"]["Load served"]["Bonus load via microgrid (%)"], [0.0, 0.0, 9.57997, 8.35485, 8.35485, 8.70728, 8.70728, 9.11343]; atol=1e-1))
+        @test all(isapprox.(args["output_data"]["Load served"]["Feeder load (%)"], [93.7930, 93.7860, 84.2933, 85.3878, 85.3878, 85.0814, 85.0814, 84.7187]; atol=1e-1))
         @test all(isapprox.(args["output_data"]["Load served"]["Microgrid load (%)"], [14.2464, 17.9733, 51.9408, 64.7277, 61.1884, 53.4061, 82.2705, 81.8947]; atol=1e-1))
 
-        @test all(isapprox.(args["output_data"]["Generator profiles"]["Diesel DG (kW)"], [0.0, 0.0, 260.503, 272.498, 272.498, 268.22, 268.22, 264.266]; atol=1e0))
+        @test all(isapprox.(args["output_data"]["Generator profiles"]["Diesel DG (kW)"], [0.0, 0.0, 271.752, 285.112, 285.112, 280.420, 280.420, 276.006]; atol=1e0))
         @test all(isapprox.(args["output_data"]["Generator profiles"]["Energy storage (kW)"], [75.0, 20.0016, 6.00045, -22.4995, -17.9993, -0.499176, 210.0, 180.0]; atol=1e0))
         @test all(isapprox.(args["output_data"]["Generator profiles"]["Solar DG (kW)"], [0.0, 0.0, 14.0, 35.0, 28.0, 10.5, 0.0, 0.0]; atol=1e0))
-        @test all(isapprox.(args["output_data"]["Generator profiles"]["Grid mix (kW)"], [2300.61, 2385.48, 2402.26, 2926.25, 2926.25, 2752.07, 2752.07, 2577.35]; atol=1e1))
+        @test all(isapprox.(args["output_data"]["Generator profiles"]["Grid mix (kW)"], [2300.74, 2385.57, 2391.12, 2913.88, 2913.88, 2740.06, 2740.06, 2565.76]; atol=1e1))
     end
 
     @testset "test stability stats" begin

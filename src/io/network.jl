@@ -48,6 +48,7 @@ ONM version of `PowerModelsDistribution.parse_file`, which includes some `dss2en
 function parse_file(network_file::String; dss2eng_extensions=Function[], transformations=Function[], import_all=true, kwargs...)
     eng = PMD.parse_file(
         network_file;
+        bank_transformers=false,
         dss2eng_extensions=[
             _dss2eng_protection_locations!,
             dss2eng_extensions...

@@ -46,7 +46,7 @@
         @test isapprox(args["optimal_dispatch_result"]["objective"], 5.13; atol=2e-2)
         @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["801"]["vm"] ./ vbase["801"], [1.013, 1.062, 1.025]; atol=1e-2))
         @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["801"]["va"], [-3.36, -122.49, 117.39]; atol=1e0))
-        @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["675"]["vm"] ./ vbase["675"], [0.979, 1.085, 1.021]; atol=1e-2))
+        @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["675"]["vm"] ./ vbase["675"], [0.989, 1.082, 1.017]; atol=1e-2))
         @test all(isapprox.(args["optimal_dispatch_result"]["solution"]["nw"]["7"]["bus"]["675"]["va"], [-4.77, -123.13, 116.81]; atol=1e0))
     end
 

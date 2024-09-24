@@ -6,6 +6,7 @@
 
 ## v4.0.0
 
+- Change `parse_file` to use `bank_transformers=false`, which seems to affect quality of solutions
 - Upgrade to use new PowerModelsProtection fault study solver (breaking)
 - Upgrade to JuMP v1.23.2, to support new NL syntax (PMD v0.16, PMS v0.4.0, PMP v0.7.1) (breaking)
 
