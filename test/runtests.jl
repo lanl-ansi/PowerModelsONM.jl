@@ -15,6 +15,9 @@ import Juniper
 import Ipopt
 import HiGHS
 
+import Random
+Random.seed!(21)
+
 minlp_solver = optimizer_with_attributes(
     Juniper.Optimizer,
     "nl_solver" => optimizer_with_attributes(Ipopt.Optimizer, "tol"=>1e-6, "print_level"=>0),
@@ -60,6 +63,8 @@ silence!()
     # problems
     @info "Running tests in mld.jl"
     include("mld.jl")
+    @info "Running tests in robust_eval.jl"
+    include("robust_eval.jl")
     @info "Running tests in nlp.jl"
     include("nlp.jl")
     @info "Running tests in opf.jl"
