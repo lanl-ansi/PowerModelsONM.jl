@@ -9,21 +9,10 @@ Runs fault studies using `args["faults"]`, if defined, and stores the results in
 `args["fault_stuides_results"]`, for use in [`entrypoint`](@ref entrypoint), using
 [`run_fault_studies`](@ref run_fault_studies)
 """
-function run_fault_studies!(args::Dict{String,<:Any}; validate::Bool=true)::Dict{String,Any}
-    if !isempty(get(args, "faults", ""))
-        if isa(args["faults"], String)
-            args["faults"] = parse_faults(args["faults"]; validate=validate)
-        end
-    else
-        args["faults"] = PMP.build_mc_sparse_fault_study(args["base_network"])
-    end
-
+function run_fault_studies!(args::Dict{String,<:Any})::Dict{String,Any}
     args["fault_studies_results"] = run_fault_studies(
-        args["network"],
-        args["solvers"][get_setting(args, ("options", "problem", "fault-studies-solver"), "nlp_solver")];
-        faults=args["faults"],
+        args["fault_network"],
         switching_solutions=get(args, "optimal_switching_results", missing),
-        dispatch_solution=get(args, "optimal_dispatch_result", missing),
         distributed=get_setting(args, ("options", "problem", "concurrent-fault-studies"), true)
     )
 end
@@ -50,79 +39,96 @@ Uses [`run_fault_study`](@ref run_fault_study) to solve the actual fault study.
 
 """
 function run_fault_studies(
-    network::Dict{String,<:Any},
-    solver;
-    faults::Dict{String,<:Any}=Dict{String,Any}(),
+    network::Dict{String,<:Any};
     switching_solutions::Union{Missing,Dict{String,<:Any}}=missing,
-    dispatch_solution::Union{Missing,Dict{String,<:Any}}=missing,
     distributed::Bool=false
-    )::Dict{String,Any}
-    mn_data = _prepare_fault_study_multinetwork_data(network, switching_solutions, dispatch_solution)
-
-    switch_states = Dict{String,Dict{String,PMD.SwitchState}}(n => Dict{String,PMD.SwitchState}(s => sw["state"] for (s,sw) in get(nw, "switch", Dict())) for (n,nw) in get(mn_data, "nw", Dict()))
-
-    shedded_buses = Dict{String,Vector{String}}(n => collect(keys(filter(x->x.second["status"] == PMD.DISABLED, mn_data["nw"][n]["bus"]))) for (n,nw) in get(mn_data, "nw", Dict()))
-    if !ismissing(switching_solutions)
-        for (n,shed) in shedded_buses
-            nw = get(get(switching_solutions, "$n", Dict()), "solution", Dict{String,Any}())
-            for (i,bus) in get(nw, "bus", Dict())
-                if get(bus, "status", PMD.ENABLED) == PMD.DISABLED
-                    push!(shed, i)
-                end
-            end
-        end
-    elseif !ismissing(dispatch_solution)
-        for (n,shed) in shedded_buses
-            solution_buses = collect(keys(get(get(get(dispatch_solution, "nw", Dict()), "$n", Dict()), "bus", Dict())))
-            for (i, bus) in get(mn_data["nw"]["$n"], "bus", Dict{String,Any}())
-                if !(i in solution_buses)
-                    push!(shed, i)
-                end
-            end
-        end
-    end
-
-    if isempty(faults)
-        faults = PMP.build_mc_sparse_fault_study(first(network["nw"]).second)
-    end
+)::Dict{String,Any}
 
     fault_studies_results = Dict{String,Any}()
-    ns = sort([parse(Int, i) for i in keys(get(mn_data, "nw", Dict()))])
-    if !distributed
-        _results = []
-        for n in ns
-            _faults = filter(x->!(x.first in shedded_buses["$(n)"]), faults)
-            if (n > 1 && switch_states["$(n)"] == switch_states["$(n-1)"]) || isempty(_faults)
-                # skip identical configurations or all faults missing
-                push!(_results, missing)
+    if !ismissing(switching_solutions)
+        switch_states = Dict{String,Dict{String,PMD.SwitchState}}(n => Dict{String,PMD.SwitchState}(s => sw["state"] for (s, sw) in get(nw, "switch", Dict())) for (n, nw) in switching_solutions)
+
+        ns = sort([parse(Int, i) for i in keys(switching_solutions)])
+
+        if !distributed
+            _results = []
+            for n in ns
+                if (n > 1 && switch_states["$(n)"] == switch_states["$(n-1)"])
+                    # skip identical configurations
+                    push!(_results, missing)
+                else
+                    push!(_results, run_fault_study(_apply_switch_results(network, switching_solutions["$n"])))
+                end
+            end
+        else
+            _results = pmap(ns; distributed=distributed) do n
+                if (n > 1 && switch_states["$(n)"] == switch_states["$(n-1)"])
+                    # skip identical configurations
+                    missing
+                else
+                    run_fault_study(_apply_switch_results(network, switching_solutions["$n"]))
+                end
+            end
+        end
+
+        # fill skipped results
+        for (i, n) in enumerate(ns)
+            if ismissing(_results[i]) && i > 1
+                fault_studies_results["$(n)"] = fault_studies_results["$(n-1)"]
+            elseif ismissing(_results[i])
+                fault_studies_results["$(n)"] = Dict{String,Any}()
             else
-                push!(_results, run_fault_study(mn_data["nw"]["$(n)"], _faults, solver))
+                fault_studies_results["$(n)"] = _results[i]
             end
         end
     else
-        _results = pmap(ns; distributed=distributed) do n
-            _faults = filter(x->!(x.first in shedded_buses["$(n)"]), faults)
-            if (n > 1 && switch_states["$(n)"] == switch_states["$(n-1)"]) || isempty(_faults)
-                # skip identical configurations or all faults missing
-                missing
-            else
-                run_fault_study(mn_data["nw"]["$(n)"], _faults, solver)
+        fault_studies_results["0"] = run_fault_study(network)
+    end
+
+    return _format_fault_results(fault_studies_results)
+end
+
+
+"""
+    _apply_switch_results(data_in::Dict{String,<:Any}, switching_solution::Dict{String,<:Any})
+
+Helper functing to help apply switch states and generation statuses.
+"""
+function _apply_switch_results(data_in::Dict{String,<:Any}, switching_solution::Dict{String,<:Any})
+    data = deepcopy(data_in)
+
+    shed = collect(keys(filter(x -> x.second["status"] != PMD.ENABLED, data["bus"])))
+
+    if !ismissing(switching_solution)
+        nw = get(switching_solution, "solution", Dict())
+
+        for type in ["load", "shunt", "generator", "solar", "voltage_source", "storage"]
+            for (i, obj) in get(data, type, Dict{String,Any}())
+                obj_sol = get(get(nw, type, Dict()), i, Dict())
+                if obj["bus"] in shed || get(obj_sol, "status", obj["status"]) == PMD.DISABLED
+                    data[type][i]["status"] = PMD.DISABLED
+                end
+                if type ∈ ["storage", "solar", "voltage_source", "generator"]
+                    if haskey(obj_sol, "inverter")
+                        data[type][i]["grid_forming"] = obj_sol["inverter"] == GRID_FORMING ? true : false
+                    else
+                        data[type][i]["grid_forming"] = false
+                    end
+                end
             end
         end
-    end
 
-    # fill skipped results
-    for (i,n) in enumerate(ns)
-        if ismissing(_results[i]) && i > 1
-            fault_studies_results["$(n)"] = fault_studies_results["$(n-1)"]
-        elseif ismissing(_results[i])
-            fault_studies_results["$(n)"] = Dict{String,Any}()
-        else
-            fault_studies_results["$(n)"] = _results[i]
+        for (i, switch) in get(data, "switch", Dict())
+            obj_sol = get(get(nw, "switch", Dict()), i, Dict())
+
+            if haskey(obj_sol, "state")
+                data["switch"][i]["state"] = nw["switch"][i]["state"]
+            end
+            data["switch"][i]["dispatchable"] = PMD.NO
         end
     end
 
-    return fault_studies_results
+    return data
 end
 
 
@@ -138,65 +144,37 @@ to `subnetwork`, i.e., not a multinetwork, using a nonlinear `solver`.
 
 Requires the use of `PowerModelsDistribution.IVRUPowerModel`.
 """
-function run_fault_study(subnetwork::Dict{String,<:Any}, faults::Dict{String,<:Any}, solver)::Dict{String,Any}
-    PMP.solve_mc_fault_study(subnetwork, faults, solver)
+function run_fault_study(subnetwork::Dict{String,<:Any})::Dict{String,Any}
+    PMP.solve_mc_fault_study(PMP.instantiate_mc_admittance_model(subnetwork), build_output=true)
 end
 
 
-"""
-    _prepare_fault_study_multinetwork_data(
-        network::Dict{String,<:Any},
-        switching_solutions::Union{Missing,Dict{String,<:Any}}=missing,
-        dispatch_solution::Union{Missing,Dict{String,<:Any}}=missing
-    )
+function _format_fault_results(fault_results)
+    results = Dict{String,Any}()
 
-Helper function that helps to prepare all of the subnetworks for use in `PowerModelsProtection.solve_mc_fault_study`
-"""
-function _prepare_fault_study_multinetwork_data(
-    network::Dict{String,<:Any},
-    switching_solutions::Union{Missing,Dict{String,<:Any}}=missing,
-    dispatch_solution::Union{Missing,Dict{String,<:Any}}=missing
-    )::Dict{String,Any}
-    data = _prepare_dispatch_data(network, switching_solutions)
+    for (n, nw) in fault_results
+        results[n] = Dict{String,Any}()
 
-    if !ismissing(dispatch_solution)
-        for (n, nw) in data["nw"]
-            nw_sol = get(get(get(dispatch_solution, "solution", Dict()), "nw", Dict()), "$n", Dict())
-            for (i, _) in get(nw, "bus", Dict())
-                if haskey(nw_sol, "bus") && haskey(nw_sol["bus"], i)
-                    if haskey(nw_sol["bus"][i], "vm")
-                        data["nw"]["$n"]["bus"][i]["vm"] = nw_sol["bus"][i]["vm"]
-                    end
-                    if haskey(nw_sol["bus"][i], "va")
-                        data["nw"]["$n"]["bus"][i]["va"] = nw_sol["bus"][i]["va"]
+        for (bus, faults) in nw
+            results[n][bus] = Dict{String,Any}()
+            for fault_type in ["ll", "lg", "3pg", "llg", "3p"]
+                if haskey(faults, fault_type)
+                    results[n][bus][fault_type] = Dict{String,Any}()
+                    if fault_type in ["ll", "llg"]
+                        for (i, ((phase_a, phase_b), fault)) in enumerate(faults)
+                            results[n][bus][fault_type]["$i"] = Dict{String,Any}("termination_status" => "SOLVED", "solution" => Dict{String,Any}())
+                        end
+                    elseif fault_type == "lg"
+                        for (phase, fault) in faults
+                            results[n][bus][fault_type]["$phase"] = Dict{String,Any}()
+                        end
+                    else
+                        results[n][bus][fault_type]["1"] = Dict{String,Any}()
                     end
                 end
             end
         end
     end
 
-    for (n,nw) in get(data, "nw", Dict{String,Any}())
-        data["nw"]["$n"]["data_model"] = data["data_model"]
-        data["nw"]["$n"]["method"] = "PMD"
-
-        for type in ["solar", "storage", "generator"]
-            if haskey(nw, type)
-                for (i,obj) in nw[type]
-                    if haskey(obj, "inverter") && obj["inverter"] == GRID_FORMING
-                        data["nw"]["$n"][type][i]["grid_forming"] = true
-
-                        bus = data["nw"]["$n"]["bus"]["$(obj["bus"])"]
-                        if !haskey(bus, "vm")
-                            data["nw"]["$n"]["bus"]["$(obj["bus"])"]["vm"] = [ones(3)..., zeros(length(bus["terminals"]))...][bus["terminals"]]
-                        end
-                        if !haskey(bus, "va")
-                            data["nw"]["$n"]["bus"]["$(obj["bus"])"]["va"] = [0.0, -120.0, 120.0, zeros(length(bus["terminals"]))...][bus["terminals"]]
-                        end
-                    end
-                end
-            end
-        end
-    end
-
-    return data
+    return fault_results
 end

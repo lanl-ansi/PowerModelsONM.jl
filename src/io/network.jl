@@ -7,6 +7,7 @@ data structure under `args["base_network"]`
 """
 function parse_network!(args::Dict{String,<:Any})::Dict{String,Any}
     if isa(args["network"], String)
+        args["fault_network"] = parse_fault_network(args["network"])
         args["base_network"], args["network"] = parse_network(
             args["network"]
         )
@@ -48,13 +49,6 @@ function parse_file(network_file::String; dss2eng_extensions=Function[], transfo
     eng = PMD.parse_file(
         network_file;
         dss2eng_extensions=[
-            PMP._dss2eng_solar_dynamics!,
-            PMP._dss2eng_gen_dynamics!,
-            PMP._dss2eng_curve!,
-            PMP._dss2eng_fuse!,
-            PMP._dss2eng_ct!,
-            PMP._dss2eng_relay!,
-            PMP._dss2eng_gen_model!,
             _dss2eng_protection_locations!,
             dss2eng_extensions...
         ],
@@ -67,20 +61,66 @@ function parse_file(network_file::String; dss2eng_extensions=Function[], transfo
     eng["switch_close_actions_ub"] = Inf
 
     # TODO: add more elegant cost model adjustments
-    for (id,obj) in get(eng, "solar", Dict())
+    for (id, obj) in get(eng, "solar", Dict())
         eng["solar"][id]["cost_pg_model"] = 2
         eng["solar"][id]["cost_pg_parameters"] = [0.0, 0.0]
     end
 
     # work-around for protection settings network model if fix-small-numbers is used
     for t in ["line", "switch"]
-        for (id,obj) in get(eng, t, Dict())
+        for (id, obj) in get(eng, t, Dict())
             eng[t][id]["rs_orig"] = deepcopy(get(obj, "rs", zeros(length(obj["f_connections"]), length(obj["t_connections"]))))
             eng[t][id]["xs_orig"] = deepcopy(get(obj, "xs", zeros(length(obj["f_connections"]), length(obj["t_connections"]))))
         end
     end
 
     return eng
+end
+
+
+"""
+    parse_fault_network(network_file::String)
+
+Applies special parsing specifically to do fault studies, which includes
+no kron reduction, dss2eng dyanmics transformations, no transformer banking,
+and adds vbases.
+"""
+function parse_fault_network(network_file::String)
+    PMP.parse_opendss(network_file; transformations=[_apply_vbases!, _apply_fault_models!], import_all=true)
+end
+
+
+"""
+    _apply_vbases!(data::Dict{String,<:Any})
+
+Adds vbases to base network
+"""
+function _apply_vbases!(data::Dict{String,<:Any})
+    bus_vbases = PowerModelsONM.PMD.calc_voltage_bases(data, data["settings"]["vbases_default"])[1]
+    for (bus, vbase) in bus_vbases
+        data["bus"][bus]["vbase"] = vbase
+    end
+end
+
+
+"""
+    _apply_fault_models!(data::Dict{String,<:Any})
+
+Adds a default fault model to solar devices.
+"""
+function _apply_fault_models!(data::Dict{String,<:Any})
+    if haskey(data, "solar")
+        for solar in values(data["solar"])
+            solar["fault_model"] = Dict{String,Any}(
+                "standard" => PowerModelsONM.PMP.IEEE2800,
+                "priority" => "active",
+                "delta_ir1" => 2,
+                "ir1_dead_band" => 0.1,
+                "delta_ir2" => 2,
+                "ir2_dead_band" => 0.1,
+            )
+        end
+    end
 end
 
 
@@ -110,29 +150,29 @@ end
 
 
 if Pkg.dependencies()[UUIDs.UUID("d7431456-977f-11e9-2de3-97ff7677985e")].version >= v"0.15.0"
-"""
-    _dss2eng_protection!(
-        eng::Dict{String,<:Any},
-        dss::Dict{String,<:Any}
-    )
+    """
+        _dss2eng_protection!(
+            eng::Dict{String,<:Any},
+            dss::Dict{String,<:Any}
+        )
 
-Extension function for converting opendss protection into protection objects for protection optimization.
-"""
-function _dss2eng_protection_locations!(eng::Dict{String,<:Any}, dss::PMD.OpenDssDataModel)
-    for type in ["relay", "recloser", "fuse"]
-        if !isempty(get(dss, type, Dict())) && !haskey(eng, type)
-            eng[type] = Dict{String,Any}()
-        end
-
-        for (id, dss_obj) in get(dss, type, Dict())
-            if !haskey(eng[type], id)
-                eng[type][id] = Dict{String,Any}()
+    Extension function for converting opendss protection into protection objects for protection optimization.
+    """
+    function _dss2eng_protection_locations!(eng::Dict{String,<:Any}, dss::PMD.OpenDssDataModel)
+        for type in ["relay", "recloser", "fuse"]
+            if !isempty(get(dss, type, Dict())) && !haskey(eng, type)
+                eng[type] = Dict{String,Any}()
             end
-            eng[type][id]["location"] = dss_obj["monitoredobj"]
-            eng[type][id]["monitor_type"] = string(split(dss_obj["monitoredobj"], ".")[1])
+
+            for (id, dss_obj) in get(dss, type, Dict())
+                if !haskey(eng[type], id)
+                    eng[type][id] = Dict{String,Any}()
+                end
+                eng[type][id]["location"] = dss_obj["monitoredobj"]
+                eng[type][id]["monitor_type"] = string(split(dss_obj["monitoredobj"], ".")[1])
+            end
         end
     end
-end
 end
 
 
@@ -170,7 +210,7 @@ function get_protection_network_model(base_eng::Dict{String,<:Any})
     )
 
     for type in _pnm2eng_objects["bus"]
-        for (id,obj) in get(base_eng, type, Dict())
+        for (id, obj) in get(base_eng, type, Dict())
             push!(pnm["bus"], Dict{String,Any}(
                 "name" => id,
                 "phases" => obj["terminals"],
@@ -276,13 +316,13 @@ function get_timestep_bus_types(optimal_dispatch_solution::Dict{String,<:Any}, n
         nw = network["nw"]["$n"]
         buses = collect(keys(get(nw, "bus", Dict{String,Any}())))
 
-        vsource_buses = [vs["bus"] for (_,vs) in get(network["nw"]["$n"], "voltage_source", Dict()) if vs["status"] == PMD.ENABLED]
+        vsource_buses = [vs["bus"] for (_, vs) in get(network["nw"]["$n"], "voltage_source", Dict()) if vs["status"] == PMD.ENABLED]
         timestep = Dict{String,String}()
         nw_sol_bus = get(optimal_dispatch_solution["nw"]["$n"], "bus", Dict())
         for id in buses
-            bus = get(nw_sol_bus, id, Dict("bus_type"=>4))
+            bus = get(nw_sol_bus, id, Dict("bus_type" => 4))
 
-            timestep[id] = Dict{Int,String}(1=>"pq",2=>"pv",3=>"ref",4=>"isolated")[get(bus, "bus_type", 1)]
+            timestep[id] = Dict{Int,String}(1 => "pq", 2 => "pv", 3 => "ref", 4 => "isolated")[get(bus, "bus_type", 1)]
             if id in vsource_buses
                 timestep[id] = "ref"
             end
@@ -319,7 +359,7 @@ Helper function to populate switch_close_actions_ub per timestep in a multinetwo
 function set_switch_close_actions_ub!(mn_eng::Dict{String,<:Any}, switch_close_actions_ub::Union{Vector{<:Real},Real})
     @assert PMD.ismultinetwork(mn_eng)
 
-    for n in sort(parse.(Int,collect(keys(mn_eng["nw"]))))
+    for n in sort(parse.(Int, collect(keys(mn_eng["nw"]))))
         mn_eng["nw"]["$n"]["switch_close_actions_ub"] = isa(switch_close_actions_ub, Vector) ? switch_close_actions_ub[n] : switch_close_actions_ub
     end
 end

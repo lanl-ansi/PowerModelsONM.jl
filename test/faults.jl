@@ -20,16 +20,13 @@
     build_solver_instances!(orig_args)
 
     r_op = optimize_switches!(orig_args)
-    r_disp = optimize_dispatch!(orig_args)
 
     @testset "test fault study algorithms - base" begin
         args = deepcopy(orig_args)
 
         r_faults = run_fault_studies!(args)
 
-        @test args["fault_studies_results"]["5"]["692"]["3p"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
-        @test args["fault_studies_results"]["5"]["692"]["ll"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
-        @test args["fault_studies_results"]["5"]["692"]["lg"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
+        @test length(r_faults) == 8
     end
 
     @testset "test fault study algorithms - no concurrency" begin
@@ -38,28 +35,15 @@
 
         r_faults = run_fault_studies!(args)
 
-        @test args["fault_studies_results"]["5"]["692"]["3p"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
-        @test args["fault_studies_results"]["5"]["692"]["ll"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
-        @test args["fault_studies_results"]["5"]["692"]["lg"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
+        @test length(r_faults) == 8
     end
 
-    @testset "test fault study algorithms - missing dispatch solution" begin
+    @testset "test fault study algorithms - missing switching solution" begin
         args = deepcopy(orig_args)
-        delete!(args, "optimal_dispatch_result")
+        delete!(args, "optimal_switching_results")
 
         r_faults = run_fault_studies!(args)
 
-        @test args["fault_studies_results"]["5"]["692"]["3p"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
-        @test args["fault_studies_results"]["5"]["692"]["ll"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
-        @test args["fault_studies_results"]["5"]["692"]["lg"]["1"]["termination_status"] == PowerModelsONM.JuMP.LOCALLY_SOLVED
-    end
-
-    @testset "test fault study algorithms - no fault inputs" begin
-        args = deepcopy(orig_args)
-        delete!(args, "faults")
-
-        r_faults = run_fault_studies!(args)
-
-        @test count_faults(args["faults"]) == 193
+        @test length(r_faults) == 1
     end
 end

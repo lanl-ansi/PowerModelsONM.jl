@@ -51,10 +51,6 @@
         @test args["output_data"]["Powerflow output"][1]["bus"]["702"]["voltage (V)"] == [0.0, 0.0, 0.0]
     end
 
-    @testset "test fault stats" begin
-        @test all(isempty(args["output_data"]["Fault studies metadata"][i]) for i in 1:2)
-        @test all(!isempty(args["output_data"]["Fault studies metadata"][i]) for i in 3:8)
-    end
 
     @testset "test microgrid stats" begin
         @test all(isapprox.(args["output_data"]["Storage SOC (%)"], [36.4, 34.8, 44.7, 46.5, 48.0, 48.0, 31.2, 16.8]; atol=1e0))
