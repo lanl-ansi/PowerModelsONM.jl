@@ -4,6 +4,10 @@
 
 - none
 
+## v4.0.0
+
+- Upgrade to JuMP v1.23.2, to support new NL syntax (PMD v0.16, PMS v0.4.0, PMP v0.7.1) (breaking)
+
 ## v3.6.0
 
 - Added capability to evaluate the optimality of a given partition against a set of load scenarios to judge robustness
