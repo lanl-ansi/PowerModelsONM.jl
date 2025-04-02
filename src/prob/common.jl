@@ -1,3 +1,13 @@
+"default ravens2math passthrough functions"
+const _ravens2math_passthrough_default_funcs! = Function[
+    ravens2math_add_root_passthrough_default!,
+    ravens2math_add_load_passthrough_default!,
+    ravens2math_add_bus_passthrough_default!,
+    ravens2math_add_generator_passthrough_default!,
+    ravens2math_add_storage_passthrough_default!,
+    ravens2math_add_switch_passthrough_default!
+]
+
 "default ref_extension functions"
 const _default_ref_extensions = Function[
     ref_add_load_blocks!,
@@ -97,6 +107,35 @@ function instantiate_onm_model(
             ref_extensions...
         ],
         eng2math_passthrough=recursive_merge_including_vectors(_eng2math_passthrough_default, eng2math_passthrough),
+        global_keys=union(_default_global_keys, global_keys),
+        kwargs...
+    )
+end
+
+
+function instantiate_onm_model_ravens(
+    data::Union{Dict{String,<:Any}, String},
+    model_type::Type,
+    model_builder::Function;
+    ravens2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
+    ref_extensions::Vector{Function}=Function[],
+    multinetwork::Bool=false,
+    global_keys::Set{String}=Set{String}(),
+    kwargs...)
+
+    return PMD.instantiate_mc_model_ravens(
+        data,
+        model_type,
+        model_builder;
+        multinetwork=multinetwork,
+        ref_extensions=Function[
+            _default_ref_extensions...,
+            ref_extensions...
+        ],
+        ravens2math_extensions=Function[
+            _ravens2math_passthrough_default_funcs!...
+        ],
+        ravens2math_passthrough=ravens2math_passthrough,
         global_keys=union(_default_global_keys, global_keys),
         kwargs...
     )
