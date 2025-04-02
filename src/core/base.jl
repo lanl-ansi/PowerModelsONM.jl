@@ -35,6 +35,11 @@ function JuMP.lower_bound(x::JuMP.AffExpr)
             push!(lb, JuMP.lower_bound(k) * v)
         end
     end
+
+    if isempty(lb)
+        return 0.0
+    end
+
     return sum(lb)
 end
 
@@ -54,6 +59,11 @@ function JuMP.upper_bound(x::JuMP.AffExpr)
             push!(ub, JuMP.upper_bound(k) * v)
         end
     end
+
+    if isempty(ub)
+        return 0.0
+    end
+
     return sum(ub)
 end
 
