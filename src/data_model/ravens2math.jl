@@ -1,6 +1,7 @@
-function transform_data_model_ravens(ravens::T; global_keys::Set{String}=Set{String}(), ravens2math_extensions::Vector{<:Function}=Function[] ,ravens2math_passthrough::Dict{String,<:Vector{<:String}}=Dict{String,Vector{String}}(), kwargs...)::T where T <: Dict{String,Any}
+function transform_data_model_ravens(ravens::T; multinetwork::Bool=false, global_keys::Set{String}=Set{String}(), ravens2math_extensions::Vector{<:Function}=Function[], ravens2math_passthrough::Dict{String,<:Vector{<:String}}=Dict{String,Vector{String}}(), kwargs...)::T where T <: Dict{String,Any}
     PMD.transform_data_model_ravens(
         ravens;
+        multinetwork=multinetwork,
         global_keys=union(_default_global_keys, global_keys),
         ravens2math_extensions=ravens2math_extensions,
         ravens2math_passthrough=ravens2math_passthrough,
@@ -102,6 +103,150 @@ function ravens2math_add_switch_passthrough_default!(data_math::Dict{String,<:An
 end
 
 
+### Util functions to convert from MATH to ENG model
+
+function create_eng_nw_from_math(math_nw)
+    new = Dict{String,Any}("nw" => Dict{String,Any}(),
+    "mn_lookup" => Dict{String,Float64}())
+
+    for (n, nw) in get(math_nw, "nw", Dict())
+        new["nw"][n] = create_eng_from_math(nw, math_nw["bus_lookup"][n])
+        if parse(Int, n) == 1
+            new["mn_lookup"][n] = 0.0
+        else
+            new["mn_lookup"][n] = (parse(Int, n)-1) * math_nw["nw"]["$(parse(Int, n)-1)"]["time_elapsed"]
+        end
+    end
+
+    new["data_model"] = Dict{String,Any}()
+    new["data_model"] = PMD.ENGINEERING
+
+    new["multinetwork"] = Dict{Bool,Any}()
+    new["multinetwork"] = true
+
+    return new
+end
+
+
+function create_eng_from_math(math, bus_lookup=missing)
+	new = Dict{String,Any}()
+
+	if ismissing(bus_lookup)
+			bus_lookup = math["bus_lookup"]
+	end
+
+	bus_map = Dict{Int,String}(v => k for (k, v) in bus_lookup)
+
+	new["bus"] = Dict{String,Any}()
+	for (i, bus) in get(math, "bus", Dict())
+			new["bus"]["$(bus["name"])"] = Dict{String,Any}(
+					"terminals" => bus["terminals"],
+					"status" => bus["bus_type"] != 4 ? ENABLED : DISABLED,
+                    "grounded" => bus["grounded"]
+			)
+	end
+
+	new["line"] = Dict{String,Any}()
+	for (i, br) in get(math, "branch", Dict())
+            @info "$(br)"
+			if !startswith(br["name"], "_virtual")
+					new["line"]["$(br["name"])"] = Dict{String,Any}(
+							"f_bus" => "$(bus_map[br["f_bus"]])",
+							"t_bus" => "$(bus_map[br["t_bus"]])",
+							"f_connections" => br["f_connections"],
+							"t_connections" => br["t_connections"],
+							"status" => Status(br["br_status"])
+					)
+			end
+	end
+
+	new["switch"] = Dict{String,Any}()
+	for (i, sw) in get(math, "switch", Dict())
+			t_bus = sw["t_bus"]
+			if t_bus ∉ keys(bus_map)
+					for (i,br) in get(math, "branch", Dict())
+							if t_bus == br["f_bus"]
+									t_bus = br["t_bus"]
+									break
+							end
+					end
+			end
+
+			new["switch"][sw["name"]] = Dict{String,Any}(
+					"f_bus" => bus_map[sw["f_bus"]],
+					"t_bus" => bus_map[t_bus],
+					"f_connections" => sw["f_connections"],
+					"t_connections" => sw["t_connections"],
+					"state" => SwitchState(sw["state"]),
+					"dispatchable" => Dispatchable(sw["dispatchable"]),
+					"status" => Status(sw["status"])
+			)
+	end
+
+	new["load"] = Dict{String,Any}()
+	for (i, load) in get(math, "load", Dict())
+			new["load"]["$(load["name"])"] = Dict{String,Any}(
+					"bus" => bus_map[load["load_bus"]],
+					"connections" => load["connections"],
+					"configuration" => load["configuration"],
+					"model" => load["model"],
+					"dispatchable" => Dispatchable(load["dispatchable"]),
+					"pd_nom" => load["pd"],
+					"qd_nom" => load["qd"],
+					"status" => Status(load["status"])
+			)
+	end
+
+	new["generator"] = Dict{String,Any}()
+	new["solar"] = Dict{String,Any}()
+	new["voltage_source"] = Dict{String,Any}()
+	for (i, gen) in get(math, "gen", Dict())
+			bus_id = gen["gen_bus"]
+			if bus_id ∉ keys(bus_map)
+					for (i,br) in get(math, "branch", Dict())
+							if bus_id == br["f_bus"]
+									bus_id = br["t_bus"]
+									break
+							end
+					end
+			end
+
+			data = Dict{String,Any}(
+					"bus" => bus_map[bus_id],
+					"connections" => gen["connections"],
+					"configuration" => gen["configuration"],
+					"pg_ub" => gen["pmax"],
+					"qg_ub" => gen["qmax"],
+					"inverter" => get(gen, "inverter", GRID_FOLLOWING),
+					"status" => Status(gen["gen_status"])
+			)
+
+			if startswith(gen["source_id"], "generator") || startswith(gen["source_id"], "rotating_machine")
+					data["inverter"] = GRID_FORMING # TODO: assumption
+					new["generator"][split(gen["source_id"], "."; limit=2)[end]] = data
+			elseif startswith(gen["source_id"], "solar") || startswith(gen["source_id"], "photovoltaic_unit")
+					new["solar"][split(gen["source_id"], "."; limit=2)[end]] = data
+			elseif startswith(gen["source_id"], "voltage_source") || startswith(gen["source_id"], "energy_source")
+					data["inverter"] = GRID_FORMING
+					new["voltage_source"][split(gen["source_id"], "."; limit=2)[end]] = data
+			end
+	end
+
+	new["storage"] = Dict{String,Any}()
+	for (i, strg) in get(math, "storage", Dict())
+			new["storage"][strg["name"]] = Dict{String,Any}(
+					"bus" => bus_map[strg["storage_bus"]],
+					"connections" => strg["connections"],
+					"configuration" => strg["configuration"],
+					"status" => Status(strg["status"]),
+					"energy" => strg["energy"],
+					"energy_ub" => strg["energy_rating"],
+					"inverter" => GRID_FORMING # TODO: hack
+			)
+	end
+
+	return new
+end
 
 
 
