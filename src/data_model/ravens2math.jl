@@ -148,7 +148,6 @@ function create_eng_from_math(math, bus_lookup=missing)
 
 	new["line"] = Dict{String,Any}()
 	for (i, br) in get(math, "branch", Dict())
-            @info "$(br)"
 			if !startswith(br["name"], "_virtual")
 					new["line"]["$(br["name"])"] = Dict{String,Any}(
 							"f_bus" => "$(bus_map[br["f_bus"]])",
