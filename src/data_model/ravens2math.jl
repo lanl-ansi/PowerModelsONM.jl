@@ -137,12 +137,31 @@ function create_eng_from_math(math, bus_lookup=missing)
 
 	bus_map = Dict{Int,String}(v => k for (k, v) in bus_lookup)
 
+	# init settings dict
+	new["settings"] = deepcopy(math["settings"])
+
+	for settings_key in ["vbases_buses", "vbases_default", "vbases_network"]
+		new["settings"][settings_key] = Dict{String, Float64}()
+		for (bus, val) in get(math["settings"], settings_key, Dict())
+			for (math_bus, eng_bus) in bus_map
+				if (string(math_bus) == bus)
+					new["settings"][settings_key]["$(eng_bus)"] = get(math["settings"][settings_key], string(math_bus), Inf)
+				end
+			end
+		end
+	end
+
+	# TODO: correct vbases_default
+	new["settings"]["vbases_default"] = new["settings"]["vbases_buses"]
+
+
 	new["bus"] = Dict{String,Any}()
 	for (i, bus) in get(math, "bus", Dict())
 			new["bus"]["$(bus["name"])"] = Dict{String,Any}(
 					"terminals" => bus["terminals"],
 					"status" => bus["bus_type"] != 4 ? ENABLED : DISABLED,
-                    "grounded" => bus["grounded"]
+          "grounded" => bus["grounded"],
+					"vbase" => bus["vbase"],
 			)
 	end
 
