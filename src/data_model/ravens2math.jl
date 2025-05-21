@@ -1,4 +1,4 @@
-function transform_data_model_ravens(ravens::T; multinetwork::Bool=false, global_keys::Set{String}=Set{String}(), ravens2math_extensions::Vector{<:Function}=Function[], ravens2math_passthrough::Dict{String,<:Vector{<:String}}=Dict{String,Vector{String}}(), kwargs...)::T where T <: Dict{String,Any}
+function transform_data_model_ravens(ravens::T; multinetwork::Bool=false, global_keys::Set{String}=Set{String}(), ravens2math_extensions::Vector{<:Function}=Function[_ravens2math_passthrough_default_funcs!...], ravens2math_passthrough::Dict{String,<:Vector{<:String}}=Dict{String,Vector{String}}(), kwargs...)::T where T <: Dict{String,Any}
     PMD.transform_data_model_ravens(
         ravens;
         multinetwork=multinetwork,
