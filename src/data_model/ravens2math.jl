@@ -47,38 +47,38 @@ function ravens2math_add_bus_passthrough_default!(data_math::Dict{String,<:Any},
 end
 
 function ravens2math_add_generator_passthrough_default!(data_math::Dict{String,<:Any}, data_ravens::Dict{String,<:Any})
-    # TODO: where to get from RAVENS-JSON?
-    for (name, gen_data) in get(data_math, "gen", Dict{Any,Dict{String,Any}}())
-        gen_name = gen_data["name"]
-        rotng_machns = data_ravens["PowerSystemResource"]["Equipment"]["ConductingEquipment"]["EnergyConnection"]["RegulatingCondEq"]["RotatingMachine"]
-        if haskey(rotng_machns, gen_name)
-            gen_data = rotng_machns[gen_name]
-            if haskey(gen_data, "RotatingMachine.RotatingMachineResponse")
-                gen_data["gen_model"] = gen_data["RotatingMachine.RotatingMachineResponse"]
-            end
-            if haskey(gen_data, "RotatingMachine.Inverter")
-                gen_data["inverter"] = gen_data["RotatingMachine.Inverter"] # GRID_FOLLOWING, GRID_FORMING
-            end
-        end
-    end
+	# TODO: where to get from RAVENS-JSON?
+	for (_, gen_data) in get(data_math, "gen", Dict{Any,Dict{String,Any}}())
+		gen_name = gen_data["name"]
+		pecs = data_ravens["PowerSystemResource"]["Equipment"]["ConductingEquipment"]["EnergyConnection"]["RegulatingCondEq"]["PowerElectronicsConnection"]
+		if haskey(pecs, gen_name)
+			pec_data = pecs[gen_name]
+			if haskey(pec_data, "PowerElectronicsConnection.PowerElectronicsConnectionResponse")
+				gen_data["gen_model"] = pec_data["PowerElectronicsConnection.PowerElectronicsConnectionResponse"]
+			end
+			if haskey(pec_data, "PowerElectronicsConnection.PowerElectronicsOperatingMode")
+				gen_data["inverter"] = get(pec_data["PowerElectronicsConnection.PowerElectronicsOperatingMode"], "PowerElectronicsOperatingMode.mode", "OperatingModeKind.gridFollowing") ==  "OperatingModeKind.gridForming" ? GRID_FORMING : GRID_FOLLOWING
+			end
+		end
+	end
 end
 
 
 function ravens2math_add_storage_passthrough_default!(data_math::Dict{String,<:Any}, data_ravens::Dict{String,<:Any})
     # TODO: where to get from RAVENS-JSON?
-    for (name, storage_data) in get(data_math, "storage", Dict{Any,Dict{String,Any}}())
+    for (_, storage_data) in get(data_math, "storage", Dict{Any,Dict{String,Any}}())
         storage_name = storage_data["name"]
-        storages = data_ravens["PowerSystemResource"]["Equipment"]["ConductingEquipment"]["EnergyConnection"]["RegulatingCondEq"]["PowerElectronicsConnection"]
-        if haskey(storages, storage_name)
-            storage_data = storages[storage_name]
-            if haskey(storage_data, "PowerElectronicsConnection.PowerElectronicsUnit")
-                storage_data["gen_model"] = get(storage_data, "BatteryUnit.BatteryResponse", 1)
+        pecs = data_ravens["PowerSystemResource"]["Equipment"]["ConductingEquipment"]["EnergyConnection"]["RegulatingCondEq"]["PowerElectronicsConnection"]
+        if haskey(pecs, storage_name)
+            pec_data = pecs[storage_name]
+            if haskey(pec_data, "PowerElectronicsConnection.PowerElectronicsUnit")
+                storage_data["gen_model"] = get(pec_data, "BatteryUnit.BatteryResponse", 1)
             end
-            if haskey(storage_data, "PowerElectronicsConnection.Inverter")
-                storage_data["inverter"] = storage_data["PowerElectronicsConnection.Inverter"] # GRID_FOLLOWING, GRID_FORMING
+            if haskey(gen_data, "PowerElectronicsConnection.PowerElectronicsOperatingMode")
+                storage_data["inverter"] = get(pec_data["PowerElectronicsConnection.PowerElectronicsOperatingMode"], "PowerElectronicsOperatingMode.mode", "OperatingModeKind.gridFollowing") ==  "OperatingModeKind.gridForming" ? GRID_FORMING : GRID_FOLLOWING
             end
-            if haskey(storage_data, "PowerElectronicsConnection.PhaseUnbalanceLimit")
-                storage_data["phase_unbalance_ub"] = storage_data["PowerElectronicsConnection.PhaseUnbalanceLimit"]
+            if haskey(pec_data, "PowerElectronicsConnection.PhaseUnbalanceLimit")
+                storage_data["phase_unbalance_ub"] = pec_data["PowerElectronicsConnection.PhaseUnbalanceLimit"]
             end
         end
     end
@@ -91,12 +91,12 @@ function ravens2math_add_switch_passthrough_default!(data_math::Dict{String,<:An
         switch_name = switch_data["name"]
         switches = data_ravens["PowerSystemResource"]["Equipment"]["ConductingEquipment"]["Switch"]
         if haskey(switches, switch_name)
-            switch_data = switches[switch_name]
-            if haskey(switch_data, "Switch.VoltageMagnitudeUpperBound")
-                switch_data["vm_delta_pu_ub"] = switch_data["Switch.VoltageMagnitudeUpperBound"]
+            switch_info = switches[switch_name]
+            if haskey(switch_info, "Switch.VoltageMagnitudeUpperBound")
+                switch_data["vm_delta_pu_ub"] = switch_info["Switch.VoltageMagnitudeUpperBound"]
             end
-            if haskey(switch_data, "Switch.VoltageAngleUpperBound")
-                switch_data["va_delta_deg_ub"] = switch_data["Switch.VoltageAngleUpperBound"]
+            if haskey(switch_info, "Switch.VoltageAngleUpperBound")
+                switch_data["va_delta_deg_ub"] = switch_info["Switch.VoltageAngleUpperBound"]
             end
         end
     end
