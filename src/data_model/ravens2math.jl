@@ -50,7 +50,7 @@ function ravens2math_add_generator_passthrough_default!(data_math::Dict{String,<
 	# TODO: where to get from RAVENS-JSON?
 	for (_, gen_data) in get(data_math, "gen", Dict{Any,Dict{String,Any}}())
 		gen_name = gen_data["name"]
-		pecs = data_ravens["PowerSystemResource"]["Equipment"]["ConductingEquipment"]["EnergyConnection"]["RegulatingCondEq"]["PowerElectronicsConnection"]
+		pecs = get(data_ravens["PowerSystemResource"]["Equipment"]["ConductingEquipment"]["EnergyConnection"]["RegulatingCondEq"], "PowerElectronicsConnection", Dict())
 		if haskey(pecs, gen_name)
 			pec_data = pecs[gen_name]
 			if haskey(pec_data, "PowerElectronicsConnection.PowerElectronicsConnectionResponse")
@@ -68,7 +68,7 @@ function ravens2math_add_storage_passthrough_default!(data_math::Dict{String,<:A
     # TODO: where to get from RAVENS-JSON?
     for (_, storage_data) in get(data_math, "storage", Dict{Any,Dict{String,Any}}())
         storage_name = storage_data["name"]
-        pecs = data_ravens["PowerSystemResource"]["Equipment"]["ConductingEquipment"]["EnergyConnection"]["RegulatingCondEq"]["PowerElectronicsConnection"]
+				pecs = get(data_ravens["PowerSystemResource"]["Equipment"]["ConductingEquipment"]["EnergyConnection"]["RegulatingCondEq"], "PowerElectronicsConnection", Dict())
         if haskey(pecs, storage_name)
             pec_data = pecs[storage_name]
             if haskey(pec_data, "PowerElectronicsConnection.PowerElectronicsUnit")
@@ -89,7 +89,7 @@ function ravens2math_add_switch_passthrough_default!(data_math::Dict{String,<:An
     # TODO: where to get from RAVENS-JSON?
     for (name, switch_data) in get(data_math, "switch", Dict{Any,Dict{String,Any}}())
         switch_name = switch_data["name"]
-        switches = data_ravens["PowerSystemResource"]["Equipment"]["ConductingEquipment"]["Switch"]
+        switches = get(data_ravens["PowerSystemResource"]["Equipment"]["ConductingEquipment"],"Switch", Dict())
         if haskey(switches, switch_name)
             switch_info = switches[switch_name]
             if haskey(switch_info, "Switch.VoltageMagnitudeUpperBound")
