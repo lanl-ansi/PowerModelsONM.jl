@@ -74,7 +74,7 @@ function ravens2math_add_storage_passthrough_default!(data_math::Dict{String,<:A
             if haskey(pec_data, "PowerElectronicsConnection.PowerElectronicsUnit")
                 storage_data["gen_model"] = get(pec_data, "BatteryUnit.BatteryResponse", 1)
             end
-            if haskey(gen_data, "PowerElectronicsConnection.PowerElectronicsOperatingMode")
+            if haskey(pec_data, "PowerElectronicsConnection.PowerElectronicsOperatingMode")
                 storage_data["inverter"] = get(pec_data["PowerElectronicsConnection.PowerElectronicsOperatingMode"], "PowerElectronicsOperatingMode.mode", "OperatingModeKind.gridFollowing") == "OperatingModeKind.gridForming" ? GRID_FORMING : GRID_FOLLOWING
             end
             if haskey(pec_data, "PowerElectronicsConnection.PhaseUnbalanceLimit")
