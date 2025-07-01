@@ -12,7 +12,7 @@ end
 "helper function to passthrough keywords from RAVENS to MATHEMATICAL data models"
 function ravens2math_add_root_passthrough_default!(data_math::Dict{String,<:Any}, data_ravens::Dict{String,<:Any})
 
-    data_math["options"] = Dict()
+    data_math["options"] = build_default_settings()["options"]
 
     # Add default switch_close_actions_ub
     data_math["switch_close_actions_ub"] = Inf
@@ -32,16 +32,21 @@ function ravens2math_add_load_passthrough_default!(data_math::Dict{String,<:Any}
 end
 
 function ravens2math_add_bus_passthrough_default!(data_math::Dict{String,<:Any}, data_ravens::Dict{String,<:Any})
-    # TODO: where to get the microgrid_id from RAVENS-JSON?
+    microgrids = filter(x->get(x.second, "Ravens.cimObjectType", "")=="Microgrid", get(get(data_ravens, "Group", Dict()), "ConnectivityNodeContainer", Dict()))
+
+    cn2mgid=Dict()
+    for (i, microgrid) in microgrids
+        for cn in get(microgrid, "ConnectivityNodeContainer.ConnectivityNodes", [])
+            cn2mgid[match(Regex("ConnectivityNode::'(.+)'"), cn).captures[1]] = i
+        end
+    end
+
     for (name, bus_data) in get(data_math, "bus", Dict{Any,Dict{String,Any}}())
         bus_name = bus_data["name"]
         conn_nodes = data_ravens["ConnectivityNode"]
 
-        if haskey(conn_nodes, bus_name)
-            conn_node_data = conn_nodes[bus_name]
-            if haskey(conn_node_data, "ConnectivityNode.microgridId")
-                bus_data["microgrid_id"] = conn_node_data["ConnectivityNode.microgridId"]
-            end
+        if bus_name in keys(cn2mgid)
+            bus_data["microgrid_id"] = cn2mgid[bus_name]
         end
     end
 end
@@ -241,12 +246,12 @@ function create_eng_from_math(math, bus_lookup=missing)
             "status" => Status(gen["gen_status"])
         )
 
-        if startswith(gen["source_id"], "generator") || startswith(gen["source_id"], "rotating_machine")
+        if startswith(gen["source_id"], "generator") || startswith(gen["source_id"], "RotatingMachine")
             data["inverter"] = GRID_FORMING # TODO: assumption
             new["generator"][split(gen["source_id"], "."; limit=2)[end]] = data
-        elseif startswith(gen["source_id"], "solar") || startswith(gen["source_id"], "photovoltaic_unit")
+        elseif startswith(gen["source_id"], "solar") || startswith(gen["source_id"], "PhotoVoltaicUnit")
             new["solar"][split(gen["source_id"], "."; limit=2)[end]] = data
-        elseif startswith(gen["source_id"], "voltage_source") || startswith(gen["source_id"], "energy_source")
+        elseif startswith(gen["source_id"], "voltage_source") || startswith(gen["source_id"], "EnergySource")
             data["inverter"] = GRID_FORMING
             new["voltage_source"][split(gen["source_id"], "."; limit=2)[end]] = data
         end

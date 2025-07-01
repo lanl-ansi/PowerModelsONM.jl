@@ -46,7 +46,7 @@ function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any}
 
     for (g,gen) in ref[:gen]
         push!(ref[:block_gens][ref[:bus_block_map][gen["gen_bus"]]], g)
-        startswith(gen["source_id"], "voltage_source") && push!(ref[:substation_blocks], ref[:bus_block_map][gen["gen_bus"]])
+        occursin("EnergySource", gen["source_id"]) && push!(ref[:substation_blocks], ref[:bus_block_map][gen["gen_bus"]])
         push!(ref[:bus_inverters][gen["gen_bus"]], (:gen, g))
         push!(ref[:block_inverters][ref[:bus_block_map][gen["gen_bus"]]], (:gen, g))
     end
@@ -79,6 +79,16 @@ function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any}
         if Int(switch["dispatchable"]) == Int(PMD.YES) && Int(switch["status"]) == Int(PMD.ENABLED)
             push!(ref[:block_switches][f_block], s)
             push!(ref[:block_switches][t_block], s)
+        end
+    end
+
+    # if there are no microgrid blocks, try to determine some?
+    if isempty(ref[:microgrid_blocks])
+        for b in keys(ref[:blocks])
+            if any(get(ref[t][i], "inverter", GRID_FOLLOWING) == GRID_FORMING for (t,i) in ref[:block_inverters][b])
+                ref[:microgrid_blocks][b] = "$b"
+                ref[:block_weights][b] += 10.0
+            end
         end
     end
 
