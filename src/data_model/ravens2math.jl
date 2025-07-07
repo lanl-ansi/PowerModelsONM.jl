@@ -97,7 +97,7 @@ function ravens2math_add_switch_passthrough_default!(data_math::Dict{String,<:An
         switches = get(data_ravens["PowerSystemResource"]["Equipment"]["ConductingEquipment"], "Switch", Dict())
         if haskey(switches, switch_name)
             switch_info = switches[switch_name]
-            if get(switch_info, "Switch.fixed", false)
+            if get(switch_info, "Switch.locked", false)
                 switch_data["dispatchable"] = Int(PMD.NO)
             end
 
