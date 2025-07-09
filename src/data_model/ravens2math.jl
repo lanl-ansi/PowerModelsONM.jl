@@ -55,7 +55,7 @@ function ravens2math_add_generator_passthrough_default!(data_math::Dict{String,<
     # TODO: where to get from RAVENS-JSON?
     for (_, gen_data) in get(data_math, "gen", Dict{Any,Dict{String,Any}}())
         gen_name = gen_data["name"]
-        pecs = get(data_ravens["PowerSystemResource"]["Equipment"]["ConductingEquipment"]["EnergyConnection"]["RegulatingCondEq"], "PowerElectronicsConnection", Dict())
+        pecs = PMD._recursive_dict_get(data_ravens, ["PowerSystemResource", "Equipment", "ConductingEquipment", "EnergyConnection", "RegulatingCondEq", "PowerElectronicsConnection"], Dict())
         if haskey(pecs, gen_name)
             pec_data = pecs[gen_name]
             if haskey(pec_data, "PowerElectronicsConnection.PowerElectronicsConnectionResponse")
