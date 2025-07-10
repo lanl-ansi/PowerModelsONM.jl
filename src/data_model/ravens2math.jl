@@ -149,7 +149,7 @@ function create_eng_from_math(math, bus_lookup=missing)
     # init settings dict
     new["settings"] = deepcopy(math["settings"])
 
-    for settings_key in ["vbases_buses", "vbases_default", "vbases_network"]
+    for settings_key in ["vbases_default"]
         new["settings"][settings_key] = Dict{String,Float64}()
         for (bus, val) in get(math["settings"], settings_key, Dict())
             for (math_bus, eng_bus) in bus_map
@@ -159,10 +159,6 @@ function create_eng_from_math(math, bus_lookup=missing)
             end
         end
     end
-
-    # TODO: correct vbases_default
-    new["settings"]["vbases_default"] = new["settings"]["vbases_buses"]
-
 
     new["bus"] = Dict{String,Any}()
     for (i, bus) in get(math, "bus", Dict())
