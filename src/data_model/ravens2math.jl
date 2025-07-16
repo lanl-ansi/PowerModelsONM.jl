@@ -216,8 +216,8 @@ function create_eng_from_math(math, bus_lookup=missing)
             "configuration" => load["configuration"],
             "model" => load["model"],
             "dispatchable" => Dispatchable(load["dispatchable"]),
-            "pd_nom" => load["pd"],
-            "qd_nom" => load["qd"],
+            "pd_nom" => load["pd"]*new["settings"]["sbase"],
+            "qd_nom" => load["qd"]*new["settings"]["sbase"],
             "status" => Status(load["status"])
         )
     end
@@ -240,8 +240,8 @@ function create_eng_from_math(math, bus_lookup=missing)
             "bus" => bus_map[bus_id],
             "connections" => gen["connections"],
             "configuration" => gen["configuration"],
-            "pg_ub" => gen["pmax"],
-            "qg_ub" => gen["qmax"],
+            "pg_ub" => gen["pmax"]*new["settings"]["sbase"],
+            "qg_ub" => gen["qmax"]*new["settings"]["sbase"],
             "inverter" => get(gen, "inverter", GRID_FOLLOWING),
             "status" => Status(gen["gen_status"])
         )
@@ -264,8 +264,8 @@ function create_eng_from_math(math, bus_lookup=missing)
             "connections" => strg["connections"],
             "configuration" => strg["configuration"],
             "status" => Status(strg["status"]),
-            "energy" => strg["energy"],
-            "energy_ub" => strg["energy_rating"],
+            "energy" => strg["energy"]*new["settings"]["sbase"],
+            "energy_ub" => strg["energy_rating"]*new["settings"]["sbase"],
             "inverter" => GRID_FORMING # TODO: hack
         )
     end
