@@ -91,6 +91,7 @@ module PowerModelsONM
     include("data_model/checks.jl")
     include("data_model/eng2math.jl")
     include("data_model/ravens2math.jl")
+    include("data_model/utils_ravens.jl")
 
     include("form/acp.jl")
     include("form/acr.jl")
