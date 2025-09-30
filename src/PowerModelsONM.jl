@@ -92,6 +92,7 @@ module PowerModelsONM
     include("data_model/eng2math.jl")
     include("data_model/ravens2math.jl")
     include("data_model/utils_ravens.jl")
+    include("data_model/pmp_ravens.jl")
 
     include("form/acp.jl")
     include("form/acr.jl")
@@ -131,6 +132,7 @@ module PowerModelsONM
     include("cli/arguments.jl")
 
     include("app/main.jl")
+    include("app/main_ravens.jl")
 
     # Export must go last
     include("core/export.jl")
