@@ -1,4 +1,4 @@
-function ravens_run_pmp!(data, data_fault, devices)
+function ravens_run_pmp(data, devices)
     data["m"] = true
     data_math = PMP.transform_data_model_mc_ravens(data)
     gens = deepcopy(data_math["gen"])
@@ -8,9 +8,9 @@ function ravens_run_pmp!(data, data_fault, devices)
             delete!(data_math["gen"], i)
         end
     end
-    model = PMP.instantiate_mc_admittance_model(data_math; loading=true)
-    for (name, fault) in data_fault["Fault"]
-        data_fault["AnalysisResult"][name] = Dict{String,Any}(
+    model = instantiate_mc_admittance_model(data_math; loading=true)
+    for (name, fault) in data["Fault"]
+        data["AnalysisResult"][name] = Dict{String,Any}(
                     "Ravens.cimObjectType" => "FaultStudyResult",
                     "IdentifiedObject.name" => name,
                     "IdentifiedObject.mRID" => fault["IdentifiedObject.mRID"],
@@ -89,9 +89,9 @@ function ravens_run_pmp!(data, data_fault, devices)
         iabc = PMP._A * i012
         d = deepcopy(data)
         d["m"] = false
-        dm = PMP.transform_data_model_mc_ravens(deepcopy(d))
+        dm = transform_data_model_mc_ravens(deepcopy(d))
         dm["storage"]["1"]["set"] = iabc
-        mmm = PMP.instantiate_mc_admittance_model(dm; loading=true)
+        mmm = instantiate_mc_admittance_model(dm; loading=true)
         y = deepcopy(mmm.y)
         for i_indx in 1:length(bus["terminals"])
             for j_indx in 1:length(bus["terminals"])
@@ -146,7 +146,7 @@ function ravens_run_pmp!(data, data_fault, devices)
                             "Ravens.cimObjectType" => "AvVoltage",
                         )
                     )
-                    append!(data_fault["AnalysisResult"][name]["OperationsResult.Voltages"], voltage)
+                    append!(data["AnalysisResult"][name]["OperationsResult.Voltages"], voltage)
                     current[i] = Dict{String,Any}(
                         "Ravens.cimObjectType" => "ArCurrentFlow",
                         "ArCurrent.ConnectivityNode" => "BatteryUnit::'$(devices["Storage"]["name"])'",
@@ -157,7 +157,7 @@ function ravens_run_pmp!(data, data_fault, devices)
                             "Ravens.cimObjectType" => "AvCurrent",
                         )
                     )
-                    append!(data_fault["AnalysisResult"][name]["OperationsResult.CurrentFlows"], current)
+                    append!(data["AnalysisResult"][name]["OperationsResult.CurrentFlows"], current)
                 end
             elseif bus["name"] == "ConnectivityNode.$(devices["Recloser"]["node"])"
                 indx = 0
@@ -206,7 +206,7 @@ function ravens_run_pmp!(data, data_fault, devices)
                             "Ravens.cimObjectType" => "AvVoltage",
                         )
                     )
-                    append!(data_fault["AnalysisResult"][name]["OperationsResult.Voltages"], voltage)
+                    append!(data["AnalysisResult"][name]["OperationsResult.Voltages"], voltage)
                     current[i] = Dict{String,Any}(
                         "Ravens.cimObjectType" => "ArCurrentFlow",
                         "ArCurrent.ConnectivityNode" => "Recloser::'$(devices["Recloser"]["name"])'",
@@ -217,13 +217,10 @@ function ravens_run_pmp!(data, data_fault, devices)
                             "Ravens.cimObjectType" => "AvCurrent",
                         )
                     )
-                    append!(data_fault["AnalysisResult"][name]["OperationsResult.CurrentFlows"], current)
+                    append!(data["AnalysisResult"][name]["OperationsResult.CurrentFlows"], current)
                 end
             end
         end
     end
-    return data_fault
+    return data
 end
-
-
-

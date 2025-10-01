@@ -1,5 +1,5 @@
 # function run_onm_ravens(ravens_file, solver, measured_devices; math_results_file::Dict{String}=Dict(), multinetwork::Bool=true, algorithm::String="rolling-horizon", switches_to_fix, switches_to_open, time_elapsed::Float64=1.0, switch_actions_per_ts::Int64=1)
-function run_onm_ravens(ravens_file, solver; math_results_file::String="", multinetwork::Bool=true, algorithm::String="rolling-horizon", switches_to_fix::Vector=[""], fuses_to_open::Vector=[""], time_elapsed::Float64=1.0, switch_actions_per_ts::Int64=1)
+function run_onm_ravens(ravens_file, solver; measured_devices::Dict{String, Any}=Dict{String, Any}(), math_results_file::String="", multinetwork::Bool=true, algorithm::String="rolling-horizon", switches_to_fix::Vector=[""], fuses_to_open::Vector=[""], time_elapsed::Float64=1.0, switch_actions_per_ts::Int64=1)
 
 	# TODO: temporary
 	if !multinetwork
@@ -7,8 +7,8 @@ function run_onm_ravens(ravens_file, solver; math_results_file::String="", multi
 	end
 
 	# Parse and transform RAVENS file to MATH model
-	pmd_data = parse_file(ravens_file)	# Parses the JSON (RAVENS) file
-	math = transform_data_model_ravens(pmd_data; multinetwork=multinetwork)
+	network_data = parse_file(ravens_file)	# Parses the JSON (RAVENS) file
+	math = transform_data_model_ravens(network_data; multinetwork=multinetwork)
 
 	# initialize result dictinary in MATH
 	result_math = Dict()
@@ -162,33 +162,46 @@ function run_onm_ravens(ravens_file, solver; math_results_file::String="", multi
 	result_transfr = PMD.transform_solution_ravens(load_math["solution"], math; fix_switch_states=true)
 
 	# Merge network RAVENS dictionary with PF Analytics results RAVENS dictionary
-	merged_dictionary = merge(pmd_data, result_transfr)
+	merged_dictionary = merge(network_data, result_transfr)
 
 
 	if multinetwork
-		# ------------ Update Process ----------
+		# ------------ Update Process and Fault Studies ----------
 		nws = length(load_math["solution"]["nw"])
 		nw_upd_sols = Vector{Dict}(undef, nws)  # vector of ravens dictionaries
+		fault_studies_results = Vector{Dict}(undef, nws)  # vector of ravens dictionaries
 		for nw in 1:1:length(nw_upd_sols)
 			nw_upd_sols[nw] = deepcopy(merged_dictionary)
+
+			#  studies
 			update_solution_switch_states_ravens!(nw_upd_sols[nw], nw)
 			update_solution_equipment_statuses_ravens!(nw_upd_sols[nw], nw)
 			update_solution_equipment_powerflows_ravens!(nw_upd_sols[nw], nw)
+
+			# Fault studies
+			if (measured_devices != Dict())
+
+				# Run fault studies
+				fault_results = ravens_run_pmp(nw_upd_sols[nw], measured_devices)
+				fault_studies_results[nw] = deepcopy(fault_results)
+
+				# Add results to main RAVENS-JSON data
+				analysis_merged = merge(nw_upd_sols[nw]["AnalysisResult"], fault_studies_results[nw]["AnalysisResult"])
+				nw_upd_sols[nw]["AnalysisResult"] = analysis_merged
+
+				open("./HCE-ONM-RAVENS-sols-wFaults-nw-$(nw).json","w") do f
+					JSON.print(f, nw_upd_sols[nw], 2)
+				end
+
+			else	# No Fault Studies - Only ONM
+				open("./HCE-ONM-RAVENS-sols-nw-$(nw).json","w") do f
+					JSON.print(f, nw_upd_sols[nw], 2)
+				end
+			end
+
 		end
-
-		# # Fault studies
-		# fault_studies_results = Vector{Dict}(undef, nws)  # vector of ravens dictionaries
-		# for nw in 1:1:length(nw_upd_sols)
-		# 	# fault_studies_results[nw] = deepcopy(nw_upd_sols[nw])
-		# 	fault_results = ravens_run_pmp!(nw_upd_sols[nw], pmd_data["Fault"], measured_devices)
-		# 	fault_studies_results[nw] = deepcopy(fault_results)
-		# end
-
 	else
 		error("Single step not supported yet!")
 	end
-
-
-	@info "FINALIZE THE MAIN FUNCTION!!"
 
 end
