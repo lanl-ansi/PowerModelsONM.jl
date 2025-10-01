@@ -1,5 +1,14 @@
-# function run_onm_ravens(ravens_file, solver, measured_devices; math_results_file::Dict{String}=Dict(), multinetwork::Bool=true, algorithm::String="rolling-horizon", switches_to_fix, switches_to_open, time_elapsed::Float64=1.0, switch_actions_per_ts::Int64=1)
-function run_onm_ravens(ravens_file, solver; measured_devices::Dict{String, Any}=Dict{String, Any}(), math_results_file::String="", multinetwork::Bool=true, algorithm::String="rolling-horizon", switches_to_fix::Vector=[""], fuses_to_open::Vector=[""], time_elapsed::Float64=1.0, switch_actions_per_ts::Int64=1)
+function run_onm_ravens(ravens_file, solver;
+    measured_devices::Dict{String, Any}=Dict{String, Any}(),
+    math_results_file::String="",
+    multinetwork::Bool=true,
+    algorithm::String="rolling-horizon",
+    switches_to_fix::Vector=[""],
+    fuses_to_open::Vector=[""],
+    time_elapsed::Float64=1.0,
+    switch_actions_per_ts::Int64=1,
+    fault_network_file::String=""
+)
 
 	# TODO: temporary
 	if !multinetwork
@@ -132,17 +141,17 @@ function run_onm_ravens(ravens_file, solver; measured_devices::Dict{String, Any}
 			"GRID_FOLLOWING" => GRID_FOLLOWING
 		)
 
-		load_math = JSON.parsefile(math_results_file)
+		result_math = JSON.parsefile(math_results_file)
 
 		# Correct MATH result (convert strings to ONM values)
 		if multinetwork
-			result_math = load_math["solution"]["nw"]
+			result = result_math["solution"]["nw"]
 		else
-			result_math = load_math["solution"]
+			result = result_math["solution"]
 		end
 
 		elements = ["storage", "transformer", "gen", "bus", "switch", "load", "branch"]
-		for (nw, nw_data) in result_math
+		for (nw, nw_data) in result
 			for (elmnt, elmnt_data) in nw_data
 				if (elmnt in elements)
 					for (dvc, dvc_data) in elmnt_data
@@ -159,7 +168,7 @@ function run_onm_ravens(ravens_file, solver; measured_devices::Dict{String, Any}
 	end
 
   	# Transform MATH solution to RAVENS-JSON solution format
-	result_transfr = PMD.transform_solution_ravens(load_math["solution"], math; fix_switch_states=true)
+	result_transfr = PMD.transform_solution_ravens(result_math["solution"], math; fix_switch_states=true)
 
 	# Merge network RAVENS dictionary with PF Analytics results RAVENS dictionary
 	merged_dictionary = merge(network_data, result_transfr)
@@ -167,7 +176,7 @@ function run_onm_ravens(ravens_file, solver; measured_devices::Dict{String, Any}
 
 	if multinetwork
 		# ------------ Update Process and Fault Studies ----------
-		nws = length(load_math["solution"]["nw"])
+		nws = length(result_math["solution"]["nw"])
 		nw_upd_sols = Vector{Dict}(undef, nws)  # vector of ravens dictionaries
 		fault_studies_results = Vector{Dict}(undef, nws)  # vector of ravens dictionaries
 		for nw in 1:1:length(nw_upd_sols)
@@ -181,8 +190,14 @@ function run_onm_ravens(ravens_file, solver; measured_devices::Dict{String, Any}
 			# Fault studies
 			if (measured_devices != Dict())
 
-				# Run fault studies
-				fault_results = ravens_run_pmp(nw_upd_sols[nw], measured_devices)
+				# Run fault studies - TODO: Temporary solution to pass in specific file, since direct ONM output is not working
+                if fault_network_file == ""
+                    fault_results = ravens_run_pmp(nw_upd_sols[nw], measured_devices)
+                else
+                    data_fault = JSON.parsefile(fault_network_file)
+                    fault_results = ravens_run_pmp(data_fault, measured_devices)
+                end
+
 				fault_studies_results[nw] = deepcopy(fault_results)
 
 				# Add results to main RAVENS-JSON data

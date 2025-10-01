@@ -1,4 +1,9 @@
 function ravens_run_pmp(data, devices)
+
+        if !haskey(data, "AnalysisResult")
+            data["AnalysisResult"] = Dict()
+        end
+
     data["m"] = true
     data_math = PMP.transform_data_model_mc_ravens(data)
     gens = deepcopy(data_math["gen"])
@@ -8,7 +13,7 @@ function ravens_run_pmp(data, devices)
             delete!(data_math["gen"], i)
         end
     end
-    model = instantiate_mc_admittance_model(data_math; loading=true)
+    model = PMP.instantiate_mc_admittance_model(data_math; loading=true)
     for (name, fault) in data["Fault"]
         data["AnalysisResult"][name] = Dict{String,Any}(
                     "Ravens.cimObjectType" => "FaultStudyResult",
@@ -89,9 +94,9 @@ function ravens_run_pmp(data, devices)
         iabc = PMP._A * i012
         d = deepcopy(data)
         d["m"] = false
-        dm = transform_data_model_mc_ravens(deepcopy(d))
+        dm = PMP.transform_data_model_mc_ravens(deepcopy(d))
         dm["storage"]["1"]["set"] = iabc
-        mmm = instantiate_mc_admittance_model(dm; loading=true)
+        mmm = PMP.instantiate_mc_admittance_model(dm; loading=true)
         y = deepcopy(mmm.y)
         for i_indx in 1:length(bus["terminals"])
             for j_indx in 1:length(bus["terminals"])
