@@ -1,30 +1,31 @@
 function ravens_run_pmp(data, devices)
 
-        if !haskey(data, "AnalysisResult")
-            data["AnalysisResult"] = Dict()
-        end
-
     data["m"] = true
     data_math = PMP.transform_data_model_mc_ravens(data)
     gens = deepcopy(data_math["gen"])
+
     # to remove solar
     for (i, gen) in gens
         if gen["admit_model"] == PMP.VoltageSource ||  gen["admit_model"] == PMP.PVSystem
             delete!(data_math["gen"], i)
         end
     end
+
     model = PMP.instantiate_mc_admittance_model(data_math; loading=true)
+
+    solution_analysis = Dict("AnalysisResult" => Dict{String, Any}())
+
     for (name, fault) in data["Fault"]
-        data["AnalysisResult"][name] = Dict{String,Any}(
-                    "Ravens.cimObjectType" => "FaultStudyResult",
-                    "IdentifiedObject.name" => name,
-                    "IdentifiedObject.mRID" => fault["IdentifiedObject.mRID"],
-                    "FaultStudyResult.Fault" => "Fault::'$(name)'",
-                    "OperationsResult.Voltages" => [],
-                    "OperationsResult.CurrentFlows" => [],
-                )
-        voltage = Dict{Int,Any}()
-        current = Dict{Int,Any}()
+
+        solution_fault = Dict(
+            "Ravens.cimObjectType" => "FaultStudyResult",
+            "IdentifiedObject.name" => name,
+            "IdentifiedObject.mRID" => fault["IdentifiedObject.mRID"],
+            "FaultStudyResult.Fault" => "Fault::'$(name)'",
+            "OperationsResult.Voltages" => [],
+            "OperationsResult.CurrentFlows" => [],
+        )
+
         phases = PMD._phasecode_map[fault["Fault.phases"]]
         rg = fault["Fault.impedance"]["FaultImpedance.rGround"]
         rll = fault["Fault.impedance"]["FaultImpedance.rLineToLine"]
@@ -141,28 +142,29 @@ function ravens_run_pmp(data, devices)
                     elseif i == 3
                         p_name = "SinglePhaseKind.C"
                     end
-                    voltage[i] = Dict{String,Any}(
+                    voltage = Dict(
                         "Ravens.cimObjectType" => "ArVoltage",
                         "ArVoltage.ConnectivityNode" => "BatteryUnit::'$(devices["Storage"]["name"])'",
                         "AnalysisResultData.phase" => p_name,
-                        "AnalysisResultData.DataValues" => Dict{String,Any}(
+                        "AnalysisResultData.DataValues" => Dict(
                             "AvVoltage.v" => abs(vabc[i]),
                             "AvVoltage.angle" => angle(vabc[i])*180/pi,
                             "Ravens.cimObjectType" => "AvVoltage",
                         )
                     )
-                    append!(data["AnalysisResult"][name]["OperationsResult.Voltages"], voltage)
-                    current[i] = Dict{String,Any}(
+                    push!(solution_fault["OperationsResult.Voltages"], voltage)
+
+                    current = Dict(
                         "Ravens.cimObjectType" => "ArCurrentFlow",
                         "ArCurrent.ConnectivityNode" => "BatteryUnit::'$(devices["Storage"]["name"])'",
                         "AnalysisResultData.phase" => p_name,
-                        "AnalysisResultData.DataValues" => Dict{String,Any}(
+                        "AnalysisResultData.DataValues" => Dict(
                             "AvCurrent.i" => abs(iabc[i]),
                             "AvCurrent.angle" => angle(iabc[i])*180/pi,
                             "Ravens.cimObjectType" => "AvCurrent",
                         )
                     )
-                    append!(data["AnalysisResult"][name]["OperationsResult.CurrentFlows"], current)
+                    push!(solution_fault["OperationsResult.CurrentFlows"], current)
                 end
             elseif bus["name"] == "ConnectivityNode.$(devices["Recloser"]["node"])"
                 indx = 0
@@ -201,31 +203,38 @@ function ravens_run_pmp(data, devices)
                     elseif i == 3
                         p_name = "SinglePhaseKind.C"
                     end
-                    voltage[i] = Dict{String,Any}(
+                    voltage = Dict(
                         "Ravens.cimObjectType" => "ArVoltage",
                         "ArVoltage.ConnectivityNode" => "Recloser::'$(devices["Recloser"]["name"])'",
                         "AnalysisResultData.phase" => p_name,
-                        "AnalysisResultData.DataValues" => Dict{String,Any}(
+                        "AnalysisResultData.DataValues" => Dict(
                             "AvVoltage.v" => abs(_v[i+3]),
                             "AvVoltage.angle" => angle(_v[i+3])*180/pi,
                             "Ravens.cimObjectType" => "AvVoltage",
                         )
                     )
-                    append!(data["AnalysisResult"][name]["OperationsResult.Voltages"], voltage)
-                    current[i] = Dict{String,Any}(
+                    push!(solution_fault["OperationsResult.Voltages"], voltage)
+
+                    current = Dict(
                         "Ravens.cimObjectType" => "ArCurrentFlow",
                         "ArCurrent.ConnectivityNode" => "Recloser::'$(devices["Recloser"]["name"])'",
                         "AnalysisResultData.phase" => p_name,
-                        "AnalysisResultData.DataValues" => Dict{String,Any}(
+                        "AnalysisResultData.DataValues" => Dict(
                             "AvCurrent.i" => abs(iabc[i+3]),
                             "AvCurrent.angle" => angle(iabc[i+3])*180/pi,
                             "Ravens.cimObjectType" => "AvCurrent",
                         )
                     )
-                    append!(data["AnalysisResult"][name]["OperationsResult.CurrentFlows"], current)
+                    push!(solution_fault["OperationsResult.CurrentFlows"], current)
+
                 end
             end
         end
+
+        solution_analysis["AnalysisResult"]["$(name)"] = deepcopy(solution_fault)
+
     end
-    return data
+
+    return solution_analysis
+
 end
