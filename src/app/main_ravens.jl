@@ -1,19 +1,23 @@
-function run_onm_ravens(ravens_file, solver;
-    measured_devices::Dict{String, Any}=Dict{String, Any}(),
-    math_results_file::String="",
+function run_onm_ravens(ravens_file,
+	solver;
+    onm_results_file::String="",
+	fault_network_file::String="",
     multinetwork::Bool=true,
     algorithm::String="rolling-horizon",
-    switches_to_fix::Vector=[""],
-    fuses_to_open::Vector=[""],
     time_elapsed::Float64=1.0,
     switch_actions_per_ts::Int64=1,
-    fault_network_file::String=""
+	measured_devices::Dict{String, Any}=Dict{String, Any}(),	# TODO: this will be included into ravens_file (RAVENS-JSON)
+	optional_fixes::Dict{String, Any}=Dict{String, Any}()
 )
 
 	# TODO: temporary
 	if !multinetwork
 		error("Only multinetwork problems are supported.")
 	end
+
+    # Extract file name to be used for writing the output file
+    filename_with_ext = basename(ravens_file)
+    filename, _ = splitext(filename_with_ext)
 
 	# Parse and transform RAVENS file to MATH model
 	network_data = parse_file(ravens_file)	# Parses the JSON (RAVENS) file
@@ -22,13 +26,13 @@ function run_onm_ravens(ravens_file, solver;
 	# initialize result dictinary in MATH
 	result_math = Dict()
 
-	if math_results_file == ""
+	if onm_results_file == ""
 
 		# Correct state of switches and fuses
 		for (nw, nw_data) in math["nw"]
 			for sw in values(nw_data["switch"])
 				# Forcefully keep Fuses OPEN
-				if (sw["name"] in fuses_to_open)
+				if (sw["name"] in optional_fixes["fuses_to_open"])
 					sw["state"] = Int(OPEN)
 					sw["dispatchable"] = Int(NO)
 				end
@@ -40,7 +44,7 @@ function run_onm_ravens(ravens_file, solver;
 					end
 				else
 					if sw["dispatchable"] == Int(YES)
-						if (sw["name"] in switches_to_fix)
+						if (sw["name"] in optional_fixes["switches_to_fix"])
 							sw["dispatchable"] = Int(NO)
 							sw["state"] = Int(OPEN)
 						else
@@ -54,12 +58,13 @@ function run_onm_ravens(ravens_file, solver;
 
 		for (nw, nw_data) in math["nw"]
 			for (gen, gen_data) in nw_data["gen"]
-				if (gen_data["name"] == "_virtual_gen.energy_source.source")
-					@info "Slack Bus Gen. #: $(gen) status changed to 0."
+                if occursin("_virtual_gen.energy_source", gen_data["name"])
+					@info "Slack Bus Gen. (Substation) #: $(gen) status changed to 0 (DISABLED)."
 					gen_data["gen_status"] = Int(DISABLED)
 				end
 			end
 		end
+
 
 		math["time_elapsed"] = time_elapsed
 		for (nw, nw_data) in math["nw"]
@@ -141,7 +146,7 @@ function run_onm_ravens(ravens_file, solver;
 			"GRID_FOLLOWING" => GRID_FOLLOWING
 		)
 
-		result_math = JSON.parsefile(math_results_file)
+		result_math = JSON.parsefile(onm_results_file)
 
 		# Correct MATH result (convert strings to ONM values)
 		if multinetwork
@@ -167,7 +172,7 @@ function run_onm_ravens(ravens_file, solver;
 
 	end
 
-  	# Transform MATH solution to RAVENS-JSON solution format
+  # Transform MATH solution to RAVENS-JSON solution format
 	result_transfr = PMD.transform_solution_ravens(result_math["solution"], math; fix_switch_states=true)
 
 	# Merge network RAVENS dictionary with PF Analytics results RAVENS dictionary
@@ -204,12 +209,12 @@ function run_onm_ravens(ravens_file, solver;
 				analysis_merged = merge(nw_upd_sols[nw]["AnalysisResult"], fault_studies_results[nw]["AnalysisResult"])
 				nw_upd_sols[nw]["AnalysisResult"] = analysis_merged
 
-				open("./HCE-ONM-RAVENS-sols-wFaults-nw-$(nw).json","w") do f
+				open("./$(filename)-wONM_wFaults-nw-$(nw).json","w") do f
 					JSON.print(f, nw_upd_sols[nw], 2)
 				end
 
 			else	# No Fault Studies - Only ONM
-				open("./HCE-ONM-RAVENS-sols-nw-$(nw).json","w") do f
+				open("./$(filename)-wONM-sols-nw-$(nw).json","w") do f
 					JSON.print(f, nw_upd_sols[nw], 2)
 				end
 			end
