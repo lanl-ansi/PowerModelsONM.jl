@@ -238,3 +238,185 @@ function ravens_run_pmp(data, devices)
     return solution_analysis
 
 end
+
+
+
+
+########## Temporary Functions to 1) deliniate/define an MG section from entire network, and 2) cut/prune the network to contain only that MG section. ########
+
+function define_microgrid_section(network_data, switch_limits)
+
+    # Open switches at the MG limit
+    for s in switch_limits
+        if haskey(network_data["PowerSystemResource"]["Equipment"]["ConductingEquipment"]["Switch"][s], "Switch.SwitchPhase")
+            network_data["PowerSystemResource"]["Equipment"]["ConductingEquipment"]["Switch"][s]["Switch.SwitchPhase"][1]["SwitchPhase.closed"] = false
+        else
+            network_data["PowerSystemResource"]["Equipment"]["ConductingEquipment"]["Switch"][s]["Switch.open"] = true
+        end
+        network_data["PowerSystemResource"]["Equipment"]["ConductingEquipment"]["Switch"][s]["Switch.locked"] = true
+    end
+
+    # Transform to MATH model
+    math = transform_data_model_ravens(network_data)
+
+    # Make all switches/fuses/etc. non-dispatchable
+    for sw in values(math["switch"])
+        sw["dispatchable"] = Int(NO)
+    end
+
+    # Instantiate ONM model to identify MG blocks
+    pm = instantiate_onm_model(math, NFAUPowerModel, build_block_mld);
+
+    # Create and fill the dictionary that contains the MG groups
+    microgrid_groups = Dict{String,Any}()
+
+    for (b, bid) in pm.ref[:it][:pmd][:nw][0][:microgrid_blocks]
+        microgrid_groups["Microgrid.$bid"] = Dict{String,Any}(
+            "Ravens.cimObjectType" => "Microgrid",
+            "IdentifiedObject.name" => "Microgrid.$bid",
+            "IdentifiedObject.mRID" => "#_$(uppercase(string(UUIDs.uuid4())))",
+            "ConnectivityNodeContainer.ConnectivityNodes" => ["ConnectivityNode::'$(pm.ref[:it][:pmd][:nw][0][:bus][bus]["name"])'" for bus in pm.ref[:it][:pmd][:nw][0][:blocks][b] if !startswith(pm.ref[:it][:pmd][:nw][0][:bus][bus]["name"], "_virtual")]
+
+        )
+    end
+
+    # Merge with Group
+    if !haskey(network_data, "Group")
+        network_data["Group"] = Dict()
+        network_data["Group"]["ConnectivityNodeContainer"] = Dict()
+        push!(network_data["Group"]["ConnectivityNodeContainer"], microgrid_groups)
+    else
+        merge!(network_data["Group"]["ConnectivityNodeContainer"], microgrid_groups)
+    end
+
+    return network_data["Group"]
+
+end
+
+
+
+function prune_network!(network_data)
+
+    conn_nodes_refs = network_data["Group"]["ConnectivityNodeContainer"]["Microgrid.1"]["ConnectivityNodeContainer.ConnectivityNodes"]
+
+    if !haskey(network_data["Group"]["ConnectivityNodeContainer"]["Microgrid.1"], "EquipmentContainer.Equipments")
+        network_data["Group"]["ConnectivityNodeContainer"]["Microgrid.1"]["EquipmentContainer.Equipments"] = []
+    end
+
+    equipments_refs = network_data["Group"]["ConnectivityNodeContainer"]["Microgrid.1"]["EquipmentContainer.Equipments"]
+
+    conn_nodes = String[]
+    for cn in conn_nodes_refs
+        push!(conn_nodes, _extract_name(cn))
+    end
+
+
+    #---- Set of Equipment to Prune -----
+    # 1) EnergyConnections
+    energy_connections = network_data["PowerSystemResource"]["Equipment"]["ConductingEquipment"]["EnergyConnection"]
+    energyconn_type = ["EnergySource", "EnergyConsumer"]
+    for ec in energyconn_type
+        newdict = Dict{String, Dict{String, Any}}()
+        for (name_obj, ravens_obj) in get(energy_connections, ec, Dict{Any,Dict{String,Any}}())
+            conn_node_ref = ravens_obj["ConductingEquipment.Terminals"][1]["Terminal.ConnectivityNode"]
+            conn_node = _extract_name(conn_node_ref)
+            if conn_node in conn_nodes
+                name_to_add = "$(ec)::'$(name_obj)'"
+                push!(equipments_refs, name_to_add)
+                newdict["$(name_obj)"] = ravens_obj
+            end
+        end
+        # Replace with new dictionary
+        energy_connections[ec] = newdict
+    end
+
+
+    # RegulatingCondEquipment
+    regulating_cond = network_data["PowerSystemResource"]["Equipment"]["ConductingEquipment"]["EnergyConnection"]["RegulatingCondEq"]
+    # regcondeq_type = ["PowerElectronicsConnection", "RotatingMachine"]
+    regcondeq_type = ["PowerElectronicsConnection"]
+    for rc in regcondeq_type
+        newdict = Dict{String, Dict{String, Any}}()
+        for (name_obj, ravens_obj) in get(regulating_cond, rc, Dict{Any,Dict{String,Any}}())
+            conn_node_ref = ravens_obj["ConductingEquipment.Terminals"][1]["Terminal.ConnectivityNode"]
+            conn_node = _extract_name(conn_node_ref)
+            if conn_node in conn_nodes
+                if (rc == "PowerElectronicsConnection")
+                    pec_type = ravens_obj["PowerElectronicsConnection.PowerElectronicsUnit"]["Ravens.cimObjectType"]
+                    if (pec_type == "BatteryUnit")
+                        name_to_add = "BatteryUnit::'$(name_obj)'"
+                    elseif (pec_type == "PhotoVoltaicUnit")
+                        name_to_add = "PhotoVoltaicUnit::'$(name_obj)'"
+                    else
+                        name_to_add = "NONE::'$(name_obj)'"
+                    end
+                else
+                    name_to_add = "$(rc)::'$(name_obj)'"
+                end
+                push!(equipments_refs, name_to_add)
+                newdict["$(name_obj)"] = ravens_obj
+
+            end
+        end
+        # Replace with new dictionary
+        regulating_cond[rc] = newdict
+    end
+
+
+    # 2) Conductor
+    conductors = network_data["PowerSystemResource"]["Equipment"]["ConductingEquipment"]["Conductor"]
+    conductor_type = ["ACLineSegment"]
+    for cond in conductor_type
+        newdict = Dict{String, Dict{String, Any}}()
+        for (name_obj, ravens_obj) in get(conductors, cond, Dict{Any,Dict{String,Any}}())
+            conn_node_ref_fr = ravens_obj["ConductingEquipment.Terminals"][1]["Terminal.ConnectivityNode"]
+            conn_node_ref_to = ravens_obj["ConductingEquipment.Terminals"][2]["Terminal.ConnectivityNode"]
+            conn_node_fr = _extract_name(conn_node_ref_fr)
+            conn_node_to = _extract_name(conn_node_ref_to)
+            if ((conn_node_fr in conn_nodes) && (conn_node_to in conn_nodes))
+                name_to_add = "$(cond)::'$(name_obj)'"
+                push!(equipments_refs, name_to_add)
+                newdict["$(name_obj)"] = ravens_obj
+            end
+        end
+        # Replace with new dictionary
+        conductors[cond] = newdict
+    end
+
+    # 3) PowerTransformers and Switches
+    cond_equip = network_data["PowerSystemResource"]["Equipment"]["ConductingEquipment"]
+    equipment_type = ["PowerTransformer", "Switch"]
+    for eq in equipment_type
+        newdict = Dict{String, Dict{String, Any}}()
+        for (name_obj, ravens_obj) in get(cond_equip, eq, Dict{Any,Dict{String,Any}}())
+            conn_node_ref_fr = ravens_obj["ConductingEquipment.Terminals"][1]["Terminal.ConnectivityNode"]
+            conn_node_ref_to = ravens_obj["ConductingEquipment.Terminals"][2]["Terminal.ConnectivityNode"]
+            conn_node_fr = _extract_name(conn_node_ref_fr)
+            conn_node_to = _extract_name(conn_node_ref_to)
+            if ((conn_node_fr in conn_nodes) && (conn_node_to in conn_nodes))
+                name_to_add = "$(eq)::'$(name_obj)'"
+                push!(equipments_refs, name_to_add)
+                newdict["$(name_obj)"] = ravens_obj
+            end
+        end
+        # Replace with new dictionary
+        cond_equip[eq] = newdict
+    end
+
+    # ConnectivityNodes
+    new_node_dict = Dict{String, Dict{String, Any}}()
+        for (name_obj, ravens_obj) in get(network_data, "ConnectivityNode", Dict{Any,Dict{String,Any}}())
+            if (name_obj in conn_nodes)
+                new_node_dict["$(name_obj)"] = ravens_obj
+            end
+        end
+    # Replace with new dictionary
+    network_data["ConnectivityNode"] = new_node_dict
+
+end
+
+
+function _extract_name(element)
+    name = replace(split(element, "::")[2], "'" => "")
+    return name
+end
