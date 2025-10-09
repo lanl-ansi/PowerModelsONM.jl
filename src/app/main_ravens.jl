@@ -190,7 +190,7 @@ function run_onm_ravens(ravens_file,
 			nw_upd_sols[nw] = deepcopy(merged_dictionary)
 
 			#  studies
-            @info "nw: $(nw)"
+            @info "Running Protection Studies @ Timestep nw: $(nw)"
 			update_solution_switch_states_ravens!(nw_upd_sols[nw], nw)
 			update_solution_equipment_statuses_ravens!(nw_upd_sols[nw], nw)
 			update_solution_equipment_powerflows_ravens!(nw_upd_sols[nw], nw)
@@ -200,15 +200,7 @@ function run_onm_ravens(ravens_file,
 
 				# Run fault studies - TODO: Temporary solution to pass in specific file, since direct ONM output is not working
                 if fault_network_file == ""
-
-                    # if prune_mg_section
-                    #     group_data = define_microgrid_section(network_data, optional_fixes["switches_MG_limit"])    # run function to add MG group
-                    #     nw_upd_sols[nw]["Group"] = deepcopy(group_data)     # Update the group data in network
-                    #     prune_network!(nw_upd_sols[nw])     # prune network data based on MG group
-                    # end
-
                     fault_results = ravens_run_pmp(nw_upd_sols[nw], measured_devices)
-
                 else
                     data_fault = JSON.parsefile(fault_network_file)
                     fault_results = ravens_run_pmp(data_fault, measured_devices)
