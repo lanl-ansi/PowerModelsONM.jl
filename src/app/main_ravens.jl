@@ -173,7 +173,7 @@ function run_onm_ravens(ravens_file,
 
 	end
 
-  # Transform MATH solution to RAVENS-JSON solution format
+    # Transform MATH solution to RAVENS-JSON solution format
 	result_transfr = PMD.transform_solution_ravens(result_math["solution"], math; fix_switch_states=true)
 
 	# Merge network RAVENS dictionary with PF Analytics results RAVENS dictionary
@@ -185,10 +185,12 @@ function run_onm_ravens(ravens_file,
 		nws = length(result_math["solution"]["nw"])
 		nw_upd_sols = Vector{Dict}(undef, nws)  # vector of ravens dictionaries
 		fault_studies_results = Vector{Dict}(undef, nws)  # vector of ravens dictionaries
-		for nw in 1:1:length(nw_upd_sols)
+
+        for nw in 1:1:length(nw_upd_sols)
 			nw_upd_sols[nw] = deepcopy(merged_dictionary)
 
 			#  studies
+            @info "nw: $(nw)"
 			update_solution_switch_states_ravens!(nw_upd_sols[nw], nw)
 			update_solution_equipment_statuses_ravens!(nw_upd_sols[nw], nw)
 			update_solution_equipment_powerflows_ravens!(nw_upd_sols[nw], nw)
@@ -199,11 +201,11 @@ function run_onm_ravens(ravens_file,
 				# Run fault studies - TODO: Temporary solution to pass in specific file, since direct ONM output is not working
                 if fault_network_file == ""
 
-                    if prune_mg_section
-                        group_data = define_microgrid_section(network_data, optional_fixes["switches_MG_limit"])    # run function to add MG group
-                        nw_upd_sols[nw]["Group"] = deepcopy(group_data)     # Update the group data in network
-                        prune_network!(nw_upd_sols[nw])     # prune network data based on MG group
-                    end
+                    # if prune_mg_section
+                    #     group_data = define_microgrid_section(network_data, optional_fixes["switches_MG_limit"])    # run function to add MG group
+                    #     nw_upd_sols[nw]["Group"] = deepcopy(group_data)     # Update the group data in network
+                    #     prune_network!(nw_upd_sols[nw])     # prune network data based on MG group
+                    # end
 
                     fault_results = ravens_run_pmp(nw_upd_sols[nw], measured_devices)
 
