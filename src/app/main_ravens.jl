@@ -7,8 +7,7 @@ function run_onm_ravens(ravens_file,
     time_elapsed::Float64=1.0,
     switch_actions_per_ts::Int64=1,
 	measured_devices::Dict{String, Any}=Dict{String, Any}(),	# TODO: this will be included into ravens_file (RAVENS-JSON)
-	optional_fixes::Dict{String, Any}=Dict{String, Any}(),
-    prune_mg_section::Bool=false     # TODO: this is done to try to make HCE work correctly with PMP code.
+	optional_fixes::Dict{String, Any}=Dict{String, Any}()
 )
 
 	# TODO: temporary
@@ -28,6 +27,8 @@ function run_onm_ravens(ravens_file,
 	result_math = Dict()
 
 	if onm_results_file == ""
+
+		@info "Running ONM Restoration Process"
 
 		# Correct state of switches and fuses
 		for (nw, nw_data) in math["nw"]
@@ -57,6 +58,7 @@ function run_onm_ravens(ravens_file,
 			end
 		end
 
+		# Creates the Outage by DISABLING the SLACK GEN
 		for (nw, nw_data) in math["nw"]
 			for (gen, gen_data) in nw_data["gen"]
                 if occursin("_virtual_gen.energy_source", gen_data["name"])
@@ -66,20 +68,24 @@ function run_onm_ravens(ravens_file,
 			end
 		end
 
-
+		# Assings correct time_elapsed (based on hours, e.g., 0.25 = 15 mins)
+		@warn "Time elapsed = $(time_elapsed) hours. Correction might be needed!"
 		math["time_elapsed"] = time_elapsed
 		for (nw, nw_data) in math["nw"]
 			nw_data["time_elapsed"] = time_elapsed
 		end
 
+		# Apply standard voltage bounds
 		PMD.apply_voltage_bounds_math!(math; vm_lb=0.9, vm_ub=1.1)
 
+		# Assign by default 0 cost to generation
 		for (nw, nw_data) in math["nw"]
 			for (gen, gen_data) in nw_data["gen"]
 				gen_data["cost"] = [0.0, 0.0]
 			end
 		end
 
+		# Create ONM compatible dictionary (TODO: will change and be added to RAVENS-JSON)
 		for (nw, nw_data) in math["nw"]
 			nw_data["switch_close_actions_ub"] = switch_actions_per_ts
 			nw_data["options"] = Dict{String,Any}(
@@ -121,6 +127,7 @@ function run_onm_ravens(ravens_file,
 				result_math["solution"]["nw"]["$n"] = deepcopy(results["$n"]["solution"])
 			end
 
+		# Solve ONM full lookahead
 		elseif algorithm == "full-lookahead"
 			# Full Lookahead Algorithm
 			for (nw, nw_data) in math["nw"]
@@ -135,7 +142,10 @@ function run_onm_ravens(ravens_file,
 			error("Algorithm not supported for  Use a supported algorithm: rolling-horizon or full-lookahead")
 		end
 
+	# Pass in ONM MATH result
 	else
+
+		@info "Parsing ONM Restoration Process Result from File: $(onm_results_file)"
 
 		_vals_correct_map = ["DISABLED", "ENABLED", "OPEN", "CLOSED", "GRID_FORMING", "GRID_FOLLOWING"]
 		_correction_map = Dict(
@@ -179,9 +189,9 @@ function run_onm_ravens(ravens_file,
 	# Merge network RAVENS dictionary with PF Analytics results RAVENS dictionary
 	merged_dictionary = merge(network_data, result_transfr)
 
-
+	# ------------ Update Process and Fault Studies ----------
 	if multinetwork
-		# ------------ Update Process and Fault Studies ----------
+
 		nws = length(result_math["solution"]["nw"])
 		nw_upd_sols = Vector{Dict}(undef, nws)  # vector of ravens dictionaries
 		fault_studies_results = Vector{Dict}(undef, nws)  # vector of ravens dictionaries
@@ -189,8 +199,8 @@ function run_onm_ravens(ravens_file,
         for nw in 1:1:length(nw_upd_sols)
 			nw_upd_sols[nw] = deepcopy(merged_dictionary)
 
-			#  studies
-            @info "Running Protection Studies @ Timestep nw: $(nw)"
+
+           # Update solution states
 			update_solution_switch_states_ravens!(nw_upd_sols[nw], nw)
 			update_solution_equipment_statuses_ravens!(nw_upd_sols[nw], nw)
 			update_solution_equipment_powerflows_ravens!(nw_upd_sols[nw], nw)
@@ -198,7 +208,16 @@ function run_onm_ravens(ravens_file,
 			# Fault studies
 			if (measured_devices != Dict())
 
-				# Run fault studies - TODO: Temporary solution to pass in specific file, since direct ONM output is not working
+				# TODO: temporary fix - changing secondary winding transformer to DELTA
+				if (optional_fixes != Dict())
+					for tf_id in 1:1:length(optional_fixes["transformers_to_delta"])
+						@info "Correcting trasnformer $(optional_fixes["transformers_to_delta"][tf_id]) from Y to D."
+						nw_upd_sols[nw]["PowerSystemResource"]["Equipment"]["ConductingEquipment"]["PowerTransformer"][optional_fixes["transformers_to_delta"][tf_id]]["PowerTransformer.PowerTransformerEnd"][2]["PowerTransformerEnd.connectionKind"] => "WindingConnection.D"
+					end
+				end
+
+				@info "Running Protection Studies @ Timestep nw: $(nw)"
+				# Run fault studies - TODO: Temporary solution to pass in specific file
                 if fault_network_file == ""
                     fault_results = ravens_run_pmp(nw_upd_sols[nw], measured_devices)
                 else
@@ -217,7 +236,7 @@ function run_onm_ravens(ravens_file,
 				end
 
 			else	# No Fault Studies - Only ONM
-				open("./$(filename)-wONM-sols-nw-$(nw).json","w") do f
+				open("./$(filename)-wONM-nw-$(nw).json","w") do f
 					JSON.print(f, nw_upd_sols[nw], 2)
 				end
 			end
