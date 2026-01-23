@@ -8,7 +8,7 @@ function run_onm_ravens(ravens_file,
     switch_actions_per_ts::Int64=1,
 	measured_devices::Dict{String, Any}=Dict{String, Any}(),	# TODO: this will be included into ravens_file (RAVENS-JSON)
 	optional_fixes::Dict{String, Any}=Dict{String, Any}(),
-    prune_mg_section::Bool=false     # TODO: this is done to try to make HCE work correctly with PMP code.
+    prune_mg_section::Bool=false
 )
 
 	# TODO: temporary
@@ -33,7 +33,7 @@ function run_onm_ravens(ravens_file,
 		for (nw, nw_data) in math["nw"]
 			for sw in values(nw_data["switch"])
 				# Forcefully keep Fuses OPEN
-				if (sw["name"] in optional_fixes["fuses_to_open"])
+				if (sw["name"] in get(optional_fixes, "fuses_to_open", []))
 					sw["state"] = Int(OPEN)
 					sw["dispatchable"] = Int(NO)
 				end
@@ -45,7 +45,7 @@ function run_onm_ravens(ravens_file,
 					end
 				else
 					if sw["dispatchable"] == Int(YES)
-						if (sw["name"] in optional_fixes["switches_to_fix"])
+						if (sw["name"] in get(optional_fixes, "switches_to_fix", []))
 							sw["dispatchable"] = Int(NO)
 							sw["state"] = Int(OPEN)
 						else
@@ -200,7 +200,7 @@ function run_onm_ravens(ravens_file,
                 if fault_network_file == ""
 
                     if prune_mg_section
-                        group_data = define_microgrid_section(network_data, optional_fixes["switches_MG_limit"])    # run function to add MG group
+                        group_data = define_microgrid_section(network_data, get(optional_fixes, "switches_MG_limit", []))    # run function to add MG group
                         nw_upd_sols[nw]["Group"] = deepcopy(group_data)     # Update the group data in network
                         prune_network!(nw_upd_sols[nw])     # prune network data based on MG group
                     end
