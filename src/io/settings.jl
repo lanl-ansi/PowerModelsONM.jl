@@ -347,6 +347,14 @@ function _set_property!(data::Dict{String,<:Any}, path::Tuple{Vararg{AbstractStr
     end
 end
 
+function _set_property!(
+    data::PMD.EngineeringModel{PMD.NetworkModel},
+    path::Tuple{Vararg{AbstractString}},
+    value::Any,
+)
+    _set_property!(data.data, path, value)
+end
+
 
 """
     set_options!(settings::Dict{String,<:Any}, options::Dict{Tuple{Vararg{String}},<:Any})
@@ -390,39 +398,91 @@ function set_settings!(args::Dict{String,<:Any}, options::Dict{<:Tuple{Vararg{Ab
 end
 
 
-"""
-    get_option(network::Dict{String,<:Any}, path::Tuple{Vararg{String}}, default::Any=missing)::Any
 
-Helper function to get a property at an arbitrary nested path in a network dictionary, returning the
-default value if path does not exist.
 """
-function get_option(network::Dict{String,<:Any}, path::Tuple{Vararg{AbstractString}}, default::Any=missing)::Any
+    get_option(
+        network::Dict{String,<:Any},
+        path::Tuple{Vararg{AbstractString}},
+        default::Any=missing
+    )::Any
+
+Helper function to get a property at an arbitrary nested path in a network dictionary,
+returning the default value if path does not exist.
+"""
+function get_option(
+    network::Dict{String,<:Any},
+    path::Tuple{Vararg{AbstractString}},
+    default::Any=missing,
+)::Any
     if length(path) > 1
-        return get_option(get(network, path[1], Dict{String,Any}()), path[2:end], default)
+        return get_option(
+            get(network, path[1], Dict{String,Any}()),
+            path[2:end],
+            default,
+        )
     else
         return get(network, path[1], default)
     end
-
 end
 
 
 """
-    get_setting(args::Dict{String,Any}, path::Tuple{Vararg{String}}, default::Any=missing)::Any
+    get_option(
+        network::PMD.EngineeringModel{PMD.NetworkModel},
+        path::Tuple{Vararg{AbstractString}},
+        default::Any=missing
+    )::Any
 
-Helper function to get a property in settings at an arbitrary nested path in an `args` dictionary, returning the
-default value if path does not exist.
+EngineeringModel variant of `get_option`.
 """
-function get_setting(args::Dict{String,Any}, path::Tuple{Vararg{AbstractString}}, default::Any=missing)::Any
+function get_option(
+    network::PMD.EngineeringModel{PMD.NetworkModel},
+    path::Tuple{Vararg{AbstractString}},
+    default::Any=missing,
+)::Any
+    return get_option(network.data, path, default)
+end
+
+
+"""
+    get_setting(
+        args::Dict{String,Any},
+        path::Tuple{Vararg{AbstractString}},
+        default::Any=missing
+    )::Any
+
+Helper function to get a property in settings at an arbitrary nested path in an
+`args` dictionary, returning the default value if path does not exist.
+"""
+function get_setting(
+    args::Dict{String,Any},
+    path::Tuple{Vararg{AbstractString}},
+    default::Any=missing,
+)::Any
     return get_option(args, ("settings", path...), default)
 end
 
 
 """
-    get_option(settings_file::String, path::Tuple{Vararg{String}}, default::Any=missing)::Any
+    get_option(
+        settings_file::String,
+        path::Tuple{Vararg{AbstractString}},
+        default::Any=missing
+    )::Any
 
 Helper function for variant where `settings_file` has not been parsed yet.
 """
-get_option(settings_file::String, path::Tuple{Vararg{AbstractString}}, default::Any=missing)::Any = get_option(path[1] == "settings" ? Dict{String,Any}("settings"=>parse_settings(settings_file)) : parse_settings(settings_file), path, default)
+get_option(
+    settings_file::String,
+    path::Tuple{Vararg{AbstractString}},
+    default::Any=missing,
+)::Any = get_option(
+    path[1] == "settings" ?
+        Dict{String,Any}("settings" => parse_settings(settings_file)) :
+        parse_settings(settings_file),
+    path,
+    default,
+)
 
 
 """
@@ -723,6 +783,199 @@ function build_settings(
 
     return settings
 end
+
+function build_settings(
+    data_eng::PMD.EngineeringModel{PMD.NetworkModel};
+    max_switch_actions::Union{Missing,Int,Vector{Int}}=missing,
+    vm_lb_pu::Union{Missing,Real}=missing,
+    vm_ub_pu::Union{Missing,Real}=missing,
+    vad_deg::Union{Missing,Real}=missing,
+    line_limit_mult::Real=1.0,
+    sbase_default::Union{Missing,Real}=missing,
+    time_elapsed::Union{Missing,Real,Vector{Real}}=missing,
+    autogen_microgrid_ids::Bool=true,
+    custom_settings::Dict{String,<:Any}=Dict{String,Any}(),
+    mip_solver_gap::Union{Real,Missing}=missing,
+    nlp_solver_tol::Union{Real,Missing}=missing,
+    mip_solver_tol::Union{Real,Missing}=missing,
+    clpu_factor::Union{Missing,Real}=missing,
+    disable_switch_penalty::Union{Missing,Bool}=missing,
+    apply_switch_scores::Union{Missing,Bool}=missing,
+    disable_radial_constraint::Union{Missing,Bool}=missing,
+    disable_isolation_constraint::Union{Missing,Bool}=missing,
+    disable_inverter_constraint::Union{Missing,Bool}=missing,
+    storage_phase_unbalance_factor::Union{Missing,Real}=missing,
+    disable_presolver::Union{Missing,Bool}=missing,
+    correct::Bool=true,
+    )::Dict{String,Any}
+
+    eng = data_eng.data
+    n_steps = !haskey(eng, "time_series") ? 1 : length(first(eng["time_series"]).second["values"])
+
+    settings = Dict{String,Any}(
+        "settings" => Dict{String,Any}("sbase_default"=>ismissing(sbase_default) ? eng["settings"]["sbase_default"] : sbase_default),
+        "bus" => Dict{String,Any}(),
+        "line" => Dict{String,Any}(),
+        "switch" => Dict{String,Any}(),
+        "transformer" => Dict{String,Any}(),
+        "storage" => Dict{String,Any}(),
+        "generator" => Dict{String,Any}(),
+        "solar" => Dict{String,Any}(),
+        "load" => Dict{String,Any}(),
+        "shunt" => Dict{String,Any}(),
+    )
+
+    if !ismissing(mip_solver_gap)
+        settings["mip_solver_gap"] = mip_solver_gap
+    end
+    if !ismissing(nlp_solver_tol)
+        settings["nlp_solver_tol"] = nlp_solver_tol
+    end
+    if !ismissing(mip_solver_tol)
+        settings["mip_solver_tol"] = mip_solver_tol
+    end
+
+    settings = recursive_merge(build_default_settings(), settings)
+
+    if !ismissing(time_elapsed)
+        if !isa(time_elapsed, Vector)
+            time_elapsed = fill(time_elapsed, n_steps)
+        end
+        settings["time_elapsed"] = time_elapsed
+    end
+
+    if !ismissing(max_switch_actions)
+        if !isa(max_switch_actions, Vector)
+            max_switch_actions = fill(max_switch_actions, n_steps)
+        end
+        settings["max_switch_actions"] = max_switch_actions
+    end
+
+    if !ismissing(disable_switch_penalty)
+        settings["disable_switch_penalty"] = disable_switch_penalty
+    end
+    if !ismissing(apply_switch_scores)
+        settings["apply_switch_scores"] = apply_switch_scores
+    end
+    if !ismissing(disable_isolation_constraint)
+        settings["disable_isolation_constraint"] = disable_isolation_constraint
+    end
+    if !ismissing(disable_radial_constraint)
+        settings["disable_radial_constraint"] = disable_radial_constraint
+    end
+    if !ismissing(disable_inverter_constraint)
+        settings["disable_inverter_constraint"] = disable_inverter_constraint
+    end
+    if !ismissing(disable_presolver)
+        settings["disable_presolver"] = disable_presolver
+    end
+
+    # Generate bus microgrid_ids
+    if autogen_microgrid_ids
+        # merge in switch default settings
+        for (id, switch) in settings["switch"]
+            merge!(eng["switch"][id], switch)
+        end
+
+        # identify load blocks
+        blocks = PMD.identify_load_blocks(eng)
+
+        # build list of blocks with enabled generation
+        gen_blocks = [
+            bl for bl in blocks if (
+                any(g["bus"] in bl && g["status"] == PMD.ENABLED for (_,g) in get(eng, "storage", Dict())) ||
+                any(g["bus"] in bl && g["status"] == PMD.ENABLED for (_,g) in get(eng, "solar", Dict())) ||
+                any(g["bus"] in bl && g["status"] == PMD.ENABLED for (_,g) in get(eng, "generator", Dict()))
+            )
+        ]
+
+        # assign microgrid ids
+        for (i,b) in enumerate(gen_blocks)
+            for bus in b
+                eng["bus"][bus]["microgrid_id"] = "$i"
+            end
+        end
+    end
+
+    # Generate settings for buses
+    PMD.apply_voltage_bounds!(eng; vm_lb=vm_lb_pu, vm_ub=vm_ub_pu, exclude=String[vs["bus"] for (_,vs) in get(eng, "voltage_source", Dict())])
+    for (b, bus) in get(eng, "bus", Dict())
+        if !(b in String[vs["bus"] for (_,vs) in get(eng, "voltage_source", Dict())])
+            settings["bus"][b] = merge(
+                get(settings["bus"], b, Dict{String,Any}()),
+                Dict{String,Any}(
+                    "vm_lb" => get(bus, "vm_lb", fill(0.0, length(bus["terminals"]))), # Voltage magnitude lower bound
+                    "vm_ub" => get(bus, "vm_ub", fill(Inf, length(bus["terminals"]))), # Voltage magnitude upper bound
+                )
+            )
+            if haskey(bus, "microgrid_id")
+                settings["bus"][b] = merge(get(settings["bus"], b, Dict{String,Any}()), Dict{String,Any}("microgrid_id" => bus["microgrid_id"]))
+            end
+        end
+    end
+
+    # Generate settings for loads
+    if !ismissing(clpu_factor)
+        for (l,_) in get(eng, "load", Dict())
+            settings["load"][l] = merge(
+                get(settings["load"], l, Dict{String,Any}()),
+                Dict{String,Any}(
+                    "clpu_factor" => clpu_factor
+                )
+            )
+        end
+    end
+
+    # Generate settings for lines
+    PMD.adjust_line_limits!(eng, line_limit_mult)
+    !ismissing(vad_deg) && PMD.apply_voltage_angle_difference_bounds!(eng, vad_deg)
+    for (l, line) in get(eng, "line", Dict())
+        settings["line"][l] = merge(
+            get(settings["line"], l, Dict{String,Any}()),
+            Dict{String,Any}(
+                "vad_lb" => line["vad_lb"], # voltage angle difference lower bound
+                "vad_ub" => line["vad_ub"], # voltage angle different upper bound
+                "cm_ub" => get(line, "cm_ub", fill(Inf, length(line["f_connections"]))),
+            )
+        )
+    end
+
+    # Generate settings for switches
+    for (s, switch) in get(eng, "switch", Dict())
+        settings["switch"][s] = merge(
+            get(settings["switch"], s, Dict{String,Any}()),
+            Dict{String,Any}(
+                "cm_ub" => get(switch, "cm_ub", fill(Inf, length(switch["f_connections"])))
+            )
+        )
+    end
+
+    # Generate settings for transformers
+    PMD.adjust_transformer_limits!(eng, line_limit_mult)
+    for (t, transformer) in get(eng, "transformer", Dict())
+        settings["transformer"][t] = merge(
+            get(settings["transformer"], t, Dict{String,Any}()),
+            Dict{String,Any}(
+                "sm_ub" => get(transformer, "sm_ub", Inf)
+            )
+        )
+    end
+
+    if !ismissing(storage_phase_unbalance_factor)
+        for (i,strg) in get(eng, "storage", Dict())
+            settings["storage"][i] = Dict{String,Any}(
+                "phase_unbalance_factor" => storage_phase_unbalance_factor
+            )
+        end
+    end
+
+    settings = recursive_merge(settings, custom_settings)
+
+    correct && correct_settings!(settings)
+
+    return settings
+end
+
 
 
 """

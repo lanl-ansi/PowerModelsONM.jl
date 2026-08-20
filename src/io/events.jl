@@ -236,48 +236,100 @@ end
         source_id::String
     )::Union{String,Missing}
 
-Helper function to find a switch id in the network model based on the dss `source_id`
+Helper function to find a switch id in the network model based on the dss `source_id`.
 """
-function _find_switch_id_from_source_id(network::Dict{String,<:Any}, source_id::String)::Union{String,Missing}
+function _find_switch_id_from_source_id(
+    network::Dict{String,<:Any},
+    source_id::String,
+)::Union{String,Missing}
     for (id, switch) in get(network, "switch", Dict())
         if switch["source_id"] == lowercase(source_id)
             return id
         end
     end
+
     @info "events parsing: switch '$(source_id)' not found in network model, skipping"
     return missing
 end
 
 
-"helper function to find which switches need to be opened to isolate a fault on asset given by `source_id`"
-function _find_switch_ids_by_faulted_asset(network::Dict{String,<:Any}, source_id::String)::Vector{String}
-    data = deepcopy(network)
-    data["data_model"] = PMD.ENGINEERING
+"""
+    _find_switch_id_from_source_id(
+        network::PMD.EngineeringModel{PMD.NetworkModel},
+        source_id::String
+    )::Union{String,Missing}
 
-    blocks = Dict{Int,Set}(i => block for (i,block) in enumerate(PMD.calc_connected_components(data; type="load_blocks", check_enabled=true)))
-    bus2block_map = Dict(bus => block_id for (block_id,block) in blocks for bus in block)
+EngineeringModel variant of `_find_switch_id_from_source_id`.
+"""
+function _find_switch_id_from_source_id(
+    network::PMD.EngineeringModel{PMD.NetworkModel},
+    source_id::String,
+)::Union{String,Missing}
+    return _find_switch_id_from_source_id(network.data, source_id)
+end
 
-    source_id_map = Dict{String,Tuple{String,String}}(
-        obj["source_id"] => (obj_type,obj_id) for obj_type in PMD.pmd_eng_asset_types for (obj_id,obj) in get(data,obj_type,Dict()) if haskey(obj,"source_id")
+
+"""
+Helper function to find which switches need to be opened to isolate a fault on asset
+given by `source_id`.
+"""
+function _find_switch_ids_by_faulted_asset(
+    network::PMD.EngineeringModel{PMD.NetworkModel},
+    source_id::String,
+)::Vector{String}
+    data_model = deepcopy(network)
+    data = data_model.data
+
+    blocks = Dict{Int,Set}(
+        i => block
+        for (i, block) in enumerate(
+            PMD.calc_connected_components(
+                data_model;
+                type="load_blocks",
+                check_enabled=true,
+            ),
+        )
     )
 
-    (type,obj_id) = source_id_map[lowercase(source_id)]
+    bus2block_map = Dict(
+        bus => block_id
+        for (block_id, block) in blocks
+        for bus in block
+    )
+
+    source_id_map = Dict{String,Tuple{String,String}}(
+        obj["source_id"] => (obj_type, obj_id)
+        for obj_type in PMD.pmd_eng_asset_types
+        for (obj_id, obj) in get(data, obj_type, Dict())
+        if haskey(obj, "source_id")
+    )
+
+    (type, obj_id) = source_id_map[lowercase(source_id)]
     obj = get(get(data, type, Dict()), obj_id, Dict())
 
     affected_blocks = Set()
+
     if type in PMD._eng_edge_elements
         if type == "transformer" && haskey(obj, "bus")
-            affected_blocks = Set([bus2block_map[bus] for bus in obj["bus"]])
+            affected_blocks = Set(
+                bus2block_map[bus]
+                for bus in obj["bus"]
+            )
         elseif haskey(obj, "f_bus") && haskey(obj, "t_bus")
-            affected_blocks = Set([bus2block_map[obj["f_bus"]], bus2block_map[obj["t_bus"]]])
+            affected_blocks = Set([
+                bus2block_map[obj["f_bus"]],
+                bus2block_map[obj["t_bus"]],
+            ])
         end
     elseif haskey(obj, "bus")
         affected_blocks = Set([bus2block_map[obj["bus"]]])
     end
 
     affected_switches = String[]
-    for (s,switch) in get(network, "switch", Dict())
-        if bus2block_map[switch["f_bus"]] in affected_blocks || bus2block_map[switch["t_bus"]] in affected_blocks
+
+    for (s, switch) in get(data, "switch", Dict())
+        if bus2block_map[switch["f_bus"]] in affected_blocks ||
+           bus2block_map[switch["t_bus"]] in affected_blocks
             push!(affected_switches, s)
         end
     end
@@ -287,33 +339,61 @@ end
 
 
 """
+Dict compatibility variant of `_find_switch_ids_by_faulted_asset`.
+"""
+function _find_switch_ids_by_faulted_asset(
+    network::Dict{String,<:Any},
+    source_id::String,
+)::Vector{String}
+    data_model = PMD.EngineeringModel(
+        deepcopy(Dict{String,Any}(network))
+    )
+
+    return _find_switch_ids_by_faulted_asset(data_model, source_id)
+end
+
+
+"""
     _find_nw_id_from_timestep(
         network::Dict{String,<:Any},
         timestep::Union{Real,String}
     )::String
 
-Helper function to find the multinetwork id of the subnetwork of `network` corresponding most closely to a `timestep`.
+Helper function to find the multinetwork id of the subnetwork of `network`
+corresponding most closely to a `timestep`.
 """
-function _find_nw_id_from_timestep(network::Dict{String,<:Any}, timestep::Union{Real,String})::String
+function _find_nw_id_from_timestep(
+    network::Dict{String,<:Any},
+    timestep::Union{Real,String},
+)::String
     @assert PMD.ismultinetwork(network) "network data structure is not multinetwork"
 
     if isa(timestep, Int) && all(isa(v, Int) for v in values(network["mn_lookup"]))
-        for (nw_id,ts) in network["mn_lookup"]
+        for (nw_id, ts) in network["mn_lookup"]
             if ts == timestep
                 return nw_id
             end
         end
+
     elseif isa(timestep, Int) && "$timestep" in keys(network["mn_lookup"])
         return "$timestep"
+
     elseif isa(timestep, String)
-        timestep = all(isa(v, Int) for v in values(network["mn_lookup"])) ? parse(Int, timestep) : all(isa(v, Real) for v in values(network["mn_lookup"])) ? parse(Float16, timestep) : timestep
-        for (nw_id,ts) in network["mn_lookup"]
+        timestep =
+            all(isa(v, Int) for v in values(network["mn_lookup"])) ?
+            parse(Int, timestep) :
+            all(isa(v, Real) for v in values(network["mn_lookup"])) ?
+            parse(Float16, timestep) :
+            timestep
+
+        for (nw_id, ts) in network["mn_lookup"]
             if ts == timestep
                 return nw_id
             end
         end
+
     elseif !all(isa(v, Int) for v in values(network["mn_lookup"]))
-        for (nw_id,ts) in network["mn_lookup"]
+        for (nw_id, ts) in network["mn_lookup"]
             if ts ≈ timestep
                 return nw_id
             end
@@ -321,13 +401,15 @@ function _find_nw_id_from_timestep(network::Dict{String,<:Any}, timestep::Union{
 
         timesteps = sort(collect(values(network["mn_lookup"])))
         dist = timesteps .- timestep
-        ts = findfirst(x->x≈minimum(dist[dist .> 0]), timesteps)
+        ts = findfirst(x -> x ≈ minimum(dist[dist .> 0]), timesteps)
+
         for (nw_id, ts) in network["mn_lookup"]
             if ts == timestep
                 return nw_id
             end
         end
     end
+
     error("could not find timestep '$(timestep)' in the multinetwork data structure")
 end
 
@@ -339,18 +421,29 @@ end
         duration::Real
     )::Union{String,Missing}
 
-Helper function to find the next timestep following a fault given its duration in ms
+Helper function to find the next timestep following a fault given its duration in ms.
 """
-function _find_next_nw_id_from_fault_duration(network::Dict{String,<:Any}, nw_id::String, duration::Real)::Union{String,Missing}
+function _find_next_nw_id_from_fault_duration(
+    network::Dict{String,<:Any},
+    nw_id::String,
+    duration::Real,
+)::Union{String,Missing}
     current_timestep = network["mn_lookup"][nw_id]
-    mn_lookup_reverse = Dict{Any,String}(v => k for (k,v) in network["mn_lookup"])
+
+    mn_lookup_reverse = Dict{Any,String}(
+        v => k for (k, v) in network["mn_lookup"]
+    )
 
     timesteps = sort(collect(values(network["mn_lookup"])))
-    dist = timesteps .- (current_timestep .+ (duration / 3.6e6))  # duration is in ms, timestep in hours
+    dist = timesteps .- (current_timestep .+ (duration / 3.6e6))
+
     if all(dist .< 0)
         return missing
     else
-        ts = findfirst(x->x ≈ minimum(dist[dist .> 0]), timesteps)
+        ts = findfirst(
+            x -> x ≈ minimum(dist[dist .> 0]),
+            timesteps,
+        )
         return mn_lookup_reverse[ts]
     end
 end
@@ -359,9 +452,46 @@ end
 """
     build_events(case_file::String; kwargs...)::Vector{Dict{String,Any}}
 
-A helper function to assist in making rudamentary events data structure with some default settings for switches from a network case at path `case_file`.
+A helper function to assist in making rudimentary events data structure with some
+default settings for switches from a network case at path `case_file`.
 """
-build_events(case_file::String; kwargs...)::Vector{Dict{String,Any}} = build_events(PMD.parse_file(case_file); kwargs...)
+build_events(
+    case_file::String;
+    kwargs...
+)::Vector{Dict{String,Any}} = build_events(
+    PMD.parse_file(case_file);
+    kwargs...
+)
+
+
+"""
+    build_events(
+        eng::PMD.EngineeringModel{PMD.NetworkModel};
+        custom_events::Vector{Dict{String,Any}}=Dict{String,Any}[],
+        default_switch_state::Union{PMD.SwitchState,String}=PMD.CLOSED,
+        default_switch_dispatchable::Union{PMD.Dispatchable,Bool}=PMD.YES,
+        default_switch_status::Union{Missing,PMD.Status,Int}=missing
+    )::Vector{Dict{String,Any}}
+
+EngineeringModel variant of `build_events`.
+"""
+function build_events(
+    eng::PMD.EngineeringModel{PMD.NetworkModel};
+    custom_events::Vector{Dict{String,Any}}=Dict{String,Any}[],
+    default_switch_state::Union{PMD.SwitchState,String}=PMD.CLOSED,
+    default_switch_dispatchable::Union{PMD.Dispatchable,Bool}=PMD.YES,
+    default_switch_status::Union{Missing,PMD.Status,Int}=missing,
+)::Vector{Dict{String,Any}}
+    @assert !PMD.ismultinetwork(eng) "this function cannot utilize multinetwork data"
+
+    return build_events(
+        eng.data;
+        custom_events=custom_events,
+        default_switch_state=default_switch_state,
+        default_switch_dispatchable=default_switch_dispatchable,
+        default_switch_status=default_switch_status,
+    )
+end
 
 
 """
@@ -373,31 +503,36 @@ build_events(case_file::String; kwargs...)::Vector{Dict{String,Any}} = build_eve
         default_switch_status::Union{Missing,PMD.Status,Int}=missing
     )::Vector{Dict{String,Any}}
 
-A helper function to assist in making rudamentary events data structure with some default settings for switches.
-
-- `eng::Dict{String,<:Any}` is the input case data structure
-- `custom_events` is a Vector of *events* that will be applied **after** the automatic generation of events based off of the `default` kwargs
-- `default_switch_state::Union{PMD.SwitchState,String}` (default: `CLOSED`) is the toggle for the default state to apply to every switch
-- `default_switch_dispatchable::Union{PMD.Dispatchable,Bool}` (default: `YES`) is the toggle for the default dispatchability (controllability) of every switch
-- `default_switch_status::Union{Missing,PMD.Status,Int}` (default: `missing`) is the toggle for the default status (whether the switch appears in the model at all or not) of every switch. If `missing` will default to the status given by the model.
+A helper function to assist in making rudimentary events data structure with some
+default settings for switches.
 """
 function build_events(
     eng::Dict{String,<:Any};
     custom_events::Vector{Dict{String,Any}}=Dict{String,Any}[],
     default_switch_state::Union{PMD.SwitchState,String}=PMD.CLOSED,
     default_switch_dispatchable::Union{PMD.Dispatchable,Bool}=PMD.YES,
-    default_switch_status::Union{Missing,PMD.Status,Int}=missing
-    )::Vector{Dict{String,Any}}
-
+    default_switch_status::Union{Missing,PMD.Status,Int}=missing,
+)::Vector{Dict{String,Any}}
     @assert !PMD.ismultinetwork(eng) "this function cannot utilize multinetwork data"
 
     events = Dict{String,Any}[]
 
-    default_switch_state = isa(default_switch_state, String) ? getproperty(PMD, Symbol(uppercase(default_switch_state))) : default_switch_state
-    default_switch_dispatchable = isa(default_switch_dispatchable, Bool) ? PMD.Dispatchable(Int(default_switch_dispatchable)) : default_switch_dispatchable
-    default_switch_status = isa(default_switch_status, Int) ? PMD.Status(default_switch_status) : default_switch_status
+    default_switch_state =
+        isa(default_switch_state, String) ?
+        getproperty(PMD, Symbol(uppercase(default_switch_state))) :
+        default_switch_state
 
-    for (s, switch) in get(eng, "switch", Dict())
+    default_switch_dispatchable =
+        isa(default_switch_dispatchable, Bool) ?
+        PMD.Dispatchable(Int(default_switch_dispatchable)) :
+        default_switch_dispatchable
+
+    default_switch_status =
+        isa(default_switch_status, Int) ?
+        PMD.Status(default_switch_status) :
+        default_switch_status
+
+    for (_, switch) in get(eng, "switch", Dict())
         push!(
             events,
             Dict{String,Any}(
@@ -407,36 +542,48 @@ function build_events(
                 "event_data" => Dict{String,Any}(
                     "state" => string(default_switch_state),
                     "dispatchable" => string(default_switch_dispatchable),
-                    "status" => ismissing(default_switch_status) ? string(switch["status"]) : string(default_switch_status),
-                )
-            )
+                    "status" => ismissing(default_switch_status) ?
+                        string(switch["status"]) :
+                        string(default_switch_status),
+                ),
+            ),
         )
     end
 
     converted_custom_events = Dict{String,Any}[]
+
     for event in custom_events
         converted_event = Dict{String,Any}()
 
         if get(event, "event_type", "switch") == "switch"
-            for (k,v) in event
+            for (k, v) in event
                 converted_event[k] = v
+
                 if k == "event_data"
-                    for (_k,_v) in v
+                    for (_k, _v) in v
                         converted_event[k][_k] = _v
+
                         if _k == "state" && !isa(_v, PMD.SwitchState)
-                            converted_event[k][_k] = lowercase(_v) == "closed" ? PMD.CLOSED : PMD.OPEN
+                            converted_event[k][_k] =
+                                lowercase(_v) == "closed" ?
+                                PMD.CLOSED :
+                                PMD.OPEN
+
                         elseif _k == "status" && !isa(_v, PMD.Status)
                             converted_event[k][_k] = PMD.Status(_v)
+
                         elseif _k == "dispatchable" && !isa(_v, PMD.Dispatchable)
                             converted_event[k][_k] = PMD.Dispatchable(Int(_v))
                         end
-                        converted_event[k][_k] = string(converted_event[k][_k])
+
+                        converted_event[k][_k] =
+                            string(converted_event[k][_k])
                     end
                 end
             end
+
             push!(converted_custom_events, converted_event)
         else
-            # nothing to do
             push!(converted_custom_events, event)
         end
     end

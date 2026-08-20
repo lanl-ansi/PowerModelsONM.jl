@@ -71,8 +71,8 @@ silence!()
     include("opf.jl")
     @info "Running tests in faults.jl"
     include("faults.jl")
-    @info "Running tests in stability.jl"
-    include("stability.jl")
+    # @info "Running tests in stability.jl" #david requested these be removed on 8/19/26. PMStability is stale
+    # include("stability.jl")
 
     # full workflow and outputs
     @info "Running tests in stats.jl"
