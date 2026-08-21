@@ -47,6 +47,10 @@ silence!()
 
 @testset "PowerModelsONM" begin
     # initialization
+    # 
+    # @info "running type diagnostics"
+    # include("types.jl")
+    
     @info "Running tests in args.jl"
     include("args.jl")
     @info "Running tests in schema.jl"

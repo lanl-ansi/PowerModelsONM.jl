@@ -23,10 +23,21 @@ const _default_global_keys = Set{String}(["options", "solvers"])
 
 ONM-specific version of `PowerModelsDistribution.transform_data_model` that includes the necessary default `eng2math_passthrough` and `global_keys`.
 """
-function transform_data_model(eng::T; global_keys::Set{String}=Set{String}(), eng2math_passthrough::Dict{String,<:Vector{<:String}}=Dict{String,Vector{String}}(), kwargs...)::T where T <: Dict{String,Any}
-    PMD.transform_data_model(
-        eng;
-        global_keys=union(_default_global_keys, global_keys),
-        eng2math_passthrough=recursive_merge_including_vectors(_eng2math_passthrough_default, eng2math_passthrough),
+function transform_data_model(
+    eng::Dict{String,<:Any};
+    global_keys::Set{String}=Set{String}(),
+    eng2math_passthrough::Dict{String,<:Vector{<:String}}=Dict{String,Vector{String}}(),
+    kwargs...
+)::Dict{String,Any}
+
+    eng_model = PMD.EngineeringModel(deepcopy(Dict{String,Any}(eng)))
+
+    math_model = PMD.transform_data_model(
+        eng_model;
+        global_keys=global_keys,
+        eng2math_passthrough=eng2math_passthrough,
+        kwargs...
     )
+
+    return PMD._convert_model_to_dict(math_model)
 end

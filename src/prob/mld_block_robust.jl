@@ -17,6 +17,14 @@ function solve_robust_block_mld(data::Dict{String,<:Any}, model_type::Type, solv
     return solve_robust_block_mld(data, model_type, solver, load_scenarios; kwargs...)
 end
 
+function solve_robust_block_mld(data_mdl::PMD.EngineeringModel, model_type::Type, solver; N::Int=2, ΔL::Float64=0.1, kwargs...)::Dict{String, Dict{String,Any}}
+    data = PMD._convert_model_to_dict(data_mdl)
+    @assert PMD.iseng(data)
+    load_scenarios = generate_load_scenarios(data, N, ΔL)     # generate N scenarios with ±ΔL load uncertainty
+
+    return solve_robust_block_mld(data, model_type, solver, load_scenarios; kwargs...)
+end
+
 
 """
     solve_robust_block_mld(
