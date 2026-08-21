@@ -19,6 +19,7 @@ polar coordinates.
 `solver` (default: `"nlp_solver"`) specifies which solver in `args["solvers"]` to use for the stability analysis (NLP OPF)
 """
 function run_stability_analysis!(args::Dict{String,<:Any}; validate::Bool=true)::Dict{String,Bool}
+    #see if this can be modified to work with pmd.engineeringmodel
     if !isempty(get(args, "inverters", ""))
         if isa(args["inverters"], String)
             args["inverters"] = parse_inverters(args["inverters"]; validate=validate)
@@ -99,7 +100,7 @@ end
 
 Runs stability analysis on a single subnetwork (not a multinetwork) using a nonlinear `solver`.
 """
-function run_stability_analysis(subnetwork::Dict{String,<:Any}, omega0::Real, rN::Int, solver; formulation::Type=PMD.ACPUPowerModel)::Bool
+function run_stability_analysis(subnetwork::Union{Dict{String,<:Any}, PMD.EngineeringModel}, omega0::Real, rN::Int, solver; formulation::Type=PMD.ACPUPowerModel)::Bool
     math_model = PMS.transform_data_model(subnetwork)
     opf_solution = PMS.solve_mc_opf(math_model, formulation, solver; solution_processors=[PMD.sol_data_model!])
 
