@@ -129,6 +129,19 @@ function _map_eng2math_scenarios!(data_math::Dict{String,<:Any}, data_eng::Dict{
     )
 end
 
+function _map_eng2math_scenarios!(data::PMD.MathematicalModel, data_eng::Dict{String,<:Any}; pass_props::Vector{String}=String[])
+    data_math = PMD._convert_model_to_dict(data)
+    eng2math_load_scenarios = Dict{String,Any}(
+        string(split(obj["source_id"], ".", limit=2)[2])=>id for (id, obj) in get(data_math, "load", Dict())
+    )
+
+    data_math["scenarios"] = Dict{String,Any}(
+        "load" => Dict{String,Any}(scen_id => Dict{String,Any}(eng2math_load_scenarios[load_id] => val for (load_id, val) in scens) for (scen_id, scens) in get(get(data_eng, "scenarios", Dict()), "load", Dict())),
+        "feasibility_check" => get(get(data_eng, "scenarios", Dict()), "feasibility_check", false)
+    )
+end
+
+
 """
     build_robust_block_mld(pm::PMD.AbstractUBFModels)
 

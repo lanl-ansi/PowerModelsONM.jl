@@ -149,6 +149,20 @@ function _solution_reference_buses!(data::Dict{String,<:Any}, sol::Dict{String,<
     end
 end
 
+function _solution_reference_buses!(data_mdl::PMD.MathematicalModel, sol::Dict{String,<:Any})
+    data = PMD._convert_model_to_dict(data_mdl)
+    if !haskey(sol, "bus") && !isempty(get(data, "bus", Dict()))
+        sol["bus"] = Dict{String,Any}()
+    end
+    for (i,bus) in get(data, "bus", Dict())
+        if bus[PMD.pmd_math_component_status["bus"]] != PMD.pmd_math_component_status_inactive["bus"]
+            if !haskey(sol["bus"], i)
+                sol["bus"][i] = Dict{String,Any}()
+            end
+            sol["bus"][i]["bus_type"] = bus["bus_type"]
+        end
+    end
+end
 
 """
     solution_statuses!(pm::AbstractUnbalancedPowerModel, sol::Dict{String,Any})
@@ -197,7 +211,7 @@ end
 
 Converts `inverter` to Inverter enum, from a single time step.
 """
-function _solution_inverter!(data::Dict{String,<:Any}, sol::Dict{String,<:Any})
+function _solution_inverter!(data::Any, sol::Dict{String,<:Any})
     for t in ["gen", "storage"]
         if haskey(sol, t)
             for (_,obj) in sol[t]
@@ -208,7 +222,6 @@ function _solution_inverter!(data::Dict{String,<:Any}, sol::Dict{String,<:Any})
         end
     end
 end
-
 
 """
     solution_blocks!(pm::AbstractUnbalancedPowerModel, sol::Dict{String,Any})

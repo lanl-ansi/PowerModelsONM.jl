@@ -50,7 +50,7 @@ function solve_onm_model(
     ref_extensions::Vector{Function}=Function[],
     multinetwork::Bool=false,
     global_keys::Set{String}=Set{String}(),
-    kwargs...)::Dict{String,Any}
+    kwargs...)#::Dict{String,Any}
 
     return PMD.solve_mc_model(
         data,
