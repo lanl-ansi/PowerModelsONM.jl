@@ -238,22 +238,36 @@ end
 
 Adds block ids (as generated in the `ref`), and microgrid_ids to the solution
 """
-function _solution_blocks!(sol::Dict{String,<:Any}, ref::Dict{Symbol,<:Any})
-    for (id, block) in ref[:blocks]
-        for bus_id in block
-            sol["bus"]["$bus_id"]["block_id"] = id
-            if id in keys(ref[:microgrid_blocks])
-                sol["bus"]["$bus_id"]["microgrid_id"] = ref[:microgrid_blocks][id]
+function _solution_blocks!(
+    sol::Dict{String,<:Any},
+    ref::Dict{Symbol,<:Any},
+)
+    if haskey(sol, "bus")
+        for (id, block) in ref[:blocks]
+            for bus_id in block
+                if haskey(sol["bus"], "$bus_id")
+                    sol["bus"]["$bus_id"]["block_id"] = id
+
+                    if id in keys(ref[:microgrid_blocks])
+                        sol["bus"]["$bus_id"]["microgrid_id"] =
+                            ref[:microgrid_blocks][id]
+                    end
+                end
             end
         end
     end
 
     for t in [:load, :gen, :storage]
-        for (id,_) in ref[t]
+        for (id, _) in ref[t]
             block_id = ref[Symbol("$(t)_block_map")][id]
-            sol[string(t)]["$id"]["block_id"] = block_id
-            if block_id in keys(ref[:microgrid_blocks])
-                sol[string(t)]["$id"]["microgrid_id"] = ref[:microgrid_blocks][block_id]
+
+            if haskey(sol, string(t)) && haskey(sol[string(t)], "$id")
+                sol[string(t)]["$id"]["block_id"] = block_id
+
+                if block_id in keys(ref[:microgrid_blocks])
+                    sol[string(t)]["$id"]["microgrid_id"] =
+                        ref[:microgrid_blocks][block_id]
+                end
             end
         end
     end

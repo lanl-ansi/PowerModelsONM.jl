@@ -51,6 +51,8 @@ silence!()
     # @info "running type diagnostics"
     # include("types.jl")
     
+    @info "Running tests in opf.jl"
+    include("opf.jl")
     @info "Running tests in args.jl"
     include("args.jl")
     @info "Running tests in schema.jl"
@@ -71,8 +73,6 @@ silence!()
     include("robust_eval.jl")
     @info "Running tests in nlp.jl"
     include("nlp.jl")
-    @info "Running tests in opf.jl"
-    include("opf.jl")
     @info "Running tests in faults.jl"
     include("faults.jl")
     # @info "Running tests in stability.jl" #david requested these be removed on 8/19/26. PMStability is stale

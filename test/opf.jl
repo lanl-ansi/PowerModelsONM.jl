@@ -6,8 +6,148 @@
     )
     prepare_data!(orig_args)
     build_solver_instances!(orig_args)
+    
+#     println("***********begin diagnostics 8/24*****************")
+#     @testset "diagnose voltage solution fields" begin
+#         for formulation in ["lindistflow", "acr", "acp"]
+#             args = deepcopy(orig_args)
+#             set_setting!(
+#                 args,
+#                 ("options", "problem", "dispatch-formulation"),
+#                 formulation,
+#             )
+
+#             optimize_dispatch!(args)
+
+#             result = args["optimal_dispatch_result"]
+#             bus801 = result["solution"]["nw"]["7"]["bus"]["801"]
+#             bus675 = result["solution"]["nw"]["7"]["bus"]["675"]
+
+#             println("\n==============================")
+#             println("FORMULATION: $formulation")
+#             println("==============================")
+
+#             @show result["objective"]
+
+#             println("\nbus 801:")
+#             @show keys(bus801)
+#             for (k, v) in bus801
+#                 println("  $k => $v :: $(typeof(v))")
+#             end
+
+#             println("\nbus 675:")
+#             @show keys(bus675)
+#             for (k, v) in bus675
+#                 println("  $k => $v :: $(typeof(v))")
+#             end
+            
+#             vbase, edge_vbase = PMD.calc_voltage_bases(
+#             args["base_network"],
+#             args["base_network"]["settings"]["vbases_default"],
+#         )
+        
+#         data = args["base_network"]
+# vbase_sources = data["settings"]["vbases_default"]
+
+# println("\n========== VOLTAGE BASE DIAGNOSTIC ==========")
+
+# @show vbase_sources
+
+# println("\n--- transformers ---")
+# for (id, trans) in get(data, "transformer", Dict{String,Any}())
+#     println("\ntransformer $id")
+#     for (k, v) in trans
+#         println("  $k => $v :: $(typeof(v))")
+#     end
+# end
+
+# println("\n--- voltage zones ---")
+# zones = PMD._discover_voltage_zones(
+#     data,
+#     PMD._eng_edge_elements,
+# )
+
+# for (i, zone) in zones
+#     println("zone $i => $zone")
+# end
+
+# println("\n--- bus -> zone ---")
+# bus_to_zone = Dict(
+#     bus => i
+#     for (i, zone) in zones
+#     for bus in zone
+# )
+
+# for bus in ["sourcebus", "801", "675"]
+#     println("$bus => ", get(bus_to_zone, bus, missing))
+# end
+
+# println("\n--- transformer zone connections ---")
+# for (id, trans) in get(data, "transformer", Dict{String,Any}())
+#     println("\ntransformer $id")
+
+#     if haskey(trans, "f_bus") && haskey(trans, "t_bus")
+#         f_bus = string(trans["f_bus"])
+#         t_bus = string(trans["t_bus"])
+
+#         @show f_bus
+#         @show t_bus
+#         @show get(bus_to_zone, f_bus, missing)
+#         @show get(bus_to_zone, t_bus, missing)
+
+#         @show get(trans, "tm_nom", missing)
+#         @show get(trans, "tm_set", missing)
+#         @show get(trans, "configuration", missing)
+#     elseif haskey(trans, "bus")
+#         @show trans["bus"]
+
+#         for bus in trans["bus"]
+#             b = string(bus)
+#             println(
+#                 "  bus $b -> zone ",
+#                 get(bus_to_zone, b, missing),
+#             )
+#         end
+
+#         @show get(trans, "vm_nom", missing)
+#         @show get(trans, "sm_nom", missing)
+#         @show get(trans, "configuration", missing)
+#     else
+#         println("WARNING: transformer has neither f_bus/t_bus nor bus")
+#     end
+# end
+
+# println("\n--- final voltage bases ---")
+# vbase, edge_vbase = PMD.calc_voltage_bases(
+#     data,
+#     vbase_sources,
+# )
+
+# for bus in ["sourcebus", "801", "675"]
+#     @show bus get(vbase, bus, missing)
+# end
+
+# println("=============================================")
+
+#         @show vbase["801"]
+#         @show typeof(vbase["801"])
+#         @show vbase["675"]
+#         @show typeof(vbase["675"])
+
+#         @show args["base_network"]["settings"]["vbases_default"]
+
+#         for bus in ["801", "675"]
+#             println("$bus:")
+#             @show vbase[bus]
+#             @show args["base_network"]["bus"][bus]
+#         end
+#         end
+#     end
+#     println("***********end diagnostics 8/24*****************")
+
 
     @testset "test nfa opf" begin
+        #this test _should not_ have a meaningful voltage solution
         args = deepcopy(orig_args)
         set_setting!(args, ("options", "problem", "dispatch-formulation"), "nfa")
 

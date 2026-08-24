@@ -64,7 +64,15 @@ If `make_per_unit` (default: true), will return voltage statistics in per-unit r
 If `make_per_unit` is false, and there are different voltage bases across the network, the
 statistics will not make sense.
 """
-function get_timestep_voltage_statistics(solution::Dict{String,<:Any}, network::Dict{String,<:Any}; make_per_unit::Bool=true)::Dict{String,Vector{Real}}
+function get_timestep_voltage_statistics(solution_in::Union{Dict{String,Any}, PMD.MathematicalModel, PMD.EngineeringModel}, network::Dict{String,<:Any}; make_per_unit::Bool=true)::Dict{String,Vector{Real}}
+    #need a way of converting this to a mathsolution object
+    if !isa(solution_in, Dict{String, Any})
+        solution = PMD._convert_model_to_dict(solution_in)
+    else
+        solution = solution_in #sloppy conversion
+    end
+    
+    @assert solution isa Dict{String, Any}
     voltages = Dict{String,Vector{Real}}(
         "Min voltage (p.u.)" => Real[],
         "Mean voltage (p.u.)" => Real[],
