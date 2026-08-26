@@ -244,7 +244,7 @@ function run_onm_ravens(ravens_file,
 
     delete!(merged_dictionary, "switch_close_actions_ub")
 
-    open("./$(filename)-wONM$(run_protection ? "-wPMP" : "")-Combined.json", "w") do f
+    open("$(dirname(ravens_file))/$(filename)-wONM-$(algorithm)$(run_protection ? "-wPMP" : "")-Combined.json", "w") do f
         JSON.print(f, merged_dictionary, 2)
     end
 
