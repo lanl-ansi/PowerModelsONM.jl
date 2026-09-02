@@ -25,22 +25,19 @@ JuMP.is_binary(x::Number) = false
 lower_bound helper function for Affine Expression variables
 """
 function JuMP.lower_bound(x::JuMP.AffExpr)
-    lb = []
-    for (k, v) in x.terms
-        if v > 0
-            push!(lb, min(JuMP.lower_bound(k), JuMP.upper_bound(k)) * v)
-        elseif v < 0
-            push!(lb, max(JuMP.lower_bound(k), JuMP.upper_bound(k)) * v)
-        else
-            push!(lb, JuMP.lower_bound(k) * v)
+    bound = x.constant
+
+    for (variable, coefficient) in x.terms
+        if coefficient > 0
+            JuMP.has_lower_bound(variable) || return -Inf
+            bound += coefficient * JuMP.lower_bound(variable)
+        elseif coefficient < 0
+            JuMP.has_upper_bound(variable) || return -Inf
+            bound += coefficient * JuMP.upper_bound(variable)
         end
     end
 
-    if isempty(lb)
-        return 0.0
-    end
-
-    return sum(lb)
+    return bound
 end
 
 """
@@ -49,29 +46,40 @@ end
 upper_bound helper function for Affine Expression variables
 """
 function JuMP.upper_bound(x::JuMP.AffExpr)
-    ub = []
-    for (k, v) in x.terms
-        if v > 0
-            push!(ub, max(JuMP.lower_bound(k), JuMP.upper_bound(k)) * v)
-        elseif v < 0
-            push!(ub, min(JuMP.lower_bound(k), JuMP.upper_bound(k)) * v)
-        else
-            push!(ub, JuMP.upper_bound(k) * v)
+    bound = x.constant
+
+    for (variable, coefficient) in x.terms
+        if coefficient > 0
+            JuMP.has_upper_bound(variable) || return Inf
+            bound += coefficient * JuMP.upper_bound(variable)
+        elseif coefficient < 0
+            JuMP.has_lower_bound(variable) || return Inf
+            bound += coefficient * JuMP.lower_bound(variable)
         end
     end
 
-    if isempty(ub)
-        return 0.0
-    end
-
-    return sum(ub)
+    return bound
 end
 
 "has_lower_bound helper function for Affine Expression variables"
-JuMP.has_lower_bound(x::JuMP.AffExpr) = all(JuMP.has_lower_bound(k) for (k, _) in x.terms)
+function JuMP.has_lower_bound(x::JuMP.AffExpr)
+    return all(
+        coefficient > 0  ? JuMP.has_lower_bound(variable) :
+        coefficient < 0  ? JuMP.has_upper_bound(variable) :
+                           true
+        for (variable, coefficient) in x.terms
+    )
+end
 
 "has_upper_bound helper function for Affine Expression variables"
-JuMP.has_upper_bound(x::JuMP.AffExpr) = all(JuMP.has_upper_bound(k) for (k, _) in x.terms)
+function JuMP.has_upper_bound(x::JuMP.AffExpr)
+    return all(
+        coefficient > 0  ? JuMP.has_upper_bound(variable) :
+        coefficient < 0  ? JuMP.has_lower_bound(variable) :
+                           true
+        for (variable, coefficient) in x.terms
+    )
+end
 
 "is_binary helper function for Affine Expression variables"
 JuMP.is_binary(x::JuMP.AffExpr) = false
