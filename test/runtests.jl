@@ -51,6 +51,8 @@ silence!()
     # @info "running type diagnostics"
     # include("types.jl")
     
+    @info "Running tests in data.jl"
+    include("data.jl")
     @info "Running tests in opf.jl"
     include("opf.jl")
     @info "Running tests in args.jl"
@@ -61,8 +63,6 @@ silence!()
     # inputs
     @info "Running tests in io.jl"
     include("io.jl")
-    @info "Running tests in data.jl"
-    include("data.jl")
     @info "Running tests in graphml.jl"
     include("graphml.jl")
 

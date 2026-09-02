@@ -158,7 +158,7 @@
         v_stats = get_timestep_voltage_statistics(args["optimal_dispatch_result"]["solution"], args["network"])
         @test all(all(v .== 0) for v in values(v_stats))
 
-        disp_sol = get_timestep_dispatch(args["optimal_dispatch_result"]["solution"], args["network"])
+        disp_sol = get_timestep_dispatch(args["network"], args["optimal_dispatch_result"]["solution"])
         @test all(all(all(switch["voltage (V)"] .== 0) for switch in values(timestep["switch"])) for timestep in disp_sol)
     end
 

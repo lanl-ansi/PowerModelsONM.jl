@@ -100,6 +100,38 @@ end
 
 Runs stability analysis on a single subnetwork (not a multinetwork) using a nonlinear `solver`.
 """
+
+#overloading the method from pms to reduce the dependencies a bit
+function PMS.transform_data_model(
+    data_eng::PMD.EngineeringModel{PMD.NetworkModel};
+    eng2math_extensions::Vector{<:Function}=Function[],
+    kwargs...
+)::Dict{String,Any}
+
+    data_math = PMD.transform_data_model(
+        data_eng;
+        eng2math_extensions=[
+            PMS._eng2math_inverter_bus!,
+            eng2math_extensions...,
+        ],
+        eng2math_passthrough=PMS._pms_eng2math_passthrough,
+        global_keys=PMS._pms_global_keys,
+        kwargs...,
+    )
+
+    return PMD._convert_model_to_dict(data_math)
+end
+
+function PMS._eng2math_inverter_bus!(
+    data_math::PMD.MathematicalModel{PMD.NetworkModel},
+    data_eng::PMD.EngineeringModel{PMD.NetworkModel},
+)
+    return PMS._eng2math_inverter_bus!(
+        data_math.data,
+        data_eng.data,
+    )
+end
+
 function run_stability_analysis(subnetwork::Union{Dict{String,<:Any}, PMD.EngineeringModel}, omega0::Real, rN::Int, solver; formulation::Type=PMD.ACPUPowerModel)::Bool
     math_model = PMS.transform_data_model(subnetwork)
     opf_solution = PMS.solve_mc_opf(math_model, formulation, solver; solution_processors=[PMD.sol_data_model!])
