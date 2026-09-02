@@ -1,3 +1,14 @@
+const _eng2math_type_map = Dict(
+    "load" => "load",
+    "shunt" => "shunt",
+    "generator" => "gen",
+    "voltage_source" => "gen",
+    "solar" => "gen",
+    "storage" => "storage",
+    "line" => "branch",
+)
+
+
 """
     optimize_dispatch!(
         args::Dict{String,<:Any};
@@ -110,4 +121,99 @@ function _prepare_dispatch_data(network::Dict{String,<:Any}, switching_solutions
     end
 
     return data
+end
+
+
+
+function optimize_dispatch_math(network::Dict{String,<:Any}, formulation::Type, solver; switching_solutions::Union{Missing,Dict{String,<:Any}}=missing)::Dict{String,Any}
+    data = _prepare_dispatch_data_math(network, switching_solutions)
+
+    @info "running optimal dispatch with $(formulation) using MATH model"
+    solve_mn_opf(data, formulation, solver)
+end
+
+
+function _prepare_dispatch_data_math(network::Dict{String,<:Any}, switching_solutions::Union{Missing,Dict{String,<:Any}}=missing)::Dict{String,Any}
+
+    data = deepcopy(network)
+
+    if !ismissing(switching_solutions)
+        for (n, results) in switching_solutions
+            nw = get(results, "solution", Dict())
+
+            # Buses in shed are in MATH (numbers)
+            shed = collect(keys(filter(x->x.second["bus_type"] == 4, data["nw"][n]["bus"])))
+
+            # Buses
+            for (i, bus) in get(data["nw"][n], "bus", Dict())
+                obj_sol = get(get(nw, "bus", Dict()), "$(i)", Dict())
+                if ((get(obj_sol, "status", PMD.DISABLED) != PMD.ENABLED) && (obj_sol != Dict()))
+                    data["nw"]["$n"]["bus"][i]["bus_type"] = 4
+                    push!(shed, i)
+                end
+            end
+
+            # Objects
+            for type in ["load", "shunt", "gen", "storage", "voltage_source"]
+                for (i, obj) in get(data["nw"]["$n"], type, Dict{String,Any}())
+                    obj_sol = get(get(nw, type, Dict()), "$(i)", Dict())
+
+                    obj_status =  get(obj, "status", PMD.DISABLED)
+
+                    if obj["$(type)_bus"] in shed || get(obj_sol, "status", obj_status) == PMD.DISABLED
+                        data["nw"]["$n"][type][i]["$(type)_status"] = Int(PMD.DISABLED)
+                    end
+
+                    if type ∈ ["storage", "gen", "voltage_source"] && haskey(obj_sol, "inverter")
+                        data["nw"]["$n"][type][i]["inverter"] = obj_sol["inverter"]
+                        data["nw"]["$n"][type][i]["control_mode"] = obj_sol["inverter"] == GRID_FORMING ? Int(PMD.ISOCHRONOUS) : Int(PMD.FREQUENCYDROOP)
+                    end
+                end
+            end
+
+            # Branch
+            for (i, branch) in get(data["nw"]["$n"], "branch", Dict())
+                obj_sol = get(get(nw, "branch", Dict()), "$(i)", Dict())
+                branch_status = (get(branch, "br_status", 0) == 1) ? PMD.ENABLED : PMD.DISABLED
+
+                if branch["f_bus"] in shed || branch["t_bus"] in shed || get(obj_sol, "status", branch_status) == PMD.DISABLED
+                    data["nw"]["$n"]["branch"][i]["br_status"] = Int(PMD.DISABLED)
+                end
+            end
+
+            # Switch
+            for (i, switch) in get(data["nw"]["$n"], "switch", Dict())
+                obj_sol = get(get(nw, "switch", Dict()), "$(i)", Dict())
+
+                if haskey(obj_sol, "state")
+                    data["nw"]["$n"]["switch"][i]["state"] = Int(round(Int64, obj_sol["state"]))
+                end
+
+                data["nw"]["$n"]["switch"][i]["dispatchable"] = Int(PMD.NO)
+                switch_status = (get(switch, "status", 0) == 1) ? PMD.ENABLED : PMD.DISABLED
+
+                if switch["f_bus"] in shed || switch["t_bus"] in shed || get(obj_sol, "status", switch_status) == PMD.DISABLED
+                    data["nw"]["$n"]["switch"][i]["status"] = Int(PMD.DISABLED)
+                end
+
+            end
+
+            # Transformers
+            for (i, transformer) in get(data["nw"]["$n"], "transformer", Dict())
+                obj_sol = get(get(nw, "transformer", Dict()), "$(i)", Dict())
+                xfrmr_status = (get(transformer, "status", 0) == 1) ? PMD.ENABLED : PMD.DISABLED
+
+                if transformer["f_bus"] in shed || transformer["t_bus"] in shed || get(obj_sol, "status", xfrmr_status) == PMD.DISABLED
+                    data["nw"]["$n"]["transformer"][i]["status"] = Int(PMD.DISABLED)
+                end
+            end
+
+            # Propagate topology to make sure DISABLED objects
+            PMD._propagate_network_topology!(data["nw"][n])
+
+        end
+    end
+
+    return data
+
 end

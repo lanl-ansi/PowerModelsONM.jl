@@ -5,12 +5,16 @@ In-place version of [`parse_network`](@ref parse_network), returns the ENGINEERI
 data structure, which is available in `args` under `args["network"]`, and adds the non-expanded ENGINEERING
 data structure under `args["base_network"]`
 """
-function parse_network!(args::Dict{String,<:Any})::Dict{String,Any}
-    if isa(args["network"], String)
-        args["fault_network"] = parse_fault_network(args["network"])
-        args["base_network"], args["network"] = parse_network(
-            args["network"]
-        )
+function parse_network!(args::Dict{String,<:Any})
+    if args["network"] isa String
+        network_file = args["network"]
+
+        args["fault_network"] = parse_fault_network(network_file)
+
+        base_network, network = parse_network(network_file)
+
+        args["base_network"] = base_network
+        args["network"] = network
     end
 
     return args["network"]
@@ -25,7 +29,13 @@ end
 Parses network file given by runtime arguments into its base network, i.e., not expanded into a multinetwork,
 and multinetwork, which is the multinetwork `ENGINEERING` representation of the network.
 """
-function parse_network(network_file::String; dss2eng_extensions=Function[], transformations=Function[], import_all=true, kwargs...)::Tuple{Dict{String,Any},Dict{String,Any}}
+function parse_network(
+    network_file::String;
+    dss2eng_extensions=Function[],
+    transformations=Function[],
+    import_all=true,
+    kwargs...
+)
     eng = parse_file(
         network_file;
         dss2eng_extensions=dss2eng_extensions,
@@ -38,7 +48,6 @@ function parse_network(network_file::String; dss2eng_extensions=Function[], tran
 
     return eng, mn_eng
 end
-
 
 """
     parse_file(network_file::String; dss2eng_extensions=Function[], transformations=Function[], import_all=true, kwargs...)
@@ -75,7 +84,9 @@ function parse_file(network_file::String; dss2eng_extensions=Function[], transfo
         end
     end
 
-    return eng
+    # Preserve the legacy ONM API boundary: PMD now returns a typed
+    # EngineeringModel, while the rest of ONM still operates on Dict data.
+    return deepcopy(eng.data)
 end
 
 
@@ -87,7 +98,13 @@ no kron reduction, dss2eng dyanmics transformations, no transformer banking,
 and adds vbases.
 """
 function parse_fault_network(network_file::String)
-    PMP.parse_opendss(network_file; transformations=[_apply_vbases!, _apply_fault_models!], import_all=true)
+    fault_network = PMP.parse_opendss(
+        network_file;
+        transformations=[_apply_vbases!, _apply_fault_models!],
+        import_all=true,
+    )
+
+    return fault_network isa PMD.EngineeringModel{PMD.NetworkModel} ? deepcopy(fault_network.data) : fault_network
 end
 
 
@@ -102,6 +119,8 @@ function _apply_vbases!(data::Dict{String,<:Any})
         data["bus"][bus]["vbase"] = vbase
     end
 end
+
+_apply_vbases!(data::PMD.EngineeringModel{PMD.NetworkModel}) = _apply_vbases!(data.data)
 
 
 """
@@ -124,6 +143,8 @@ function _apply_fault_models!(data::Dict{String,<:Any})
     end
 end
 
+_apply_fault_models!(data::PMD.EngineeringModel{PMD.NetworkModel}) = _apply_fault_models!(data.data)
+
 
 """
     _dss2eng_protection!(
@@ -133,7 +154,7 @@ end
 
 Extension function for converting opendss protection into protection objects for protection optimization.
 """
-function _dss2eng_protection_locations!(eng::Dict{String,<:Any}, dss::Dict{String,<:Any})
+function _dss2eng_protection_locations!(eng, dss)
     for type in ["relay", "recloser", "fuse"]
         if !isempty(get(dss, type, Dict())) && !haskey(eng, type)
             eng[type] = Dict{String,Any}()
@@ -143,14 +164,18 @@ function _dss2eng_protection_locations!(eng::Dict{String,<:Any}, dss::Dict{Strin
             if !haskey(eng[type], id)
                 eng[type][id] = Dict{String,Any}()
             end
-            eng[type][id]["location"] = dss_obj["monitoredobj"]
-            eng[type][id]["monitor_type"] = string(split(dss_obj["monitoredobj"], ".")[1])
+
+            monitored_obj = dss_obj["monitoredobj"]
+
+            eng[type][id]["location"] = monitored_obj
+            eng[type][id]["monitor_type"] =
+                string(split(monitored_obj, ".")[1])
         end
     end
 end
 
 
-if Pkg.dependencies()[UUIDs.UUID("d7431456-977f-11e9-2de3-97ff7677985e")].version >= v"0.15.0"
+# if Pkg.dependencies()[UUIDs.UUID("d7431456-977f-11e9-2de3-97ff7677985e")].version >= v"0.15.0"
     """
         _dss2eng_protection!(
             eng::Dict{String,<:Any},
@@ -159,22 +184,22 @@ if Pkg.dependencies()[UUIDs.UUID("d7431456-977f-11e9-2de3-97ff7677985e")].versio
 
     Extension function for converting opendss protection into protection objects for protection optimization.
     """
-    function _dss2eng_protection_locations!(eng::Dict{String,<:Any}, dss::PMD.OpenDssDataModel)
-        for type in ["relay", "recloser", "fuse"]
-            if !isempty(get(dss, type, Dict())) && !haskey(eng, type)
-                eng[type] = Dict{String,Any}()
-            end
+    # function _dss2eng_protection_locations!(eng::Dict{String,<:Any}, dss::PMD.OpenDssDataModel)
+    #     for type in ["relay", "recloser", "fuse"]
+    #         if !isempty(get(dss, type, Dict())) && !haskey(eng, type)
+    #             eng[type] = Dict{String,Any}()
+    #         end
 
-            for (id, dss_obj) in get(dss, type, Dict())
-                if !haskey(eng[type], id)
-                    eng[type][id] = Dict{String,Any}()
-                end
-                eng[type][id]["location"] = dss_obj["monitoredobj"]
-                eng[type][id]["monitor_type"] = string(split(dss_obj["monitoredobj"], ".")[1])
-            end
-        end
-    end
-end
+    #         for (id, dss_obj) in get(dss, type, Dict())
+    #             if !haskey(eng[type], id)
+    #                 eng[type][id] = Dict{String,Any}()
+    #             end
+    #             eng[type][id]["location"] = dss_obj["monitoredobj"]
+    #             eng[type][id]["monitor_type"] = string(split(dss_obj["monitoredobj"], ".")[1])
+    #         end
+    #     end
+    # end
+# end
 
 
 const _pnm2eng_objects = Dict{String,Vector{String}}(
@@ -338,14 +363,56 @@ end
 """
     make_multinetwork(eng::Dict{String,<:Any}; global_keys::Set{String}=Set{String}(), time_elapsed::Union{Real,Vector{<:Real},Missing}=missing, kwargs...)
 
-ONM-specific version of make_multinetwork that adds in switch_close_actions_ub
+ONM-specific version of `make_multinetwork` that preserves the legacy Dict API while
+delegating multinetwork construction to PowerModelsDistribution's typed data model.
 """
-function make_multinetwork(eng::Dict{String,<:Any}; global_keys::Set{String}=Set{String}(), time_elapsed::Union{Real,Vector{<:Real},Missing}=missing, kwargs...)
-    mn_eng = PMD.make_multinetwork(eng; global_keys=union(global_keys, Set{String}(["options", "solvers"])), time_elapsed=ismissing(time_elapsed) ? get(eng, "time_elapsed", missing) : time_elapsed, kwargs...)
+function make_multinetwork(
+    eng::Dict{String,<:Any};
+    global_keys::Set{String}=Set{String}(),
+    time_elapsed::Union{Real,Vector{<:Real},Missing}=missing,
+    kwargs...
+)
+    model = PMD.EngineeringModel(deepcopy(Dict{String,Any}(eng)))
+    mn_model = make_multinetwork(
+        model;
+        global_keys=global_keys,
+        time_elapsed=time_elapsed,
+        kwargs...
+    )
 
-    switch_close_actions_ub = get(get(get(mn_eng, "options", Dict()), "data", Dict()), "switch-close-actions-ub", missing)
+    return deepcopy(mn_model.data)
+end
+
+
+"""
+    make_multinetwork(eng::PMD.EngineeringModel{PMD.NetworkModel}; global_keys::Set{String}=Set{String}(), time_elapsed::Union{Real,Vector{<:Real},Missing}=missing, kwargs...)
+
+ONM-specific typed-model path for `make_multinetwork`. Adds ONM global keys, preserves
+`time_elapsed` behavior, and applies `switch_close_actions_ub` after PMD expands the network.
+"""
+function make_multinetwork(
+    eng::PMD.EngineeringModel{PMD.NetworkModel};
+    global_keys::Set{String}=Set{String}(),
+    time_elapsed::Union{Real,Vector{<:Real},Missing}=missing,
+    kwargs...
+)
+    effective_global_keys = union(global_keys, Set{String}(["options", "solvers"]))
+    effective_time_elapsed = ismissing(time_elapsed) ? get(eng.data, "time_elapsed", missing) : time_elapsed
+
+    mn_eng = PMD.make_multinetwork(
+        eng;
+        global_keys=effective_global_keys,
+        time_elapsed=effective_time_elapsed,
+        kwargs...
+    )
+
+    switch_close_actions_ub = get(
+        get(get(mn_eng.data, "options", Dict()), "data", Dict()),
+        "switch-close-actions-ub",
+        missing,
+    )
     if !ismissing(switch_close_actions_ub)
-        set_switch_close_actions_ub!(mn_eng, switch_close_actions_ub)
+        set_switch_close_actions_ub!(mn_eng.data, switch_close_actions_ub)
     end
 
     return mn_eng
@@ -363,4 +430,14 @@ function set_switch_close_actions_ub!(mn_eng::Dict{String,<:Any}, switch_close_a
     for n in sort(parse.(Int, collect(keys(mn_eng["nw"]))))
         mn_eng["nw"]["$n"]["switch_close_actions_ub"] = isa(switch_close_actions_ub, Vector) ? switch_close_actions_ub[n] : switch_close_actions_ub
     end
+
+    return mn_eng
+end
+
+function set_switch_close_actions_ub!(
+    mn_eng::PMD.EngineeringModel{PMD.MultinetworkModel},
+    switch_close_actions_ub::Union{Vector{<:Real},Real},
+)
+    set_switch_close_actions_ub!(mn_eng.data, switch_close_actions_ub)
+    return mn_eng
 end
