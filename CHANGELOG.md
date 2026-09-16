@@ -4,6 +4,11 @@
 
 - none
 
+## v4.0.1
+
+- Update package versions to be inline with PMD before major update to ravens schema
+
+
 ## v4.0.0
 
 - Change `parse_file` to use `bank_transformers=false`, which seems to affect quality of solutions
