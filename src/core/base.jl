@@ -226,25 +226,6 @@ function convert(value::Any, path::Tuple{Vararg{String}}=tuple())
 end
 
 
-if Pkg.dependencies()[UUIDs.UUID("d7431456-977f-11e9-2de3-97ff7677985e")].version < v"0.15.0"
-"""
-    Base.parse(::Type{T}, status::String)::T where T <: PMD.Status
-
-Parses a string from dss property 'enabled' into PMD.Status
-"""
-function Base.parse(::Type{T}, status::String)::T where T <: PMD.Status
-    if lowercase(status) ∈ ["y", "yes", "true"]
-        return PMD.ENABLED
-    elseif lowercase(status) ∈ ["n", "no", "false"]
-        return PMD.DISABLED
-    end
-
-    @warn "enabled code '$status' not recognized, defaulting to ENABLED"
-    return PMD.ENABLED
-end
-end
-
-
 "Parses different options for Status enums in the events schema"
 Base.parse(::Type{PMD.Status}, status::PMD.Status)::PMD.Status = status
 Base.parse(::Type{PMD.Status}, status::Bool)::PMD.Status = PMD.Status(Int(status))
