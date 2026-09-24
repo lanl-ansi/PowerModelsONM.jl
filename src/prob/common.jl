@@ -25,7 +25,7 @@ const _default_solution_processors = Function[
 
 """
     solve_onm_model(
-        data::Union{Dict{String,<:Any}, String},
+        data::Union{Dict{String,<:Any}, PMD.DistributionModel, String},
         model_type::Type,
         solver::Any,
         model_builder::Function;
@@ -41,7 +41,7 @@ Custom version of `PowerModelsDistribution.solve_mc_model` that automatically in
 ref extensions and eng2math_passthroughs required for ONM problems.
 """
 function solve_onm_model(
-    data::Union{Dict{String,<:Any}, String},
+    data::Union{Dict{String,<:Any}, PMD.DistributionModel, String},
     model_type::Type,
     solver::Any,
     model_builder::Function;
@@ -75,7 +75,7 @@ end
 
 """
 instantiate_onm_model(
-        data::Union{Dict{String,<:Any}, String},
+        data::Union{Dict{String,<:Any}, PMD.DistributionModel, String},
         model_type::Type,
         model_builder::Function;
         eng2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
@@ -88,7 +88,7 @@ instantiate_onm_model(
 ONM-specific version of PowerModelsDistribution.instantiate_mc_model
 """
 function instantiate_onm_model(
-    data::Union{Dict{String,<:Any}, String},
+    data::Union{Dict{String,<:Any}, PMD.DistributionModel, String},
     model_type::Type,
     model_builder::Function;
     eng2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
@@ -114,7 +114,7 @@ end
 
 
 function instantiate_onm_model_ravens(
-    data::Union{Dict{String,<:Any}, String},
+    data::Union{Dict{String,<:Any}, PMD.DistributionModel, String},
     model_type::Type,
     model_builder::Function;
     ravens2math_passthrough::Dict{String,Vector{String}}=Dict{String,Vector{String}}(),
