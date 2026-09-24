@@ -286,6 +286,10 @@ function solve_traditional_mld(data::Dict{String,<:Any}, model_type::Type, solve
     solve_onm_model(data, model_type, solver, build_traditional_mld; multinetwork=false, kwargs...)
 end
 
+function solve_traditional_mld(data_mdl::PMD.EngineeringModel, model_type::Type, solver; kwargs...)::Dict{String,Any}
+    data = PMD._convert_model_to_dict(data_mdl)
+    solve_onm_model(data, model_type, solver, build_traditional_mld; multinetwork=false, kwargs...)
+end
 
 """
     build_traditional_mld(pm::PMD.AbstractUBFModels)

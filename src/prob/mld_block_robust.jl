@@ -17,6 +17,14 @@ function solve_robust_block_mld(data::Dict{String,<:Any}, model_type::Type, solv
     return solve_robust_block_mld(data, model_type, solver, load_scenarios; kwargs...)
 end
 
+function solve_robust_block_mld(data_mdl::PMD.EngineeringModel, model_type::Type, solver; N::Int=2, ΔL::Float64=0.1, kwargs...)::Dict{String, Dict{String,Any}}
+    data = PMD._convert_model_to_dict(data_mdl)
+    @assert PMD.iseng(data)
+    load_scenarios = generate_load_scenarios(data, N, ΔL)     # generate N scenarios with ±ΔL load uncertainty
+
+    return solve_robust_block_mld(data, model_type, solver, load_scenarios; kwargs...)
+end
+
 
 """
     solve_robust_block_mld(
@@ -110,16 +118,62 @@ end
 
 Converts engineering scenarios into mathematical scenarios.
 """
-function _map_eng2math_scenarios!(data_math::Dict{String,<:Any}, data_eng::Dict{String,<:Any}; pass_props::Vector{String}=String[])
+function _map_eng2math_scenarios!(
+    data_math::Dict{String,<:Any},
+    data_eng::Dict{String,<:Any};
+    pass_props::Vector{String}=String[],
+)
     eng2math_load_scenarios = Dict{String,Any}(
-        string(split(obj["source_id"], ".", limit=2)[2])=>id for (id, obj) in get(data_math, "load", Dict())
+        string(split(obj["source_id"], ".", limit=2)[2]) => id
+        for (id, obj) in get(data_math, "load", Dict())
     )
 
     data_math["scenarios"] = Dict{String,Any}(
-        "load" => Dict{String,Any}(scen_id => Dict{String,Any}(eng2math_load_scenarios[load_id] => val for (load_id, val) in scens) for (scen_id, scens) in get(get(data_eng, "scenarios", Dict()), "load", Dict())),
-        "feasibility_check" => get(get(data_eng, "scenarios", Dict()), "feasibility_check", false)
+        "load" => Dict{String,Any}(
+            scen_id => Dict{String,Any}(
+                eng2math_load_scenarios[load_id] => val
+                for (load_id, val) in scens
+            )
+            for (scen_id, scens) in get(
+                get(data_eng, "scenarios", Dict()),
+                "load",
+                Dict(),
+            )
+        ),
+        "feasibility_check" => get(
+            get(data_eng, "scenarios", Dict()),
+            "feasibility_check",
+            false,
+        ),
     )
 end
+
+
+function _map_eng2math_scenarios!(
+    data_math::PMD.MathematicalModel,
+    data_eng::Dict{String,<:Any};
+    pass_props::Vector{String}=String[],
+)
+    return _map_eng2math_scenarios!(
+        data_math.data,
+        data_eng;
+        pass_props=pass_props,
+    )
+end
+
+
+function _map_eng2math_scenarios!(
+    data_math::PMD.MathematicalModel,
+    data_eng::PMD.EngineeringModel;
+    pass_props::Vector{String}=String[],
+)
+    return _map_eng2math_scenarios!(
+        data_math.data,
+        data_eng.data;
+        pass_props=pass_props,
+    )
+end
+
 
 """
     build_robust_block_mld(pm::PMD.AbstractUBFModels)

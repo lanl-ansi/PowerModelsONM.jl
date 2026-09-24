@@ -149,6 +149,20 @@ function _solution_reference_buses!(data::Dict{String,<:Any}, sol::Dict{String,<
     end
 end
 
+function _solution_reference_buses!(data_mdl::PMD.MathematicalModel, sol::Dict{String,<:Any})
+    data = PMD._convert_model_to_dict(data_mdl)
+    if !haskey(sol, "bus") && !isempty(get(data, "bus", Dict()))
+        sol["bus"] = Dict{String,Any}()
+    end
+    for (i,bus) in get(data, "bus", Dict())
+        if bus[PMD.pmd_math_component_status["bus"]] != PMD.pmd_math_component_status_inactive["bus"]
+            if !haskey(sol["bus"], i)
+                sol["bus"][i] = Dict{String,Any}()
+            end
+            sol["bus"][i]["bus_type"] = bus["bus_type"]
+        end
+    end
+end
 
 """
     solution_statuses!(pm::AbstractUnbalancedPowerModel, sol::Dict{String,Any})
@@ -197,7 +211,7 @@ end
 
 Converts `inverter` to Inverter enum, from a single time step.
 """
-function _solution_inverter!(data::Dict{String,<:Any}, sol::Dict{String,<:Any})
+function _solution_inverter!(data::Any, sol::Dict{String,<:Any})
     for t in ["gen", "storage"]
         if haskey(sol, t)
             for (_,obj) in sol[t]
@@ -208,7 +222,6 @@ function _solution_inverter!(data::Dict{String,<:Any}, sol::Dict{String,<:Any})
         end
     end
 end
-
 
 """
     solution_blocks!(pm::AbstractUnbalancedPowerModel, sol::Dict{String,Any})
@@ -225,22 +238,36 @@ end
 
 Adds block ids (as generated in the `ref`), and microgrid_ids to the solution
 """
-function _solution_blocks!(sol::Dict{String,<:Any}, ref::Dict{Symbol,<:Any})
-    for (id, block) in ref[:blocks]
-        for bus_id in block
-            sol["bus"]["$bus_id"]["block_id"] = id
-            if id in keys(ref[:microgrid_blocks])
-                sol["bus"]["$bus_id"]["microgrid_id"] = ref[:microgrid_blocks][id]
+function _solution_blocks!(
+    sol::Dict{String,<:Any},
+    ref::Dict{Symbol,<:Any},
+)
+    if haskey(sol, "bus")
+        for (id, block) in ref[:blocks]
+            for bus_id in block
+                if haskey(sol["bus"], "$bus_id")
+                    sol["bus"]["$bus_id"]["block_id"] = id
+
+                    if id in keys(ref[:microgrid_blocks])
+                        sol["bus"]["$bus_id"]["microgrid_id"] =
+                            ref[:microgrid_blocks][id]
+                    end
+                end
             end
         end
     end
 
     for t in [:load, :gen, :storage]
-        for (id,_) in ref[t]
+        for (id, _) in ref[t]
             block_id = ref[Symbol("$(t)_block_map")][id]
-            sol[string(t)]["$id"]["block_id"] = block_id
-            if block_id in keys(ref[:microgrid_blocks])
-                sol[string(t)]["$id"]["microgrid_id"] = ref[:microgrid_blocks][block_id]
+
+            if haskey(sol, string(t)) && haskey(sol[string(t)], "$id")
+                sol[string(t)]["$id"]["block_id"] = block_id
+
+                if block_id in keys(ref[:microgrid_blocks])
+                    sol[string(t)]["$id"]["microgrid_id"] =
+                        ref[:microgrid_blocks][block_id]
+                end
             end
         end
     end

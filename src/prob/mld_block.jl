@@ -16,6 +16,11 @@ function solve_mn_block_mld(data::Dict{String,<:Any}, model_type::Type, solver; 
     solve_onm_model(data, model_type, solver, build_mn_block_mld; multinetwork=true, kwargs...)
 end
 
+function solve_mn_block_mld(data_mdl::PMD.EngineeringModel, model_type::Type, solver; kwargs...)#::Dict{String,Any}
+    #this returns mathematicalsolution. :(
+    data = PMD._convert_model_to_dict(data_mdl)
+    solve_onm_model(data, model_type, solver, build_mn_block_mld; multinetwork=true, kwargs...)
+end
 
 """
     build_mn_block_mld(pm::PMD.AbstractUBFModels)
@@ -283,6 +288,10 @@ function solve_block_mld(data::Dict{String,<:Any}, model_type::Type, solver; kwa
     solve_onm_model(data, model_type, solver, build_block_mld; multinetwork=false, kwargs...)
 end
 
+function solve_block_mld(data_mdl::PMD.EngineeringModel, model_type::Type, solver; kwargs...)::Dict{String,Any}
+    data = PMD._convert_model_to_dict(data_mdl)
+    solve_onm_model(data, model_type, solver, build_block_mld; multinetwork=false, kwargs...)
+end
 
 """
     build_block_mld(pm::PMD.AbstractUBFModels)

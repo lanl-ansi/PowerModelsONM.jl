@@ -64,7 +64,15 @@ If `make_per_unit` (default: true), will return voltage statistics in per-unit r
 If `make_per_unit` is false, and there are different voltage bases across the network, the
 statistics will not make sense.
 """
-function get_timestep_voltage_statistics(solution::Dict{String,<:Any}, network::Dict{String,<:Any}; make_per_unit::Bool=true)::Dict{String,Vector{Real}}
+function get_timestep_voltage_statistics(solution_in::Union{Dict{String,Any}, PMD.MathematicalModel, PMD.EngineeringModel}, network::Dict{String,<:Any}; make_per_unit::Bool=true)::Dict{String,Vector{Real}}
+    #need a way of converting this to a mathsolution object
+    if !isa(solution_in, Dict{String, Any})
+        solution = PMD._convert_model_to_dict(solution_in)
+    else
+        solution = solution_in #sloppy conversion
+    end
+    
+    @assert solution isa Dict{String, Any}
     voltages = Dict{String,Vector{Real}}(
         "Min voltage (p.u.)" => Real[],
         "Mean voltage (p.u.)" => Real[],
@@ -105,6 +113,13 @@ Helper function for the variant where `args["network"]` hasn't been parsed yet.
 """
 get_timestep_dispatch(::Dict{String,<:Any}, ::String)::Vector{Dict{String,Any}} = Dict{String,Any}[]
 
+function get_timestep_dispatch(
+    solution::Dict{String,<:Any},
+    network::PMD.EngineeringModel{PMD.MultinetworkModel},
+)::Vector{Dict{String,Any}}
+    return get_timestep_dispatch(solution, network.data)
+end
+
 
 """
     get_timestep_dispatch(
@@ -128,7 +143,7 @@ function get_timestep_dispatch(solution::Dict{String,<:Any}, network::Dict{Strin
                 _gen_type_sol = get(solution["nw"]["$n"], gen_type, Dict())
                 _dispatch[gen_type] = Dict{String,Any}()
                 for (id, _gen) in network["nw"]["$n"][gen_type]
-                    conns = _gen["connections"]
+                    conns = _gen["connections"] #key miss here?
                     gen = get(_gen_type_sol, id, Dict())
                     _dispatch[gen_type][id] = Dict{String,Any}(
                         "real power setpoint (kW)" => get(gen, p, zeros(length(conns))),

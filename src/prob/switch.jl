@@ -6,7 +6,7 @@ using [`optimize_switches`]
 
 Uses LPUBFDiagPowerModel (LinDist3Flow), and therefore requires `args["solvers"]["misocp_solver"]` to be specified
 """
-function optimize_switches!(args::Dict{String,<:Any})::Dict{String,Any}
+function optimize_switches!(args::Union{Dict{String,<:Any}, PMD.EngineeringModel{PMD.NetworkModel}})::Dict{String,Any}
     args["optimal_switching_results"] = optimize_switches(
         args["network"],
         args["solvers"][get_setting(args, ("options", "problem", "operations-solver"), "mip_solver")];
@@ -76,21 +76,34 @@ end
 
 """
     optimize_switches(
-        subnetwork::Dict{String,<:Any},
+        subnetwork,
         prob::Function,
         solver;
         formulation=PMD.LPUBFDiagPowerModel
     )::Dict{String,Any}
 
-Optimizes switch states for load shedding on a single subnetwork (not a multinetwork), using `prob`
+Optimizes switch states for load shedding on a single subnetwork (not a multinetwork),
+using `prob`.
 
-Optionally, a PowerModelsDistribution `formulation` can be set independently, but is LinDist3Flow by default.
+Supports both legacy dictionary-based engineering networks and
+`PowerModelsDistribution.EngineeringModel{NetworkModel}` objects.
+
+Optionally, a PowerModelsDistribution `formulation` can be set independently,
+but is LinDist3Flow by default.
 """
-function optimize_switches(subnetwork::Dict{String,<:Any}, prob::Function, solver; formulation=PMD.LPUBFDiagPowerModel)::Dict{String,Any}
-    prob(
+function optimize_switches(
+    subnetwork::Union{
+        Dict{String,<:Any},
+        PMD.EngineeringModel{PMD.NetworkModel}
+    },
+    prob::Function,
+    solver;
+    formulation=PMD.LPUBFDiagPowerModel,
+)::Dict{String,Any}
+    return prob(
         subnetwork,
         formulation,
-        solver
+        solver,
     )
 end
 
