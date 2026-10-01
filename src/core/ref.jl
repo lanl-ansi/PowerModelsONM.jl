@@ -3,7 +3,7 @@
 
 Ref extension to add load blocks to ref at a single time step
 """
-function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
+function _ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Union(PMD.DistributionModel, Dict{String,<:Any}))
     ref[:blocks] = Dict{Int,Set}(i => block.second for (i,block) in enumerate(sort([sum(map(x->SHA.sha1(ref[:bus][x]["name"]), collect(b)))=>b for b in PMD.calc_connected_components(data; type="load_blocks", check_enabled=true)]; by=x->x.first)))
     ref[:bus_block_map] = Dict{Int,Int}(bus => b for (b,block) in ref[:blocks] for bus in block)
     ref[:block_branches] = Dict{Int,Set}(b => Set{Int}() for (b,_) in ref[:blocks])
@@ -247,7 +247,7 @@ end
 
 Ref extension to add load blocks to ref for all time steps
 """
-function ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
+function ref_add_load_blocks!(ref::Dict{Symbol,<:Any}, data::Union(PMD.DistributionModel,Dict{String,<:Any}))
     PMD.apply_pmd!(_ref_add_load_blocks!, ref, data; apply_to_subnetworks=true)
 end
 
@@ -257,7 +257,7 @@ end
 
 Ref extension to add options to ref for all time steps
 """
-function ref_add_options!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
+function ref_add_options!(ref::Dict{Symbol,<:Any}, data::Union(PMD.DistributionModel, Dict{String,<:Any}))
     PMD.apply_pmd!(_ref_add_options!, ref, data; apply_to_subnetworks=true)
 end
 
@@ -269,7 +269,7 @@ Ref extension to add options to ref for all time steps
 """
 function _ref_add_options!(
     ref::Dict{Symbol,<:Any},
-    data::Dict{String,<:Any},
+    data::Union(PMD.DistributionModel, Dict{String,<:Any}),
 )
     ref[:options] = recursive_merge(
         build_default_settings()["options"],
