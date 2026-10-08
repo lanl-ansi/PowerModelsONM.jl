@@ -4,7 +4,7 @@ function run_onm_ravens(ravens_file,
     fault_network_file::String="",
     multinetwork::Bool=true,
     algorithm::String="rolling-horizon",
-    time_elapsed::Float64=1.0,
+    time_elapsed::Union{Missing,Float64}=missing,
     switch_actions_per_ts::Int64=1,
     measured_devices::Dict{String,Any}=Dict{String,Any}(),# TODO: this will be included into ravens_file (RAVENS-JSON)
     optional_fixes::Dict{String,Any}=Dict{String,Any}(),
@@ -63,8 +63,9 @@ function run_onm_ravens(ravens_file,
                 end
             end
             for (gen, gen_data) in nw_data["gen"]
+                gen_data["inverter"] = Int(GRID_FOLLOWING)
                 if disable_energysource
-                    if occursin("_virtual_gen.energy_source", gen_data["name"])
+                    if startswith(gen_data["source_id"], "EnergySource")
                         @info "Slack Bus Gen. (Substation) #: $(gen) status changed to 0 (DISABLED)."
                         gen_data["gen_status"] = Int(PMD.DISABLED)
                     end
@@ -72,8 +73,13 @@ function run_onm_ravens(ravens_file,
                 # fix pmain
                 gen_data["pmin"] = gen_data["pmin"] .* 0.0
             end
+            for (strg, strg_data) in nw_data["storage"]
+                strg_data["inverter"] = Int(GRID_FORMING)
+            end
 
-            nw_data["time_elapsed"] = time_elapsed
+            if !ismissing(time_elapsed)
+                nw_data["time_elapsed"] = time_elapsed
+            end
 
             nw_data["switch_close_actions_ub"] = switch_actions_per_ts
             nw_data["options"] = Dict{String,Any}(
@@ -83,19 +89,19 @@ function run_onm_ravens(ravens_file,
                     "disable-switch-state-change-cost" => true,
                 ),
                 "constraints" => Dict{String,Any}(
-                    "disable-grid-forming-inverter-constraint" => true,
+                    "disable-grid-forming-inverter-constraint" => false,
                     "disable-storage-unbalance-constraint" => true,
                     "disable-radiality-constraint" => false,
-                    # "disable-current-limit-constraints" => true,
-                    # "disable-thermal-limit-constraints" => true,
+                    "disable-current-limit-constraints" => true,
+                    "disable-thermal-limit-constraints" => true,
                 ),
                 "data" => Dict{String,Any}(
                     "switch-close-actions-ub" => switch_actions_per_ts,
                 ),
                 "variables" => Dict{String,Any}(
-                # "unbound-line-power" => true,
-                # "unbound-line-current" => true,
-                # "unbound-transformer-power" => true,
+                "unbound-line-power" => true,
+                "unbound-line-current" => true,
+                "unbound-transformer-power" => true,
                 # "unbound-switch-power" => true,
                 # "unbound-voltage" => true,
                 )
@@ -108,7 +114,9 @@ function run_onm_ravens(ravens_file,
             end
         end
 
-        math["time_elapsed"] = time_elapsed
+        if !ismissing(time_elapsed)
+            math["time_elapsed"] = time_elapsed
+        end
 
         # Solve ONM rolling horizon
         if algorithm == "rolling-horizon"
