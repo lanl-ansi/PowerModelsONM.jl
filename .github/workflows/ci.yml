@@ -32,6 +32,13 @@ jobs:
             ${{ runner.os }}-test-${{ env.cache-name }}-
             ${{ runner.os }}-test-
             ${{ runner.os }}-
+      # TODO: remove once PowerModelsDistribution v0.17 is registered (requires onm-compat-fixes to be pushed,
+      # and PowerModelsProtection / PowerModelsStability releases that allow PMD v0.17)
+      - name: Use RAVENS PMD
+        shell: julia --color=yes --project=. {0}
+        run: |
+          using Pkg
+          Pkg.add(url="https://github.com/lanl-ansi/PowerModelsDistribution.jl", rev="onm-compat-fixes")
       - uses: julia-actions/julia-buildpkg@latest
         continue-on-error: ${{ matrix.version == 'nightly' }}
       - uses: julia-actions/julia-runtest@latest

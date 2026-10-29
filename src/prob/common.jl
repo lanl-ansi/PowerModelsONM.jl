@@ -52,8 +52,9 @@ function solve_onm_model(
     global_keys::Set{String}=Set{String}(),
     kwargs...)#::Dict{String,Any}
 
+    # TODO: remove deepcopy once PMD stops converting the "nw" entries of Dict inputs in place
     return PMD.solve_mc_model(
-        data,
+        data isa Dict ? deepcopy(data) : data,
         model_type,
         solver,
         model_builder;
@@ -97,8 +98,9 @@ function instantiate_onm_model(
     global_keys::Set{String}=Set{String}(),
     kwargs...)
 
+    # TODO: remove deepcopy once PMD stops converting the "nw" entries of Dict inputs in place
     return PMD.instantiate_mc_model(
-        data,
+        data isa Dict ? deepcopy(data) : data,
         model_type,
         model_builder;
         multinetwork=multinetwork,

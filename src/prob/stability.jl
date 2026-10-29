@@ -89,18 +89,6 @@ function run_stability_analysis(
 end
 
 
-"""
-    run_stability_analysis(
-        subnetwork::Dict{String,<:Any},
-        omega0::Real,
-        rN::Int,
-        solver;
-        formulation::Type=PMD.ACPUPowerModel
-    )::Bool
-
-Runs stability analysis on a single subnetwork (not a multinetwork) using a nonlinear `solver`.
-"""
-
 #overloading the method from pms to reduce the dependencies a bit
 function PMS.transform_data_model(
     data_eng::PMD.EngineeringModel{PMD.NetworkModel};

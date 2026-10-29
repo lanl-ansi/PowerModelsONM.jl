@@ -132,7 +132,8 @@ configuration, assuming radiality constraints are applied.
 function _check_switch_state_feasibility(eng::Dict{String,Any})::Bool
     eng["data_model"] = PMD.ENGINEERING
 
-    blocks = Dict(i => block for (i,block) in enumerate(PMD.identify_blocks(eng)))
+    # TODO: revert to PMD.identify_blocks once PMD adds a Dict method
+    blocks = Dict(i => block for (i,block) in enumerate(PMD.calc_connected_components(eng; type="blocks")))
     bus2block_map = Dict(bus => bid for (bid,block) in blocks for bus in block)
 
     g = Graphs.SimpleGraph(length(blocks))

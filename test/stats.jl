@@ -14,7 +14,9 @@
         ("options", "objective", "enable-switch-state-open-cost") => true,
         ("options", "outputs", "log-level") => "error",
         ("solvers", "HiGHS", "mip_feasibility_tolerance") => 1e-6,
-        ("solvers", "HiGHS", "presolve") => "off"
+        ("solvers", "HiGHS", "presolve") => "off",
+        # TODO: re-enable fault studies once PowerModelsProtection supports RAVENS PMD (see onm-rrs-patch-plan O5)
+        ("options", "problem", "skip") => ["faults"],
     ))
 
     args = entrypoint(deepcopy(orig_args))
