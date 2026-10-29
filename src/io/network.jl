@@ -353,7 +353,7 @@ function make_multinetwork(
         kwargs...
     )
 
-    return deepcopy(mn_model.data)
+    return PMD._convert_model_to_dict(deepcopy(mn_model))
 end
 
 
