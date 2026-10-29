@@ -2,7 +2,12 @@
 
 ## staged
 
-- none
+- Added PowerModelsDistribution v0.17 (RAVENS) to compat
+- Fixed `make_multinetwork(::Dict)` returning `EngineeringModel` subnetworks
+- Fixed block identification on `Dict` data by using `PMD.calc_connected_components` (pending `PMD.identify_blocks(::Dict)`)
+- Fixed argument order of `get_timestep_dispatch` in nfa opf test
+- Marked traditional rolling-horizon MLD objective test and fault study tests as broken against RAVENS PMD
+- Added CI step to test against PowerModelsDistribution `onm-compat-fixes` branch
 
 ## v4.0.0
 
