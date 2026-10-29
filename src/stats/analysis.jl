@@ -74,7 +74,8 @@ function get_microgrid_networks(network::Dict{String,Any}; switch_config::Union{
     end
 
     mg_networks = Set{Set{String}}()
-    for block in PMD.identify_blocks(data)
+    # TODO: revert to PMD.identify_blocks once PMD adds a Dict method
+    for block in PMD.calc_connected_components(data; type="blocks")
         _mg_network = Set{String}()
         for bus in block
             if !isempty(get(data["bus"][bus], "microgrid_id", ""))
