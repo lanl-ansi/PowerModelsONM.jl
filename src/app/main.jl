@@ -27,7 +27,6 @@ The main ONM Algorithm, performs the following steps:
 - [`build_solver_instances!`](@ref build_solver_instances!)
 - [`optimize_switches!`](@ref optimize_switches!)
 - [`optimize_dispatch!`](@ref optimize_dispatch!)
-- [`run_stability_analysis!`](@ref run_stability_analysis!)
 - [`run_fault_studies!`](@ref run_fault_studies!)
 - [`analyze_results!`](@ref analyze_results!)
 
@@ -52,10 +51,6 @@ function entrypoint(args::Dict{String,<:Any})::Dict{String,Any}
 
     if !("dispatch" in get_setting(args, ("options","problem","skip"), String[]))
         optimize_dispatch!(args)
-    end
-
-    if !("stability" in get_setting(args, ("options","problem","skip"), String[])) && haskey(args, "inverters") && !isempty(args["inverters"])
-        run_stability_analysis!(args)
     end
 
     if !("faults" in get_setting(args, ("options","problem","skip"), String[]))

@@ -44,12 +44,3 @@ Private = false
 Order = [:function]
 Pages = ["stats/microgrid.jl"]
 ```
-
-## Stability
-
-```@autodocs
-Modules = [PowerModelsONM]
-Private = false
-Order = [:function]
-Pages = ["stats/stability.jl"]
-```

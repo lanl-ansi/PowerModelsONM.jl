@@ -21,7 +21,7 @@ There are several other supplementary files that can be included as well, of whi
 
 Another useful file is the network [settings data](@ref Settings-Schema), which is used to define extra information about the network, **not** related to the timeseries, which cannot be expressed in the DSS format, such as bus voltage magnitude bounds, cold load pickup factors, voltage angle difference bounds, microgrid definitions, etc.
 
-Finally, there are the two inputs for Stability Analysis and Fault Analysis, performed post optimization. For stability analysis, [inverters data](@ref Inverters-Schema) is required for the analysis to produce meaningful results (see, [PowerModelsStability documentation](https://github.com/lanl-ansi/PowerModelsStability.jl)), but for fault analysis, although you can specify faults ahead of time via [fault data](@ref Faults-Schema), it is not necessary because if no faults are specified, a set of faults for analysis will be automatically generated. It should be noted however that a large number of faults will be generated automatically, which could incur serious time penalties in the completion of the algorithm. For more information, see [PowerModelsProtection documentation](https://github.com/lanl-ansi/PowerModelsProtection.jl).
+Finally, there is the input for Fault Analysis, performed post optimization. Although you can specify faults ahead of time via [fault data](@ref Faults-Schema), it is not necessary because if no faults are specified, a set of faults for analysis will be automatically generated. It should be noted however that a large number of faults will be generated automatically, which could incur serious time penalties in the completion of the algorithm. For more information, see [PowerModelsProtection documentation](https://github.com/lanl-ansi/PowerModelsProtection.jl).
 
 ## Optimal Switching Problem (MLD)
 
@@ -55,8 +55,6 @@ After the optimizations have completed, ONM collects essential statistics for ou
   - details of load served in percent, _i.e._, how much load is supported by the feeder (substation/grid), how much by microgrids, and how much extra load are the microgrids supporting,
   - details of the sources of generation in kW, _i.e._, how much power is coming from the grid, solar, energy storage, or traditional deisel generation, and
 - generation dispatch setpoints, both real and reactive.
-
-If small signal stability analysis is performed, an ordered list of whether the configuration at each timestep is small signal stable is available.
 
 Finally, if fault analysis is performed, an ordered list of fault analysis results at each timestep is given, which includes,
 

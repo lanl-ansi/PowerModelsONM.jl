@@ -49,9 +49,6 @@ ieee13_events_ex = joinpath(example_dir, "events.ieee13.json")
 # ╔═╡ d01b5080-eb75-4a7c-b026-fe1d3bfe996c
 ieee13_faults_test = joinpath(test_dir, "ieee13_faults.json")
 
-# ╔═╡ 0ece8e62-7ce7-4a74-b403-0477b23600c6
-ieee13_inverters_test = joinpath(test_dir, "ieee13_inverters.json")
-
 # ╔═╡ 626cc32c-99b1-4383-a346-16538af31963
 md"""
 ## How to use PowerModelsONM
@@ -65,7 +62,6 @@ In particular, the workflow consists of sequential steps of
   - timeseries data (contained in the DSS files)
   - events data, which contains the contingencies (json, see `models/events.v1.json`)
   - settings data, which contains supplemental information about the network model not supported in DSS (json, see `models/settings.v1.json`)
-  - inverters data, which contains information about inverters for stability analysis (json, see `models/inverters.v1.json` and [PowerModelsStability documentation](https://github.com/lanl-ansi/PowerModelsStability.jl)
   - faults data, which contains pre-built faults over which to iterate during fault studies (json, see `models/faults.v1.json` and [PowerModelsProtection documentation](https://github.com/lanl-ansi/PowerModelsProtection.jl)
 - optimal switching (osw) / maximal load delivery (mld) problem
 - optimal dispatch (OPF) problem
@@ -73,7 +69,6 @@ In particular, the workflow consists of sequential steps of
   - device action timeline, such as the switch configurations at every timestep and which loads have been shed by the algorithm,
   - microgrid statistics, such as min, mean, max voltages, storage state of charge, analysis of load served, analysis of generation sources, etc.
   - Powerflow outputs, which contains dispatch setpoints and bus voltage magnitudes
-  - Small signal stability results
   - Fault analysis results
 """
 
@@ -309,28 +304,6 @@ To run a fault study we simply use `run_fault_studies`
 # ╔═╡ 13adb9f5-ded7-4674-b789-60bdca8bccf0
 fault_studies_results = run_fault_studies(network_settings_events_osw, solvers["nlp_solver"]; faults=faults)
 
-# ╔═╡ 3a8bab18-14e7-4c61-a304-390ae1e5d535
-md"""
-### Small signal stability Analysis
-
-Small signal stability analysis is brought to PowerModelsONM courtesy of PowerModelsStability
-
-Currently PowerModelsStability is quite limited and may not work on more complex networks, but here we demonstrate the basic usage of this feature
-
-For stability analysis, we need to define some inverter properties, which we have included in the unit test data
-"""
-
-# ╔═╡ 8fb0fb4d-3b6c-4e76-907f-7d03d7ac0601
-inverters = parse_inverters(ieee13_inverters_test)
-
-# ╔═╡ 9bbf0909-218b-4ba8-bd49-93d839fd1c35
-md"""
-To run a stability analysis we simply use `run_stability_analysis`
-"""
-
-# ╔═╡ b87dbbf3-2326-48fb-8d45-9a407ca2ed82
-stability_results = run_stability_analysis(network_settings_events_osw, inverters, solvers["nlp_solver"])
-
 # ╔═╡ 74e7866b-fdf5-49af-aeda-e02f67047b74
 md"""
 ## Statistics and Outputs
@@ -415,16 +388,6 @@ In the fault analysis category, there is only one function for analysis, `get_ti
 # ╔═╡ b1d28290-61eb-482d-9279-6f8f616c3cf5
 get_timestep_fault_currents(fault_studies_results, faults, network_settings_events_osw)
 
-# ╔═╡ c22200b8-d57e-4960-8714-c51102cbccd7
-md"""
-### Stability Statistics
-
-Finally is stability statistics, which again only has one function, `get_timestep_stability`, which returns whether a timestep returned as stable at that timestep
-"""
-
-# ╔═╡ 1d30b557-afbe-4527-84d7-d742f2abdb93
-get_timestep_stability(stability_results)
-
 # ╔═╡ a2f8c882-6fed-48f9-a554-c69e354ba0c0
 md"""
 ## Run the entire workflow via `entrypoint`
@@ -439,7 +402,6 @@ args = Dict{String,Any}(
 	"network" => ieee13_network_ex,
 	"events" => ieee13_events_ex,
 	"settings" => ieee13_settings_ex,
-	"inverters" => ieee13_inverters_test,
 	"faults" => ieee13_faults_test,
 )
 
@@ -465,7 +427,7 @@ set_settings!(
 		("options","problem","operations-algorithm") => "rolling-horizon",
 		("options","problem","dispatch-formulation") => "lindistflow",
 		("options","constraints","disable-microgrid-networking") => true,
-		("options","problem","skip") => ["stability","faults"]
+		("options","problem","skip") => ["faults"]
 	)
 )
 
@@ -1303,7 +1265,6 @@ version = "17.4.0+0"
 # ╠═fe5b1f7c-f7d9-4451-9942-3e86fea61a35
 # ╠═0b2651db-d938-4737-b63a-7679a5750d9c
 # ╠═d01b5080-eb75-4a7c-b026-fe1d3bfe996c
-# ╠═0ece8e62-7ce7-4a74-b403-0477b23600c6
 # ╠═626cc32c-99b1-4383-a346-16538af31963
 # ╠═51e6236d-f6eb-4dcf-9b03-1f9b04848ce7
 # ╠═583c7e8f-4e2b-4a91-8edf-681e55b55bfd
@@ -1345,10 +1306,6 @@ version = "17.4.0+0"
 # ╠═3a3da57c-4783-4e79-b19a-a50633419eb1
 # ╟─8ea1a7a5-b515-494b-86b8-584c8243d7f1
 # ╠═13adb9f5-ded7-4674-b789-60bdca8bccf0
-# ╟─3a8bab18-14e7-4c61-a304-390ae1e5d535
-# ╠═8fb0fb4d-3b6c-4e76-907f-7d03d7ac0601
-# ╟─9bbf0909-218b-4ba8-bd49-93d839fd1c35
-# ╠═b87dbbf3-2326-48fb-8d45-9a407ca2ed82
 # ╟─74e7866b-fdf5-49af-aeda-e02f67047b74
 # ╠═35f58253-d264-4da2-aa09-d48f306984b1
 # ╟─a9664398-0ca3-40d7-92b7-5b11796a5c1b
@@ -1365,8 +1322,6 @@ version = "17.4.0+0"
 # ╠═7277f686-c0ca-4304-bffc-aee8bef1eba7
 # ╟─7cf3e0fd-355a-4b80-b6ab-4903c318a71f
 # ╠═b1d28290-61eb-482d-9279-6f8f616c3cf5
-# ╟─c22200b8-d57e-4960-8714-c51102cbccd7
-# ╠═1d30b557-afbe-4527-84d7-d742f2abdb93
 # ╟─a2f8c882-6fed-48f9-a554-c69e354ba0c0
 # ╠═753c3b4c-861b-4787-b304-b4d3b1b84be0
 # ╟─5c6e9ace-de55-4b45-84f8-876e7c04f664

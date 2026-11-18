@@ -42,9 +42,9 @@ PowerModelsONM depends on several other PowerModels(...) packages from the Infra
 
 PowerModelsONM utilizes PowerModelsProtection to perform fault analysis after optimizing the switch configurations and dispatch by using an unbalanced IVR formuation.
 
-### PowerModelsStability
+### Small signal stability (removed)
 
-[PowerModelsStability.jl](https://github.com/lanl-ansi/PowerModelsStability.jl) is a Julia/JuMP-based package for performing small signal stability analysis on distribution data sets (via extensions to [PowerModelsDistribution.jl](https://github.com/lanl-ansi/PowerModelsDistribution.jl)). Currently the capabilities of this tool are somewhat limited, as they are under active research and development; this capability is completely novel in this context. PowerModelsONM uses PowerModelsStability to report whether the resulting network configurations are small signal stable at each timestep.
+Earlier versions of PowerModelsONM reported whether the network configuration at each timestep was small signal stable, using [PowerModelsStability.jl](https://github.com/lanl-ansi/PowerModelsStability.jl). That analysis ran after the optimization and did not affect it, so it has been removed. PowerModelsStability is no longer actively maintained, and its latest release only supports PowerModelsDistribution v0.16. If you still need small signal stability results, use PowerModelsStability directly on the per-timestep networks produced by PowerModelsONM. The `inverters` input and the `stability-*` settings are ignored with a warning, and `"stability"` in `options/problem/skip` is accepted but has no effect.
 
 ## License
 

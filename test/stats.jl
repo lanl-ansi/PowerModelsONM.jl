@@ -3,7 +3,6 @@
         "network" => "../test/data/ieee13_feeder.dss",
         "events" => "../test/data/ieee13_events.json",
         "settings" => "../test/data/ieee13_settings.json",
-        "inverters" => "../test/data/ieee13_inverters.json",
         "faults" => "../test/data/ieee13_faults.json",
     )
 
@@ -63,10 +62,6 @@
         @test all(isapprox.(args["output_data"]["Generator profiles"]["Energy storage (kW)"], [75.0, 20.0016, 6.00045, -22.4995, -17.9993, -0.499176, 210.0, 180.0]; atol=1e0))
         @test all(isapprox.(args["output_data"]["Generator profiles"]["Solar DG (kW)"], [0.0, 0.0, 14.0, 35.0, 28.0, 10.5, 0.0, 0.0]; atol=1e0))
         @test all(isapprox.(args["output_data"]["Generator profiles"]["Grid mix (kW)"], [2300.74, 2385.57, 2391.12, 2913.88, 2913.88, 2740.06, 2740.06, 2565.76]; atol=1e1))
-    end
-
-    @testset "test stability stats" begin
-        @test all(.!args["output_data"]["Small signal stable"])
     end
 
     @testset "test missing events arg" begin

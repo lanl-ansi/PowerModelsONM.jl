@@ -2,9 +2,6 @@
     events = JSON.parsefile("../test/data/ieee13_events.json")
     @test validate_events(events)
 
-    inverters = JSON.parsefile("../test/data/ieee13_inverters.json")
-    @test validate_inverters(inverters)
-
     settings = JSON.parsefile("../test/data/ieee13_settings.json")
     @test validate_settings(settings)
 

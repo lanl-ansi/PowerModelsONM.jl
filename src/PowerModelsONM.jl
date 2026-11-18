@@ -22,7 +22,6 @@ module PowerModelsONM
     import PowerModelsDistribution: AbstractUnbalancedPowerModel, ACRUPowerModel, ACPUPowerModel, IVRUPowerModel, LPUBFDiagPowerModel, LinDist3FlowPowerModel, NFAUPowerModel, FOTRUPowerModel, FOTPUPowerModel
 
     import PowerModelsProtection as PMP
-    import PowerModelsStability as PMS
 
     # Optimization Modeling
     import JuMP
@@ -103,7 +102,6 @@ module PowerModelsONM
     include("io/events.jl")
     include("io/faults.jl")
     include("io/graphml.jl")
-    include("io/inverters.jl")
     include("io/json.jl")
     include("io/network.jl")
     include("io/output.jl")
@@ -118,7 +116,6 @@ module PowerModelsONM
     include("prob/partitions.jl")
     include("prob/mld_block_robust.jl")
     include("prob/robust_evaluation.jl")
-    include("prob/stability.jl")
     include("prob/switch.jl")
 
     include("stats/analysis.jl")
@@ -126,7 +123,6 @@ module PowerModelsONM
     include("stats/dispatch.jl")
     include("stats/fault.jl")
     include("stats/microgrid.jl")
-    include("stats/stability.jl")
     include("stats/utils.jl")
 
     include("cli/arguments.jl")

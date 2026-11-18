@@ -33,6 +33,8 @@ function parse_settings!(args::Dict{String,<:Any}; apply::Bool=true, validate::B
             correct_deprecated_runtime_args!(args, settings)
 
             args["settings"] = settings
+        elseif isa(args["settings"], Dict)
+            _remove_stability_settings!(args["settings"])
         end
     else
         args["settings"] = build_default_settings()
@@ -252,7 +254,32 @@ function parse_settings(settings_file::String; validate::Bool=true, correct::Boo
 
     correct && correct_settings!(user_settings)
 
+    _remove_stability_settings!(user_settings)
+
     return recursive_merge(build_default_settings(), user_settings)
+end
+
+
+"""
+    _remove_stability_settings!(settings::Dict{String,<:Any})::Dict{String,<:Any}
+
+Removes settings used by the removed small-signal stability analysis from `settings`, in-place, and warns the user if
+any were found. `"stability"` in `options/problem/skip` is still accepted and has no effect.
+"""
+function _remove_stability_settings!(settings::Dict{String,<:Any})::Dict{String,<:Any}
+    problem = get(get(settings, "options", Dict{String,Any}()), "problem", Dict{String,Any}())
+
+    removed = String[]
+    for key in ["stability-solver", "stability-formulation", "concurrent-stability-studies"]
+        if haskey(problem, key)
+            delete!(problem, key)
+            push!(removed, "options/problem/$key")
+        end
+    end
+
+    !isempty(removed) && _warn_stability_removed(removed)
+
+    return settings
 end
 
 

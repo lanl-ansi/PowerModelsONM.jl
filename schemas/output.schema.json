@@ -72,7 +72,6 @@
         "settings": "../test/data/ieee13_settings.json",
         "voltage-lower-bound": 0.8,
         "quiet": true,
-        "inverters": "../test/data/ieee13_inverters.json",
         "max-switch-actions": 1,
         "voltage-upper-bound": 1.2
       },
@@ -113,7 +112,6 @@
           }
         }
       ],
-      "Small signal stable": [false, false, false],
       "Load served": {
         "Bonus load via microgrid (%)": [0, 0, 0],
         "Feeder load (%)": [85.8, 91.2, 96.7],
@@ -188,9 +186,6 @@
     },
     "Fault currents": {
       "$ref": "./output-fault_currents.schema.json"
-    },
-    "Small signal stable": {
-      "$ref": "./output-small_signal.schema.json"
     },
     "Switch changes": {
       "$ref": "./output-switch_changes.schema.json"

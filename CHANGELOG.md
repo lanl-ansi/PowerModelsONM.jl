@@ -2,7 +2,10 @@
 
 ## staged
 
-- none
+- Removed small signal stability analysis and the PowerModelsStability dependency (breaking). PowerModelsStability is no longer actively maintained and only supports PowerModelsDistribution v0.16, and the analysis did not feed back into the optimization
+  - Removed `run_stability_analysis!`, `run_stability_analysis`, `add_inverters!`, `parse_inverters`, `validate_inverters`, `get_timestep_stability!`, and `get_timestep_stability`
+  - Removed the `inverters` runtime argument (`-i`/`--inverters`), the inverters input schema, the `"Small signal stable"` output field, and the `stability-solver`, `stability-formulation`, and `concurrent-stability-studies` settings
+  - The `inverters` argument and the removed settings are ignored with a warning that points to PowerModelsStability.jl. `"stability"` in `options/problem/skip` is still accepted but has no effect
 
 ## v4.0.0
 
