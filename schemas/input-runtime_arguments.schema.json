@@ -18,7 +18,6 @@
       "gurobi": false,
       "settings": "../test/data/ieee13_settings.json",
       "faults": "../test/data/ieee13_faults.json",
-      "inverters": "../test/data/ieee13_inverters.json",
       "events": "../test/data/ieee13_events.json",
       "log-level": "error",
       "opt-disp-formulation": "acr"
@@ -41,10 +40,6 @@
     "faults": {
       "type": "string",
       "description": "The path to the faults input file (JSON format)"
-    },
-    "inverters": {
-      "type": "string",
-      "description": "The path to the inverters input file (JSON format)"
     },
     "output": {
       "type": "string",
@@ -93,7 +88,7 @@
     },
     "nprocs": {
       "type": "integer",
-      "description": "Number of processors to utilize for parallel computations (Fault studies and Stability Analysis)",
+      "description": "Number of processors to utilize for parallel computations (Fault studies)",
       "default": 1
     },
     "pretty-print": {

@@ -11,7 +11,6 @@ parse_events!
 parse_settings
 parse_settings!
 parse_faults
-parse_inverters
 ```
 
 ## Builders

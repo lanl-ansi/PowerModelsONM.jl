@@ -268,8 +268,7 @@
       "operations-algorithm": "rolling-horizon",
       "dispatch-solver": "nlp_solver",
       "operations-solver": "mip_solver",
-      "concurrent-fault-studies": true,
-      "concurrent-stability-studies": true
+      "concurrent-fault-studies": true
     },
     "data": {
       "fix-small-numbers": false,

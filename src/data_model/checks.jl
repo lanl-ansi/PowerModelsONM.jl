@@ -41,14 +41,6 @@ validate_events(data::Vector)::Bool = _validate_against_schema(data, "input-even
 
 
 """
-    validate_inverters(data::Dict)::Bool
-
-Validates inverter `data` against models/inverters schema
-"""
-validate_inverters(data::Dict)::Bool = _validate_against_schema(data, "input-inverters")
-
-
-"""
     validate_faults(data::Dict)::Bool
 
 Validates fault input `data` against models/faults schema

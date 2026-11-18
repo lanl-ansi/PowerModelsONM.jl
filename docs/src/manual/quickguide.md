@@ -2,7 +2,7 @@
 
 Once PowerModelsONM is [installed](@ref Installation-Guide), To operate PowerModelsONM several other things are required, at a minimum, a distribution data set in .dss format that includes timeseries data (e.g., LoadShapes defined and assigned to some Loads or DER assets).
 
-The easiest way to use PowerModelsONM's complete algorithm that includes optimal switching, optimal dispatch, fault studies and stability analysis, is to use the command line interface:
+The easiest way to use PowerModelsONM's complete algorithm that includes optimal switching, optimal dispatch, and fault studies, is to use the command line interface:
 
 ```bash
 julia --project=path/to/PowerModelsONM path/to/PowerModelsONM/cli/entrypoint.jl -n "path/to/network.dss" -o "path/to/output.json"

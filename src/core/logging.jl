@@ -66,7 +66,6 @@ function set_log_level!(level::Symbol)
         (PowerModelsONM, loglevel),
         (PMD, loglevel),
         (PMP, loglevel),
-        (PMS, loglevel),
         (Juniper, loglevel),
         (JSONSchema, Logging.Warn)
     ]

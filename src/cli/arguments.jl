@@ -20,7 +20,7 @@ function parse_commandline(; validate::Bool=true)::Dict{String,Any}
 
     rt_args = []
     for (prop_name,prop) in runtime_args_schema.data["properties"]
-        if prop_name ∈ ["network", "settings", "events", "faults", "inverters", "output", "quiet", "verbose", "debug", "gurobi"]
+        if prop_name ∈ ["network", "settings", "events", "faults", "output", "quiet", "verbose", "debug", "gurobi"]
             arg_name = ["--$prop_name", "-$(prop_name[1])"]
         else
             arg_name = "--$prop_name"
@@ -61,7 +61,7 @@ function parse_commandline(; validate::Bool=true)::Dict{String,Any}
 
     ArgParse.add_arg_table!(s, rt_args...)
 
-    arguments = ArgParse.parse_args(s)
+    arguments = ArgParse.parse_args(_remove_inverters_cli_arg(ARGS), s)
 
     for arg in collect(keys(arguments))
         if isnothing(arguments[arg]) || isempty(arguments[arg])
@@ -112,6 +112,12 @@ function sanitize_args!(args::Dict{String,<:Any})::Dict{String,Any}
         end
     end
 
+    if haskey(args, "inverters")
+        _warn_stability_removed(["inverters"])
+        delete!(args, "inverters")
+        delete!(args["raw_args"], "inverters")
+    end
+
     for (arg,v) in collect(args)
         if arg ∈ keys(deprecated_args)
             if !ismissing(deprecated_args[arg]["default"]) && v == deprecated_args[arg]["default"]
@@ -123,6 +129,56 @@ function sanitize_args!(args::Dict{String,<:Any})::Dict{String,Any}
     end
 
     return args
+end
+
+
+"""
+    _warn_stability_removed(inputs::Vector{String})
+
+Warns that the given `inputs` were ignored because small-signal stability analysis was removed from PowerModelsONM,
+and points the user to PowerModelsStability.jl
+"""
+function _warn_stability_removed(inputs::Vector{String})
+    @warn """
+    Ignoring $(join(["'$(input)'" for input in inputs], ", ")): small-signal stability analysis has been removed from PowerModelsONM.
+
+    That feature was a thin wrapper around PowerModelsStability.jl (https://github.com/lanl-ansi/PowerModelsStability.jl).
+    PowerModelsStability is no longer actively maintained, and its latest release only supports PowerModelsDistribution v0.16.
+
+    If you still need small-signal stability results, run PowerModelsStability directly on the per-timestep networks from ONM:
+    add your inverters with `PowerModelsStability.add_inverters!`, then call `PowerModelsStability.transform_data_model`,
+    `PowerModelsStability.solve_mc_opf`, and `PowerModelsStability.get_global_stability_matrix`, and check whether every
+    eigenvalue of that matrix has a negative real part.
+    """
+end
+
+
+"""
+    _remove_inverters_cli_arg(cli_args::Vector{String})::Vector{String}
+
+Removes the `-i`/`--inverters` command line argument (and its value), which was used for the removed small-signal stability
+analysis, warning the user via `_warn_stability_removed`
+"""
+function _remove_inverters_cli_arg(cli_args::Vector{String})::Vector{String}
+    filtered_args = String[]
+    found = false
+    skip_next = false
+    for arg in cli_args
+        if skip_next
+            skip_next = false
+        elseif arg ∈ ["-i", "--inverters"]
+            found = true
+            skip_next = true
+        elseif startswith(arg, "--inverters=") || (startswith(arg, "-i") && !startswith(arg, "--"))
+            found = true
+        else
+            push!(filtered_args, arg)
+        end
+    end
+
+    found && _warn_stability_removed(["--inverters"])
+
+    return filtered_args
 end
 
 

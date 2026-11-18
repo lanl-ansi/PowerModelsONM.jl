@@ -259,17 +259,14 @@
       "disable-microgrid-expansion": false
     },
     "problem": {
-      "stability-formulation": "ACRUPowerModel",
       "operations-formulation": "LPUBFDiagPowerModel",
       "operations-algorithm": "full-lookahead",
       "operations-solver": "mip_solver",
       "fault-studies-solver": "nlp_solver",
-      "concurrent-stability-studies": true,
       "dispatch-formulation": "LPUBFDiagPowerModel",
       "dispatch-solver": "nlp_solver",
       "concurrent-fault-studies": true,
-      "operations-problem-type": "block",
-      "stability-solver": "nlp_solver"
+      "operations-problem-type": "block"
     },
     "data": {
       "time-elapsed": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],

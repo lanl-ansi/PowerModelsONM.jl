@@ -13,7 +13,6 @@ prepare_data!
 build_solver_instances!
 optimize_switches!
 optimize_dispatch!
-run_stability_analysis!
 run_fault_studies!
 analyze_results!
 ```

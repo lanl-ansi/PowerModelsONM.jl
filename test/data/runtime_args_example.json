@@ -3,7 +3,6 @@
   "gurobi": false,
   "settings": "../test/data/ieee13_settings.json",
   "faults": "../test/data/ieee13_faults.json",
-  "inverters": "../test/data/ieee13_inverters.json",
   "events": "../test/data/ieee13_events.json",
   "quiet": true,
   "opt-disp-formulation": "acr"

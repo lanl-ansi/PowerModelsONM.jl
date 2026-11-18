@@ -24,12 +24,6 @@ run_fault_studies
 run_fault_study
 ```
 
-## Stability Analysis
-
-```@docs
-run_stability_analysis
-```
-
 ## Optimization solvers
 
 ```@docs

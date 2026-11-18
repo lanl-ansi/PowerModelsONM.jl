@@ -17,3 +17,5 @@ debug/
 *.dylib
 
 .stoplight/*
+CLAUDE.md
+*plan.md

@@ -244,30 +244,13 @@
           "enum": ["nlp_solver"],
           "default": "nlp_solver"
         },
-        "stability-solver": {
-          "description": "Choice for stability analysis optimization solver",
-          "type": "string",
-          "enum": ["nlp_solver"],
-          "default": "nlp_solver"
-        },
-        "stability-formulation": {
-          "description": "Choice for stability analysis formulation",
-          "type": "string",
-          "enum": ["acp", "acr", "ACRUPowerModel", "ACPUPowerModel"],
-          "default": "ACRUPowerModel"
-        },
         "concurrent-fault-studies": {
           "description": "Flag to run the fault studies concurrently (in parallel, using Distributed)",
           "type": "boolean",
           "default": true
         },
-        "concurrent-stability-studies": {
-          "description": "Flag to run the stability studies concurrently (in parallel, using Distributed)",
-          "type": "boolean",
-          "default": true
-        },
         "skip": {
-          "description": "List of optimizations or studies to skip, when running using `entrypoint` function",
+          "description": "List of optimizations or studies to skip, when running using `entrypoint` function. `stability` is accepted for backwards compatibility but has no effect, because small-signal stability analysis was removed from PowerModelsONM",
           "type": "array",
           "items": {
             "type": "string",

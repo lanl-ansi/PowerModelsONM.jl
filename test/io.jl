@@ -219,8 +219,22 @@
         @test all(nw["time_elapsed"] == 0.1667 for nw in values(_network["nw"]))
     end
 
-    @testset "test inverters parsing" begin
-        inverters = parse_inverters("../test/data/ieee13_inverters.json")
+    @testset "test removed stability settings are dropped with a warning" begin
+        settings = Dict{String,Any}(
+            "options" => Dict{String,Any}(
+                "problem" => Dict{String,Any}(
+                    "stability-solver" => "nlp_solver",
+                    "concurrent-stability-studies" => true,
+                    "skip" => ["stability"],
+                )
+            )
+        )
+        args = Dict{String,Any}("settings" => settings)
+
+        @test_logs (:warn, r"small-signal stability analysis has been removed") match_mode=:any parse_settings!(args; apply=false)
+        @test !haskey(args["settings"]["options"]["problem"], "stability-solver")
+        @test !haskey(args["settings"]["options"]["problem"], "concurrent-stability-studies")
+        @test args["settings"]["options"]["problem"]["skip"] == ["stability"]
     end
 
     @testset "test faults parsing" begin

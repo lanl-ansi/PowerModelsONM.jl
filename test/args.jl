@@ -75,7 +75,6 @@
         "network" => "../test/data/ieee13_feeder.dss",
         "output" => "../test/data/test_output.json",
         "faults" => "../test/data/ieee13_faults.json",
-        "inverters" => "../test/data/ieee13_inverters.json",
         "settings" => "../test/data/ieee13_settings.json",
         "events" => "../test/data/ieee13_events.json",
         "log-level" => "debug",
@@ -90,4 +89,19 @@
         "disable-inverter-constraint" => true,
         "nprocs" => 1,
     )
+end
+
+@testset "test removed inverters argument is dropped with a warning" begin
+    args = Dict{String,Any}(
+        "network" => "../test/data/ieee13_feeder.dss",
+        "inverters" => "../test/data/ieee13_inverters.json",
+    )
+
+    @test_logs (:warn, r"small-signal stability analysis has been removed") match_mode=:any sanitize_args!(args)
+    @test !haskey(args, "inverters")
+    @test !haskey(args["raw_args"], "inverters")
+
+    @test_logs (:warn, r"small-signal stability analysis has been removed") match_mode=:any begin
+        @test PowerModelsONM._remove_inverters_cli_arg(String["-n", "net.dss", "-i", "inv.json", "--inverters=inv.json", "-o", "out.json"]) == String["-n", "net.dss", "-o", "out.json"]
+    end
 end
