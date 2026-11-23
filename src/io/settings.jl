@@ -74,18 +74,21 @@ end
 
 
 """
-    init_settings_default!(settings::T, schema::T)::T where T <: Dict{String,Any}
+    init_settings_default!(settings::Dict{String,Any}, schema::AbstractDict)::Dict{String,Any}
 
 Helper function to walk through the settings schema to initalize the default set of settings.
+
+`schema` is an `AbstractDict` because `JSONSchema` reads referenced schema files itself,
+which yields `JSON.Object`s rather than `Dict`s with JSON.jl v1.
 """
-function init_settings_default!(settings::T, schema::T)::T where T <: Dict{String,Any}
+function init_settings_default!(settings::Dict{String,Any}, schema::AbstractDict)::Dict{String,Any}
     if haskey(schema, "properties")
         for (prop_name,props) in schema["properties"]
             if !get(props, "deprecated", false)
-                if isa(props, Dict) && haskey(props, "properties")
+                if isa(props, AbstractDict) && haskey(props, "properties")
                     settings[prop_name] = Dict{String,Any}()
                     init_settings_default!(settings[prop_name], props)
-                elseif isa(props, Dict) && haskey(props, "\$ref")
+                elseif isa(props, AbstractDict) && haskey(props, "\$ref")
                     settings[prop_name] = Dict{String,Any}()
                     init_settings_default!(settings[prop_name], props["\$ref"])
                 else
@@ -112,16 +115,19 @@ end
 
 
 """
-    get_deprecated_properties(schema::T; deprecated_properties::Union{T,Missing}=missing)::T where T <: Dict{String,Any}
+    get_deprecated_properties(schema::AbstractDict; deprecated_properties::Union{Dict{String,Any},Missing}=missing)::Dict{String,Any}
 
 Recursive function to walk through a schema to discover the deprecated properties
+
+`schema` is an `AbstractDict` because `JSONSchema` reads referenced schema files itself,
+which yields `JSON.Object`s rather than `Dict`s with JSON.jl v1.
 """
-function get_deprecated_properties(schema::T; deprecated_properties::Union{T,Missing}=missing)::T where T <: Dict{String,Any}
+function get_deprecated_properties(schema::AbstractDict; deprecated_properties::Union{Dict{String,Any},Missing}=missing)::Dict{String,Any}
     if ismissing(deprecated_properties)
-        deprecated_properties = T()
+        deprecated_properties = Dict{String,Any}()
     end
 
-    for (prop_name, prop) in get(schema, "properties", T())
+    for (prop_name, prop) in get(schema, "properties", Dict{String,Any}())
         if get(prop, "deprecated", false)
             deprecated_properties[prop_name] = []
             rmatch = match(r"deprecated:\s*{*([\w\/\_\-\,]+)}*", get(prop,"description",""))
@@ -246,7 +252,7 @@ Parses network settings JSON file.
 If `validate=true` (default), the parsed data structure will be validated against the latest [Settings Schema](@ref Settings-Schema).
 """
 function parse_settings(settings_file::String; validate::Bool=true, correct::Bool=true)::Dict{String,Any}
-    user_settings = JSON.parsefile(settings_file)
+    user_settings = JSON.parsefile(settings_file; dicttype=Dict{String,Any})
 
     if validate && !validate_settings(user_settings)
         error("'settings' file could not be validated:\n$(evaluate_settings(user_settings))")

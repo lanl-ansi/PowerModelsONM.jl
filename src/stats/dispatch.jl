@@ -26,7 +26,7 @@ get_timestep_voltage_statistics(::Dict{String,<:Any}, ::String) = Dict{String,Ve
 """
     get_voltage_min_mean_max(
         solution::Dict{String,<:Any},
-        data::Dict{String,<:Any};
+        data::Union{Dict{String,<:Any},PMD.DistributionModel};
         make_per_unit::Bool=true
     )::Tuple{Real,Real,Real}
 
@@ -38,7 +38,7 @@ If `make_per_unit` (default: true), will return voltage statistics in per-unit r
 If `make_per_unit` is false, and there are different voltage bases across the network, the statistics will
 not make sense.
 """
-function get_voltage_min_mean_max(solution::Dict{String,<:Any}, data::Dict{String,<:Any}; make_per_unit::Bool=true)::Tuple{Real,Real,Real}
+function get_voltage_min_mean_max(solution::Dict{String,<:Any}, data::Union{Dict{String,<:Any},PMD.DistributionModel}; make_per_unit::Bool=true)::Tuple{Real,Real,Real}
     if make_per_unit
         bus_vbase, line_vbase = PMD.calc_voltage_bases(data, data["settings"]["vbases_default"])
         voltages = [get(bus, "vm", zeros(length(data["bus"][id]["terminals"]))) ./ bus_vbase[id] for (id,bus) in get(solution, "bus", Dict())]

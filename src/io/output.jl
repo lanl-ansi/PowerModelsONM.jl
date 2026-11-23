@@ -12,11 +12,11 @@ const _json_schema_type_conversions = Dict{Union{Missing,String},Type}(
 
 
 """
-    _recursive_initialize_output_from_schema!(output::Dict{String,<:Any}, schema_properties::Dict{String,<:Any})
+    _recursive_initialize_output_from_schema!(output::Dict{String,<:Any}, schema_properties::AbstractDict)
 
 Helper function to initialize the output data structure from the output schema
 """
-function _recursive_initialize_output_from_schema!(output::Dict{String,<:Any}, schema_properties::Dict{String,<:Any})
+function _recursive_initialize_output_from_schema!(output::Dict{String,<:Any}, schema_properties::AbstractDict)
     for (prop_name,prop) in schema_properties
         if haskey(prop, "\$ref")
             _prop = prop["\$ref"]

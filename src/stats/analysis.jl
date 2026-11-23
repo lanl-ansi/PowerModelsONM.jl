@@ -4,7 +4,7 @@
 Analytics for determining when microgrids network from output file
 """
 function get_timestep_microgrid_networks_from_output_file(output_file::String, network::Dict{String,<:Any})::Vector{Vector{Vector{String}}}
-    output = JSON.parsefile(output_file)
+    output = JSON.parsefile(output_file; dicttype=Dict{String,Any})
 
     actions = get(output, "Device action timestep", [])
 

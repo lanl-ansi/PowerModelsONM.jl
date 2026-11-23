@@ -156,7 +156,7 @@ function run_onm_ravens(ravens_file,
             "GRID_FOLLOWING" => GRID_FOLLOWING
         )
 
-        result_math = JSON.parsefile(onm_results_file)
+        result_math = JSON.parsefile(onm_results_file; dicttype=Dict{String,Any})
 
         # Correct MATH result (convert strings to ONM values)
         if multinetwork
@@ -222,7 +222,7 @@ function run_onm_ravens(ravens_file,
 
                     fault_results = ravens_run_pmp(nw_upd_sols[nw])
                 else
-                    data_fault = JSON.parsefile(fault_network_file)
+                    data_fault = JSON.parsefile(fault_network_file; dicttype=Dict{String,Any})
                     fault_results = ravens_run_pmp(data_fault, measured_devices)
                 end
 

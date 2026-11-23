@@ -1,9 +1,9 @@
 """
-    _update_switch_settings!(data::Dict{String,<:Any}, solution::Dict{String,<:Any})
+    _update_switch_settings!(data::Union{Dict{String,<:Any},PMD.DistributionModel}, solution::Dict{String,<:Any})
 
 Helper function to update switch settings from a solution, for the rolling horizon algorithm.
 """
-function _update_switch_settings!(data::Dict{String,<:Any}, solution::Dict{String,<:Any})
+function _update_switch_settings!(data::Union{Dict{String,<:Any},PMD.DistributionModel}, solution::Dict{String,<:Any})
     for (id, switch) in get(solution, "switch", Dict{String,Any}())
         if haskey(switch, "state")
             data["switch"][id]["state"] = switch["state"]
@@ -13,11 +13,11 @@ end
 
 
 """
-    _update_inverter_settings!(data::Dict{String,<:Any}, sol::Dict{String,<:Any})
+    _update_inverter_settings!(data::Union{Dict{String,<:Any},PMD.DistributionModel}, sol::Dict{String,<:Any})
 
 Helper function to update inverter settings from a solution, for the mld robust problem to check for feasibility.
 """
-function _update_inverter_settings!(data::Dict{String,<:Any}, sol::Dict{String,<:Any})
+function _update_inverter_settings!(data::Union{Dict{String,<:Any},PMD.DistributionModel}, sol::Dict{String,<:Any})
     for t in ["generator", "storage", "voltage_source", "solar"]
         if haskey(sol, t)
             for (i,obj) in sol[t]
@@ -31,11 +31,11 @@ end
 
 
 """
-    _update_storage_capacity!(data::Dict{String,<:Any}, solution::Dict{String,<:Any})
+    _update_storage_capacity!(data::Union{Dict{String,<:Any},PMD.DistributionModel}, solution::Dict{String,<:Any})
 
 Helper function to update storage capacity for the next subnetwork based on a solution, for the rolling horizon algorithm.
 """
-function _update_storage_capacity!(data::Dict{String,<:Any}, solution::Dict{String,<:Any})
+function _update_storage_capacity!(data::Union{Dict{String,<:Any},PMD.DistributionModel}, solution::Dict{String,<:Any})
     for (i, strg) in get(solution, "storage", Dict())
         data["storage"][i]["_energy"] = deepcopy(data["storage"][i]["energy"])
         data["storage"][i]["energy"] = strg["se"]

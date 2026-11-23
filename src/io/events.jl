@@ -55,7 +55,7 @@ Parses an events file into a raw events data structure
 If `validate=true` (default), the parsed data structure will be validated against the latest [Events Schema](@ref Events-Schema).
 """
 function parse_events(events_file::String; validate::Bool=true)::Vector{Dict{String,Any}}
-    events = Vector{Dict{String,Any}}(JSON.parsefile(events_file))
+    events = Vector{Dict{String,Any}}(JSON.parsefile(events_file; dicttype=Dict{String,Any}))
 
     if validate && !validate_events(events)
         error("'events' file could not be validated")
